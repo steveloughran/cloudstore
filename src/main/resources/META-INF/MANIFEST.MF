@@ -1,0 +1,2 @@
+Main-Class-0: org.apache.hadoop.tools.cloudup.Cloudup
+

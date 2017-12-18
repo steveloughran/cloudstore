@@ -1,0 +1,247 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>org.apache.hadoop.tools</groupId>
+  <artifactId>cloudstore</artifactId>
+  <version>2.8</version>
+  <packaging>jar</packaging>
+
+  <name>cloudstore</name>
+  <url>https://hadoop.apache.org</url>
+
+
+  <description>
+    Cloud Store operations, targeting Hadoop 2.9 but supporting backporting to older versions
+    for testing and diagnostics.
+
+
+  </description>
+
+  <properties>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <javac.version>1.7</javac.version>
+    <enforced.java.version>${javac.version}</enforced.java.version>
+
+    <hadoop.version>2.8.2</hadoop.version>
+
+    <test.build.dir>${project.build.directory}/test-dir</test.build.dir>
+    <test.build.data>${test.build.dir}</test.build.data>
+
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.11</version>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-log4j12</artifactId>
+      <version>1.7.16</version>
+    </dependency>
+    <dependency>
+      <groupId>log4j</groupId>
+      <artifactId>log4j</artifactId>
+      <version>1.2.17</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-client</artifactId>
+      <version>${hadoop.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-common</artifactId>
+      <version>${hadoop.version}</version>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-common</artifactId>
+      <version>${hadoop.version}</version>
+      <type>test-jar</type>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-aws</artifactId>
+      <version>${hadoop.version}</version>
+      <scope>provided</scope>
+    </dependency>
+
+<!--
+
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-aws</artifactId>
+      <version>${hadoop.version}</version>
+      <type>test-jar</type>
+      <scope>test</scope>
+    </dependency>
+
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-azure</artifactId>
+      <version>${hadoop.version}</version>
+      <type>test-jar</type>
+      <scope>test</scope>
+    </dependency>
+-->
+
+  </dependencies>
+
+
+  <profiles>
+    <profile>
+      <id>branch-2.8</id>
+      <activation>
+        <property>
+          <name>branch-2.8</name>
+        </property>
+      </activation>
+      <properties>
+        <hadoop.version>2.8.3-SNAPSHOT</hadoop.version>
+      </properties>
+    </profile>
+
+    <profile>
+      <id>branch-2</id>
+      <activation>
+        <property>
+          <name>branch-2</name>
+        </property>
+      </activation>
+      <properties>
+        <hadoop.version>2.10.0-SNAPSHOT</hadoop.version>
+      </properties>
+    </profile>
+
+    <profile>
+      <id>hadoop-2.8</id>
+      <activation>
+        <property>
+          <name>hadoop-2.8</name>
+        </property>
+      </activation>
+      <properties>
+        <hadoop.version>2.8.1</hadoop.version>
+      </properties>
+    </profile>
+
+    <profile>
+      <id>hadoop-2.9</id>
+      <activation>
+        <property>
+          <name>hadoop-2.9</name>
+        </property>
+      </activation>
+      <properties>
+        <hadoop.version>2.9.0</hadoop.version>
+      </properties>
+    </profile>
+
+    <profile>
+      <id>trunk</id>
+      <activation>
+        <property>
+          <name>trunk</name>
+        </property>
+      </activation>
+      <properties>
+        <hadoop.version>3.1.0-SNAPSHOT</hadoop.version>
+      </properties>
+    </profile>
+
+    <profile>
+      <id>hadoop-2.7</id>
+      <activation>
+        <property>
+          <name>hadoop-2.7</name>
+        </property>
+      </activation>
+      <properties>
+        <hadoop.version>2.7.3</hadoop.version>
+      </properties>
+    </profile>
+
+    <profile>
+      <id>hdp</id>
+      <activation>
+        <property>
+          <name>hdp</name>
+        </property>
+      </activation>
+      <properties>
+        <hadoop.version>2.7.3.2.6.3.0-SNAPSHOT</hadoop.version>
+      </properties>
+    </profile>
+
+
+  </profiles>
+
+  <build>
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-compiler-plugin</artifactId>
+          <version>3.1</version>
+          <configuration>
+            <source>${javac.version}</source>
+            <target>${javac.version}</target>
+            <useIncrementalCompilation>false</useIncrementalCompilation>
+          </configuration>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-jar-plugin</artifactId>
+          <version>3.0.2</version>
+          <configuration>
+            <archive>
+              <manifestFile>src/main/resources/META-INF/MANIFEST.MF</manifestFile>
+            </archive>
+          </configuration>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-failsafe-plugin</artifactId>
+          <version>2.17</version>
+          <executions>
+            <execution>
+              <id>default-integration-test</id>
+              <goals>
+                <goal>integration-test</goal>
+                <goal>verify</goal>
+              </goals>
+              <configuration>
+                <forkCount>1</forkCount>
+                <reuseForks>false</reuseForks>
+<!--                <argLine>${maven-surefire-plugin.argLine} -DminiClusterDedicatedDirs=true</argLine>-->
+                <forkedProcessTimeoutInSeconds>600</forkedProcessTimeoutInSeconds>
+<!--
+                <systemPropertyVariables>
+                </systemPropertyVariables>
+-->
+                <includes>
+                  <include>**/ITest*.java</include>
+                </includes>
+              </configuration>
+            </execution>
+          </executions>
+        </plugin>
+
+      </plugins>
+
+
+    </pluginManagement>
+  </build>
+</project>
