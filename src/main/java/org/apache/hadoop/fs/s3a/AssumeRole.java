@@ -18,7 +18,10 @@
 
 package org.apache.hadoop.fs.s3a;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -31,7 +34,6 @@ import com.amazonaws.services.securitytoken.model.AssumeRoleRequest;
 import com.amazonaws.services.securitytoken.model.AssumeRoleResult;
 import com.amazonaws.services.securitytoken.model.Credentials;
 
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.s3native.S3xLoginHelper;
 import org.apache.hadoop.fs.shell.CommandFormat;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
@@ -41,6 +43,9 @@ import org.apache.hadoop.util.ToolRunner;
 import static org.apache.hadoop.fs.s3a.Constants.*;
 
 public class AssumeRole extends StoreEntryPoint {
+
+  private static final String PROPERTY_FORMAT
+      = "<property><name>%s</name><value>%s</value></property>";
 
   CommandFormat commandFormat = new CommandFormat(2, 3);
 
@@ -90,9 +95,19 @@ public class AssumeRole extends StoreEntryPoint {
 
     Map<String, String> map = assumeRole(role, fs);
     TreeSet<String> s = new TreeSet<>(map.keySet());
-    for (String k : s) {
-      println("<property><name>%s</name><value>%s</value></property>",
-          k, map.get(k));
+
+    if (!destfile.isEmpty()) {
+      File f = new File(destfile).getAbsoluteFile();
+      println("Saving credentials to property file %s", f.getAbsolutePath());
+      try(PrintStream o = new PrintStream(new FileOutputStream(destfile))) {
+        for (String k : s) {
+          o.println(String.format(PROPERTY_FORMAT, k, map.get(k)));
+        }
+      }
+    } else {
+      for (String k : s) {
+        println(PROPERTY_FORMAT, k, map.get(k));
+      }
     }
     return 0;
   }
