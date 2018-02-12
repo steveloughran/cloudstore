@@ -1,2 +1,2 @@
-Main-Class-0: org.apache.hadoop.tools.cloudup.Cloudup
+Main-Class: org.apache.hadoop.fs.store.diag.StoreDiag
 

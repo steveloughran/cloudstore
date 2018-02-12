@@ -18,19 +18,25 @@
 
 package org.apache.hadoop.fs.store.diag;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.net.URI;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 import java.util.TreeSet;
 import java.util.UUID;
 
+import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
@@ -39,6 +45,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.shell.CommandFormat;
 import org.apache.hadoop.fs.store.DurationInfo;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
+import org.apache.hadoop.io.IOUtils;
 import org.apache.hadoop.util.ExitUtil;
 import org.apache.hadoop.util.ToolRunner;
 
@@ -70,13 +77,17 @@ public class StoreDiag extends StoreEntryPoint {
   private void printJVMOptions() {
     heading("System Properties");
     Properties sysProps = System.getProperties();
-    TreeSet<String> sorted = new TreeSet<>();
-    for (Object k : sysProps.keySet()) {
-      sorted.add(k.toString());
-    }
-    for (String s : sorted) {
+    for (String s : sortKeys(sysProps.keySet())) {
       println("%s = \"%s\"", s, sysProps.getProperty(s));
     }
+  }
+
+  private TreeSet<String> sortKeys(final Iterable<?> keySet) {
+    TreeSet<String> sorted = new TreeSet<>();
+    for (Object k : keySet) {
+      sorted.add(k.toString());
+    }
+    return sorted;
   }
 
   private void printOptions(Configuration conf, Object[][] options) {
@@ -89,6 +100,9 @@ public class StoreDiag extends StoreEntryPoint {
   }
 
   private void printOption(Configuration conf, String key, boolean sensitive) {
+    if (key.isEmpty()) {
+      return;
+    }
     String v = conf.get(key);
     if (v == null) {
       v = "(unset)";
@@ -143,6 +157,9 @@ public class StoreDiag extends StoreEntryPoint {
     case "s3a":
       store = new S3ADiagnosticsInfo(fsURI);
       break;
+    case "adl":
+      store = new ADLDiagnosticsInfo(fsURI);
+      break;
     default:
       store = new StoreDiagnosticsInfo(fsURI);
     }
@@ -160,7 +177,6 @@ public class StoreDiag extends StoreEntryPoint {
       probeOneEndpoint(endpoint);
     }
 
-
     executeFileSystemOperations(conf, path);
 
     // Validate parameters.
@@ -170,24 +186,50 @@ public class StoreDiag extends StoreEntryPoint {
 
   private void probeOneEndpoint(URI endpoint) throws IOException {
     final String host = endpoint.getHost();
+
+    heading("Endpoint: %s:", endpoint);
     InetAddress addr = InetAddress.getByName(host);
-    println("%s (%s) has IP address %s",
-        endpoint,
+    println("Canonical hostname %s\n  IP address %s",
         addr.getCanonicalHostName(),
         addr.getHostAddress());
+    URL url = endpoint.toURL();
+    println("Connecting to %s", url);
+    HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+    conn.connect();
+    int responseCode = conn.getResponseCode();
+    String responseMessage = conn.getResponseMessage();
+    println("Response: %d : %s", responseCode, responseMessage);
+    boolean success = responseCode == 200;
+    println("HTTP response %d from %s: %s",
+        responseCode, url, responseMessage);
+    println("Using proxy: %s ", conn.usingProxy());
+    String contentEncoding = conn.getContentEncoding();
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
+    IOUtils.copyBytes(
+        success ? conn.getInputStream(): conn.getErrorStream(),
+        out, 4096, true);
+    println("%s", out.toString());
+    Map<String, List<String>> headerFields = conn.getHeaderFields();
+    if (headerFields != null) {
+      for (String header : headerFields.keySet()) {
+        println("%s: %s", header,
+            StringUtils.join(headerFields.get(header), ","));
+      }
+    }
+
+
   }
 
   /**
    * Execute the FS level operations, one by one.
-   * @param conf
-   * @param path
-   * @throws IOException
    */
   private void executeFileSystemOperations(final Configuration conf,
       final Path path) throws IOException {
-    FileSystem fs = path.getFileSystem(conf);
 
     heading("Test filesystem %s", path);
+
+    FileSystem fs = path.getFileSystem(conf);
+
     println("%s", fs);
 
 

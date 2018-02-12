@@ -58,10 +58,12 @@ public class StoreEntryPoint extends Configured implements Tool {
    */
   protected void println(String format, Object... args) {
     out.println(String.format(format, args));
+    out.flush();
   }
 
   protected static void errorln(String format, Object... args) {
     System.err.println(String.format(format, args));
+    System.err.flush();
   }
 
   protected void heading(String format, Object... args) {
