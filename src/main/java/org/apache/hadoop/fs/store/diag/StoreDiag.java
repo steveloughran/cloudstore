@@ -16,19 +16,22 @@
  * limitations under the License.
  */
 
-package org.apache.hadoop.fs.s3a.diag;
+package org.apache.hadoop.fs.store.diag;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.net.InetAddress;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
+import java.util.TreeSet;
 import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
@@ -37,14 +40,17 @@ import org.apache.hadoop.fs.shell.CommandFormat;
 import org.apache.hadoop.fs.store.DurationInfo;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
 import org.apache.hadoop.util.ExitUtil;
-import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 
-import static org.apache.hadoop.util.VersionInfo.*;
+import static org.apache.hadoop.util.VersionInfo.getDate;
+import static org.apache.hadoop.util.VersionInfo.getProtocVersion;
+import static org.apache.hadoop.util.VersionInfo.getSrcChecksum;
+import static org.apache.hadoop.util.VersionInfo.getUser;
+import static org.apache.hadoop.util.VersionInfo.getVersion;
 
-public class S3ADiag extends StoreEntryPoint {
+public class StoreDiag extends StoreEntryPoint {
 
-  private static final Logger LOG = LoggerFactory.getLogger(S3ADiag.class);
+  private static final Logger LOG = LoggerFactory.getLogger(StoreDiag.class);
 
   private static final String HELLO = "Hello";
 
@@ -59,40 +65,30 @@ public class S3ADiag extends StoreEntryPoint {
 
   static final int ERROR = -1;
 
-  static final String USAGE = "Usage: S3ADiag <filesystem>";
+  static final String USAGE = "Usage: StoreDiag <filesystem>";
 
-  static Object[][] props = {
-      {"fs.s3a.access.key", true},
-      {"fs.s3a.secret.key", true},
-      {"fs.s3a.session.token", true},
-      {"fs.s3a.server-side-encryption-algorithm", false},
-      {"fs.s3a.server-side-encryption.key", true},
-      {"fs.s3a.aws.credentials.provider", false},
-      {"fs.s3a.proxy.host", false},
-      {"fs.s3a.proxy.port", false},
-      {"fs.s3a.proxy.username", false},
-      {"fs.s3a.proxy.password", true},
-      {"fs.s3a.proxy.domain", false},
-      {"fs.s3a.proxy.workstation", false},
-      {"fs.s3a.fast.upload", false},
-      {"fs.s3a.fast.upload.buffer", false},
-      {"fs.s3a.fast.upload.active.blocks", false},
-      {"fs.s3a.signing-algorithm", false},
-      {"fs.s3a.experimental.input.fadvise", false},
-      {"fs.s3a.user.agent.prefix", false},
-      {"fs.s3a.experimental.input.fadvise", false},
-      {"fs.s3a.signing-algorithm", false},
-      {"fs.s3a.threads.max", false},
-      {"fs.s3a.threads.keepalivetime", false},
-      {"fs.s3a.max.total.tasks", false},
-      {"fs.s3a.multipart.size", false},
-      {"fs.s3a.buffer.dir", false},
-      {"fs.s3a.metadatastore.impl", false},
-      {"fs.s3a.metadatastore.authoritative", false},
-      {"fs.s3a.committer.magic.enabled", false},
-  };
+  private void printJVMOptions() {
+    heading("System Properties");
+    Properties sysProps = System.getProperties();
+    TreeSet<String> sorted = new TreeSet<>();
+    for (Object k : sysProps.keySet()) {
+      sorted.add(k.toString());
+    }
+    for (String s : sorted) {
+      println("%s = \"%s\"", s, sysProps.getProperty(s));
+    }
+  }
 
-  private void showProp(Configuration conf, String key, boolean sensitive) {
+  private void printOptions(Configuration conf, Object[][] options) {
+    if (options.length > 0) {
+      heading("Selected and Sanitized Configuration Options");
+      for (int i = 0; i < options.length; i++) {
+        printOption(conf, (String) options[i][0], (Boolean) options[i][1]);
+      }
+    }
+  }
+
+  private void printOption(Configuration conf, String key, boolean sensitive) {
     String v = conf.get(key);
     if (v == null) {
       v = "(unset)";
@@ -128,28 +124,77 @@ public class S3ADiag extends StoreEntryPoint {
       errorln(USAGE);
       return E_USAGE;
     }
-    println("Hadoop %s", getVersion());
-    println("Compiled by %s on %s", getUser(), getDate());
-    println("Compiled with protoc %s", getProtocVersion());
-    println("From source with checksum %s", getSrcChecksum());
+    heading("Hadoop information");
+    println("  Hadoop %s", getVersion());
+    println("  Compiled by %s on %s", getUser(), getDate());
+    println("  Compiled with protoc %s", getProtocVersion());
+    println("  From source with checksum %s", getSrcChecksum());
 
 
     Configuration conf = getConf();
     Path path = new Path(paths.get(0));
+
+    URI fsURI = path.toUri();
+
+    heading("Diagnostics for filesystem %s", fsURI);
+
+    StoreDiagnosticsInfo store;
+    switch (fsURI.getScheme()) {
+    case "s3a":
+      store = new S3ADiagnosticsInfo(fsURI);
+      break;
+    default:
+      store = new StoreDiagnosticsInfo(fsURI);
+    }
+    println("%s\n%s\n%s",
+        store.getName(), store.getDescription(), store.getHomepage());
+
+    printJVMOptions();
+
+    conf = store.patchConfigurationToInitalization(conf);
+
+    printOptions(conf, store.getFilesystemOptions());
+
+    heading("Endpoints");
+    for (URI endpoint : store.listEndpointsToProbe(conf)) {
+      probeOneEndpoint(endpoint);
+    }
+
+
+    executeFileSystemOperations(conf, path);
+
+    // Validate parameters.
+    return SUCCESS;
+  }
+
+
+  private void probeOneEndpoint(URI endpoint) throws IOException {
+    final String host = endpoint.getHost();
+    InetAddress addr = InetAddress.getByName(host);
+    println("%s (%s) has IP address %s",
+        endpoint,
+        addr.getCanonicalHostName(),
+        addr.getHostAddress());
+  }
+
+  /**
+   * Execute the FS level operations, one by one.
+   * @param conf
+   * @param path
+   * @throws IOException
+   */
+  private void executeFileSystemOperations(final Configuration conf,
+      final Path path) throws IOException {
     FileSystem fs = path.getFileSystem(conf);
 
-    println("Filesystem for %s is %s", path, fs);
+    heading("Test filesystem %s", path);
+    println("%s", fs);
 
-    // examine the FS
-    Configuration fsConf = fs.getConf();
-    for (int i = 0; i < props.length; i++) {
-      showProp(fsConf, (String) props[i][0], (Boolean) props[i][1]);
-    }
 
     Path root = fs.makeQualified(new Path("/"));
     try (DurationInfo d = new DurationInfo(LOG,
         "Listing  %s", root)) {
-      println("%s has %d entries", root, fs.listStatus(root).length);
+      println("%s root entry count: %d", root, fs.listStatus(root).length);
     }
 
     String dirName = "dir-" + UUID.randomUUID();
@@ -194,13 +239,7 @@ public class S3ADiag extends StoreEntryPoint {
           LOG.warn("When deleting {}: ", dir, e);
         }
       }
-
-
     }
-
-
-    // Validate parameters.
-    return SUCCESS;
   }
 
 
@@ -224,7 +263,7 @@ public class S3ADiag extends StoreEntryPoint {
    * @throws Exception failure
    */
   public static int exec(String... args) throws Exception {
-    return ToolRunner.run(new S3ADiag(), args);
+    return ToolRunner.run(new StoreDiag(), args);
   }
 
   /**

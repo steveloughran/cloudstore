@@ -64,6 +64,15 @@ public class StoreEntryPoint extends Configured implements Tool {
     System.err.println(String.format(format, args));
   }
 
+  protected void heading(String format, Object... args) {
+    String text = String.format(format, args);
+    int l = text.length();
+    StringBuilder sb = new StringBuilder(l);
+    for (int i = 0; i < l; i++) {
+      sb.append("=");
+    }
+    println("\n%s\n%s\n", text, sb.toString());
+  }
 
   protected static void exit(int status, String text) {
     ExitUtil.terminate(status, text);
