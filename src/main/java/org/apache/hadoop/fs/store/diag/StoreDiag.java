@@ -92,8 +92,8 @@ public class StoreDiag extends StoreEntryPoint {
   private void printOptions(Configuration conf, Object[][] options) {
     if (options.length > 0) {
       heading("Selected and Sanitized Configuration Options");
-      for (int i = 0; i < options.length; i++) {
-        printOption(conf, (String) options[i][0], (Boolean) options[i][1]);
+      for (final Object[] option : options) {
+        printOption(conf, (String) option[0], (Boolean) option[1]);
       }
     }
   }
@@ -102,27 +102,33 @@ public class StoreDiag extends StoreEntryPoint {
     if (key.isEmpty()) {
       return;
     }
-    String v = conf.get(key);
-    if (v == null) {
-      v = "(unset)";
+    String option = conf.get(key);
+    String source = "";
+    if (option == null) {
+      option = "(unset)";
     } else {
       if (sensitive) {
-        int len = v.length();
+        int len = option.length();
         if (len > 2) {
           StringBuilder b = new StringBuilder(len);
-          b.append(v.charAt(0));
+          b.append(option.charAt(0));
           for (int i = 1; i < len - 1; i++) {
             b.append('*');
           }
-          b.append(v.charAt(len - 1));
-          v = b.toString();
+          b.append(option.charAt(len - 1));
+          option = b.toString();
         } else {
           // short values get special treatment
-          v = "**";
+          option = "**";
         }
       }
+      String[] origins = conf.getPropertySources(key);
+      if (origins.length !=0) {
+        source = " [" + StringUtils.join(origins, ",") + "]";
+      }
+
     }
-    println("%s = %s", key, v);
+    println("%s = \"%s\"%s", key, option, source);
   }
 
   @Override
