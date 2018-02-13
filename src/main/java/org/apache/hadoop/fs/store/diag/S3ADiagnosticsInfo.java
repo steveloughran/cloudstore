@@ -71,7 +71,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
   public static final String[] classnames = {
       "org.apache.hadoop.fs.s3a.S3AFileSystem",
       "com.amazonaws.services.s3.AmazonS3",
-      "com.amazonaws.services.dynamodbv2.AmazonDynamoDB",
+      /*"com.amazonaws.services.dynamodbv2.AmazonDynamoDB",*/
       "com.amazonaws.ClientConfiguration"
   };
 

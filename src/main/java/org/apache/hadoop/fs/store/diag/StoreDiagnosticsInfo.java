@@ -85,6 +85,11 @@ class StoreDiagnosticsInfo {
     return conf;
   }
 
+  /**
+   * Get the classnames.
+   * @param conf config to use in determining their location.
+   * @return a possibly empty list of required implementation classes.
+   */
   public String[] getClassnames(final Configuration conf) {
     // look for an implementation
     String impl = conf.get("fs." + fsURI.getScheme() + ".impl", "");
