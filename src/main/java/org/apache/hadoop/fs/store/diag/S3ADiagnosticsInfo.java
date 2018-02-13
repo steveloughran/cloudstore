@@ -69,6 +69,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
   };
 
   public static final String[] classnames = {
+      "org.apache.hadoop.fs.s3a.S3AFileSystem",
       "com.amazonaws.services.s3.AmazonS3",
       "com.amazonaws.services.dynamodbv2.AmazonDynamoDB",
       "com.amazonaws.ClientConfiguration"
@@ -99,7 +100,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
   }
 
   @Override
-  public String[] getClassnames() {
+  public String[] getClassnames(final Configuration conf) {
     return classnames;
   }
 
@@ -126,8 +127,8 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       fqdn = bucket + "." + endpoint;
     }
     final boolean pathStyleAccess = conf.getBoolean(PATH_STYLE_ACCESS, false);
-    boolean secureConnections = conf.getBoolean("fs.s3a.connection.ssl.enabled",
-        true);
+    boolean secureConnections =
+        conf.getBoolean("fs.s3a.connection.ssl.enabled", true);
     String scheme = secureConnections ? "https" : "http";
     if (pathStyleAccess) {
       LOG.info("Enabling path style access");

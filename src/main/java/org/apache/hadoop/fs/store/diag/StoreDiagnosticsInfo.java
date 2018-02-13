@@ -21,6 +21,7 @@ package org.apache.hadoop.fs.store.diag;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.apache.hadoop.conf.Configuration;
@@ -49,7 +50,7 @@ class StoreDiagnosticsInfo {
 
   /**
    * Any extra description.
-   * @return
+   * @return text
    */
   public String getDescription() {
     return "";
@@ -67,7 +68,7 @@ class StoreDiagnosticsInfo {
    * List of options for filesystems. Each entry must be a pair of
    * (string, sensitive); sensitive strings don't have their values
    * fully printed.
-   * @return
+   * @return option array
    */
   public Object[][] getFilesystemOptions() {
       return EMPTY_OPTIONS;
@@ -84,8 +85,16 @@ class StoreDiagnosticsInfo {
     return conf;
   }
 
-  public String[] getClassnames() {
-    return EMPTY_CLASSNAMES;
+  public String[] getClassnames(final Configuration conf) {
+    // look for an implementation
+    String impl = conf.get("fs." + fsURI.getScheme() + ".impl", "");
+    if (impl != null) {
+      String[] r = new String[1];
+      r[0] = impl;
+      return r;
+    } else {
+      return EMPTY_CLASSNAMES;
+    }
   }
 
   /**
@@ -96,5 +105,34 @@ class StoreDiagnosticsInfo {
   public List<URI> listEndpointsToProbe(Configuration conf)
       throws URISyntaxException {
     return EMPTY_ENDPOINTS;
+  }
+
+  /**
+   * Look up an option; if not empty add it as a URI.
+   * @param conf config
+   * @param uris URI list to add to
+   * @param key key to check
+   * @param uriPrefix any prefix to add to build the URI, e.g "https:"
+   * @return true iff there was a URI
+   * @throws URISyntaxException parsing problem
+   */
+  protected boolean addUriOption(final Configuration conf,
+      final List<URI> uris,
+      final String key,
+      final String uriPrefix) throws URISyntaxException {
+    String endpoint = conf.getTrimmed(key, "");
+    if (!endpoint.isEmpty()) {
+      try {
+        uris.add(new URI(uriPrefix + endpoint));
+        return true;
+      } catch (URISyntaxException e) {
+        throw new URISyntaxException(endpoint,
+            String.format("From configuration key %s: %s",
+                key, e.getMessage()));
+
+      }
+    } else {
+      return false;
+    }
   }
 }

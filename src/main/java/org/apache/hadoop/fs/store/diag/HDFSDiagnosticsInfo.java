@@ -27,48 +27,56 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.hdfs.HdfsConfiguration;
 
-public class ADLDiagnosticsInfo extends StoreDiagnosticsInfo {
+public class HDFSDiagnosticsInfo extends StoreDiagnosticsInfo {
 
   private static final Logger LOG = LoggerFactory.getLogger(
-      ADLDiagnosticsInfo.class);
+      HDFSDiagnosticsInfo.class);
 
   private static final Object[][] options = {
-
-      {"fs.adl.oauth2.client.id", false},
-      {"fs.adl.oauth2.credential", true},
-      {"fs.adl.oauth2.access.token.provider.type", false},
-      {"fs.adl.oauth2.refresh.token", false},
-      {"fs.adl.oauth2.devicecode.clientapp.id", false},
-      {"fs.adl.oauth2.msi.port", false},
-      {"fs.adl.oauth2.refresh.url", false},
-      {"adl.feature.client.cache.readahead", false},
-      {"adl.feature.client.cache.drop.behind.writes", false},
-      {"adl.debug.override.localuserasfileowner", false},
+      {"dfs.namenode.kerberos.principal", false},
+      {"dfs.datanode.kerberos.principal", false},
+      {"dfs.http.policy", false},
+      {"hadoop.security.authentication", false},
+      {"hadoop.security.authorization", false},
+      {"hadoop.rpc.protection", false},
   };
 
   public static final String[] classnames = {
-      "org.apache.hadoop.fs.adl.AdlFileSystem",
-      "com.microsoft.azure.datalake.store.ADLStoreClient",
+      "org.apache.hadoop.hdfs.HdfsConfiguration",
+      "org.apache.hadoop.ipc.RPC",
+      "org.apache.hadoop.security.UserGroupInformation"
   };
 
-  public ADLDiagnosticsInfo(final URI fsURI) {
+  public HDFSDiagnosticsInfo(final URI fsURI) {
     super(fsURI);
+  }
+
+  /**
+   * Patch by creating an HDFS Configuration instance; this will ensure
+   * hdfs-site.xml is picked up.
+   * @param conf initial configuration.
+   * @return an HDFS config
+   */
+  @Override
+  public Configuration patchConfigurationToInitalization(final Configuration conf) {
+    return new HdfsConfiguration(conf);
   }
 
   @Override
   public String getName() {
-    return "Azure Datalake connector";
+    return "HDFS";
   }
 
   @Override
   public String getDescription() {
-    return "ASF Filesystem Connector to Microsoft Azure Datalake";
+    return "Hadoop HDFS Filesystem";
   }
 
   @Override
   public String getHomepage() {
-    return "https://hadoop.apache.org/docs/current/hadoop-azure-datalake/index.html";
+    return "https://hadoop.apache.org/docs/stable/hadoop-project-dist/hadoop-hdfs/HdfsUserGuide.html";
   }
 
   @Override
@@ -85,9 +93,13 @@ public class ADLDiagnosticsInfo extends StoreDiagnosticsInfo {
   public List<URI> listEndpointsToProbe(final Configuration conf)
       throws URISyntaxException {
     List<URI> uris = new ArrayList<>(2);
-    addUriOption(conf, uris, "fs.adl.oauth2.refresh.url", "");
-    String bucket = fsURI.getHost();
-    uris.add(new URI(String.format("https://%s", bucket)));
+    boolean isHttps = conf.getBoolean("dfs.http.policy", false);
+    if (isHttps) {
+      addUriOption(conf, uris, "dfs.namenode.https-address", "https://");
+    } else {
+      addUriOption(conf, uris, "dfs.namenode.http-address", "http://");
+    }
     return uris;
   }
+
 }

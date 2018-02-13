@@ -32,7 +32,6 @@ import java.util.Properties;
 import java.util.TreeSet;
 import java.util.UUID;
 
-import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -154,6 +153,9 @@ public class StoreDiag extends StoreEntryPoint {
 
     StoreDiagnosticsInfo store;
     switch (fsURI.getScheme()) {
+    case "hdfs":
+      store = new HDFSDiagnosticsInfo(fsURI);
+      break;
     case "s3a":
       store = new S3ADiagnosticsInfo(fsURI);
       break;
@@ -163,6 +165,7 @@ public class StoreDiag extends StoreEntryPoint {
     default:
       store = new StoreDiagnosticsInfo(fsURI);
     }
+
     println("%s\n%s\n%s",
         store.getName(), store.getDescription(), store.getHomepage());
 
@@ -172,11 +175,16 @@ public class StoreDiag extends StoreEntryPoint {
 
     printOptions(conf, store.getFilesystemOptions());
 
-    heading("Endpoints");
+    heading("Classes");
+    for (String classname : store.getClassnames(conf)) {
+      probeOneClassname(classname);
+    }
+
     for (URI endpoint : store.listEndpointsToProbe(conf)) {
       probeOneEndpoint(endpoint);
     }
 
+    // and the filesystem operations
     executeFileSystemOperations(conf, path);
 
     // Validate parameters.
@@ -192,6 +200,9 @@ public class StoreDiag extends StoreEntryPoint {
     println("Canonical hostname %s\n  IP address %s",
         addr.getCanonicalHostName(),
         addr.getHostAddress());
+    if ("0.0.0.0".equals(host)) {
+      return;
+    }
     URL url = endpoint.toURL();
     println("Connecting to %s", url);
     HttpURLConnection conn = (HttpURLConnection) url.openConnection();
@@ -216,8 +227,13 @@ public class StoreDiag extends StoreEntryPoint {
             StringUtils.join(headerFields.get(header), ","));
       }
     }
+  }
 
-
+  private void probeOneClassname(String classname)
+      throws ClassNotFoundException {
+    Class<?> clazz = this.getClass().getClassLoader().loadClass(classname);
+    println("class %s was found in %s", classname,
+        clazz.getProtectionDomain().getCodeSource().getLocation());
   }
 
   /**
