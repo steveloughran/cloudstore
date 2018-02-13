@@ -23,16 +23,10 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hdfs.HdfsConfiguration;
 
 public class HDFSDiagnosticsInfo extends StoreDiagnosticsInfo {
-
-  private static final Logger LOG = LoggerFactory.getLogger(
-      HDFSDiagnosticsInfo.class);
 
   private static final Object[][] options = {
       {"dfs.namenode.kerberos.principal", false},

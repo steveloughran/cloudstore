@@ -60,6 +60,8 @@ public class StoreDiag extends StoreEntryPoint {
 
   private static final String HELLO = "Hello";
 
+  protected static final int THRESHOLD = 4;
+
 
   CommandFormat commandFormat = new CommandFormat(0, Integer.MAX_VALUE);
 
@@ -103,13 +105,14 @@ public class StoreDiag extends StoreEntryPoint {
       return;
     }
     String option = conf.get(key);
-    String source = "";
+    String full;
     if (option == null) {
-      option = "(unset)";
+      full = "(unset)";
     } else {
+      String source = "";
       if (sensitive) {
         int len = option.length();
-        if (len > 2) {
+        if (len > THRESHOLD) {
           StringBuilder b = new StringBuilder(len);
           b.append(option.charAt(0));
           for (int i = 1; i < len - 1; i++) {
@@ -126,9 +129,9 @@ public class StoreDiag extends StoreEntryPoint {
       if (origins.length !=0) {
         source = " [" + StringUtils.join(origins, ",") + "]";
       }
-
+      full = '"' + option + '"' + source;
     }
-    println("%s = \"%s\"%s", key, option, source);
+    println("%s = %s", key, full);
   }
 
   @Override

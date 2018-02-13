@@ -23,19 +23,13 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import org.apache.hadoop.conf.Configuration;
 
 public class ADLDiagnosticsInfo extends StoreDiagnosticsInfo {
 
-  private static final Logger LOG = LoggerFactory.getLogger(
-      ADLDiagnosticsInfo.class);
-
   private static final Object[][] options = {
 
-      {"fs.adl.oauth2.client.id", false},
+      {"fs.adl.oauth2.client.id", true},
       {"fs.adl.oauth2.credential", true},
       {"fs.adl.oauth2.access.token.provider.type", false},
       {"fs.adl.oauth2.refresh.token", false},
