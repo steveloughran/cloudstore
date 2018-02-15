@@ -50,7 +50,11 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.s3a.proxy.password", true},
       {"fs.s3a.proxy.domain", false},
       {"fs.s3a.proxy.workstation", false},
-      {"fs.s3a.fast.upload", false},
+      {"fs.s3a.connection.maximum", false},
+      {"fs.s3a.multipart.size", false},
+      {"fs.s3a.buffer.di", false},
+      {"fs.s3a.block.size", false},
+
       {"fs.s3a.fast.upload.buffer", false},
       {"fs.s3a.fast.upload.active.blocks", false},
       {"fs.s3a.signing-algorithm", false},
@@ -63,9 +67,25 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.s3a.max.total.tasks", false},
       {"fs.s3a.multipart.size", false},
       {"fs.s3a.buffer.dir", false},
+      {"fs.s3a.assumed.role.arn", false},
+      {"fs.s3a.assumed.role.sts.endpoint", false},
+      {"fs.s3a.assumed.role.session.name", false},
+      {"fs.s3a.assumed.role.credentials.provider", false},
+      {"fs.s3a.assumed.role.policy", false},
+      /* s3guard */
       {"fs.s3a.metadatastore.impl", false},
       {"fs.s3a.metadatastore.authoritative", false},
+      {"fs.s3a.s3guard.ddb.table", false},
+
+      /* committer */
       {"fs.s3a.committer.magic.enabled", false},
+      {"fs.s3a.committer.staging.tmp.path", false},
+      {"fs.s3a.committer.threads", false},
+      {"mapreduce.outputcommitter.factory.scheme.s3a", false},
+      {"fs.s3a.committer.name", false},
+      {"fs.s3a.committer.staging.conflict-mode", false},
+      {"", false},
+      {"", false},
   };
 
   public static final String[] classnames = {
@@ -136,9 +156,9 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
     } else {
       bucketURI = String.format("%s://%s/", scheme, fqdn);
     }
-    List<URI> uris = new ArrayList<>(1);
+    List<URI> uris = new ArrayList<>(2);
     uris.add(new URI(bucketURI));
-
+    addUriOption(uris, conf, "fs.s3a.assumed.role.sts.endpoint", "");
     return uris;
   }
 }

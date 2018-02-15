@@ -114,15 +114,14 @@ class StoreDiagnosticsInfo {
 
   /**
    * Look up an option; if not empty add it as a URI.
-   * @param conf config
    * @param uris URI list to add to
+   * @param conf config
    * @param key key to check
    * @param uriPrefix any prefix to add to build the URI, e.g "https:"
    * @return true iff there was a URI
    * @throws URISyntaxException parsing problem
    */
-  protected boolean addUriOption(final Configuration conf,
-      final List<URI> uris,
+  protected boolean addUriOption(final List<URI> uris, final Configuration conf,
       final String key,
       final String uriPrefix) throws URISyntaxException {
     String endpoint = conf.getTrimmed(key, "");

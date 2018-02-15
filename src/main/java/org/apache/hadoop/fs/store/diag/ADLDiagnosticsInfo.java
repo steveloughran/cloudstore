@@ -79,7 +79,7 @@ public class ADLDiagnosticsInfo extends StoreDiagnosticsInfo {
   public List<URI> listEndpointsToProbe(final Configuration conf)
       throws URISyntaxException {
     List<URI> uris = new ArrayList<>(2);
-    addUriOption(conf, uris, "fs.adl.oauth2.refresh.url", "");
+    addUriOption(uris, conf, "fs.adl.oauth2.refresh.url", "");
     String bucket = fsURI.getHost();
     uris.add(new URI(String.format("https://%s", bucket)));
     return uris;
