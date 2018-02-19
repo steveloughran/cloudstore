@@ -2,8 +2,30 @@
 
 This is going to be for a general cloudstore CLI command for Hadoop
 
-Initally it'll be the S3A diagnostics entry point, designed to work with Hadoop 2.7+
+Initally it'll be the a diagnostics entry point, designed to work with Hadoop 2.7+
 
-Why? Sometimes things fail. When that happens, we want to know what the client side settings are.
+Why? 
 
-Ideally, in future: do more with WriteOperationsHelper ops going to the FS at a lower level of HTTP verbs rather than the FS wrapper.  
+1. Sometimes things fail, and the first problem is invariably some
+client-side config. 
+1. The Hadoop FS connectors all assume a well configured system, and don't
+do much in terms of meaningful diagnostics.
+1. This is compounded by the fact that we dare not log secret credentials.
+1. And in support calls, it's all to easy to get those secrets, even
+though its a major security breach to get them.
+
+The StoreDiag entry point is designed to pick up the FS settings, dump them
+with sanitized secrets, and display their provenance. It then
+bootstraps connectivity with an attempt to initiate (unauthed) HTTP connections
+to the store's endpoints. This should be sufficient to detect proxy and
+endpoint configuration problems.
+
+Then it tries to perform some reads and writes against the store. If these
+fail, then there's clearly a problem. Hopefully though, there's now enough information
+to begin determining what it is.
+
+
+```bash
+bin/hadoop jar cloudstore-2.8.jar s3a://landsat-pds/
+```
+ 
