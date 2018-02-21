@@ -19,12 +19,14 @@
 package org.apache.hadoop.fs.store.diag;
 
 import java.io.ByteArrayOutputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.net.URI;
 import java.net.URL;
+import java.nio.file.AccessDeniedException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -39,6 +41,7 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
+import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.shell.CommandFormat;
@@ -184,10 +187,32 @@ public class StoreDiag extends StoreEntryPoint {
 
     printOptions(conf, store.getFilesystemOptions());
 
-    heading("Classes");
+    heading("Required Classes");
+
+    println("All these classes must be on the classpath");
+    println("");
+
     for (String classname : store.getClassnames(conf)) {
       probeOneClassname(classname);
     }
+
+    heading("Optional Classes");
+
+    println("These classes are needed in some versions of Hadoop.");
+    println("And/or for optional features to work.");
+    println("Even if these are missing, the connector *may* work");
+    println("");
+
+    for (String classname : store.getOptionalClassnames(conf)) {
+      probeOptionalClassname(classname);
+    }
+
+    heading("Endpoints");
+
+    println("Attempt to list and connect to public service endpoints");
+    println("The requests are unauthenticated and likely to fail");
+    println("This is just testing the reachability of the URLs.");
+    println("");
 
     for (URI endpoint : store.listEndpointsToProbe(conf)) {
       probeOneEndpoint(endpoint);
@@ -204,7 +229,7 @@ public class StoreDiag extends StoreEntryPoint {
   private void probeOneEndpoint(URI endpoint) throws IOException {
     final String host = endpoint.getHost();
 
-    heading("Endpoint: %s:", endpoint);
+    heading("Endpoint: %s", endpoint);
     InetAddress addr = InetAddress.getByName(host);
     println("Canonical hostname %s\n  IP address %s",
         addr.getCanonicalHostName(),
@@ -223,7 +248,6 @@ public class StoreDiag extends StoreEntryPoint {
     println("HTTP response %d from %s: %s",
         responseCode, url, responseMessage);
     println("Using proxy: %s ", conn.usingProxy());
-    String contentEncoding = conn.getContentEncoding();
     ByteArrayOutputStream out = new ByteArrayOutputStream();
     IOUtils.copyBytes(
         success ? conn.getInputStream(): conn.getErrorStream(),
@@ -238,11 +262,29 @@ public class StoreDiag extends StoreEntryPoint {
     }
   }
 
-  private void probeOneClassname(String classname)
+  /**
+   * Look for a class; print its origin.
+   * @param classname classname
+   * @throws ClassNotFoundException if the class was not found.
+   */
+  private void probeOneClassname(final String classname)
       throws ClassNotFoundException {
     Class<?> clazz = this.getClass().getClassLoader().loadClass(classname);
     println("class %s was found in %s", classname,
         clazz.getProtectionDomain().getCodeSource().getLocation());
+  }
+
+  /**
+   * Look for a class; print its origin if found, else print the
+   * fact that it is missing.
+   * @param classname classname
+   */
+  private void probeOptionalClassname(final String classname) {
+    try {
+      probeOneClassname(classname);
+    } catch (ClassNotFoundException e) {
+      println("Not found on classpath: %s", classname);
+    }
   }
 
   /**
@@ -253,6 +295,9 @@ public class StoreDiag extends StoreEntryPoint {
 
     heading("Test filesystem %s", path);
 
+    println("This call tests a set of operations against the filesystem");
+    println("Starting with some read operations, then trying to write");
+
     FileSystem fs = path.getFileSystem(conf);
 
     println("%s", fs);
@@ -260,16 +305,63 @@ public class StoreDiag extends StoreEntryPoint {
 
     Path root = fs.makeQualified(new Path("/"));
     try (DurationInfo d = new DurationInfo(LOG,
-        "Listing  %s", root)) {
-      println("%s root entry count: %d", root, fs.listStatus(root).length);
+        "GetFileStatus %s", root)) {
+      println("root entry %s", fs.getFileStatus(root));
     }
 
-    String dirName = "dir-" + UUID.randomUUID();
-    Path dir = new Path(root, dirName);
+    FileStatus rootFile = null;
+    try (DurationInfo d = new DurationInfo(LOG,
+        "Listing  %s", root)) {
+      FileStatus[] statuses = fs.listStatus(root);
+      println("%s root entry count: %d", root, statuses.length);
+      for (FileStatus status : statuses) {
+        if (status.isFile() && rootFile == null) {
+          rootFile = status;
+        }
+      }
+    }
+
+    if (rootFile != null) {
+      // found a file to read
+      Path rootFilePath = rootFile.getPath();
+      FSDataInputStream in = null;
+      try (DurationInfo d = new DurationInfo(LOG,
+          "Reading file %s", rootFilePath)) {
+        in = fs.open(rootFilePath);
+        // read the first char or -1
+        int c = in.read();
+        println("First character of file %s is 0x%02x: '%s'",
+            rootFilePath,
+            c,
+            c > 32? Character.toString((char)c) : "(n/a)");
+        in.close();
+      } finally {
+        IOUtils.closeStream(in);
+      }
+    }
+
+    Path dir = new Path(root, "dir-" + UUID.randomUUID());
+
+    try (DurationInfo d = new DurationInfo(LOG,
+        "Looking for a directory which does not yet exist %s", dir)) {
+      FileStatus status = fs.getFileStatus(dir);
+      println("Unexpectedly got the status of a file which should not exist%n"
+          + "    %s", status);
+    } catch (FileNotFoundException expected) {
+      // expected this; ignore it.
+    }
+
     try (DurationInfo d = new DurationInfo(LOG,
         "Creating a directory %s", dir)) {
       fs.mkdirs(dir);
+    } catch (AccessDeniedException e) {
+      println("Unable to create directory %s", dir);
+      println("If this is a read-only filesystem, this is normal%n");
+      throw e;
     }
+
+    // after this point the directory is created, so delete it
+    // teardown
     try {
       Path file = new Path(dir, "file");
       try (DurationInfo d = new DurationInfo(LOG,
@@ -282,16 +374,18 @@ public class StoreDiag extends StoreEntryPoint {
           "Listing  %s", dir)) {
         fs.listFiles(dir, false);
       }
-
+      FSDataInputStream in = null;
       try (DurationInfo d = new DurationInfo(LOG,
           "Reading a file %s", file)) {
-        FSDataInputStream in = fs.open(file);
+        in = fs.open(file);
         String utf = in.readUTF();
         in.close();
         if (!HELLO.equals(utf)) {
           throw new IOException("Expected " + file + " to contain the text "
               + HELLO + " -but it has the text \"" + utf + "\"");
         }
+      } finally {
+        IOUtils.closeStream(in);
       }
       try (DurationInfo d = new DurationInfo(LOG,
           "Deleting file %s", file)) {

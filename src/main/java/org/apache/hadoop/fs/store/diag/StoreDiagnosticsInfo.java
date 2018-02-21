@@ -103,6 +103,16 @@ class StoreDiagnosticsInfo {
   }
 
   /**
+   * Get a list of optional classes to look for.
+   * If any of these are not found, it is not an error.
+   * @param conf config to use in determining their location.
+   * @return a possibly empty list of optional implementation classes.
+   */
+  public String[] getOptionalClassnames(final Configuration conf) {
+    return EMPTY_CLASSNAMES;
+  }
+
+  /**
    * List the endpoints to probe for (auth, REST, etc).
    * @param conf configuration to use, will already have been patched.
    * @return a possibly empty ist of endpoints for DNS lookup then HTTP connect to.

@@ -91,8 +91,18 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
   public static final String[] classnames = {
       "org.apache.hadoop.fs.s3a.S3AFileSystem",
       "com.amazonaws.services.s3.AmazonS3",
-      /*"com.amazonaws.services.dynamodbv2.AmazonDynamoDB",*/
-      "com.amazonaws.ClientConfiguration"
+      "com.amazonaws.ClientConfiguration",
+  };
+
+  public static final String[] optionalClassnames = {
+       "com.amazonaws.services.dynamodbv2.AmazonDynamoDB",
+      /* Jackson stuff */
+      "com.fasterxml.jackson.annotation.JacksonAnnotation",
+      "com.fasterxml.jackson.core.JsonParseException",
+      "com.fasterxml.jackson.databind.ObjectMapper",
+      /* And Joda-time. Not relevant on the shaded SDK,
+       *  but critical for older ones */
+      "org.joda.time.Interval"
   };
 
   public S3ADiagnosticsInfo(final URI fsURI) {
@@ -122,6 +132,11 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
   @Override
   public String[] getClassnames(final Configuration conf) {
     return classnames;
+  }
+
+  @Override
+  public String[] getOptionalClassnames(final Configuration conf) {
+    return optionalClassnames;
   }
 
   @Override
