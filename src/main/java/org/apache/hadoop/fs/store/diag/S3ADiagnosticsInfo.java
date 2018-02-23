@@ -88,6 +88,13 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"", false},
   };
 
+  protected static final Object[][] ENV_VARS = {
+      {"PATH", false},
+      {"AWS_ACCESS_KEY_ID", false},
+      {"AWS_SECRET_ACCESS_KEY", true},
+      {"AWS_SESSION_TOKEN", true},
+  };
+
   public static final String[] classnames = {
       "org.apache.hadoop.fs.s3a.S3AFileSystem",
       "com.amazonaws.services.s3.AmazonS3",
@@ -127,6 +134,11 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
   @Override
   public Object[][] getFilesystemOptions() {
     return options;
+  }
+
+  @Override
+  public Object[][] getEnvVars() {
+    return ENV_VARS;
   }
 
   @Override

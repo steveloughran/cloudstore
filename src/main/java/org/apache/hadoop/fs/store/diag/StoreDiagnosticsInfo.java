@@ -30,6 +30,10 @@ class StoreDiagnosticsInfo {
 
   protected static final Object[][] EMPTY_OPTIONS = {};
 
+  protected static final Object[][] STANDARD_ENV_VARS = {
+      {"PATH", false},
+  };
+
   protected static final String[] EMPTY_CLASSNAMES = {};
 
   protected static final List<URI> EMPTY_ENDPOINTS = new ArrayList<>(0);
@@ -75,6 +79,16 @@ class StoreDiagnosticsInfo {
   }
 
   /**
+   * List of env vars for filesystems. Each entry must be a pair of
+   * (string, sensitive); sensitive strings don't have their values
+   * fully printed.
+   * @return option array
+   */
+  public Object[][] getEnvVars() {
+      return STANDARD_ENV_VARS;
+  }
+
+  /**
    * Take the raw config and patch as the FS will have during
    * initialization.
    * This handles stores like S3A which do some per-bucket config.
@@ -93,7 +107,7 @@ class StoreDiagnosticsInfo {
   public String[] getClassnames(final Configuration conf) {
     // look for an implementation
     String impl = conf.get("fs." + fsURI.getScheme() + ".impl", "");
-    if (impl != null) {
+    if (!impl.isEmpty()) {
       String[] r = new String[1];
       r[0] = impl;
       return r;

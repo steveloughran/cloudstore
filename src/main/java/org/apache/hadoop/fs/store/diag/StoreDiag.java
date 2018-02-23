@@ -24,7 +24,10 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
+import java.net.Proxy;
+import java.net.ProxySelector;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.AccessDeniedException;
 import java.util.ArrayList;
@@ -94,6 +97,20 @@ public class StoreDiag extends StoreEntryPoint {
     return sorted;
   }
 
+  private void printEnvVars(Object[][] vars) {
+    if (vars.length > 9) {
+      heading("Environment Variables");
+      for (final Object[] option : vars) {
+        String var = (String) option[0];
+        String value = System.getenv(var);
+        if (value != null) {
+          value = maybeSanitize(value, (Boolean) option[1]);
+        }
+        println("%s=%s", var, value);
+      }
+    }
+  }
+
   private void printOptions(Configuration conf, Object[][] options) {
     if (options.length > 0) {
       heading("Selected and Sanitized Configuration Options");
@@ -102,6 +119,29 @@ public class StoreDiag extends StoreEntryPoint {
       }
     }
   }
+
+  private String maybeSanitize(String option, boolean sensitive) {
+    return sensitive ? sanitize(option) : option;
+  }
+
+  private String sanitize(String option) {
+    String r = option;
+    int len = r.length();
+    if (len > THRESHOLD) {
+      StringBuilder b = new StringBuilder(len);
+      b.append(option.charAt(0));
+      for (int i = 1; i < len - 1; i++) {
+        b.append('*');
+      }
+      b.append(option.charAt(len - 1));
+      option = b.toString();
+    } else {
+      // short values get special treatment
+      option = "**";
+    }
+    return option;
+  }
+
 
   private void printOption(Configuration conf, String key, boolean sensitive) {
     if (key.isEmpty()) {
@@ -113,21 +153,7 @@ public class StoreDiag extends StoreEntryPoint {
       full = "(unset)";
     } else {
       String source = "";
-      if (sensitive) {
-        int len = option.length();
-        if (len > THRESHOLD) {
-          StringBuilder b = new StringBuilder(len);
-          b.append(option.charAt(0));
-          for (int i = 1; i < len - 1; i++) {
-            b.append('*');
-          }
-          b.append(option.charAt(len - 1));
-          option = b.toString();
-        } else {
-          // short values get special treatment
-          option = "**";
-        }
-      }
+      option = maybeSanitize(option, sensitive);
       String[] origins = conf.getPropertySources(key);
       if (origins.length !=0) {
         source = " [" + StringUtils.join(origins, ",") + "]";
@@ -187,35 +213,57 @@ public class StoreDiag extends StoreEntryPoint {
 
     printOptions(conf, store.getFilesystemOptions());
 
-    heading("Required Classes");
+    printEnvVars(store.getEnvVars());
 
-    println("All these classes must be on the classpath");
-    println("");
 
-    for (String classname : store.getClassnames(conf)) {
-      probeOneClassname(classname);
+    String[] requiredClasses = store.getClassnames(conf);
+    if (requiredClasses.length > 0) {
+      heading("Required Classes");
+      println("All these classes must be on the classpath");
+      println("");
+      for (String classname : requiredClasses) {
+        probeOneClassname(classname);
+      }
     }
 
-    heading("Optional Classes");
+    String[] optionalClasses = store.getOptionalClassnames(conf);
+    if (optionalClasses.length > 0) {
+      heading("Optional Classes");
 
-    println("These classes are needed in some versions of Hadoop.");
-    println("And/or for optional features to work.");
-    println("Even if these are missing, the connector *may* work");
-    println("");
+      println("These classes are needed in some versions of Hadoop.");
+      println("And/or for optional features to work.");
+      println("");
 
-    for (String classname : store.getOptionalClassnames(conf)) {
-      probeOptionalClassname(classname);
+      boolean missing = false;
+      for (String classname : optionalClasses) {
+        missing |= probeOptionalClassname(classname);
+      }
+      if (missing) {
+        println("%nAt least one optional class was missing"
+            + " -the filesystem client *may* still work");
+      }
     }
 
     heading("Endpoints");
 
-    println("Attempt to list and connect to public service endpoints");
-    println("The requests are unauthenticated and likely to fail");
-    println("This is just testing the reachability of the URLs.");
-    println("");
+    List<URI> endpoints = store.listEndpointsToProbe(conf);
 
-    for (URI endpoint : store.listEndpointsToProbe(conf)) {
-      probeOneEndpoint(endpoint);
+    if (endpoints.isEmpty()) {
+      println("No endpoints determined for this filesystem");
+    } else {
+      println("Attempting to list and connect to public service endpoints,");
+      println("without any authentication credentials.");
+      println("%nThis is just testing the reachability of the URLs.");
+
+      println("%nIf the request fails with any network error it is likely%n"
+          + "to be configuration problem with address, proxy, etc%n");
+
+      println("If it is some authentication error, then don't worry so much%n"
+          + "-look for the results of the filesystem operations");
+
+      for (URI endpoint : endpoints) {
+        probeOneEndpoint(endpoint);
+      }
     }
 
     // and the filesystem operations
@@ -225,8 +273,8 @@ public class StoreDiag extends StoreEntryPoint {
     return SUCCESS;
   }
 
-
-  private void probeOneEndpoint(URI endpoint) throws IOException {
+  private void probeOneEndpoint(URI endpoint)
+      throws IOException, URISyntaxException {
     final String host = endpoint.getHost();
 
     heading("Endpoint: %s", endpoint);
@@ -238,7 +286,21 @@ public class StoreDiag extends StoreEntryPoint {
       return;
     }
     URL url = endpoint.toURL();
-    println("Connecting to %s", url);
+
+    List<Proxy> proxies = ProxySelector.getDefault()
+        .select(url.toURI());
+    if (proxies.isEmpty() ||
+        Proxy.Type.DIRECT == proxies.get(0).type()) {
+      println("Proxy: none");
+    } else {
+      println("Proxy defined:");
+      for (Proxy proxy : proxies) {
+        println("   %s", proxy);
+      }
+    }
+    println("%nConnecting to %s%n", url);
+
+
     HttpURLConnection conn = (HttpURLConnection) url.openConnection();
     conn.connect();
     int responseCode = conn.getResponseCode();
@@ -248,11 +310,6 @@ public class StoreDiag extends StoreEntryPoint {
     println("HTTP response %d from %s: %s",
         responseCode, url, responseMessage);
     println("Using proxy: %s ", conn.usingProxy());
-    ByteArrayOutputStream out = new ByteArrayOutputStream();
-    IOUtils.copyBytes(
-        success ? conn.getInputStream(): conn.getErrorStream(),
-        out, 4096, true);
-    println("%s", out.toString());
     Map<String, List<String>> headerFields = conn.getHeaderFields();
     if (headerFields != null) {
       for (String header : headerFields.keySet()) {
@@ -260,6 +317,13 @@ public class StoreDiag extends StoreEntryPoint {
             StringUtils.join(headerFields.get(header), ","));
       }
     }
+    ByteArrayOutputStream out = new ByteArrayOutputStream();
+    IOUtils.copyBytes(
+        success ? conn.getInputStream() : conn.getErrorStream(),
+        out, 4096, true);
+    String body = out.toString();
+    println("%n%s%n",
+        body.substring(0, Math.min(1024,body.length())));
   }
 
   /**
@@ -269,9 +333,12 @@ public class StoreDiag extends StoreEntryPoint {
    */
   private void probeOneClassname(final String classname)
       throws ClassNotFoundException {
+    if (classname.isEmpty()) {
+      return;
+    }
+    println("class: %s", classname);
     Class<?> clazz = this.getClass().getClassLoader().loadClass(classname);
-    println("class %s was found in %s", classname,
-        clazz.getProtectionDomain().getCodeSource().getLocation());
+    println("       %s", clazz.getProtectionDomain().getCodeSource().getLocation());
   }
 
   /**
@@ -279,11 +346,13 @@ public class StoreDiag extends StoreEntryPoint {
    * fact that it is missing.
    * @param classname classname
    */
-  private void probeOptionalClassname(final String classname) {
+  private boolean probeOptionalClassname(final String classname) {
     try {
       probeOneClassname(classname);
+      return true;
     } catch (ClassNotFoundException e) {
-      println("Not found on classpath: %s", classname);
+      println("       Not found on classpath: %s", classname);
+      return false;
     }
   }
 
@@ -296,7 +365,7 @@ public class StoreDiag extends StoreEntryPoint {
     heading("Test filesystem %s", path);
 
     println("This call tests a set of operations against the filesystem");
-    println("Starting with some read operations, then trying to write");
+    println("Starting with some read operations, then trying to write%n");
 
     FileSystem fs = path.getFileSystem(conf);
 
@@ -357,6 +426,7 @@ public class StoreDiag extends StoreEntryPoint {
     } catch (AccessDeniedException e) {
       println("Unable to create directory %s", dir);
       println("If this is a read-only filesystem, this is normal%n");
+      println("Please supply a R/W filesystem for more testing.");
       throw e;
     }
 
