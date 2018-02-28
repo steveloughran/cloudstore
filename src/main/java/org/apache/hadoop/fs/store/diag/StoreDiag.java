@@ -46,7 +46,9 @@ import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.LocatedFileStatus;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.RemoteIterator;
 import org.apache.hadoop.fs.shell.CommandFormat;
 import org.apache.hadoop.fs.store.DurationInfo;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
@@ -183,8 +185,10 @@ public class StoreDiag extends StoreEntryPoint {
 
 
     Configuration conf = getConf();
+    // path on the CLI
     Path path = new Path(paths.get(0));
 
+    // and its FS URI
     URI fsURI = path.toUri();
 
     heading("Diagnostics for filesystem %s", fsURI);
@@ -373,13 +377,13 @@ public class StoreDiag extends StoreEntryPoint {
 
 
     Path root = fs.makeQualified(new Path("/"));
-    try (DurationInfo d = new DurationInfo(LOG,
+    try (DurationInfo ignored = new DurationInfo(LOG,
         "GetFileStatus %s", root)) {
       println("root entry %s", fs.getFileStatus(root));
     }
 
     FileStatus rootFile = null;
-    try (DurationInfo d = new DurationInfo(LOG,
+    try (DurationInfo ignored = new DurationInfo(LOG,
         "Listing  %s", root)) {
       FileStatus[] statuses = fs.listStatus(root);
       println("%s root entry count: %d", root, statuses.length);
@@ -394,7 +398,7 @@ public class StoreDiag extends StoreEntryPoint {
       // found a file to read
       Path rootFilePath = rootFile.getPath();
       FSDataInputStream in = null;
-      try (DurationInfo d = new DurationInfo(LOG,
+      try (DurationInfo ignored = new DurationInfo(LOG,
           "Reading file %s", rootFilePath)) {
         in = fs.open(rootFilePath);
         // read the first char or -1
@@ -409,9 +413,36 @@ public class StoreDiag extends StoreEntryPoint {
       }
     }
 
-    Path dir = new Path(root, "dir-" + UUID.randomUUID());
+    // now work with the full path
+    try(DurationInfo ignored = new DurationInfo(LOG,
+        "Listing directory %s", path)) {
+      FileStatus status = fs.getFileStatus(path);
+      if (status.isFile()) {
+        throw new IOException("Not a directory: " + status);
+      }
 
-    try (DurationInfo d = new DurationInfo(LOG,
+      RemoteIterator<LocatedFileStatus> files = fs.listFiles(path, false);
+      while (files.hasNext()) {
+        status = files.next();
+        if (status.isFile()) {
+          println("%s: is a file of size %d", status.getPath(),
+              status.getLen());
+        } else {
+          println("%s: is a directory", status.getPath());
+
+        }
+      }
+    } catch (FileNotFoundException e) {
+      // this is fine.
+    }
+
+
+    // now create a file underneath and look at it.
+
+
+    Path dir = new Path(path, "dir-" + UUID.randomUUID());
+
+    try (DurationInfo ignored = new DurationInfo(LOG,
         "Looking for a directory which does not yet exist %s", dir)) {
       FileStatus status = fs.getFileStatus(dir);
       println("Unexpectedly got the status of a file which should not exist%n"
@@ -420,7 +451,7 @@ public class StoreDiag extends StoreEntryPoint {
       // expected this; ignore it.
     }
 
-    try (DurationInfo d = new DurationInfo(LOG,
+    try (DurationInfo ignored = new DurationInfo(LOG,
         "Creating a directory %s", dir)) {
       fs.mkdirs(dir);
     } catch (AccessDeniedException e) {
@@ -429,23 +460,30 @@ public class StoreDiag extends StoreEntryPoint {
       println("Please supply a R/W filesystem for more testing.");
       throw e;
     }
+    try (DurationInfo ignored = new DurationInfo(LOG,
+        "Creating a directory %s", dir)) {
+      FileStatus status = fs.getFileStatus(dir);
+      if (!status.isDirectory()) {
+        throw new IOException("Not a directory: " + status);
+      }
+    }
 
     // after this point the directory is created, so delete it
     // teardown
     try {
       Path file = new Path(dir, "file");
-      try (DurationInfo d = new DurationInfo(LOG,
+      try (DurationInfo ignored = new DurationInfo(LOG,
           "Creating a file %s", file)) {
         FSDataOutputStream data = fs.create(file, true);
         data.writeUTF(HELLO);
         data.close();
       }
-      try (DurationInfo d = new DurationInfo(LOG,
+      try (DurationInfo ignored = new DurationInfo(LOG,
           "Listing  %s", dir)) {
         fs.listFiles(dir, false);
       }
       FSDataInputStream in = null;
-      try (DurationInfo d = new DurationInfo(LOG,
+      try (DurationInfo ignored = new DurationInfo(LOG,
           "Reading a file %s", file)) {
         in = fs.open(file);
         String utf = in.readUTF();
@@ -457,12 +495,12 @@ public class StoreDiag extends StoreEntryPoint {
       } finally {
         IOUtils.closeStream(in);
       }
-      try (DurationInfo d = new DurationInfo(LOG,
+      try (DurationInfo ignored = new DurationInfo(LOG,
           "Deleting file %s", file)) {
         fs.delete(file, true);
       }
     } finally {
-      try (DurationInfo d = new DurationInfo(LOG,
+      try (DurationInfo ignored = new DurationInfo(LOG,
           "Deleting directory %s", dir)) {
         try {
           fs.delete(dir, true);
