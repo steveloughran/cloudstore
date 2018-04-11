@@ -18,8 +18,8 @@
 
 package org.apache.hadoop.fs.store.diag;
 
+import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -85,7 +85,6 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.s3a.committer.name", false},
       {"fs.s3a.committer.staging.conflict-mode", false},
       {"", false},
-      {"", false},
   };
 
   protected static final Object[][] ENV_VARS = {
@@ -109,7 +108,12 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       "com.fasterxml.jackson.databind.ObjectMapper",
       /* And Joda-time. Not relevant on the shaded SDK,
        *  but critical for older ones */
-      "org.joda.time.Interval"
+      "org.joda.time.Interval",
+      // STS
+      "com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClient",
+      // S3 Select
+      "com.amazonaws.services.s3.model.SelectObjectContentResponse",
+      ""
   };
 
   public S3ADiagnosticsInfo(final URI fsURI) {
@@ -157,12 +161,12 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
   }
 
   /**
-   * Determine the S3 endpoint if set (or default.
+   * Determine the S3 endpoint if set (or default).
    * {@inheritDoc}
    */
   @Override
   public List<URI> listEndpointsToProbe(final Configuration conf)
-      throws URISyntaxException {
+      throws IOException {
     String endpoint = conf.getTrimmed(Constants.ENDPOINT, "s3.amazonaws.com");
     String bucketURI;
     String bucket = fsURI.getHost();
@@ -184,7 +188,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       bucketURI = String.format("%s://%s/", scheme, fqdn);
     }
     List<URI> uris = new ArrayList<>(2);
-    uris.add(new URI(bucketURI));
+    uris.add(StoreDiag.toURI("Bucket URI", bucketURI));
     addUriOption(uris, conf, "fs.s3a.assumed.role.sts.endpoint", "");
     return uris;
   }

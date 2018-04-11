@@ -18,6 +18,7 @@
 
 package org.apache.hadoop.fs.store.diag;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -85,7 +86,7 @@ public class HDFSDiagnosticsInfo extends StoreDiagnosticsInfo {
 
   @Override
   public List<URI> listEndpointsToProbe(final Configuration conf)
-      throws URISyntaxException {
+      throws IOException {
     List<URI> uris = new ArrayList<>(2);
     boolean isHttps = conf.getBoolean("dfs.http.policy", false);
     if (isHttps) {

@@ -34,21 +34,19 @@ public class StoreEntryPoint extends Configured implements Tool {
 
   private static final Logger LOG = LoggerFactory.getLogger(StoreEntryPoint.class);
 
-  private static final String HELLO = "Hello";
-
-  private static PrintStream out = System.out;
+  private PrintStream out = System.out;
 
   @Override
   public int run(String[] args) throws Exception {
     return 0;
   }
 
-  public static PrintStream getOut() {
+  public PrintStream getOut() {
     return out;
   }
 
-  public static void setOut(PrintStream out) {
-    StoreEntryPoint.out = out;
+  public void setOut(PrintStream out) {
+    this.out = out;
   }
 
   /**

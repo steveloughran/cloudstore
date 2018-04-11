@@ -18,20 +18,24 @@
 
 package org.apache.hadoop.fs.store.diag;
 
+import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.apache.hadoop.conf.Configuration;
 
+/**
+ * Class for filesystems to implement to provide better diagnostics than the
+ * default.
+ */
 class StoreDiagnosticsInfo {
 
   protected static final Object[][] EMPTY_OPTIONS = {};
 
   protected static final Object[][] STANDARD_ENV_VARS = {
       {"PATH", false},
+      // TODO: add the https proxy vars
   };
 
   protected static final String[] EMPTY_CLASSNAMES = {};
@@ -42,6 +46,32 @@ class StoreDiagnosticsInfo {
 
   public StoreDiagnosticsInfo(final URI fsURI) {
     this.fsURI = fsURI;
+  }
+
+  /**
+   * Bind the diagnostics to a store.
+   * @param fsURI filesystem URI
+   * @return the diagnostics info provider.
+   */
+  public static StoreDiagnosticsInfo bindToStore(final URI fsURI) {
+    StoreDiagnosticsInfo store;
+    switch (fsURI.getScheme()) {
+    case "hdfs":
+      store = new HDFSDiagnosticsInfo(fsURI);
+      break;
+    case "s3a":
+      store = new S3ADiagnosticsInfo(fsURI);
+      break;
+    case "adl":
+      store = new ADLDiagnosticsInfo(fsURI);
+      break;
+    case "wasb":
+      store = new WasbDiagnosticsInfo(fsURI);
+      break;
+    default:
+      store = new StoreDiagnosticsInfo(fsURI);
+    }
+    return store;
   }
 
   /**
@@ -95,7 +125,8 @@ class StoreDiagnosticsInfo {
    * @param conf initial configuration.
    * @return the configuration to work with.
    */
-  public Configuration patchConfigurationToInitalization(final Configuration conf) {
+  public Configuration patchConfigurationToInitalization(
+      final Configuration conf) {
     return conf;
   }
 
@@ -129,10 +160,11 @@ class StoreDiagnosticsInfo {
   /**
    * List the endpoints to probe for (auth, REST, etc).
    * @param conf configuration to use, will already have been patched.
-   * @return a possibly empty ist of endpoints for DNS lookup then HTTP connect to.
+   * @return a possibly empty ist of endpoints for DNS lookup and HTTP
+   * connections.
    */
   public List<URI> listEndpointsToProbe(Configuration conf)
-      throws URISyntaxException {
+      throws IOException {
     return EMPTY_ENDPOINTS;
   }
 
@@ -143,22 +175,18 @@ class StoreDiagnosticsInfo {
    * @param key key to check
    * @param uriPrefix any prefix to add to build the URI, e.g "https:"
    * @return true iff there was a URI
-   * @throws URISyntaxException parsing problem
+   * @throws IOException parsing problem
    */
-  protected boolean addUriOption(final List<URI> uris, final Configuration conf,
+  protected boolean addUriOption(final List<URI> uris,
+      final Configuration conf,
       final String key,
-      final String uriPrefix) throws URISyntaxException {
+      final String uriPrefix) throws IOException {
     String endpoint = conf.getTrimmed(key, "");
     if (!endpoint.isEmpty()) {
-      try {
-        uris.add(new URI(uriPrefix + endpoint));
+        uris.add(StoreDiag.toURI(
+            "From configuration key " + key,
+            uriPrefix + endpoint));
         return true;
-      } catch (URISyntaxException e) {
-        throw new URISyntaxException(endpoint,
-            String.format("From configuration key %s: %s",
-                key, e.getMessage()));
-
-      }
     } else {
       return false;
     }

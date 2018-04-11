@@ -34,6 +34,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
 
@@ -53,14 +54,11 @@ import org.apache.hadoop.fs.shell.CommandFormat;
 import org.apache.hadoop.fs.store.DurationInfo;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
 import org.apache.hadoop.io.IOUtils;
-import org.apache.hadoop.util.ExitUtil;
+import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 
-import static org.apache.hadoop.util.VersionInfo.getDate;
-import static org.apache.hadoop.util.VersionInfo.getProtocVersion;
-import static org.apache.hadoop.util.VersionInfo.getSrcChecksum;
-import static org.apache.hadoop.util.VersionInfo.getUser;
-import static org.apache.hadoop.util.VersionInfo.getVersion;
+import static org.apache.hadoop.util.VersionInfo.*;
+import static org.apache.hadoop.fs.store.StoreExitCodes.*;
 
 public class StoreDiag extends StoreEntryPoint {
 
@@ -70,19 +68,15 @@ public class StoreDiag extends StoreEntryPoint {
 
   protected static final int THRESHOLD = 4;
 
-
-  CommandFormat commandFormat = new CommandFormat(0, Integer.MAX_VALUE);
-
-
-  // Exit codes
-  static final int SUCCESS = 0;
-
-  static final int E_USAGE = 42;
-
-  static final int ERROR = -1;
+  protected CommandFormat commandFormat = new CommandFormat(0, Integer.MAX_VALUE);
 
   static final String USAGE = "Usage: StoreDiag <filesystem>";
 
+  private StoreDiagnosticsInfo storeInfo;
+
+  /**
+   * Print all JVM options.
+   */
   private void printJVMOptions() {
     heading("System Properties");
     Properties sysProps = System.getProperties();
@@ -91,15 +85,24 @@ public class StoreDiag extends StoreEntryPoint {
     }
   }
 
-  private TreeSet<String> sortKeys(final Iterable<?> keySet) {
+  /**
+   * Sort the keys.
+   * @param keys keys to sort.
+   * @return new set of sorted keys
+   */
+  private Set<String> sortKeys(final Iterable<?> keys) {
     TreeSet<String> sorted = new TreeSet<>();
-    for (Object k : keySet) {
+    for (Object k : keys) {
       sorted.add(k.toString());
     }
     return sorted;
   }
 
-  private void printEnvVars(Object[][] vars) {
+  /**
+   * Print the environment variables.
+   * @param vars variables.
+   */
+  public void printEnvVars(Object[][] vars) {
     if (vars.length > 9) {
       heading("Environment Variables");
       for (final Object[] option : vars) {
@@ -113,6 +116,11 @@ public class StoreDiag extends StoreEntryPoint {
     }
   }
 
+  /**
+   * Print the selected options in a config.
+   * @param conf source configuration
+   * @param options map of options
+   */
   private void printOptions(Configuration conf, Object[][] options) {
     if (options.length > 0) {
       heading("Selected and Sanitized Configuration Options");
@@ -122,30 +130,47 @@ public class StoreDiag extends StoreEntryPoint {
     }
   }
 
-  private String maybeSanitize(String option, boolean sensitive) {
-    return sensitive ? sanitize(option) : option;
+  /**
+   * Sanitize a value if needed.
+   * @param value option value.
+   * @param sensitive sensitivity
+   * @return string safe to log
+   */
+  public String maybeSanitize(String value, boolean sensitive) {
+    return sensitive ? sanitize(value) : value;
   }
 
-  private String sanitize(String option) {
-    String r = option;
+  /**
+   * Sanitize a sensitive option.
+   * @param value option value.
+   * @return sanitized value.
+   */
+  public String sanitize(String value) {
+    String r = value;
     int len = r.length();
     if (len > THRESHOLD) {
       StringBuilder b = new StringBuilder(len);
-      b.append(option.charAt(0));
+      b.append(value.charAt(0));
       for (int i = 1; i < len - 1; i++) {
         b.append('*');
       }
-      b.append(option.charAt(len - 1));
-      option = b.toString();
+      b.append(value.charAt(len - 1));
+      value = b.toString();
     } else {
       // short values get special treatment
-      option = "**";
+      value = "**";
     }
-    return option;
+    return value;
   }
 
 
-  private void printOption(Configuration conf, String key, boolean sensitive) {
+  /**
+   * Print an option.
+   * @param conf source configuration
+   * @param key key
+   * @param sensitive is it sensitive?
+   */
+  public void printOption(Configuration conf, String key, boolean sensitive) {
     if (key.isEmpty()) {
       return;
     }
@@ -177,81 +202,73 @@ public class StoreDiag extends StoreEntryPoint {
       errorln(USAGE);
       return E_USAGE;
     }
-    heading("Hadoop information");
-    println("  Hadoop %s", getVersion());
-    println("  Compiled by %s on %s", getUser(), getDate());
-    println("  Compiled with protoc %s", getProtocVersion());
-    println("  From source with checksum %s", getSrcChecksum());
 
 
-    Configuration conf = getConf();
     // path on the CLI
     Path path = new Path(paths.get(0));
 
     // and its FS URI
-    URI fsURI = path.toUri();
 
+    storeInfo = bindToStore(path.toUri());
+
+    printStoreConfiguration();
+    probeRequiredAndOptionalClasses();
+    probeAllEndpoints();
+
+    // and the filesystem operations
+    executeFileSystemOperations(path, true);
+
+    // Validate parameters.
+    return E_SUCCESS;
+  }
+
+  /**
+   * Probe all the endpoints.
+   * @throws IOException IO Failure
+   */
+  public void probeAllEndpoints() throws IOException  {
+    heading("Endpoints");
+
+    probeEndpoints(storeInfo.listEndpointsToProbe(getConf()));
+  }
+
+  /**
+   * Print the base configuration of the store.
+   */
+  public void printStoreConfiguration() {
+    printHadoopVersionInfo();
+
+    printOptions(getConf(), storeInfo.getFilesystemOptions());
+
+    printEnvVars(storeInfo.getEnvVars());
+  }
+
+  /**
+   * Bind the diagnostics to a store.
+   * @param fsURI filesystem
+   * @return the store's diagnostics.
+   */
+  public StoreDiagnosticsInfo bindToStore(final URI fsURI) {
     heading("Diagnostics for filesystem %s", fsURI);
 
-    StoreDiagnosticsInfo store;
-    switch (fsURI.getScheme()) {
-    case "hdfs":
-      store = new HDFSDiagnosticsInfo(fsURI);
-      break;
-    case "s3a":
-      store = new S3ADiagnosticsInfo(fsURI);
-      break;
-    case "adl":
-      store = new ADLDiagnosticsInfo(fsURI);
-      break;
-    default:
-      store = new StoreDiagnosticsInfo(fsURI);
-    }
+    StoreDiagnosticsInfo store = StoreDiagnosticsInfo.bindToStore(fsURI);
 
     println("%s\n%s\n%s",
         store.getName(), store.getDescription(), store.getHomepage());
 
     printJVMOptions();
 
-    conf = store.patchConfigurationToInitalization(conf);
+    setConf(store.patchConfigurationToInitalization(getConf()));
+    return store;
+  }
 
-    printOptions(conf, store.getFilesystemOptions());
-
-    printEnvVars(store.getEnvVars());
-
-
-    String[] requiredClasses = store.getClassnames(conf);
-    if (requiredClasses.length > 0) {
-      heading("Required Classes");
-      println("All these classes must be on the classpath");
-      println("");
-      for (String classname : requiredClasses) {
-        probeOneClassname(classname);
-      }
-    }
-
-    String[] optionalClasses = store.getOptionalClassnames(conf);
-    if (optionalClasses.length > 0) {
-      heading("Optional Classes");
-
-      println("These classes are needed in some versions of Hadoop.");
-      println("And/or for optional features to work.");
-      println("");
-
-      boolean missing = false;
-      for (String classname : optionalClasses) {
-        missing |= probeOptionalClassname(classname);
-      }
-      if (missing) {
-        println("%nAt least one optional class was missing"
-            + " -the filesystem client *may* still work");
-      }
-    }
-
-    heading("Endpoints");
-
-    List<URI> endpoints = store.listEndpointsToProbe(conf);
-
+  /**
+   * Probe the list of endpoints.
+   * @param endpoints list to probe (unauthed)
+   * @throws IOException  IO Failure
+   */
+  public void probeEndpoints(final List<URI> endpoints)
+      throws IOException {
     if (endpoints.isEmpty()) {
       println("No endpoints determined for this filesystem");
     } else {
@@ -269,16 +286,64 @@ public class StoreDiag extends StoreEntryPoint {
         probeOneEndpoint(endpoint);
       }
     }
-
-    // and the filesystem operations
-    executeFileSystemOperations(conf, path);
-
-    // Validate parameters.
-    return SUCCESS;
   }
 
-  private void probeOneEndpoint(URI endpoint)
-      throws IOException, URISyntaxException {
+  /**
+   * Look at optional classes.
+   * @param optionalClasses list of optional classes; may be null.
+   * @return true if 1+ class was missing.
+   */
+  public boolean probeOptionalClasses(final String[] optionalClasses) {
+    if (optionalClasses.length > 0) {
+      heading("Optional Classes");
+
+      println("These classes are needed in some versions of Hadoop.");
+      println("And/or for optional features to work.");
+      println("");
+
+      boolean missing = false;
+      for (String classname : optionalClasses) {
+        missing |= probeOptionalClass(classname);
+      }
+      if (missing) {
+        println("%nAt least one optional class was missing"
+            + " -the filesystem client *may* still work");
+      }
+      return missing;
+    } else {
+      return false;
+    }
+  }
+
+  public void probeRequiredClasses(final String[] requiredClasses)
+      throws ClassNotFoundException {
+    if (requiredClasses.length > 0) {
+      heading("Required Classes");
+      println("All these classes must be on the classpath");
+      println("");
+      for (String classname : requiredClasses) {
+        probeRequiredClass(classname);
+      }
+    }
+  }
+
+  public void printHadoopVersionInfo() {
+    heading("Hadoop information");
+    println("  Hadoop %s", getVersion());
+    println("  Compiled by %s on %s", getUser(), getDate());
+    println("  Compiled with protoc %s", getProtocVersion());
+    println("  From source with checksum %s", getSrcChecksum());
+  }
+
+  /**
+   * Probe one endpoint, print proxy values, etc. No auth.
+   * Ignores "0.0.0.0" addresses as they are silly.
+   * @param endpoint endpoint
+   * @throws IOException network problem
+   * @throws URISyntaxException URI/URL setup problem.
+   */
+  public void probeOneEndpoint(URI endpoint)
+      throws IOException {
     final String host = endpoint.getHost();
 
     heading("Endpoint: %s", endpoint);
@@ -292,7 +357,7 @@ public class StoreDiag extends StoreEntryPoint {
     URL url = endpoint.toURL();
 
     List<Proxy> proxies = ProxySelector.getDefault()
-        .select(url.toURI());
+        .select(toURI(url));
     if (proxies.isEmpty() ||
         Proxy.Type.DIRECT == proxies.get(0).type()) {
       println("Proxy: none");
@@ -330,12 +395,23 @@ public class StoreDiag extends StoreEntryPoint {
         body.substring(0, Math.min(1024,body.length())));
   }
 
+
+  /**
+   * Probe all the required classes.
+   * @throws ClassNotFoundException no class
+   */
+  public void probeRequiredAndOptionalClasses() throws ClassNotFoundException {
+    probeRequiredClasses(storeInfo.getClassnames(getConf()));
+    probeOptionalClasses(storeInfo.getOptionalClassnames(getConf()));
+  }
+
+
   /**
    * Look for a class; print its origin.
    * @param classname classname
    * @throws ClassNotFoundException if the class was not found.
    */
-  private void probeOneClassname(final String classname)
+  public void probeRequiredClass(final String classname)
       throws ClassNotFoundException {
     if (classname.isEmpty()) {
       return;
@@ -350,9 +426,9 @@ public class StoreDiag extends StoreEntryPoint {
    * fact that it is missing.
    * @param classname classname
    */
-  private boolean probeOptionalClassname(final String classname) {
+  public boolean probeOptionalClass(final String classname) {
     try {
-      probeOneClassname(classname);
+      probeRequiredClass(classname);
       return true;
     } catch (ClassNotFoundException e) {
       println("       Not found on classpath: %s", classname);
@@ -363,9 +439,9 @@ public class StoreDiag extends StoreEntryPoint {
   /**
    * Execute the FS level operations, one by one.
    */
-  private void executeFileSystemOperations(final Configuration conf,
-      final Path path) throws IOException {
-
+  public void executeFileSystemOperations(final Path path,
+      final boolean attempWriteOperations) throws IOException {
+    final Configuration conf = getConf();
     heading("Test filesystem %s", path);
 
     println("This call tests a set of operations against the filesystem");
@@ -436,6 +512,9 @@ public class StoreDiag extends StoreEntryPoint {
       // this is fine.
     }
 
+    if (!attempWriteOperations) {
+      return;
+    }
 
     // now create a file underneath and look at it.
 
@@ -460,6 +539,8 @@ public class StoreDiag extends StoreEntryPoint {
       println("Please supply a R/W filesystem for more testing.");
       throw e;
     }
+
+    // Directory ops
     try (DurationInfo ignored = new DurationInfo(LOG,
         "Creating a directory %s", dir)) {
       FileStatus status = fs.getFileStatus(dir);
@@ -511,6 +592,31 @@ public class StoreDiag extends StoreEntryPoint {
     }
   }
 
+  /**
+   * Create a URI, raise an IOE on parsing.
+   * @param origin origin for error text
+   * @param uri URI.
+   * @return instantiated URI.
+   * @throws IOException parsing problem
+   */
+  public static URI toURI(String origin, String uri) throws IOException {
+    try {
+      return new URI(uri);
+    } catch (URISyntaxException e) {
+      throw new IOException("From " + origin + " URI: " + uri +
+          " - " + e.getMessage(), e);
+    }
+  }
+
+  public static URI toURI(URL url) throws IOException {
+    try {
+      return url.toURI();
+    } catch (URISyntaxException e) {
+      throw new IOException("From " + url +
+          " - " + e.getMessage(), e);
+    }
+  }
+
 
   /**
    * Parse CLI arguments and returns the position arguments.
@@ -519,7 +625,7 @@ public class StoreDiag extends StoreEntryPoint {
    * @param args command line arguments.
    * @return the position arguments from CLI.
    */
-  List<String> parseArgs(String[] args) {
+  private List<String> parseArgs(String[] args) {
     return args.length > 0 ? commandFormat.parse(args, 0)
         : new ArrayList<String>(0);
   }
@@ -536,23 +642,33 @@ public class StoreDiag extends StoreEntryPoint {
   }
 
   /**
+   * Execute the command, return the result or throw an exception,
+   * as appropriate.
+   * @param conf configuration to pass in
+   * @param args argument varags.
+   * @return return code
+   * @throws Exception failure
+   */
+  public static int diagnostics(Configuration conf, String... args)
+      throws Exception {
+
+    return ToolRunner.run(conf, new StoreDiag(), args);
+  }
+
+  /**
    * Main entry point. Calls {@code System.exit()} on all execution paths.
    * @param args argument list
    */
   public static void main(String[] args) {
     try {
-
       exit(exec(args), "");
     } catch (CommandFormat.UnknownOptionException e) {
       errorln(e.getMessage());
       exit(E_USAGE, e.getMessage());
     } catch (Throwable e) {
       e.printStackTrace(System.err);
-      exit(ERROR, e.toString());
+      exit(E_ERROR, e.toString());
     }
   }
 
-  protected static void exit(int status, String text) {
-    ExitUtil.terminate(status, text);
-  }
 }
