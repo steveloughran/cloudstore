@@ -30,8 +30,6 @@ public class WasbDiagnosticsInfo extends StoreDiagnosticsInfo {
 
   private static final Object[][] options = {
 
-      {"fs.adl.oauth2.client.id", true},
-      {"fs.adl.oauth2.credential", true},
       {"fs.azure.user.agent.prefix", false},
       {"fs.azure.secure.mode", false},
       {"fs.azure.local.sas.key.mode", false},
@@ -49,7 +47,6 @@ public class WasbDiagnosticsInfo extends StoreDiagnosticsInfo {
   };
 
   public static final String[] classnames = {
-      "org.apache.hadoop.fs.azure.NativeAzureFileSystem",
       "com.fasterxml.jackson.databind.ObjectReader",
       "org.apache.commons.lang.StringUtils",
       "com.google.common.base.Preconditions",
@@ -58,6 +55,7 @@ public class WasbDiagnosticsInfo extends StoreDiagnosticsInfo {
       "org.apache.http.client.methods.HttpGet",
       "org.eclipse.jetty.util.ajax.JSON",
       "org.eclipse.jetty.util.log.Log",
+      "org.apache.hadoop.fs.azure.NativeAzureFileSystem",
   };
 
   public WasbDiagnosticsInfo(final URI fsURI) {
