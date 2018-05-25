@@ -54,7 +54,6 @@ import org.apache.hadoop.fs.shell.CommandFormat;
 import org.apache.hadoop.fs.store.DurationInfo;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
 import org.apache.hadoop.io.IOUtils;
-import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 
 import static org.apache.hadoop.util.VersionInfo.*;
@@ -205,7 +204,12 @@ public class StoreDiag extends StoreEntryPoint {
 
 
     // path on the CLI
-    Path path = new Path(paths.get(0));
+    String pathString = paths.get(0);
+    if (!pathString.endsWith("/")) {
+      pathString = pathString + "/";
+    }
+    Path path = new Path(pathString);
+
 
     // and its FS URI
 
@@ -633,17 +637,6 @@ public class StoreDiag extends StoreEntryPoint {
   /**
    * Execute the command, return the result or throw an exception,
    * as appropriate.
-   * @param args argument varags.
-   * @return return code
-   * @throws Exception failure
-   */
-  public static int exec(String... args) throws Exception {
-    return ToolRunner.run(new StoreDiag(), args);
-  }
-
-  /**
-   * Execute the command, return the result or throw an exception,
-   * as appropriate.
    * @param conf configuration to pass in
    * @param args argument varags.
    * @return return code
@@ -653,6 +646,17 @@ public class StoreDiag extends StoreEntryPoint {
       throws Exception {
 
     return ToolRunner.run(conf, new StoreDiag(), args);
+  }
+
+  /**
+   * Execute the command, return the result or throw an exception,
+   * as appropriate.
+   * @param args argument varags.
+   * @return return code
+   * @throws Exception failure
+   */
+  public static int exec(String... args) throws Exception {
+    return ToolRunner.run(new StoreDiag(), args);
   }
 
   /**
