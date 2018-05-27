@@ -34,7 +34,9 @@ import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 
 /**
- * Various utils
+ * Various utils, a lot pulled from ContractTestUtils, LambdaTestUtils.
+ * Why copy & paste? Allows this whole module to build and run
+ * against earlier Hadoop versions.
  */
 public final class StoreTestUtils extends Assert {
 
@@ -124,20 +126,27 @@ public final class StoreTestUtils extends Assert {
     return testDirectory;
   }
 
-  public static int createTestFiles(File sourceDir, int size)
-      throws IOException{
-    File subdir = new File(sourceDir, "subdir");
+  /**
+   * Create some test files
+   * @param destDir destination; things to in under it.
+   * @param fileCount total number of files
+   * @return number of expected files in recursive enum
+   * @throws IOException
+   */
+  public static int createTestFiles(File destDir, int fileCount)
+      throws IOException {
+    File subdir = new File(destDir, "subdir");
     int expected = 0;
     mkdirs(subdir);
-    File top = new File(sourceDir, "top");
+    File top = new File(destDir, "top");
     FileUtils.write(top, "toplevel");
     expected++;
-    for (int i = 0; i < size; i++) {
+    for (int i = 0; i < fileCount; i++) {
       String text = String.format("file-%02d", i);
       File f = new File(subdir, text);
       FileUtils.write(f, f.toString());
     }
-    expected += size;
+    expected += fileCount;
 
     // and write the largest file
     File largest = new File(subdir, "largest");
