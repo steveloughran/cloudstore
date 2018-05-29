@@ -16,16 +16,19 @@
  * limitations under the License.
  */
 
-package org.apache.hadoop.fs.tools.cloudup;
+package org.apache.hadoop.fs.store.cloudsync;
 
-public class CloudupConstants {
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import org.apache.hadoop.fs.store.StoreEntryPoint;
+import org.apache.hadoop.fs.tools.cloudup.Cloudup;
 
-  public static final int E_SUCCESS = 0;
-  public static final int E_USAGE = 2;
-  public static final int E_INVALID_ARGUMENT = -1;
-  public static final int E_NOT_FOUND = 44;
-  public static final int E_NO_ACCESS = 41;
+public class CloudSync extends StoreEntryPoint {
 
-  public static final String USAGE = "Usage: cloudup -s source -d dest [-o] [-i] [-l <largest>] [-t threads] ";
-}
+    private static final Logger LOG = LoggerFactory.getLogger(Cloudup.class);
+
+    public static final String USAGE
+        = "Usage: cloudup -s source -d dest [-o] [-i] [-l <largest>] [-t threads] ";
+
+  }
