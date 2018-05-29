@@ -86,7 +86,8 @@
  *   <li>Time to list source is cost of treewalk.</li>
  *   <li>
  *     This is <i>O(directories)</i> + time to marshall/unmarshall the
- *     file status arrays.
+ *     file status arrays. We could consider parallelizing this
+ *     through a pool of threads to list parts of a tree.
  *   </li>
  *   <li>
  *     Memory used to cache treewalk data is <i>O(directories + files)</i>.
