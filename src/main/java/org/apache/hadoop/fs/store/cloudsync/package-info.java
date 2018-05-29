@@ -105,8 +105,9 @@
  *     Thus: {@code sizeof(record) + (directories * sizeof(ArrayList))}
  *   </li>
  *   <li>
- *     As new deleted directory entries are added to the tree, these lists
- *     of child entries will go; there is a cost here for reallocating new
+ *     When a new deleted directory entry are added to the source tree, it
+ *     will need to be inserted (assume: prefer sorted order for faster treewalks)
+ *     these lists of child entries will grew; there is a cost here for reallocating new
  *     arrays and copying old data. The more directories deleted, the higher
  *     this overhead.
  *   </li>
