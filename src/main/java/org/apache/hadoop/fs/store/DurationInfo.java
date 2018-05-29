@@ -24,6 +24,9 @@ import org.slf4j.Logger;
  * A duration with logging of final state at info in the {@code close()} call.
  * This allows it to be used in a try-with-resources clause, and have the
  * duration automatically logged.
+ *
+ * Base on the S3A one; adds an empty constructor which doesn't do
+ * any logging.
  */
 public class DurationInfo
     implements AutoCloseable {
@@ -50,6 +53,19 @@ public class DurationInfo
     log.info("Starting: {}", text);
   }
 
+ /**
+   * Create the duration text from a {@code String.format()} code call.
+   * @param log log to write to
+   * @param format format string
+   * @param args list of arguments
+   */
+  public DurationInfo() {
+    started = time();
+    finished = started;
+    this.text = "";
+    this.log = null;
+  }
+
   private long time() {
     return System.currentTimeMillis();
   }
@@ -74,12 +90,14 @@ public class DurationInfo
 
   @Override
   public String toString() {
-    return text + ": duration " + getDurationString();
+    return getDurationString();
   }
 
   @Override
   public void close() {
     finished();
-    log.info(this.toString());
+    if (log != null) {
+      log.info(text + ": duration " + toString());
+    }
   }
 }

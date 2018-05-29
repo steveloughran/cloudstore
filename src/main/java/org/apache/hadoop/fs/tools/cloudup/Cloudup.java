@@ -27,7 +27,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionService;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorCompletionService;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -46,35 +45,52 @@ import org.apache.commons.cli.GnuParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.collections.comparators.ReverseComparator;
-import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.LocatedFileStatus;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.RemoteIterator;
-import org.apache.hadoop.util.Tool;
+import org.apache.hadoop.fs.shell.CommandFormat;
+import org.apache.hadoop.fs.store.DurationInfo;
+import org.apache.hadoop.fs.store.StoreEntryPoint;
+import org.apache.hadoop.fs.store.StoreUtils;
 import org.apache.hadoop.util.ToolRunner;
+
+import static org.apache.hadoop.fs.store.StoreExitCodes.E_ERROR;
+import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
 
 /**
  * Entry point for Cloudup: parallelized upload of local files
  * to remote (cloud) storage with shuffle after selective choice
  * of largest files
  */
-public class Cloudup extends Configured implements Tool {
+public class Cloudup extends StoreEntryPoint {
 
   private static final Logger LOG = LoggerFactory.getLogger(Cloudup.class);
+
+  public static final String USAGE
+      = "Usage: cloudup -s source -d dest [-o] [-i] [-l <largest>] [-t threads] ";
+
   private static final int DEFAULT_LARGEST = 4;
   private static final int DEFAULT_THREADS = 16;
-  ExecutorService workers;
-  FileSystem sourceFS;
-  Path sourcePath;
-  FileSystem destFS;
-  Path destPath;
-  AtomicBoolean exit = new AtomicBoolean(false);
-  boolean overwrite = true;
-  boolean ignoreFailures = true;
+
+  private ExecutorService workers;
+
+  private FileSystem sourceFS;
+
+  private Path sourcePath;
+
+  private FileSystem destFS;
+
+  private Path destPath;
+
+  private AtomicBoolean exit = new AtomicBoolean(false);
+
+  private boolean overwrite = true;
+
+  private boolean ignoreFailures = true;
   // single element exception with sync access.
-  final Exception[] firstException = new Exception[1];
+  private final Exception[] firstException = new Exception[1];
   private CompletionService<Long> completion;
 
   private FileStatus sourcePathStatus;
@@ -94,8 +110,8 @@ public class Cloudup extends Configured implements Tool {
   public int run(String[] args) throws Exception {
     // parse the path
     if (args.length == 0) {
-      LOG.info(CloudupConstants.USAGE);
-      return CloudupConstants.E_USAGE;
+      LOG.info(USAGE);
+      return E_USAGE;
     }
     final CommandLineParser parser = new GnuParser();
 
@@ -106,7 +122,7 @@ public class Cloudup extends Configured implements Tool {
     } catch (ParseException e) {
       throw new IllegalArgumentException("Unable to parse arguments. " +
           Arrays.toString(args)
-          + "\n" + CloudupConstants.USAGE,
+          + "\n" + USAGE,
           e);
     }
     final int largest = OptionSwitch.LARGEST.eval(command, DEFAULT_LARGEST);
@@ -165,7 +181,7 @@ public class Cloudup extends Configured implements Tool {
         0L, TimeUnit.MILLISECONDS,
         new LinkedBlockingQueue<Runnable>());
 
-    final Duration preparationDuration = new Duration();
+    final DurationInfo preparationDuration = new DurationInfo();
     // list the files
     Future<List<UploadEntry>> listFilesOperation =
         workers.submit(buildUploads());
@@ -173,19 +189,19 @@ public class Cloudup extends Configured implements Tool {
     // prepare the destination
 
     final Future<String> prepareDestResult = workers.submit(prepareDest());
-    String info = await(prepareDestResult);
+    String info = StoreUtils.await(prepareDestResult);
     LOG.info("Destination prepared: {}", info);
 
-    List<UploadEntry> uploadList = await(listFilesOperation);
+    List<UploadEntry> uploadList = StoreUtils.await(listFilesOperation);
     final int uploadCount = uploadList.size();
 
     preparationDuration.finished();
-    LOG.info("Files to upload = {}; preparation duration = {}",
+    LOG.info("Files to upload = {}; preparation DurationInfo = {}",
         uploadCount, preparationDuration);
 
 
     // full upload operation
-    final Duration uploadDuration = new Duration();
+    final DurationInfo uploadDuration = new DurationInfo();
     final NanoTimer uploadTimer = new NanoTimer();
 
     // now completion service for all outstanding workers
@@ -261,7 +277,7 @@ public class Cloudup extends Configured implements Tool {
       dumpStats(destFS, "Dest statistics");
     }
 
-    LOG.info("\n\nUploads attempted: {}, size {}, duration:  {}",
+    LOG.info("\n\nUploads attempted: {}, size {}, DurationInfo:  {}",
         uploadCount, uploadSize, uploadDuration);
     LOG.info("Bandwidth {} MB/s",
         uploadTimer.bandwidthDescription(uploadSize));
@@ -276,7 +292,7 @@ public class Cloudup extends Configured implements Tool {
 
     for (Future<Long> outcome : outcomes) {
       try {
-        finalUploadedSize += naturalize(await(outcome));
+        finalUploadedSize += naturalize(StoreUtils.await(outcome));
       } catch (IOException e) {
         errors++;
         if (exception == null) {
@@ -305,40 +321,6 @@ public class Cloudup extends Configured implements Tool {
    */
   public long naturalize(long input) {
     return input > 0 ? input : 9;
-  }
-
-  /**
-   * Await a future completing; uprate failures.
-   * @param future future to exec
-   * @param <T> return type
-   * @return the result
-   * @throws IOException failure
-   * @throws InterruptedException work interrupted
-   */
-  private static <T> T await(Future<T> future)
-      throws IOException, InterruptedException {
-    try {
-      return future.get();
-    } catch (ExecutionException e) {
-      throw uprate(e);
-    }
-  }
-
-  /**
-   * Take an exception from a Future and convert to an IOE,
-   * @param e exception
-   * @return the extracted or wrapped exception
-   * @throws RuntimeException if that is the cause
-   */
-  private static IOException uprate(ExecutionException e) {
-    Throwable cause = e.getCause();
-    if (cause instanceof RuntimeException) {
-      throw (RuntimeException) cause;
-    }
-    if (cause instanceof IOException) {
-      return (IOException) cause;
-    }
-    return new IOException(cause.toString(), cause);
   }
 
   /**
@@ -469,7 +451,7 @@ public class Cloudup extends Configured implements Tool {
       LOG.info("Successful upload of {} tpo {} in {} s",
           source,
           dest,
-          Duration.humanTime(upload.getDuration()));
+          DurationInfo.humanTime(upload.getDuration()));
     } catch (IOException e) {
       upload.setState(UploadEntry.State.failed);
       upload.setException(e);
@@ -560,15 +542,18 @@ public class Cloudup extends Configured implements Tool {
   }
 
   /**
-   * Entry point, calls System.exit afterwards.
-   * @param args argument list.
+   * Main entry point. Calls {@code System.exit()} on all execution paths.
+   * @param args argument list
    */
   public static void main(String[] args) {
     try {
-      System.exit(exec(args));
+      exit(exec(args), "");
+    } catch (CommandFormat.UnknownOptionException e) {
+      errorln(e.getMessage());
+      exit(E_USAGE, e.getMessage());
     } catch (Throwable e) {
-      LOG.error("During execution: " + e, e);
-      System.exit(-1);
+      e.printStackTrace(System.err);
+      exit(E_ERROR, e.toString());
     }
   }
 
