@@ -41,7 +41,6 @@ import java.util.UUID;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
@@ -54,6 +53,7 @@ import org.apache.hadoop.fs.shell.CommandFormat;
 import org.apache.hadoop.fs.store.DurationInfo;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
 import org.apache.hadoop.io.IOUtils;
+import org.apache.hadoop.util.StringUtils;
 import org.apache.hadoop.util.ToolRunner;
 
 import static org.apache.hadoop.util.VersionInfo.*;
@@ -182,7 +182,7 @@ public class StoreDiag extends StoreEntryPoint {
       option = maybeSanitize(option, sensitive);
       String[] origins = conf.getPropertySources(key);
       if (origins.length !=0) {
-        source = " [" + StringUtils.join(origins, ",") + "]";
+        source = " [" + StringUtils.join(",", origins) + "]";
       }
       full = '"' + option + '"' + source;
     }
@@ -387,7 +387,7 @@ public class StoreDiag extends StoreEntryPoint {
     if (headerFields != null) {
       for (String header : headerFields.keySet()) {
         println("%s: %s", header,
-            StringUtils.join(headerFields.get(header), ","));
+            StringUtils.join(",", headerFields.get(header)));
       }
     }
     ByteArrayOutputStream out = new ByteArrayOutputStream();
