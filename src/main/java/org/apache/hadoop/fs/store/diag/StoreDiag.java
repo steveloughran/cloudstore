@@ -397,6 +397,11 @@ public class StoreDiag extends StoreEntryPoint {
     String body = out.toString();
     println("%n%s%n",
         body.substring(0, Math.min(1024,body.length())));
+    if (success) {
+      println("WARNING: this unauthenticated operation was not rejected.\n"
+          + "This may mean the store is world-readable.\n"
+          + "Check this by pasting %s into your browser", url);
+    }
   }
 
 
