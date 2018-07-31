@@ -27,7 +27,8 @@ to begin determining what it is.
 
 ```bash
 bin/hadoop jar cloudstore-2.8.jar s3a://my-readwrite-bucket/
+bin/hadoop jar cloudstore-2.8.jar s3a://my-readwrite-bucket/
 ```
  
-The remote store is required to grant full R/W access to the caller, eotherwise
+The remote store is required to grant full R/W access to the caller, otherwise
 the creation tests will fail. 

@@ -26,7 +26,7 @@ import org.apache.hadoop.conf.Configuration;
  * Abfs diagnostics.
  * Doesn't include credential information.
  */
-public class AbfsiagnosticsInfo extends StoreDiagnosticsInfo {
+public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
 
   private static final Object[][] options = {
 
@@ -49,22 +49,14 @@ public class AbfsiagnosticsInfo extends StoreDiagnosticsInfo {
   public static final String[] classnames = {
       "com.fasterxml.jackson.annotation.JsonProperty",
       "com.google.common.base.Preconditions",
-      "com.google.inject.Singleton",
       "com.fasterxml.jackson.core.JsonFactory",
       "com.fasterxml.jackson.databind.ObjectReader",
       "com.microsoft.azure.storage.StorageErrorCode",
-      "org.joda.time.format.DateTimeFormat",
-      "org.threadly.util.ExceptionUtils",
-      "org.apache.commons.codec.binary.Base64",
-      "org.apache.commons.lang.StringUtils",
       "org.apache.http.client.utils.URIBuilder",
-      "org.apache.htrace.core.TraceScope",
-      "org.apache.htrace.fasterxml.jackson.core.JsonProcessingException",
-      "org.apache.htrace.fasterxml.jackson.databind.ObjectMapper",
       "org.apache.hadoop.fs.azurebfs.AzureBlobFileSystem",
   };
 
-  public AbfsiagnosticsInfo(final URI fsURI) {
+  public AbfsDiagnosticsInfo(final URI fsURI) {
     super(fsURI);
   }
 

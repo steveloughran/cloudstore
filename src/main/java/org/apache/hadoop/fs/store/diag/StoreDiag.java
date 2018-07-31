@@ -396,10 +396,10 @@ public class StoreDiag extends StoreEntryPoint {
         out, 4096, true);
     String body = out.toString();
     println("%n%s%n",
-        body.substring(0, Math.min(1024,body.length())));
+        body.substring(0, Math.min(1024, body.length())));
     if (success) {
-      println("WARNING: this unauthenticated operation was not rejected.\n"
-          + "This may mean the store is world-readable.\n"
+      println("WARNING: this unauthenticated operation was not rejected.%n"
+          + "This may mean the store is world-readable.%n"
           + "Check this by pasting %s into your browser", url);
     }
   }
@@ -525,9 +525,7 @@ public class StoreDiag extends StoreEntryPoint {
       return;
     }
 
-    // now create a file underneath and look at it.
-
-
+    // now create a directory
     Path dir = new Path(path, "dir-" + UUID.randomUUID());
 
     try (DurationInfo ignored = new DurationInfo(LOG,
@@ -558,8 +556,8 @@ public class StoreDiag extends StoreEntryPoint {
       }
     }
 
-    // after this point the directory is created, so delete it
-    // teardown
+    // after this point the directory is created;
+    // do a file underneath
     try {
       Path file = new Path(dir, "file");
       try (DurationInfo ignored = new DurationInfo(LOG,
@@ -585,11 +583,13 @@ public class StoreDiag extends StoreEntryPoint {
       } finally {
         IOUtils.closeStream(in);
       }
+      // delete the file
       try (DurationInfo ignored = new DurationInfo(LOG,
           "Deleting file %s", file)) {
         fs.delete(file, true);
       }
     } finally {
+      // teardown: attempt to delete the directory
       try (DurationInfo ignored = new DurationInfo(LOG,
           "Deleting directory %s", dir)) {
         try {

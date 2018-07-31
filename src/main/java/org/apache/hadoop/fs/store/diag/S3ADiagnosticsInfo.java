@@ -64,16 +64,25 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.s3a.threads.max", false},
       {"fs.s3a.threads.keepalivetime", false},
       {"fs.s3a.max.total.tasks", false},
+
+      /* Assumed Role */
       {"fs.s3a.assumed.role.arn", false},
       {"fs.s3a.assumed.role.sts.endpoint", false},
+      {"fs.s3a.assumed.role.sts.endpoint.region", false},
       {"fs.s3a.assumed.role.session.name", false},
       {"fs.s3a.assumed.role.session.duration", false},
       {"fs.s3a.assumed.role.credentials.provider", false},
       {"fs.s3a.assumed.role.policy", false},
+
       /* s3guard */
       {"fs.s3a.metadatastore.impl", false},
       {"fs.s3a.metadatastore.authoritative", false},
       {"fs.s3a.s3guard.ddb.table", false},
+      {"fs.s3a.s3guard.ddb.region", false},
+      {"fs.s3a.s3guard.ddb.table.create", false},
+      {"fs.s3a.s3guard.ddb.max.retries", false},
+      {"fs.s3a.s3guard.ddb.background.sleep", false},
+      {"", false},
 
       /* committer */
       {"fs.s3a.committer.magic.enabled", false},
@@ -82,6 +91,13 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"mapreduce.outputcommitter.factory.scheme.s3a", false},
       {"fs.s3a.committer.name", false},
       {"fs.s3a.committer.staging.conflict-mode", false},
+
+      /* misc */
+      {"fs.s3a.etag.checksum.enabled", false},
+      {"fs.s3a.retry.interval", false},
+      {"fs.s3a.retry.throttle.limit", false},
+      {"fs.s3a.retry.throttle.interval", false},
+      {"fs.s3a.attempts.maximum", false},
       {"", false},
   };
 

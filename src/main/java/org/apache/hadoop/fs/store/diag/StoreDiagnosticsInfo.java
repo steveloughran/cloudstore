@@ -69,7 +69,8 @@ class StoreDiagnosticsInfo {
       store = new WasbDiagnosticsInfo(fsURI);
       break;
     case "abfs":
-      store = new AbfsiagnosticsInfo(fsURI);
+    case "abfss":
+      store = new AbfsDiagnosticsInfo(fsURI);
       break;
     default:
       store = new StoreDiagnosticsInfo(fsURI);
