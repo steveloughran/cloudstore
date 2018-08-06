@@ -23,7 +23,6 @@ import com.google.common.base.Preconditions;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
-import org.apache.commons.lang.StringUtils;
 
 /**
  * Enumeration mapping configuration keys to command line options.
@@ -108,7 +107,7 @@ public enum OptionSwitch {
    */
   public String required(CommandLine command) {
     String r = eval(command, null);
-    Preconditions.checkArgument(StringUtils.isNotEmpty(r),
+    Preconditions.checkArgument(r != null  && !r.isEmpty(),
         "Unset option: %s.\n%s", getOptionName(), Cloudup.USAGE);
     return r;
   }
