@@ -19,6 +19,9 @@
 package org.apache.hadoop.fs.store.diag;
 
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import org.apache.hadoop.conf.Configuration;
 
@@ -30,20 +33,20 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
 
   private static final Object[][] options = {
 
-      {"fs.azure.user.agent.prefix", false},
+      {"fs.azure.abfs.endpoint", false},
       {"fs.azure.secure.mode", false},
-      {"fs.azure.local.sas.key.mode", false},
-      {"fs.azure.atomic.rename.dir", false},
-      {"fs.azure.flatlist.enable", false},
-      {"fs.azure.autothrottling.enable", false},
-      {"fs.azure.enable.kerberos.support", false},
-      {"fs.azure.enable.spnego.token.cache", false},
-      {"fs.azure.cred.service.urls", false},
-      {"fs.azure.saskeygenerator.http.retry.policy.enabled", false},
-      {"fs.azure.saskeygenerator.http.retry.policy.spec", false},
-      {"fs.azure.saskey.cacheentry.expiry.period", false},
-      {"fs.azure.authorization.remote.service.urls", false},
-      {"fs.azure.delegation.token.service.urls", false},
+      {"fs.azure.atomic.rename.key", false},
+      {"fs.azure.readaheadqueue.depth", false},
+      {"fs.azure.enable.flush", false},
+      {"fs.azure.block.size", false},
+      {"fs.azure.read.request.size", false},
+      {"fs.azure.write.request.size", false},
+      {"fs.azure.block.location.impersonatedhost", false},
+      {"fs.azure.delegation.token.provider.type", false},
+      {"fs.azure.enable.delegation.token", false},
+      {"", false},
+      {"", false},
+      {"", false},
   };
 
   public static final String[] classnames = {
@@ -53,6 +56,7 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
       "com.fasterxml.jackson.databind.ObjectReader",
       "com.microsoft.azure.storage.StorageErrorCode",
       "org.apache.http.client.utils.URIBuilder",
+      "org.wildfly.openssl.OpenSSLProvider",
       "org.apache.hadoop.fs.azurebfs.AzureBlobFileSystem",
   };
 
@@ -77,9 +81,77 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
 
   @Override
   public Object[][] getFilesystemOptions() {
-    return options;
+
+    List<Object[]> optionList = new ArrayList<>(
+        Arrays.asList(AbfsDiagnosticsInfo.options));
+    // dynamically create account-specific keys
+    String account = fsURI.getHost();
+    addAccountOption(optionList, "fs.azure.account.key", true);
+    addAccountOption(optionList,
+        "fs.azure.account.auth.type",
+        false);
+    addAccountOption(optionList,
+        "fs.azure.account.oauth2.user.password",
+        true);
+    addAccountOption(optionList,
+        "fs.azure.account.oauth2.refresh.token",
+        true);
+    addAccountOption(optionList,
+        "fs.azure.account.oauth2.user.name",
+        false);
+    addAccountOption(optionList,
+        "fs.azure.account.oauth2.msi.tenant",
+        true);
+    addAccountOption(optionList,
+        "fs.azure.account.oauth2.client.endpoint",
+        false);
+    addAccountOption(optionList,
+        "fs.azure.account.oauth2.client.id",
+        false);
+    addAccountOption(optionList,
+        "fs.azure.account.oauth2.client.secret",
+        true);
+    addAccountOption(optionList,
+        "fs.azure.account.oauth.provider.type",
+        false);
+
+    addAccountOption(optionList,
+        "fs.azure.account.keyprovider",
+        false);
+    addAccountOption(optionList,
+        "",
+        false);
+    addAccountOption(optionList,
+        "",
+        false);
+
+
+    return optionList.toArray(new Object[0][0]);
   }
 
+  /**
+   * Add a new entry to a list.
+   * @param list list to add to
+   * @param key key to add
+   * @param sensitive sensitive flag
+   */
+  protected void add(List<Object[]> list,
+      String key,
+      boolean sensitive) {
+
+    if (!key.isEmpty()) {
+      list.add(new Object[]{key, sensitive});
+    }
+  }
+
+  protected void addAccountOption(List<Object[]> list,
+      String key,
+      boolean sensitive) {
+    if (!key.isEmpty()) {
+      add(list, key + "." + fsURI.getHost(), sensitive);
+    }
+  }
+  
   @Override
   public String[] getClassnames(final Configuration conf) {
     return classnames;

@@ -48,7 +48,6 @@ public class WasbDiagnosticsInfo extends StoreDiagnosticsInfo {
 
   public static final String[] classnames = {
       "com.fasterxml.jackson.databind.ObjectReader",
-      "org.apache.commons.lang.StringUtils",
       "com.google.common.base.Preconditions",
       "com.microsoft.azure.storage.StorageErrorCode",
       "org.apache.commons.logging.Log",
@@ -58,6 +57,10 @@ public class WasbDiagnosticsInfo extends StoreDiagnosticsInfo {
       "org.apache.hadoop.fs.azure.NativeAzureFileSystem",
   };
 
+  public static final String[] optionalClassnames = {
+      "org.apache.commons.lang.StringUtils",
+      "org.apache.commons.lang3.StringUtils"
+  };
   public WasbDiagnosticsInfo(final URI fsURI) {
     super(fsURI);
   }
@@ -87,4 +90,8 @@ public class WasbDiagnosticsInfo extends StoreDiagnosticsInfo {
     return classnames;
   }
 
+  @Override
+  public String[] getOptionalClassnames(final Configuration conf) {
+    return optionalClassnames;
+  }
 }
