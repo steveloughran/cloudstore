@@ -6,8 +6,9 @@ Initally it'll be the a diagnostics entry point, designed to work with Hadoop 2.
 
 Why? 
 
-1. Sometimes things fail, and the first problem is invariably some
-client-side config. 
+1. Sometimes things fail, and the first problem is classpath;
+1. The second, invariably some client-side config. 
+1. Then there's networking and permissions...
 1. The Hadoop FS connectors all assume a well configured system, and don't
 do much in terms of meaningful diagnostics.
 1. This is compounded by the fact that we dare not log secret credentials.
@@ -27,7 +28,8 @@ to begin determining what it is.
 
 ```bash
 bin/hadoop jar cloudstore-2.8.jar s3a://my-readwrite-bucket/
-bin/hadoop jar cloudstore-2.8.jar s3a://my-readwrite-bucket/
+bin/hadoop jar cloudstore-2.8.jar wasb://container@user/
+bin/hadoop jar cloudstore-2.8.jar abfs://container@user/
 ```
  
 The remote store is required to grant full R/W access to the caller, otherwise
