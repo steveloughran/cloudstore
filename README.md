@@ -25,12 +25,14 @@ Then it tries to perform some reads and writes against the store. If these
 fail, then there's clearly a problem. Hopefully though, there's now enough information
 to begin determining what it is.
 
+Finally, if things do fail, the printed configuration excludes the login secrets,
+for safer reporting of issues in bug reports.
 
 ```bash
 bin/hadoop jar cloudstore-2.8.jar s3a://my-readwrite-bucket/
-bin/hadoop jar cloudstore-2.8.jar wasb://container@user/
+bin/hadoop jar cloudstore-2.8.jar wasb://container@user/subdir
 bin/hadoop jar cloudstore-2.8.jar abfs://container@user/
 ```
  
 The remote store is required to grant full R/W access to the caller, otherwise
-the creation tests will fail. 
+the creation tests will fail.
