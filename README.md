@@ -6,8 +6,9 @@ Initally it'll be the a diagnostics entry point, designed to work with Hadoop 2.
 
 Why? 
 
-1. Sometimes things fail, and the first problem is invariably some
-client-side config. 
+1. Sometimes things fail, and the first problem is classpath;
+1. The second, invariably some client-side config. 
+1. Then there's networking and permissions...
 1. The Hadoop FS connectors all assume a well configured system, and don't
 do much in terms of meaningful diagnostics.
 1. This is compounded by the fact that we dare not log secret credentials.
@@ -24,11 +25,14 @@ Then it tries to perform some reads and writes against the store. If these
 fail, then there's clearly a problem. Hopefully though, there's now enough information
 to begin determining what it is.
 
+Finally, if things do fail, the printed configuration excludes the login secrets,
+for safer reporting of issues in bug reports.
 
 ```bash
 bin/hadoop jar cloudstore-2.8.jar s3a://my-readwrite-bucket/
-bin/hadoop jar cloudstore-2.8.jar s3a://my-readwrite-bucket/
+bin/hadoop jar cloudstore-2.8.jar wasb://container@user/subdir
+bin/hadoop jar cloudstore-2.8.jar abfs://container@user/
 ```
  
 The remote store is required to grant full R/W access to the caller, otherwise
-the creation tests will fail. 
+the creation tests will fail.
