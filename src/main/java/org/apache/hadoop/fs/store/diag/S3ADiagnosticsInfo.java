@@ -30,8 +30,6 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.s3a.Constants;
 import org.apache.hadoop.fs.s3a.S3AUtils;
 
-import static org.apache.hadoop.fs.s3a.Constants.PATH_STYLE_ACCESS;
-
 public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
 
   private static final Logger LOG = LoggerFactory.getLogger(
@@ -191,7 +189,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
     } else {
       fqdn = bucket + "." + endpoint;
     }
-    final boolean pathStyleAccess = conf.getBoolean(PATH_STYLE_ACCESS, false);
+    final boolean pathStyleAccess = conf.getBoolean("fs.s3a.path.style.access", false);
     boolean secureConnections =
         conf.getBoolean("fs.s3a.connection.ssl.enabled", true);
     String scheme = secureConnections ? "https" : "http";

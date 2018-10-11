@@ -77,13 +77,13 @@
       <scope>provided</scope>
     </dependency>
 
-    <dependency>
+ <!--   <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-azure-datalake</artifactId>
       <version>${hadoop.version}</version>
       <scope>provided</scope>
     </dependency>
-
+-->
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-azure</artifactId>
@@ -137,7 +137,7 @@
         </property>
       </activation>
       <properties>
-        <hadoop.version>2.8.3-SNAPSHOT</hadoop.version>
+        <hadoop.version>2.8.4-SNAPSHOT</hadoop.version>
       </properties>
     </profile>
 
@@ -161,7 +161,7 @@
         </property>
       </activation>
       <properties>
-        <hadoop.version>2.8.1</hadoop.version>
+        <hadoop.version>2.8.3</hadoop.version>
       </properties>
     </profile>
 
@@ -185,19 +185,7 @@
         </property>
       </activation>
       <properties>
-        <hadoop.version>3.2.0-SNAPSHOT</hadoop.version>
-      </properties>
-    </profile>
-
-    <profile>
-      <id>hadoop-2.7</id>
-      <activation>
-        <property>
-          <name>hadoop-2.7</name>
-        </property>
-      </activation>
-      <properties>
-        <hadoop.version>2.7.3</hadoop.version>
+        <hadoop.version>3.3.0-SNAPSHOT</hadoop.version>
       </properties>
     </profile>
 

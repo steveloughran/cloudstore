@@ -30,12 +30,13 @@ public class ADLDiagnosticsInfo extends StoreDiagnosticsInfo {
 
   private static final Object[][] options = {
 
+      {"fs.adl.oauth2.access.token.provider.type", false},
+      {"fs.adl.oauth2.access.token.provider", false},
       {"fs.adl.oauth2.client.id", true},
       {"fs.adl.oauth2.credential", true},
-      {"fs.adl.oauth2.access.token.provider.type", false},
-      {"fs.adl.oauth2.refresh.token", false},
       {"fs.adl.oauth2.devicecode.clientapp.id", false},
       {"fs.adl.oauth2.msi.port", false},
+      {"fs.adl.oauth2.refresh.token", true},
       {"fs.adl.oauth2.refresh.url", false},
       {"adl.feature.client.cache.readahead", false},
       {"adl.feature.client.cache.drop.behind.writes", false},
