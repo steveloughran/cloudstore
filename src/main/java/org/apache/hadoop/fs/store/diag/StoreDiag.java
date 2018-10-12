@@ -19,6 +19,7 @@
 package org.apache.hadoop.fs.store.diag;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintStream;
@@ -31,6 +32,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.AccessDeniedException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -56,9 +58,11 @@ import org.apache.hadoop.io.IOUtils;
 import org.apache.hadoop.util.StringUtils;
 import org.apache.hadoop.util.ToolRunner;
 
+import static org.apache.hadoop.fs.store.diag.StoreDiagnosticsInfo.SECURITY_OPTIONS;
 import static org.apache.hadoop.util.VersionInfo.*;
 import static org.apache.hadoop.fs.store.StoreExitCodes.*;
 
+@SuppressWarnings("UseOfSystemOutOrSystemErr")
 public class StoreDiag extends StoreEntryPoint {
 
   private static final Logger LOG = LoggerFactory.getLogger(StoreDiag.class);
@@ -66,6 +70,8 @@ public class StoreDiag extends StoreEntryPoint {
   private static final String HELLO = "Hello";
 
   protected static final int THRESHOLD = 4;
+
+  public static final String CLASSPATH = "java.class.path";
 
   protected CommandFormat commandFormat = new CommandFormat(0, Integer.MAX_VALUE);
 
@@ -80,10 +86,31 @@ public class StoreDiag extends StoreEntryPoint {
     heading("System Properties");
     Properties sysProps = System.getProperties();
     for (String s : sortKeys(sysProps.keySet())) {
+      if (CLASSPATH.equals(s)) {
+        continue;
+      }
       println("%s = \"%s\"", s, sysProps.getProperty(s));
     }
   }
 
+  /**
+   * Print the JARS -but only the JARs, not the paths to them. And
+   * sort the list.
+   */
+  private void printJARS() {
+    heading("JAR listing");
+    final Map<String, String> jars = jarsOnClasspath();
+    for (String s : sortKeys(jars.keySet())) {
+
+      File f = new File(jars.get(s));
+      String size = f.exists() ?
+          String.format("%,d bytes", f.length())
+          : "missing";
+      
+      println("%s\t%s (%s)", s, jars.get(s), size);
+    }
+  }
+  
   /**
    * Sort the keys.
    * @param keys keys to sort.
@@ -99,32 +126,42 @@ public class StoreDiag extends StoreEntryPoint {
 
   /**
    * Print the environment variables.
+   * This is an array of (name, obfuscate) entries.
    * @param vars variables.
    */
   public void printEnvVars(Object[][] vars) {
-    if (vars.length > 9) {
+    if (vars.length > 0) {
       heading("Environment Variables");
       for (final Object[] option : vars) {
         String var = (String) option[0];
         String value = System.getenv(var);
         if (value != null) {
-          value = maybeSanitize(value, (Boolean) option[1]);
+          value = "\"" + maybeSanitize(value, (Boolean) option[1]) + "\"";
+        } else {
+          value = "(unset)";
         }
-        println("%s=%s", var, value);
+        println("%s = %s", var, value);
       }
     }
   }
 
   /**
    * Print the selected options in a config.
+   * This is an array of (name, secret, obfuscate) entries.
+   * @param title heading to print
    * @param conf source configuration
    * @param options map of options
    */
-  private void printOptions(Configuration conf, Object[][] options) {
+  private void printOptions(String title, Configuration conf,
+      Object[][] options)
+      throws IOException {
     if (options.length > 0) {
-      heading("Selected and Sanitized Configuration Options");
+      heading(title);
       for (final Object[] option : options) {
-        printOption(conf, (String) option[0], (Boolean) option[1]);
+        printOption(conf,
+            (String) option[0],
+            (Boolean) option[1],
+            (Boolean) option[2]);
       }
     }
   }
@@ -132,11 +169,11 @@ public class StoreDiag extends StoreEntryPoint {
   /**
    * Sanitize a value if needed.
    * @param value option value.
-   * @param sensitive sensitivity
+   * @param obfuscate should it be obfuscated?
    * @return string safe to log
    */
-  public String maybeSanitize(String value, boolean sensitive) {
-    return sensitive ? sanitize(value) : value;
+  public String maybeSanitize(String value, boolean obfuscate) {
+    return obfuscate ? sanitize(value) : value;
   }
 
   /**
@@ -164,27 +201,47 @@ public class StoreDiag extends StoreEntryPoint {
 
 
   /**
-   * Print an option.
+   * Retrieve and print an option.
+   * Secrets are looked for through Configuration.getPassword(),
+   * rather than the simpler get(option).
+   * They are also sanitized in printing, so as to keep the secrets out
+   * of bug reports.
    * @param conf source configuration
    * @param key key
-   * @param sensitive is it sensitive?
+   * @param secret is it secret?
+   * @param obfuscate should it be obfuscated?
    */
-  public void printOption(Configuration conf, String key, boolean sensitive) {
+  public void printOption(Configuration conf,
+      final String key,
+      final boolean secret,
+      final boolean obfuscate)
+      throws IOException {
     if (key.isEmpty()) {
       return;
     }
-    String option = conf.get(key);
+    String source = "";
+    String option;
+    if (secret) {
+      final char[] password = conf.getPassword(key);
+      if (password != null) {
+        option = new String(password).trim();
+        source = "<credentials>";
+      } else {
+        option = null;
+      }
+    } else {
+      option = conf.get(key);
+    }
     String full;
     if (option == null) {
       full = "(unset)";
     } else {
-      String source = "";
-      option = maybeSanitize(option, sensitive);
+      option = maybeSanitize(option, obfuscate);
       String[] origins = conf.getPropertySources(key);
-      if (origins.length !=0) {
-        source = " [" + StringUtils.join(",", origins) + "]";
+      if (origins != null && origins.length !=0) {
+        source = "[" + StringUtils.join(",", origins) + "]";
       }
-      full = '"' + option + '"' + source;
+      full = '"' + option + "\" " + source;
     }
     println("%s = %s", key, full);
   }
@@ -214,7 +271,10 @@ public class StoreDiag extends StoreEntryPoint {
     // and its FS URI
 
     storeInfo = bindToStore(path.toUri());
-
+    printHadoopVersionInfo();
+    printJVMOptions();
+    printJARS();
+    printEnvVars(storeInfo.getEnvVars());
     printStoreConfiguration();
     probeRequiredAndOptionalClasses();
     probeAllEndpoints();
@@ -239,12 +299,14 @@ public class StoreDiag extends StoreEntryPoint {
   /**
    * Print the base configuration of the store.
    */
-  public void printStoreConfiguration() {
-    printHadoopVersionInfo();
+  public void printStoreConfiguration() throws IOException {
 
-    printOptions(getConf(), storeInfo.getFilesystemOptions());
 
-    printEnvVars(storeInfo.getEnvVars());
+    final Configuration conf = getConf();
+    printOptions("Security Options", conf, SECURITY_OPTIONS);
+    printOptions("Selected Configuration Options",
+        conf, storeInfo.getFilesystemOptions());
+
   }
 
   /**
@@ -257,10 +319,8 @@ public class StoreDiag extends StoreEntryPoint {
 
     StoreDiagnosticsInfo store = StoreDiagnosticsInfo.bindToStore(fsURI);
 
-    println("%s\n%s\n%s",
+    println("%s%n%s%n%s",
         store.getName(), store.getDescription(), store.getHomepage());
-
-    printJVMOptions();
 
     setConf(store.patchConfigurationToInitalization(getConf()));
     return store;
@@ -344,7 +404,6 @@ public class StoreDiag extends StoreEntryPoint {
    * Ignores "0.0.0.0" addresses as they are silly.
    * @param endpoint endpoint
    * @throws IOException network problem
-   * @throws URISyntaxException URI/URL setup problem.
    */
   public void probeOneEndpoint(URI endpoint)
       throws IOException {
@@ -352,7 +411,7 @@ public class StoreDiag extends StoreEntryPoint {
 
     heading("Endpoint: %s", endpoint);
     InetAddress addr = InetAddress.getByName(host);
-    println("Canonical hostname %s\n  IP address %s",
+    println("Canonical hostname %s%n  IP address %s",
         addr.getCanonicalHostName(),
         addr.getHostAddress());
     if ("0.0.0.0".equals(host)) {
@@ -398,8 +457,8 @@ public class StoreDiag extends StoreEntryPoint {
     println("%n%s%n",
         body.substring(0, Math.min(1024, body.length())));
     if (success) {
-      println("WARNING: this unauthenticated operation was not rejected.%n"
-          + "This may mean the store is world-readable.%n"
+      println("WARNING: this unauthenticated operation was not rejected.%n "
+          + "This may mean the store is world-readable.%n "
           + "Check this by pasting %s into your browser", url);
     }
   }
@@ -637,6 +696,22 @@ public class StoreDiag extends StoreEntryPoint {
   private List<String> parseArgs(String[] args) {
     return args.length > 0 ? commandFormat.parse(args, 0)
         : new ArrayList<String>(0);
+  }
+
+  /**
+   * Get a sorted list of all the JARs on the classpath
+   * @return the set of JARs; the iterator will be sorted.
+   */
+  private Map<String, String> jarsOnClasspath() {
+    final String cp = System.getProperty(CLASSPATH);
+    final String[] split = cp.split(System.getProperty("path.separator"));
+    final Map<String, String> jars = new HashMap<>(split.length);
+    final String dir = System.getProperty("file.separator");
+    for (String entry : split) {
+      final String file = entry.substring(entry.lastIndexOf(dir) + 1);
+      jars.put(file, entry);
+    }
+    return jars;
   }
 
   /**

@@ -30,12 +30,12 @@ import org.apache.hadoop.hdfs.HdfsConfiguration;
 public class HDFSDiagnosticsInfo extends StoreDiagnosticsInfo {
 
   private static final Object[][] options = {
-      {"dfs.namenode.kerberos.principal", false},
-      {"dfs.datanode.kerberos.principal", false},
-      {"dfs.http.policy", false},
-      {"hadoop.security.authentication", false},
-      {"hadoop.security.authorization", false},
-      {"hadoop.rpc.protection", false},
+      {"dfs.namenode.kerberos.principal", false, false},
+      {"dfs.datanode.kerberos.principal", false, false},
+      {"dfs.http.policy", false, false},
+      {"hadoop.security.authentication", false, false},
+      {"hadoop.security.authorization", false, false},
+      {"hadoop.rpc.protection", false, false},
   };
 
   public static final String[] classnames = {

@@ -30,20 +30,20 @@ public class WasbDiagnosticsInfo extends StoreDiagnosticsInfo {
 
   private static final Object[][] options = {
 
-      {"fs.azure.user.agent.prefix", false},
-      {"fs.azure.secure.mode", false},
-      {"fs.azure.local.sas.key.mode", false},
-      {"fs.azure.atomic.rename.dir", false},
-      {"fs.azure.flatlist.enable", false},
-      {"fs.azure.autothrottling.enable", false},
-      {"fs.azure.enable.kerberos.support", false},
-      {"fs.azure.enable.spnego.token.cache", false},
-      {"fs.azure.cred.service.urls", false},
-      {"fs.azure.saskeygenerator.http.retry.policy.enabled", false},
-      {"fs.azure.saskeygenerator.http.retry.policy.spec", false},
-      {"fs.azure.saskey.cacheentry.expiry.period", false},
-      {"fs.azure.authorization.remote.service.urls", false},
-      {"fs.azure.delegation.token.service.urls", false},
+      {"fs.azure.user.agent.prefix", false, false},
+      {"fs.azure.secure.mode", false, false},
+      {"fs.azure.local.sas.key.mode", false, false},
+      {"fs.azure.atomic.rename.dir", false, false},
+      {"fs.azure.flatlist.enable", false, false},
+      {"fs.azure.autothrottling.enable", false, false},
+      {"fs.azure.enable.kerberos.support", false, false},
+      {"fs.azure.enable.spnego.token.cache", false, false},
+      {"fs.azure.cred.service.urls", false, false},
+      {"fs.azure.saskeygenerator.http.retry.policy.enabled", false, false},
+      {"fs.azure.saskeygenerator.http.retry.policy.spec", false, false},
+      {"fs.azure.saskey.cacheentry.expiry.period", false, false},
+      {"fs.azure.authorization.remote.service.urls", false, false},
+      {"fs.azure.delegation.token.service.urls", false, false},
   };
 
   public static final String[] classnames = {

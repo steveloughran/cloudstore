@@ -35,9 +35,29 @@ class StoreDiagnosticsInfo {
 
   protected static final Object[][] STANDARD_ENV_VARS = {
       {"PATH", false},
+      {"HADOOP_HOME", false},
+      {"HADOOP_OPTIONAL_TOOLS", false},
+      {"HADOOP_SHELL_SCRIPT_DEBUG", false},
+      {"HADOOP_TOOLS_HOME", false},
+      {"HADOOP_TOOLS_OPTIONS", false},
+      
       // TODO: add the https proxy vars
   };
 
+  /**
+   * Not all of these are in CommonConfigurationKeysPublic of older
+   * Hadoop versions, so they are inlined.
+   */
+  protected static final Object[][] SECURITY_OPTIONS = {
+      {"hadoop.security.credential.provider.path", false, false},
+      {"hadoop.security.credstore.java-keystore-provider.password-file", false, false},
+      {"hadoop.security.credential.clear-text-fallback", false, false},
+      {"hadoop.security.authentication", false, false},
+      {"hadoop.security.authorization", false, false},
+      {"hadoop.security.key.provider.path", false, false},
+      {"hadoop.security.crypto.jceks.key.serialfilter", false, false},
+  };
+  
   protected static final String[] EMPTY_CLASSNAMES = {};
 
   protected static final List<URI> EMPTY_ENDPOINTS = new ArrayList<>(0);

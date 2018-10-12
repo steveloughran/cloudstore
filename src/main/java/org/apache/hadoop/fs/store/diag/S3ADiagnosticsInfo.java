@@ -35,72 +35,74 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
   private static final Logger LOG = LoggerFactory.getLogger(
       S3ADiagnosticsInfo.class);
 
-  private static final Object[][] options = {
-      {"fs.s3a.access.key", true},
-      {"fs.s3a.secret.key", true},
-      {"fs.s3a.session.token", true},
-      {"fs.s3a.server-side-encryption-algorithm", false},
-      {"fs.s3a.server-side-encryption.key", true},
-      {"fs.s3a.aws.credentials.provider", false},
-      {"fs.s3a.proxy.host", false},
-      {"fs.s3a.proxy.port", false},
-      {"fs.s3a.proxy.username", false},
-      {"fs.s3a.proxy.password", true},
-      {"fs.s3a.proxy.domain", false},
-      {"fs.s3a.proxy.workstation", false},
-      {"fs.s3a.connection.ssl.enabled", false},
-      {"fs.s3a.connection.maximum", false},
-      {"fs.s3a.multipart.size", false},
-      {"fs.s3a.buffer.dir", false},
-      {"fs.s3a.block.size", false},
+  public static final String ASSUMED_ROLE_STS_ENDPOINT
+      = "fs.s3a.assumed.role.sts.endpoint";
 
-      {"fs.s3a.signing-algorithm", false},
-      {"fs.s3a.fast.upload.buffer", false},
-      {"fs.s3a.fast.upload.active.blocks", false},
-      {"fs.s3a.experimental.input.fadvise", false},
-      {"fs.s3a.user.agent.prefix", false},
-      {"fs.s3a.threads.max", false},
-      {"fs.s3a.threads.keepalivetime", false},
-      {"fs.s3a.max.total.tasks", false},
+  private static final Object[][] options = {
+      {"fs.s3a.access.key", true, false},
+      {"fs.s3a.secret.key", true, true},
+      {"fs.s3a.session.token", true, true},
+      {"fs.s3a.server-side-encryption-algorithm", true, false},
+      {"fs.s3a.server-side-encryption.key", true, true},
+      {"fs.s3a.aws.credentials.provider", false, false},
+      {"fs.s3a.proxy.host", false, false},
+      {"fs.s3a.proxy.port", false, false},
+      {"fs.s3a.proxy.username", false, false},
+      {"fs.s3a.proxy.password", true, true},
+      {"fs.s3a.proxy.domain", false, false},
+      {"fs.s3a.proxy.workstation", false, false},
+      {"fs.s3a.connection.ssl.enabled", false, false},
+      {"fs.s3a.connection.maximum", false, false},
+      {"fs.s3a.multipart.size", false, false},
+      {"fs.s3a.buffer.dir", false, false},
+      {"fs.s3a.block.size", false, false},
+
+      {"fs.s3a.signing-algorithm", false, false},
+      {"fs.s3a.fast.upload.buffer", false, false},
+      {"fs.s3a.fast.upload.active.blocks", false, false},
+      {"fs.s3a.experimental.input.fadvise", false, false},
+      {"fs.s3a.user.agent.prefix", false, false},
+      {"fs.s3a.threads.max", false, false},
+      {"fs.s3a.threads.keepalivetime", false, false},
+      {"fs.s3a.max.total.tasks", false, false},
 
       /* Assumed Role */
-      {"fs.s3a.assumed.role.arn", false},
-      {"fs.s3a.assumed.role.sts.endpoint", false},
-      {"fs.s3a.assumed.role.sts.endpoint.region", false},
-      {"fs.s3a.assumed.role.session.name", false},
-      {"fs.s3a.assumed.role.session.duration", false},
-      {"fs.s3a.assumed.role.credentials.provider", false},
-      {"fs.s3a.assumed.role.policy", false},
+      {"fs.s3a.assumed.role.arn", false, false},
+      {ASSUMED_ROLE_STS_ENDPOINT, false, false},
+      {"fs.s3a.assumed.role.sts.endpoint.region", false, false},
+      {"fs.s3a.assumed.role.session.name", false, false},
+      {"fs.s3a.assumed.role.session.duration", false, false},
+      {"fs.s3a.assumed.role.credentials.provider", false, false},
+      {"fs.s3a.assumed.role.policy", false, false},
 
       /* s3guard */
-      {"fs.s3a.metadatastore.impl", false},
-      {"fs.s3a.metadatastore.authoritative", false},
-      {"fs.s3a.s3guard.ddb.table", false},
-      {"fs.s3a.s3guard.ddb.region", false},
-      {"fs.s3a.s3guard.ddb.table.create", false},
-      {"fs.s3a.s3guard.ddb.max.retries", false},
-      {"fs.s3a.s3guard.ddb.background.sleep", false},
-      {"", false},
+      {"fs.s3a.metadatastore.impl", false, false},
+      {"fs.s3a.metadatastore.authoritative", false, false},
+      {"fs.s3a.s3guard.ddb.table", false, false},
+      {"fs.s3a.s3guard.ddb.region", false, false},
+      {"fs.s3a.s3guard.ddb.table.create", false, false},
+      {"fs.s3a.s3guard.ddb.max.retries", false, false},
+      {"fs.s3a.s3guard.ddb.background.sleep", false, false},
+      {"", false, false},
 
       /* committer */
-      {"fs.s3a.committer.magic.enabled", false},
-      {"fs.s3a.committer.staging.tmp.path", false},
-      {"fs.s3a.committer.threads", false},
-      {"mapreduce.outputcommitter.factory.scheme.s3a", false},
-      {"fs.s3a.committer.name", false},
-      {"fs.s3a.committer.staging.conflict-mode", false},
+      {"fs.s3a.committer.magic.enabled", false, false},
+      {"fs.s3a.committer.staging.tmp.path", false, false},
+      {"fs.s3a.committer.threads", false, false},
+      {"mapreduce.outputcommitter.factory.scheme.s3a", false, false},
+      {"fs.s3a.committer.name", false, false},
+      {"fs.s3a.committer.staging.conflict-mode", false, false},
 
       /* misc */
-      {"fs.s3a.etag.checksum.enabled", false},
-      {"fs.s3a.retry.interval", false},
-      {"fs.s3a.retry.throttle.limit", false},
-      {"fs.s3a.retry.throttle.interval", false},
-      {"fs.s3a.attempts.maximum", false},
-      {"", false},
+      {"fs.s3a.etag.checksum.enabled", false, false},
+      {"fs.s3a.retry.interval", false, false},
+      {"fs.s3a.retry.throttle.limit", false, false},
+      {"fs.s3a.retry.throttle.interval", false, false},
+      {"fs.s3a.attempts.maximum", false, false},
+      {"", false, false},
   };
 
   protected static final Object[][] ENV_VARS = {
-      {"PATH", false},
       {"AWS_ACCESS_KEY_ID", false},
       {"AWS_SECRET_ACCESS_KEY", true},
       {"AWS_SESSION_TOKEN", true},
@@ -173,7 +175,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
   }
 
   /**
-   * Determine the S3 endpoint if set (or default).
+   * Determine the S3 endpoints if set (or default).
    * {@inheritDoc}
    */
   @Override
@@ -201,7 +203,12 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
     }
     List<URI> uris = new ArrayList<>(2);
     uris.add(StoreDiag.toURI("Bucket URI", bucketURI));
-    addUriOption(uris, conf, "fs.s3a.assumed.role.sts.endpoint", "");
+    // If the STS endpoints is set, work out the URI
+    final String sts = conf.get(ASSUMED_ROLE_STS_ENDPOINT, "");
+    if (!sts.isEmpty()) {
+      uris.add(StoreDiag.toURI(ASSUMED_ROLE_STS_ENDPOINT,
+          String.format("https://%s/", sts)));
+    }
     return uris;
   }
 }

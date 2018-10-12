@@ -33,31 +33,31 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
 
   private static final Object[][] options = {
 
-      {"abfs.external.authorization.class", false},
-      {"fs.azure.abfs.endpoint", false},
-      {"fs.azure.account.keyprovider", false},
-      {"fs.azure.account.oauth.provider.type", false},
-      {"fs.azure.account.oauth2.client.id", false},
-      {"fs.azure.account.oauth2.client.secret", true},
-      {"fs.azure.account.oauth2.client.endpoint", false},
-      {"fs.azure.account.oauth2.msi.tenant", false},
-      {"fs.azure.account.oauth2.user.name", false},
-      {"fs.azure.account.oauth2.user.password", true},
-      {"fs.azure.account.oauth2.refresh.token", true},
-      {"fs.azure.always.use.https", false},
-      {"fs.azure.atomic.rename.key", false},
-      {"fs.azure.block.location.impersonatedhost", false},
-      {"fs.azure.block.size", false},
-      {"fs.azure.delegation.token.provider.type", false},
-      {"fs.azure.enable.delegation.token", false},
-      {"fs.azure.enable.flush", false},
-      {"fs.azure.read.request.size", false},
-      {"fs.azure.readaheadqueue.depth", false},
-      {"fs.azure.secure.mode", false},
-      {"fs.azure.write.request.size", false},
-      {"fs.azure.account.auth.type", false},
-      {"fs.azure.ssl.channel.mode", false},
-      {"", false},
+      {"abfs.external.authorization.class", false, false},
+      {"fs.azure.abfs.endpoint", false, false},
+      {"fs.azure.account.keyprovider", false, false},
+      {"fs.azure.account.oauth.provider.type", false, false},
+      {"fs.azure.account.oauth2.client.id", false, false},
+      {"fs.azure.account.oauth2.client.secret", true, true},
+      {"fs.azure.account.oauth2.client.endpoint", false, false},
+      {"fs.azure.account.oauth2.msi.tenant", false, false},
+      {"fs.azure.account.oauth2.user.name", false, false},
+      {"fs.azure.account.oauth2.user.password", true, true},
+      {"fs.azure.account.oauth2.refresh.token", true, true},
+      {"fs.azure.always.use.https", false, false},
+      {"fs.azure.atomic.rename.key", false, false},
+      {"fs.azure.block.location.impersonatedhost", false, false},
+      {"fs.azure.block.size", false, false},
+      {"fs.azure.delegation.token.provider.type", false, false},
+      {"fs.azure.enable.delegation.token", false, false},
+      {"fs.azure.enable.flush", false, false},
+      {"fs.azure.read.request.size", false, false},
+      {"fs.azure.readaheadqueue.depth", false, false},
+      {"fs.azure.secure.mode", false, false},
+      {"fs.azure.write.request.size", false, false},
+      {"fs.azure.account.auth.type", false, false},
+      {"fs.azure.ssl.channel.mode", false, false},
+      {"", false, false},
   };
 
   public static final String[] classnames = {
@@ -97,44 +97,45 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
         Arrays.asList(AbfsDiagnosticsInfo.options));
     // dynamically create account-specific keys
     String account = fsURI.getHost();
-    addAccountOption(optionList, "fs.azure.account.key", true);
+    addAccountOption(optionList, "fs.azure.account.key",
+        true, true);
     addAccountOption(optionList,
         "fs.azure.account.auth.type",
-        false);
+        false, false);
     addAccountOption(optionList,
         "fs.azure.account.oauth2.user.password",
-        true);
+        true, true);
     addAccountOption(optionList,
         "fs.azure.account.oauth2.refresh.token",
-        true);
+        true, true);
     addAccountOption(optionList,
         "fs.azure.account.oauth2.user.name",
-        false);
+        true, false);
     addAccountOption(optionList,
         "fs.azure.account.oauth2.msi.tenant",
-        true);
+        true, false);
     addAccountOption(optionList,
         "fs.azure.account.oauth2.client.endpoint",
-        false);
+        false, false);
     addAccountOption(optionList,
         "fs.azure.account.oauth2.client.id",
-        false);
+        true, false);
     addAccountOption(optionList,
         "fs.azure.account.oauth2.client.secret",
-        true);
+        true, true);
     addAccountOption(optionList,
         "fs.azure.account.oauth.provider.type",
-        false);
+        false, false);
 
     addAccountOption(optionList,
         "fs.azure.account.keyprovider",
-        false);
+        false, false);
     addAccountOption(optionList,
         "",
-        false);
+        false, false);
     addAccountOption(optionList,
         "",
-        false);
+        false, false);
 
 
     return optionList.toArray(new Object[0][0]);
@@ -144,22 +145,31 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
    * Add a new entry to a list.
    * @param list list to add to
    * @param key key to add
+   * @param secret is it secret?
    * @param sensitive sensitive flag
    */
   protected void add(List<Object[]> list,
       String key,
-      boolean sensitive) {
+      final boolean secret, boolean sensitive) {
 
     if (!key.isEmpty()) {
-      list.add(new Object[]{key, sensitive});
+      list.add(new Object[]{key, secret, sensitive});
     }
   }
 
-  protected void addAccountOption(List<Object[]> list,
+  /**
+   * Add an account-specific option tuned for the host.
+   * @param list list to add to
+   * @param key key to add
+   * @param secret is it secret?
+   * @param sensitive sensitive flag
+   */
+  protected void addAccountOption(
+      List<Object[]> list,
       String key,
-      boolean sensitive) {
+      boolean secret, boolean sensitive) {
     if (!key.isEmpty()) {
-      add(list, key + "." + fsURI.getHost(), sensitive);
+      add(list, key + "." + fsURI.getHost(), secret, sensitive);
     }
   }
   
