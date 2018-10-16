@@ -20,7 +20,6 @@ package org.apache.hadoop.fs.store.diag;
 
 import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,12 +31,12 @@ public class ADLDiagnosticsInfo extends StoreDiagnosticsInfo {
 
       {"fs.adl.oauth2.access.token.provider.type", false, false},
       {"fs.adl.oauth2.access.token.provider", false, false},
-      {"fs.adl.oauth2.client.id", true, true},
+      {"fs.adl.oauth2.client.id", true, false},
       {"fs.adl.oauth2.credential", true, true},
       {"fs.adl.oauth2.devicecode.clientapp.id", false, false},
       {"fs.adl.oauth2.msi.port", false, false},
       {"fs.adl.oauth2.refresh.token", true, true},
-      {"fs.adl.oauth2.refresh.url", false, false},
+      {"fs.adl.oauth2.refresh.url", true, false},
       {"adl.feature.client.cache.readahead", false, false},
       {"adl.feature.client.cache.drop.behind.writes", false, false},
       {"adl.debug.override.localuserasfileowner", false, false},

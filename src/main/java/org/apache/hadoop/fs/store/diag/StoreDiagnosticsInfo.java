@@ -123,9 +123,11 @@ class StoreDiagnosticsInfo {
   }
 
   /**
-   * List of options for filesystems. Each entry must be a pair of
-   * (string, sensitive); sensitive strings don't have their values
-   * fully printed.
+   * List of options for filesystems. 
+   * Each entry must be a tuple of (string, password, sensitive).
+   * "password" entries are read via Configuration.getPassword(),
+   * so will be read from a credential file.
+   * Sensitive strings don't have their values fully printed.
    * @return option array
    */
   public Object[][] getFilesystemOptions() {

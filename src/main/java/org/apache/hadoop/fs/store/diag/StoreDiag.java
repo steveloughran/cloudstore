@@ -136,7 +136,7 @@ public class StoreDiag extends StoreEntryPoint {
         String var = (String) option[0];
         String value = System.getenv(var);
         if (value != null) {
-          value = "\"" + maybeSanitize(value, (Boolean) option[1]) + "\"";
+          value = maybeSanitize(value, (Boolean) option[1]);
         } else {
           value = "(unset)";
         }
@@ -170,10 +170,11 @@ public class StoreDiag extends StoreEntryPoint {
    * Sanitize a value if needed.
    * @param value option value.
    * @param obfuscate should it be obfuscated?
-   * @return string safe to log
+   * @return string safe to log; in quotes
    */
   public String maybeSanitize(String value, boolean obfuscate) {
-    return obfuscate ? sanitize(value) : value;
+    return obfuscate ? sanitize(value) : 
+        ("\"" + value + "\"");
   }
 
   /**
@@ -181,9 +182,9 @@ public class StoreDiag extends StoreEntryPoint {
    * @param value option value.
    * @return sanitized value.
    */
-  public String sanitize(String value) {
-    String r = value;
-    int len = r.length();
+  public String sanitize(final String value) {
+    String safe = value;
+    int len = safe.length();
     if (len > THRESHOLD) {
       StringBuilder b = new StringBuilder(len);
       b.append(value.charAt(0));
@@ -191,14 +192,13 @@ public class StoreDiag extends StoreEntryPoint {
         b.append('*');
       }
       b.append(value.charAt(len - 1));
-      value = b.toString();
+      safe = b.toString();
     } else {
       // short values get special treatment
-      value = "**";
+      safe = "**";
     }
-    return value;
+    return String.format("\"%s\" [%d]", safe, len);
   }
-
 
   /**
    * Retrieve and print an option.
