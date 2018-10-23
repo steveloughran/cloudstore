@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.hadoop.fs.s3a.store;
+package org.apache.hadoop.fs.store.test;
 
 import java.io.File;
 import java.net.URI;
@@ -29,7 +29,6 @@ import org.junit.rules.Timeout;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -38,7 +37,6 @@ import org.apache.hadoop.fs.contract.AbstractFSContract;
 import org.apache.hadoop.fs.contract.AbstractFSContractTestBase;
 import org.apache.hadoop.fs.s3a.S3AFileSystem;
 
-import static org.apache.hadoop.fs.contract.ContractTestUtils.cleanup;
 
 /**
  * As the S3A test base isn't available, do enough to make it look
@@ -52,7 +50,7 @@ public class AbstractS3AStoreTest extends AbstractFSContractTestBase {
 
   @Override
   protected AbstractFSContract createContract(Configuration conf) {
-    return new S3AContract(conf);
+    return new S3AStoreContract(conf);
   }
 
   private File methodDir;
@@ -88,7 +86,7 @@ public class AbstractS3AStoreTest extends AbstractFSContractTestBase {
     String key = String.format(AbstractBondedFSContract.FSNAME_OPTION, "s3a");
     Configuration conf = createConfiguration();
     String fsVal = conf.getTrimmed(key);
-    assertFalse("No FS set in " + key, StringUtils.isEmpty(fsVal));
+    assertFalse("No FS set in " + key, fsVal == null || fsVal.isEmpty());
     URI fsURI = new URI(fsVal);
     assertEquals("Not an S3A Filesystem: " + fsURI,
         "s3a", fsURI.getScheme());

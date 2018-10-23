@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory;
 
 import org.apache.hadoop.fs.FileUtil;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.fs.s3a.store.AbstractS3AStoreTest;
+import org.apache.hadoop.fs.store.test.AbstractS3AStoreTest;
 import org.apache.hadoop.fs.tools.cloudup.Cloudup;
 import org.apache.hadoop.tools.store.StoreTestUtils;
 

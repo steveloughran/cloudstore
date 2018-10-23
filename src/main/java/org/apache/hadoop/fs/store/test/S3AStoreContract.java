@@ -16,7 +16,7 @@
  *  limitations under the License.
  */
 
-package org.apache.hadoop.fs.s3a.store;
+package org.apache.hadoop.fs.store.test;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
@@ -25,11 +25,11 @@ import org.apache.hadoop.fs.contract.AbstractBondedFSContract;
 /**
  * The contract of S3A: only enabled if the test bucket is provided.
  */
-public class S3AContract extends AbstractBondedFSContract {
+public class S3AStoreContract extends AbstractBondedFSContract {
 
-  public static final String CONTRACT_XML = "contract/s3a.xml";
+  public static final String CONTRACT_XML = "cloudstore/s3a.xml";
 
-  public S3AContract(Configuration conf) {
+  public S3AStoreContract(Configuration conf) {
     super(conf);
     //insert the base features
     addConfResource(CONTRACT_XML);
