@@ -68,7 +68,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
 
       /* Assumed Role */
       {"fs.s3a.assumed.role.arn", false, false},
-      {ASSUMED_ROLE_STS_ENDPOINT, false, false},
+      {"fs.s3a.assumed.role.sts.endpoint", false, false},
       {"fs.s3a.assumed.role.sts.endpoint.region", false, false},
       {"fs.s3a.assumed.role.session.name", false, false},
       {"fs.s3a.assumed.role.session.duration", false, false},
@@ -83,7 +83,6 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.s3a.s3guard.ddb.table.create", false, false},
       {"fs.s3a.s3guard.ddb.max.retries", false, false},
       {"fs.s3a.s3guard.ddb.background.sleep", false, false},
-      {"", false, false},
 
       /* committer */
       {"fs.s3a.committer.magic.enabled", false, false},
@@ -99,7 +98,13 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.s3a.retry.throttle.limit", false, false},
       {"fs.s3a.retry.throttle.interval", false, false},
       {"fs.s3a.attempts.maximum", false, false},
+
+      // delegation       
+      {"fs.s3a.delegation.tokens.enabled", false, false},
+      {"fs.s3a.delegation.token.binding", false, false},
+
       {"", false, false},
+
   };
 
   protected static final Object[][] ENV_VARS = {
@@ -126,8 +131,12 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       // STS
       "com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClient",
       // S3 Select
-      "com.amazonaws.services.s3.model.SelectObjectContentResponse",
-      ""
+      "com.amazonaws.services.s3.model.SelectObjectContentRequest",
+      // Delegation Tokens
+//      "org.apache.knox.gateway.shell.Hadoop",
+      "org.apache.knox.gateway.shell.knox.token.Token",
+      "org.apache.commons.configuration.Configuration",
+      "",
   };
 
   public S3ADiagnosticsInfo(final URI fsURI) {

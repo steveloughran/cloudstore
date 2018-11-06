@@ -32,6 +32,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.AccessDeniedException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -55,6 +56,10 @@ import org.apache.hadoop.fs.shell.CommandFormat;
 import org.apache.hadoop.fs.store.DurationInfo;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
 import org.apache.hadoop.io.IOUtils;
+import org.apache.hadoop.security.Credentials;
+import org.apache.hadoop.security.UserGroupInformation;
+import org.apache.hadoop.security.token.Token;
+import org.apache.hadoop.security.token.TokenIdentifier;
 import org.apache.hadoop.util.StringUtils;
 import org.apache.hadoop.util.ToolRunner;
 
@@ -515,7 +520,12 @@ public class StoreDiag extends StoreEntryPoint {
     println("This call tests a set of operations against the filesystem");
     println("Starting with some read operations, then trying to write%n");
 
-    FileSystem fs = path.getFileSystem(conf);
+    FileSystem fs;
+
+    try(DurationInfo ignored = new DurationInfo(
+        LOG, "Creating filesystem")) {
+      fs = path.getFileSystem(conf);
+    }
 
     println("%s", fs);
 
@@ -647,6 +657,39 @@ public class StoreDiag extends StoreEntryPoint {
           "Deleting file %s", file)) {
         fs.delete(file, true);
       }
+      
+      // play with security
+      boolean securityEnabled = UserGroupInformation.isSecurityEnabled();
+      if (securityEnabled) {
+
+        println("Security is enabled, user is %s",
+            UserGroupInformation.getCurrentUser().getUserName());
+      } else {
+        println("Security is disabled");
+      }
+      String serviceName = fs.getCanonicalServiceName();
+      if (serviceName == null) {
+        println("FS does not provide delegation tokens%s",
+            securityEnabled ? "" : " at least while security is disabled");
+      } else {
+        Credentials cred = new Credentials();
+        try (DurationInfo ignored = new DurationInfo(LOG,
+            "Attempting to add delegation tokens")) {
+          fs.addDelegationTokens("yarn@EXAMPLE", cred);
+        }
+        Collection<Token<? extends TokenIdentifier>> tokens
+            = cred.getAllTokens();
+        int size = tokens.size();
+        println("Number of tokens issued by filesystem: %d", size);
+        if (size > 0) {
+          for (Token<? extends TokenIdentifier> token : tokens) {
+            println("Token %s", token);
+          }
+        } else {
+          println("Filesystem did not issue any delegation tokens");
+        }
+      }
+
     } finally {
       // teardown: attempt to delete the directory
       try (DurationInfo ignored = new DurationInfo(LOG,
