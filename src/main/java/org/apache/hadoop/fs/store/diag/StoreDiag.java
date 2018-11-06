@@ -594,6 +594,38 @@ public class StoreDiag extends StoreEntryPoint {
       return;
     }
 
+    // play with security
+    boolean securityEnabled = UserGroupInformation.isSecurityEnabled();
+    if (securityEnabled) {
+
+      println("Security is enabled, user is %s",
+          UserGroupInformation.getCurrentUser().getUserName());
+    } else {
+      println("Security is disabled");
+    }
+    String serviceName = fs.getCanonicalServiceName();
+    if (serviceName == null) {
+      println("FS does not provide delegation tokens%s",
+          securityEnabled ? "" : " at least while security is disabled");
+    } else {
+      Credentials cred = new Credentials();
+      try (DurationInfo ignored = new DurationInfo(LOG,
+          "Attempting to add delegation tokens")) {
+        fs.addDelegationTokens("yarn@EXAMPLE", cred);
+      }
+      Collection<Token<? extends TokenIdentifier>> tokens
+          = cred.getAllTokens();
+      int size = tokens.size();
+      println("Number of tokens issued by filesystem: %d", size);
+      if (size > 0) {
+        for (Token<? extends TokenIdentifier> token : tokens) {
+          println("Token %s", token);
+        }
+      } else {
+        println("Filesystem did not issue any delegation tokens");
+      }
+    }
+
     // now create a directory
     Path dir = new Path(path, "dir-" + UUID.randomUUID());
 
@@ -658,37 +690,6 @@ public class StoreDiag extends StoreEntryPoint {
         fs.delete(file, true);
       }
       
-      // play with security
-      boolean securityEnabled = UserGroupInformation.isSecurityEnabled();
-      if (securityEnabled) {
-
-        println("Security is enabled, user is %s",
-            UserGroupInformation.getCurrentUser().getUserName());
-      } else {
-        println("Security is disabled");
-      }
-      String serviceName = fs.getCanonicalServiceName();
-      if (serviceName == null) {
-        println("FS does not provide delegation tokens%s",
-            securityEnabled ? "" : " at least while security is disabled");
-      } else {
-        Credentials cred = new Credentials();
-        try (DurationInfo ignored = new DurationInfo(LOG,
-            "Attempting to add delegation tokens")) {
-          fs.addDelegationTokens("yarn@EXAMPLE", cred);
-        }
-        Collection<Token<? extends TokenIdentifier>> tokens
-            = cred.getAllTokens();
-        int size = tokens.size();
-        println("Number of tokens issued by filesystem: %d", size);
-        if (size > 0) {
-          for (Token<? extends TokenIdentifier> token : tokens) {
-            println("Token %s", token);
-          }
-        } else {
-          println("Filesystem did not issue any delegation tokens");
-        }
-      }
 
     } finally {
       // teardown: attempt to delete the directory
