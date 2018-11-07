@@ -49,11 +49,11 @@ class StoreDiagnosticsInfo {
    * Hadoop versions, so they are inlined.
    */
   protected static final Object[][] SECURITY_OPTIONS = {
+      {"hadoop.security.authentication", false, false},
+      {"hadoop.security.authorization", false, false},
       {"hadoop.security.credential.provider.path", false, false},
       {"hadoop.security.credstore.java-keystore-provider.password-file", false, false},
       {"hadoop.security.credential.clear-text-fallback", false, false},
-      {"hadoop.security.authentication", false, false},
-      {"hadoop.security.authorization", false, false},
       {"hadoop.security.key.provider.path", false, false},
       {"hadoop.security.crypto.jceks.key.serialfilter", false, false},
   };

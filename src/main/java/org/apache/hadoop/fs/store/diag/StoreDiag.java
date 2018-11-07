@@ -246,7 +246,7 @@ public class StoreDiag extends StoreEntryPoint {
       if (origins != null && origins.length !=0) {
         source = "[" + StringUtils.join(",", origins) + "]";
       }
-      full = '"' + option + "\" " + source;
+      full = option + " " + source;
     }
     println("%s = %s", key, full);
   }

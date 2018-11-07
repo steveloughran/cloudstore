@@ -100,7 +100,6 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.s3a.attempts.maximum", false, false},
 
       // delegation       
-      {"fs.s3a.delegation.tokens.enabled", false, false},
       {"fs.s3a.delegation.token.binding", false, false},
 
       {"", false, false},
