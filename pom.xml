@@ -20,7 +20,8 @@
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <javac.version>1.7</javac.version>
+    <file.encoding>UTF-8</file.encoding>
+    <javac.version>1.8</javac.version>
     <enforced.java.version>${javac.version}</enforced.java.version>
 
     <hadoop.version>2.8.3</hadoop.version>
@@ -41,25 +42,29 @@
     <dependency>
       <groupId>org.slf4j</groupId>
       <artifactId>slf4j-log4j12</artifactId>
-      <version>1.7.16</version>
+      <version>1.7.25</version>
+      <scope>provided</scope>
     </dependency>
 
     <dependency>
       <groupId>log4j</groupId>
       <artifactId>log4j</artifactId>
       <version>1.2.17</version>
+      <scope>provided</scope>
     </dependency>
 
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-client</artifactId>
       <version>${hadoop.version}</version>
+      <scope>provided</scope>
     </dependency>
 
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-common</artifactId>
       <version>${hadoop.version}</version>
+      <scope>provided</scope>
     </dependency>
 
     <dependency>
@@ -174,6 +179,30 @@
       </activation>
       <properties>
         <hadoop.version>2.9.0</hadoop.version>
+      </properties>
+    </profile>
+
+    <profile>
+      <id>branch-3.1</id>
+      <activation>
+        <property>
+          <name>branch-3.1</name>
+        </property>
+      </activation>
+      <properties>
+        <hadoop.version>3.1.2-SNAPSHOT</hadoop.version>
+      </properties>
+    </profile>
+
+    <profile>
+      <id>branch-3.2</id>
+      <activation>
+        <property>
+          <name>branch-3.2</name>
+        </property>
+      </activation>
+      <properties>
+        <hadoop.version>3.2.0-SNAPSHOT</hadoop.version>
       </properties>
     </profile>
 

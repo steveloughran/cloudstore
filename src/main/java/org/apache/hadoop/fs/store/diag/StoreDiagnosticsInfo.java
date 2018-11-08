@@ -62,7 +62,7 @@ class StoreDiagnosticsInfo {
 
   protected static final List<URI> EMPTY_ENDPOINTS = new ArrayList<>(0);
 
-  protected final URI fsURI;
+  private final URI fsURI;
 
   public StoreDiagnosticsInfo(final URI fsURI) {
     this.fsURI = fsURI;
@@ -216,5 +216,20 @@ class StoreDiagnosticsInfo {
     } else {
       return false;
     }
+  }
+
+  /**
+   * Override point: any store-specific config validation.
+   * @param printout printer
+   * @param conf
+   * @throws IOException failure
+   */
+  protected void validateConfig(Printout printout,
+      final Configuration conf) throws IOException {
+    
+  }
+
+  public URI getFsURI() {
+    return fsURI;
   }
 }

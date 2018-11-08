@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.apache.hadoop.conf.Configured;
+import org.apache.hadoop.fs.store.diag.Printout;
 import org.apache.hadoop.util.ExitUtil;
 import org.apache.hadoop.util.Tool;
 
@@ -54,17 +55,17 @@ public class StoreEntryPoint extends Configured implements Tool {
    * @param format format string
    * @param args optional arguments
    */
-  protected void println(String format, Object... args) {
+  public void println(String format, Object... args) {
     out.println(String.format(format, args));
     out.flush();
   }
 
-  protected static void errorln(String format, Object... args) {
+  public static void errorln(String format, Object... args) {
     System.err.println(String.format(format, args));
     System.err.flush();
   }
 
-  protected void heading(String format, Object... args) {
+  public void heading(String format, Object... args) {
     String text = String.format(format, args);
     int l = text.length();
     StringBuilder sb = new StringBuilder(l);

@@ -18,6 +18,7 @@
 
 package org.apache.hadoop.fs.store.diag;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
@@ -27,8 +28,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.LocalDirAllocator;
 import org.apache.hadoop.fs.s3a.Constants;
 import org.apache.hadoop.fs.s3a.S3AUtils;
+
+import static org.apache.hadoop.fs.s3a.Constants.BUFFER_DIR;
 
 public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
 
@@ -138,6 +142,8 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       "",
   };
 
+  public static final String HADOOP_TMP_DIR = "hadoop.tmp.dir";
+
   public S3ADiagnosticsInfo(final URI fsURI) {
     super(fsURI);
   }
@@ -179,7 +185,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
 
   @Override
   public Configuration patchConfigurationToInitalization(final Configuration conf) {
-    return S3AUtils.propagateBucketOptions(conf, fsURI.getHost());
+    return S3AUtils.propagateBucketOptions(conf, getFsURI().getHost());
   }
 
   /**
@@ -191,7 +197,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       throws IOException {
     String endpoint = conf.getTrimmed(Constants.ENDPOINT, "s3.amazonaws.com");
     String bucketURI;
-    String bucket = fsURI.getHost();
+    String bucket = getFsURI().getHost();
     String fqdn;
     if (bucket.contains(".")) {
       LOG.info("URI appears to be FQDN; using as endpoint");
@@ -218,5 +224,26 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
           String.format("https://%s/", sts)));
     }
     return uris;
+  }
+
+  @Override
+  protected void validateConfig(final Printout printout,
+      final Configuration conf) throws IOException {
+    URI fsURI = getFsURI();
+    String bufferOption = conf.get(BUFFER_DIR) != null
+        ? BUFFER_DIR : HADOOP_TMP_DIR;
+    printout.heading("S3A Config validation");
+    
+    printout.println("Buffer configuration option is %s",
+        bufferOption);
+    final LocalDirAllocator directoryAllocator = new LocalDirAllocator(
+        bufferOption);
+
+    File temp = directoryAllocator.createTmpFileForWrite("temp", 1, conf);
+    
+    printout.println("Temporary files created in %s",
+        temp.getParentFile());
+    temp.delete();
+    
   }
 }

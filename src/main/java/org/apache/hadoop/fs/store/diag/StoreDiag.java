@@ -68,7 +68,8 @@ import static org.apache.hadoop.util.VersionInfo.*;
 import static org.apache.hadoop.fs.store.StoreExitCodes.*;
 
 @SuppressWarnings("UseOfSystemOutOrSystemErr")
-public class StoreDiag extends StoreEntryPoint {
+public class StoreDiag extends StoreEntryPoint
+  implements Printout {
 
   private static final Logger LOG = LoggerFactory.getLogger(StoreDiag.class);
 
@@ -157,7 +158,8 @@ public class StoreDiag extends StoreEntryPoint {
    * @param conf source configuration
    * @param options map of options
    */
-  private void printOptions(String title, Configuration conf,
+  @Override
+  public void printOptions(String title, Configuration conf,
       Object[][] options)
       throws IOException {
     if (options.length > 0) {
@@ -177,6 +179,7 @@ public class StoreDiag extends StoreEntryPoint {
    * @param obfuscate should it be obfuscated?
    * @return string safe to log; in quotes
    */
+  @Override
   public String maybeSanitize(String value, boolean obfuscate) {
     return obfuscate ? sanitize(value) : 
         ("\"" + value + "\"");
@@ -216,6 +219,7 @@ public class StoreDiag extends StoreEntryPoint {
    * @param secret is it secret?
    * @param obfuscate should it be obfuscated?
    */
+  @Override
   public void printOption(Configuration conf,
       final String key,
       final boolean secret,
@@ -282,6 +286,7 @@ public class StoreDiag extends StoreEntryPoint {
     printEnvVars(storeInfo.getEnvVars());
     printStoreConfiguration();
     probeRequiredAndOptionalClasses();
+    storeInfo.validateConfig(this, getConf());
     probeAllEndpoints();
 
     // and the filesystem operations

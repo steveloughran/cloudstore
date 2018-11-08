@@ -96,7 +96,7 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
     List<Object[]> optionList = new ArrayList<>(
         Arrays.asList(AbfsDiagnosticsInfo.options));
     // dynamically create account-specific keys
-    String account = fsURI.getHost();
+    String account = getFsURI().getHost();
     addAccountOption(optionList, "fs.azure.account.key",
         true, true);
     addAccountOption(optionList,
@@ -169,7 +169,7 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
       String key,
       boolean secret, boolean sensitive) {
     if (!key.isEmpty()) {
-      add(list, key + "." + fsURI.getHost(), secret, sensitive);
+      add(list, key + "." + getFsURI().getHost(), secret, sensitive);
     }
   }
   

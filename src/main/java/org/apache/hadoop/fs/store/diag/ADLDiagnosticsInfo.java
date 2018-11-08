@@ -81,7 +81,7 @@ public class ADLDiagnosticsInfo extends StoreDiagnosticsInfo {
       throws IOException {
     List<URI> uris = new ArrayList<>(2);
     addUriOption(uris, conf, "fs.adl.oauth2.refresh.url", "");
-    String bucket = fsURI.getHost();
+    String bucket = getFsURI().getHost();
     uris.add(StoreDiag.toURI("host", String.format("https://%s", bucket)));
     return uris;
   }
