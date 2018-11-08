@@ -234,8 +234,9 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
         ? BUFFER_DIR : HADOOP_TMP_DIR;
     printout.heading("S3A Config validation");
     
-    printout.println("Buffer configuration option is %s",
-        bufferOption);
+    printout.println("Buffer configuration option %s = %s",
+        bufferOption, conf.get(bufferOption));
+    
     final LocalDirAllocator directoryAllocator = new LocalDirAllocator(
         bufferOption);
 
