@@ -29,10 +29,14 @@ Finally, if things do fail, the printed configuration excludes the login secrets
 for safer reporting of issues in bug reports.
 
 ```bash
-bin/hadoop jar cloudstore-2.8.jar s3a://my-readwrite-bucket/
+bin/hadoop jar cloudstore-2.8.jar --tokenfile mytokens.bin s3a://my-readwrite-bucket/
 bin/hadoop jar cloudstore-2.8.jar wasb://container@user/subdir
 bin/hadoop jar cloudstore-2.8.jar abfs://container@user/
 ```
  
 The remote store is required to grant full R/W access to the caller, otherwise
 the creation tests will fail.
+
+The `--tokenfile` option loads tokens saved with `hdfs fetchdt`. It does
+not need Kerberos, though most filesystems expect Kerberos enabled for
+them to pick up tokens (not S3A, potentially other stores).

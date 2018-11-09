@@ -79,11 +79,22 @@ public class StoreDiag extends StoreEntryPoint
 
   public static final String CLASSPATH = "java.class.path";
 
-  protected CommandFormat commandFormat = new CommandFormat(0, Integer.MAX_VALUE);
+  public static final String TOKENFILE = "tokenfile";
+
+  public static final String XMLFILE = "xmlfile";
+
+  protected CommandFormat commandFormat;
 
   static final String USAGE = "Usage: StoreDiag <filesystem>";
 
   private StoreDiagnosticsInfo storeInfo;
+
+
+  public StoreDiag() {
+     commandFormat = new CommandFormat(0, Integer.MAX_VALUE);
+     commandFormat.addOptionWithValue(TOKENFILE);
+     commandFormat.addOptionWithValue(XMLFILE);
+  }
 
   /**
    * Print all JVM options.
@@ -268,6 +279,20 @@ public class StoreDiag extends StoreEntryPoint
       return E_USAGE;
     }
 
+    // process the options
+    String tokenfile = getOption(TOKENFILE);
+    if (tokenfile != null) {
+      heading("Adding tokenfile %s", tokenfile);
+      Credentials credentials = Credentials.readTokenStorageFile(
+          new File(tokenfile), getConf());
+      println("Loaded tokens");
+      Collection<Token<? extends TokenIdentifier>> tokens
+          = credentials.getAllTokens();
+      for (Token<? extends TokenIdentifier> token : tokens) {
+        println(token.toString());
+      }
+      UserGroupInformation.getCurrentUser().addCredentials(credentials);
+    }
 
     // path on the CLI
     String pathString = paths.get(0);
@@ -278,7 +303,6 @@ public class StoreDiag extends StoreEntryPoint
 
 
     // and its FS URI
-
     storeInfo = bindToStore(path.toUri());
     printHadoopVersionInfo();
     printJVMOptions();
@@ -746,6 +770,11 @@ public class StoreDiag extends StoreEntryPoint
     return args.length > 0 ? commandFormat.parse(args, 0)
         : new ArrayList<String>(0);
   }
+  
+  private String getOption(String opt) {
+    return commandFormat.getOptValue(opt);
+  }
+  
 
   /**
    * Get a sorted list of all the JARs on the classpath
