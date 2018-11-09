@@ -580,6 +580,7 @@ public class StoreDiag extends StoreEntryPoint
     if (rootFile != null) {
       // found a file to read
       Path rootFilePath = rootFile.getPath();
+      heading("reading file %s", rootFilePath);
       FSDataInputStream in = null;
       try (DurationInfo ignored = new DurationInfo(LOG,
           "Reading file %s", rootFilePath)) {
@@ -623,6 +624,7 @@ public class StoreDiag extends StoreEntryPoint
       return;
     }
 
+    heading("Security and Delegation Tokens");
     // play with security
     boolean securityEnabled = UserGroupInformation.isSecurityEnabled();
     if (securityEnabled) {
@@ -654,6 +656,7 @@ public class StoreDiag extends StoreEntryPoint
         println("Filesystem did not issue any delegation tokens");
       }
     }
+    heading("Filesystem Write Operations");
 
     // now create a directory
     Path dir = new Path(path, "dir-" + UUID.randomUUID());
