@@ -82,16 +82,31 @@ public class StoreDiag extends StoreEntryPoint
   public static final String TOKENFILE = "tokenfile";
 
   public static final String XMLFILE = "xmlfile";
+  public static final String JARS = "j";
+  public static final String DELEGATION = "t";
+  public static final String READONLY = "r";
 
   protected CommandFormat commandFormat;
 
-  static final String USAGE = "Usage: StoreDiag <filesystem>";
+  private static String optusage(String opt) {
+    return "[" + opt + "] ";
+  }
+
+  static final String USAGE =
+      "Usage: StoreDiag [-tokenfile <file>] "
+          + optusage(JARS)
+          + optusage(READONLY)
+          + optusage(DELEGATION)
+          + "<filesystem>";
 
   private StoreDiagnosticsInfo storeInfo;
 
 
   public StoreDiag() {
-     commandFormat = new CommandFormat(0, Integer.MAX_VALUE);
+     commandFormat = new CommandFormat(1, 1,
+         JARS,
+         DELEGATION,
+         READONLY);
      commandFormat.addOptionWithValue(TOKENFILE);
      commandFormat.addOptionWithValue(XMLFILE);
   }
@@ -306,7 +321,9 @@ public class StoreDiag extends StoreEntryPoint
     storeInfo = bindToStore(path.toUri());
     printHadoopVersionInfo();
     printJVMOptions();
-    printJARS();
+    if (hasOption(JARS)) {
+      printJARS();
+    }
     printEnvVars(storeInfo.getEnvVars());
     printStoreConfiguration();
     probeRequiredAndOptionalClasses();
@@ -314,7 +331,7 @@ public class StoreDiag extends StoreEntryPoint
     probeAllEndpoints();
 
     // and the filesystem operations
-    executeFileSystemOperations(path, true);
+    executeFileSystemOperations(path, !hasOption(READONLY));
 
     // Validate parameters.
     return E_SUCCESS;
@@ -625,6 +642,7 @@ public class StoreDiag extends StoreEntryPoint
     }
 
     heading("Security and Delegation Tokens");
+    boolean issued = false;
     // play with security
     boolean securityEnabled = UserGroupInformation.isSecurityEnabled();
     if (securityEnabled) {
@@ -649,12 +667,16 @@ public class StoreDiag extends StoreEntryPoint
       int size = tokens.size();
       println("Number of tokens issued by filesystem: %d", size);
       if (size > 0) {
+        issued = true;
         for (Token<? extends TokenIdentifier> token : tokens) {
           println("Token %s", token);
         }
       } else {
         println("Filesystem did not issue any delegation tokens");
       }
+    }
+    if (hasOption(DELEGATION) && !issued) {
+      throw new IOException("No delegation token issued by filesystem");
     }
     heading("Filesystem Write Operations");
 
@@ -773,9 +795,23 @@ public class StoreDiag extends StoreEntryPoint
     return args.length > 0 ? commandFormat.parse(args, 0)
         : new ArrayList<String>(0);
   }
-  
+
+  /**
+   * Get the value of a key-val option.
+   * @param opt option.
+   * @return the value
+   */
   private String getOption(String opt) {
     return commandFormat.getOptValue(opt);
+  }
+
+  /**
+   * Did the command line have a specific option.
+   * @param opt option.
+   * @return true iff it was set.
+   */
+  private boolean hasOption(String opt) {
+    return commandFormat.getOpt(opt);
   }
   
 
