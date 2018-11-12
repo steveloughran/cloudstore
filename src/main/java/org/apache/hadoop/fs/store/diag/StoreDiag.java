@@ -20,9 +20,12 @@ package org.apache.hadoop.fs.store.diag;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintStream;
+import java.math.BigInteger;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
 import java.net.Proxy;
@@ -31,6 +34,9 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.AccessDeniedException;
+import java.security.DigestInputStream;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -85,6 +91,7 @@ public class StoreDiag extends StoreEntryPoint
   public static final String JARS = "j";
   public static final String DELEGATION = "t";
   public static final String READONLY = "r";
+  public static final String MD5 = "5";
 
   protected CommandFormat commandFormat;
 
@@ -97,16 +104,19 @@ public class StoreDiag extends StoreEntryPoint
           + optusage(JARS)
           + optusage(READONLY)
           + optusage(DELEGATION)
+          + optusage(MD5)
           + "<filesystem>";
 
   private StoreDiagnosticsInfo storeInfo;
-
+  
+  
 
   public StoreDiag() {
      commandFormat = new CommandFormat(1, 1,
          JARS,
          DELEGATION,
-         READONLY);
+         READONLY,
+         MD5);
      commandFormat.addOptionWithValue(TOKENFILE);
      commandFormat.addOptionWithValue(XMLFILE);
   }
@@ -128,18 +138,37 @@ public class StoreDiag extends StoreEntryPoint
   /**
    * Print the JARS -but only the JARs, not the paths to them. And
    * sort the list.
+   * @param md5 create MD5 checksums
    */
-  private void printJARS() {
+  private void printJARS(final boolean md5)
+      throws IOException, NoSuchAlgorithmException {
     heading("JAR listing");
     final Map<String, String> jars = jarsOnClasspath();
     for (String s : sortKeys(jars.keySet())) {
 
-      File f = new File(jars.get(s));
-      String size = f.exists() ?
-          String.format("%,d bytes", f.length())
-          : "missing";
-      
-      println("%s\t%s (%s)", s, jars.get(s), size);
+      File file = new File(jars.get(s));
+      boolean isFile = file.isFile();
+      boolean exists = file.exists();
+      String size;
+      if (!exists) {
+        size = "missing";
+      } else {
+        size = isFile ?
+            String.format("%,d bytes", file.length())
+            : "directory";
+      }
+      String text = String.format("%s\t%s (%s)", s, jars.get(s), size);
+      if (md5) {
+        String hex;
+        if (isFile) {
+          hex = toHex(md5sum(file));
+        } else {
+          // 32 spaces
+          hex = "                                ";
+        }
+        text = hex + "  " + text;
+      }
+      println(text);
     }
   }
   
@@ -322,7 +351,7 @@ public class StoreDiag extends StoreEntryPoint
     printHadoopVersionInfo();
     printJVMOptions();
     if (hasOption(JARS)) {
-      printJARS();
+      printJARS(hasOption(MD5));
     }
     printEnvVars(storeInfo.getEnvVars());
     printStoreConfiguration();
@@ -829,6 +858,32 @@ public class StoreDiag extends StoreEntryPoint
       jars.put(file, entry);
     }
     return jars;
+  }
+  
+  private byte[] md5sum(File file)
+      throws NoSuchAlgorithmException, IOException {
+    MessageDigest md = MessageDigest.getInstance("MD5");
+    try (InputStream is = new FileInputStream(file);
+         DigestInputStream dis = new DigestInputStream(is, md)) {
+      while (dis.read() > 0) {
+         // do nothing 
+      }
+    }
+    return md.digest();
+  }
+  
+  // Integer.toString() can do base 16 too, its just this is so trivial....
+  private String hex = "0123456789abcdef";
+ 
+  private String toHex(byte[] digest32) {
+
+    // Convert message digest into hex value 
+    String hashtext = new BigInteger(1, digest32)
+        .toString(16);
+    while (hashtext.length() < 32) {
+      hashtext = "0" + hashtext;
+    }
+    return hashtext;
   }
 
   /**
