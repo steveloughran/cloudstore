@@ -20,10 +20,8 @@ package org.apache.hadoop.fs.store.diag;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.PrintStream;
 import java.math.BigInteger;
 import java.net.HttpURLConnection;
@@ -34,7 +32,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.AccessDeniedException;
-import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -47,6 +44,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
 
+import com.google.common.io.Files;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -151,17 +149,17 @@ public class StoreDiag extends StoreEntryPoint
       boolean exists = file.exists();
       String size;
       if (!exists) {
-        size = "missing";
+        size = "[missing]";
       } else {
         size = isFile ?
-            String.format("%,d bytes", file.length())
-            : "directory";
+            String.format("[%,d]", file.length())
+            : "[directory]";
       }
       String text = String.format("%s\t%s (%s)", s, jars.get(s), size);
       if (md5) {
         String hex;
         if (isFile) {
-          hex = toHex(md5sum(file));
+          hex = hash(file);
         } else {
           // 32 spaces
           hex = "                                ";
@@ -859,22 +857,17 @@ public class StoreDiag extends StoreEntryPoint
     }
     return jars;
   }
-  
+
+
+  private String hash(File file) throws IOException, NoSuchAlgorithmException {
+    return toHex(Files.getDigest(file, MessageDigest.getInstance("MD5")));
+  }
+
   private byte[] md5sum(File file)
       throws NoSuchAlgorithmException, IOException {
-    MessageDigest md = MessageDigest.getInstance("MD5");
-    try (InputStream is = new FileInputStream(file);
-         DigestInputStream dis = new DigestInputStream(is, md)) {
-      while (dis.read() > 0) {
-         // do nothing 
-      }
-    }
-    return md.digest();
+    return Files.getDigest(file, MessageDigest.getInstance("MD5"));
   }
-  
-  // Integer.toString() can do base 16 too, its just this is so trivial....
-  private String hex = "0123456789abcdef";
- 
+
   private String toHex(byte[] digest32) {
 
     // Convert message digest into hex value 
