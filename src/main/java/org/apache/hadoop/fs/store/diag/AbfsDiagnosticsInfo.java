@@ -27,7 +27,6 @@ import org.apache.hadoop.conf.Configuration;
 
 /**
  * Abfs diagnostics.
- * Doesn't include credential information.
  */
 public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
 
@@ -35,6 +34,7 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
 
       {"abfs.external.authorization.class", false, false},
       {"fs.azure.abfs.endpoint", false, false},
+      {"fs.azure.account.auth.type", false, false},
       {"fs.azure.account.keyprovider", false, false},
       {"fs.azure.account.oauth.provider.type", false, false},
       {"fs.azure.account.oauth2.client.id", false, false},
@@ -49,14 +49,21 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.azure.block.location.impersonatedhost", false, false},
       {"fs.azure.block.size", false, false},
       {"fs.azure.delegation.token.provider.type", false, false},
+      {"fs.azure.enable.autothrottling", false, false},
       {"fs.azure.enable.delegation.token", false, false},
       {"fs.azure.enable.flush", false, false},
+      {"fs.azure.io.retry.backoff.interval", false, false},
+      {"fs.azure.io.retry.max.retries", false, false},
       {"fs.azure.read.request.size", false, false},
+      {"ffs.azure.io.read.tolerate.concurrent.append", false, false},
       {"fs.azure.readaheadqueue.depth", false, false},
       {"fs.azure.secure.mode", false, false},
-      {"fs.azure.write.request.size", false, false},
-      {"fs.azure.account.auth.type", false, false},
+      {"fs.azure.skipUserGroupMetadataDuringInitialization", false, false},
       {"fs.azure.ssl.channel.mode", false, false},
+      {"fs.azure.user.agent.prefix", false, false},
+      {"fs.azure.write.request.size", false, false},
+      {"fs.azure.shellkeyprovider.script", false, false},
+      {"", false, false},
       {"", false, false},
   };
 

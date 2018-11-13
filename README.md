@@ -1,8 +1,8 @@
 # cloudstore
 
-This is going to be for a general cloudstore CLI command for Hadoop
+This is going to be for a general cloudstore CLI command for Hadoop.
 
-Initally it'll be the a diagnostics entry point, designed to work with Hadoop 2.7+
+Initally its a diagnostics entry point, designed to work with Hadoop 2.8+
 
 Why? 
 
@@ -29,9 +29,10 @@ Finally, if things do fail, the printed configuration excludes the login secrets
 for safer reporting of issues in bug reports.
 
 ```bash
-bin/hadoop jar cloudstore-2.8.jar storediag --tokenfile mytokens.bin s3a://my-readwrite-bucket/
-bin/hadoop jar cloudstore-2.8.jar storediag wasb://container@user/subdir
-bin/hadoop jar cloudstore-2.8.jar storediag abfs://container@user/
+hadoop jar cloudstore-0.1-SNAPSHOT.jar storediag -r -j -5 s3a://landsat-pds/
+hadoop jar cloudstore-0.1-SNAPSHOT.jar storediag --tokenfile mytokens.bin s3a://my-readwrite-bucket/
+hadoop jar cloudstore-0.1-SNAPSHOT.jar storediag wasb://container@user/subdir
+hadoop jar cloudstore-0.1-SNAPSHOT.jar storediag abfs://container@user/
 ```
  
 The remote store is required to grant full R/W access to the caller, otherwise
