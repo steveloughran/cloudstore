@@ -22,6 +22,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.math.BigInteger;
 import java.net.HttpURLConnection;
@@ -36,6 +37,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -44,6 +46,8 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
 
+import com.google.common.base.Charsets;
+import com.google.common.io.CharStreams;
 import com.google.common.io.Files;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,6 +64,7 @@ import org.apache.hadoop.fs.shell.CommandFormat;
 import org.apache.hadoop.fs.store.DurationInfo;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
 import org.apache.hadoop.io.IOUtils;
+import org.apache.hadoop.net.NetUtils;
 import org.apache.hadoop.security.Credentials;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.security.token.Token;
@@ -67,6 +72,8 @@ import org.apache.hadoop.security.token.TokenIdentifier;
 import org.apache.hadoop.util.StringUtils;
 import org.apache.hadoop.util.ToolRunner;
 
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 import static org.apache.hadoop.fs.store.diag.StoreDiagnosticsInfo.SECURITY_OPTIONS;
 import static org.apache.hadoop.util.VersionInfo.*;
 import static org.apache.hadoop.fs.store.StoreExitCodes.*;
@@ -90,11 +97,14 @@ public class StoreDiag extends StoreEntryPoint
   public static final String DELEGATION = "t";
   public static final String READONLY = "r";
   public static final String MD5 = "5";
+  public static final String LOGDUMP = "l";
+
+  public static final String LOG_4_PROPERTIES = "log4.properties";
 
   protected CommandFormat commandFormat;
 
   private static String optusage(String opt) {
-    return "[" + opt + "] ";
+    return "[-" + opt + "] ";
   }
 
   static final String USAGE =
@@ -103,7 +113,14 @@ public class StoreDiag extends StoreEntryPoint
           + optusage(READONLY)
           + optusage(DELEGATION)
           + optusage(MD5)
-          + "<filesystem>";
+          + optusage(LOGDUMP)
+          + "<filesystem>" 
+          + "\n" 
+          + "-tokenfile <file>  Hadoop token file to load\n"  
+          + "-r   Readonly filesystem: do not attempt writes\n"
+          + "-t    Require delegation tokens to be issued\n"
+          + "-j    List the JARs\n"
+          + "-5    Print MD5 checksums of the jars listed (requires -j)\n";
 
   private StoreDiagnosticsInfo storeInfo;
   
@@ -114,6 +131,7 @@ public class StoreDiag extends StoreEntryPoint
          JARS,
          DELEGATION,
          READONLY,
+         LOGDUMP,
          MD5);
      commandFormat.addOptionWithValue(TOKENFILE);
      commandFormat.addOptionWithValue(XMLFILE);
@@ -321,15 +339,19 @@ public class StoreDiag extends StoreEntryPoint
       return E_USAGE;
     }
 
+    println("Store Diagnostics for %s on %s",
+      UserGroupInformation.getCurrentUser(),
+      NetUtils.getHostname());
+
     // process the options
     String tokenfile = getOption(TOKENFILE);
     if (tokenfile != null) {
       heading("Adding tokenfile %s", tokenfile);
       Credentials credentials = Credentials.readTokenStorageFile(
           new File(tokenfile), getConf());
-      println("Loaded tokens");
       Collection<Token<? extends TokenIdentifier>> tokens
           = credentials.getAllTokens();
+      println("Loaded %d token(s)", tokens.size());
       for (Token<? extends TokenIdentifier> token : tokens) {
         println(token.toString());
       }
@@ -348,6 +370,9 @@ public class StoreDiag extends StoreEntryPoint
     storeInfo = bindToStore(path.toUri());
     printHadoopVersionInfo();
     printJVMOptions();
+    if (hasOption(LOGDUMP)) {
+      dumpLog4J();
+    }
     if (hasOption(JARS)) {
       printJARS(hasOption(MD5));
     }
@@ -387,6 +412,20 @@ public class StoreDiag extends StoreEntryPoint
 
   }
 
+  
+  
+  
+  /**
+   * Bind the diagnostics to a store.
+   * @param fsURI filesystem
+   * @return the store's diagnostics.
+   */
+  public StoreDiagnosticsInfo bindToStore(final String fsURI)
+      throws IOException {
+
+      return bindToStore(toURI("command", fsURI));
+  }
+  
   /**
    * Bind the diagnostics to a store.
    * @param fsURI filesystem
@@ -583,6 +622,50 @@ public class StoreDiag extends StoreEntryPoint
   }
 
   /**
+   * Dump log4J files; special handling for the case that >1 ends up on
+   * the classpath.
+   * @throws IOException IO failure.
+   */
+  public void dumpLog4J() throws IOException {
+    heading("Log4J");
+    String resource = "/" + LOG_4_PROPERTIES;
+    Enumeration<URL> logjJs = this.getClass()
+        .getClassLoader()
+        .getResources(resource);
+    int found = 0;
+    while (logjJs.hasMoreElements()) {
+      found++;
+      println("Found %s at %s%n%s", LOG_4_PROPERTIES, logjJs.nextElement());
+    }
+    if (found == 0) {
+      warn("Failed to find %s", LOG_4_PROPERTIES);
+      return;
+    }
+    if (found > 1) {
+      warn("Found multiple log4j.properties files");
+    }
+    
+    println("%n%s",
+      CharStreams.toString(new InputStreamReader(
+          this.getClass().getResourceAsStream(resource),
+          Charsets.UTF_8)));
+  }
+
+  /**
+   * Dump all the user's tokens.
+   * @throws IOException failure.
+   */
+  public void dumpUserTokens() throws IOException {
+    UserGroupInformation currentUser = UserGroupInformation.getCurrentUser();
+    Credentials credentials = currentUser.getCredentials();
+    Collection<Token<? extends TokenIdentifier>> allTokens
+        = credentials.getAllTokens();
+    for (Token<? extends TokenIdentifier> token : allTokens) {
+      println("%s", token);
+    }
+  }
+  
+  /**
    * Execute the FS level operations, one by one.
    */
   public void executeFileSystemOperations(final Path path,
@@ -725,7 +808,8 @@ public class StoreDiag extends StoreEntryPoint
     } catch (AccessDeniedException e) {
       println("Unable to create directory %s", dir);
       println("If this is a read-only filesystem, this is normal%n");
-      println("Please supply a R/W filesystem for more testing.");
+      println(
+          "Please supply a R/W filesystem or use the CLI option " + READONLY);
       throw e;
     }
 
@@ -793,6 +877,7 @@ public class StoreDiag extends StoreEntryPoint
    * @throws IOException parsing problem
    */
   public static URI toURI(String origin, String uri) throws IOException {
+    checkArgument(uri != null && !uri.isEmpty(), "No URI");
     try {
       return new URI(uri);
     } catch (URISyntaxException e) {
@@ -846,7 +931,7 @@ public class StoreDiag extends StoreEntryPoint
    * Get a sorted list of all the JARs on the classpath
    * @return the set of JARs; the iterator will be sorted.
    */
-  private Map<String, String> jarsOnClasspath() {
+  public Map<String, String> jarsOnClasspath() {
     final String cp = System.getProperty(CLASSPATH);
     final String[] split = cp.split(System.getProperty("path.separator"));
     final Map<String, String> jars = new HashMap<>(split.length);

@@ -59,6 +59,11 @@ public class StoreEntryPoint extends Configured implements Tool {
     out.println(String.format(format, args));
     out.flush();
   }
+  
+  public void warn(String format, Object... args) {
+    out.println("WARNING: " + String.format(format, args));
+    out.flush();
+  }
 
   public static void errorln(String format, Object... args) {
     System.err.println(String.format(format, args));

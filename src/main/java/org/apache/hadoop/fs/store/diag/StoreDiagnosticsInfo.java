@@ -23,13 +23,15 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.google.common.base.Preconditions;
+
 import org.apache.hadoop.conf.Configuration;
 
 /**
  * Class for filesystems to implement to provide better diagnostics than the
  * default.
  */
-class StoreDiagnosticsInfo {
+public class StoreDiagnosticsInfo {
 
   protected static final Object[][] EMPTY_OPTIONS = {};
 
@@ -75,6 +77,7 @@ class StoreDiagnosticsInfo {
    */
   public static StoreDiagnosticsInfo bindToStore(final URI fsURI) {
     StoreDiagnosticsInfo store;
+    Preconditions.checkArgument(fsURI != null, "Null fsURI argument");
     switch (fsURI.getScheme()) {
     case "hdfs":
       store = new HDFSDiagnosticsInfo(fsURI);

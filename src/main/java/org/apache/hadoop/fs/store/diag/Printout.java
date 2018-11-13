@@ -31,6 +31,13 @@ public interface Printout {
    */
   void println(String format, Object... args);
 
+  /**
+   * Print a warning.
+   * @param format format string
+   * @param args optional arguments
+   */
+  void warn(String format, Object... args);
+
   void heading(String format, Object... args);
 
   /**

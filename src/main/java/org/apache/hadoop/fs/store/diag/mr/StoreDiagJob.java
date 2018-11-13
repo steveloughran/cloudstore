@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.hadoop.fs.store.diag;
+package org.apache.hadoop.fs.store.diag.mr;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -38,6 +38,7 @@ import org.apache.hadoop.fs.Options;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.shell.CommandFormat;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
+import org.apache.hadoop.fs.store.diag.StoreDiag;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.JobConf;
 import org.apache.hadoop.mapreduce.Job;

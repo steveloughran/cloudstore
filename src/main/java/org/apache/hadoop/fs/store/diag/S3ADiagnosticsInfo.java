@@ -27,12 +27,15 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.LocalDirAllocator;
 import org.apache.hadoop.fs.s3a.Constants;
+import org.apache.hadoop.fs.s3a.S3AEncryptionMethods;
 import org.apache.hadoop.fs.s3a.S3AUtils;
 
-import static org.apache.hadoop.fs.s3a.Constants.BUFFER_DIR;
+import static com.google.common.base.Preconditions.checkState;
+import static org.apache.hadoop.fs.s3a.Constants.*;
 
 public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
 
@@ -245,6 +248,38 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
     printout.println("Temporary files created in %s",
         temp.getParentFile());
     temp.delete();
-    
+
+    String encryption = conf.get(SERVER_SIDE_ENCRYPTION_ALGORITHM, "").trim();
+    S3AEncryptionMethods encryptionMethod =
+        S3AEncryptionMethods.getMethod(encryption);
+    String key = conf.get(SERVER_SIDE_ENCRYPTION_KEY, "").trim();
+    boolean hasKey = !key.isEmpty();
+    switch (encryptionMethod) {
+      
+    case SSE_C:
+      checkState(hasKey,
+        "Encryption method %s requires a key in %s",
+      encryptionMethod, SERVER_SIDE_ENCRYPTION_KEY);
+      break;
+
+    case SSE_KMS:
+      if (!hasKey) {
+        printout.warn("SSE-KMS is enabled in %s"
+                + " but there is no key set in %s",
+            SERVER_SIDE_ENCRYPTION_ALGORITHM,
+            SERVER_SIDE_ENCRYPTION_KEY);
+        printout.warn("The default key will be used%n"
+            + "the current user MUST have permissions to use this");
+      } else {
+        if (!key.startsWith("arn:aws:kms:")) {
+          printout.warn("The SSE-KMS key does not contain a full key" 
+              + " reference of arn:aws:kms:...");
+        }
+      }
+    case NONE:
+    default:
+      // all good
+      break;
+    }
   }
 }
