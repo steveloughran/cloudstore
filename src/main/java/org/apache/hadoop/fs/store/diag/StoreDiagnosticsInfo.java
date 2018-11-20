@@ -46,20 +46,6 @@ public class StoreDiagnosticsInfo {
       // TODO: add the https proxy vars
   };
 
-  /**
-   * Not all of these are in CommonConfigurationKeysPublic of older
-   * Hadoop versions, so they are inlined.
-   */
-  protected static final Object[][] SECURITY_OPTIONS = {
-      {"hadoop.security.authentication", false, false},
-      {"hadoop.security.authorization", false, false},
-      {"hadoop.security.credential.provider.path", false, false},
-      {"hadoop.security.credstore.java-keystore-provider.password-file", false, false},
-      {"hadoop.security.credential.clear-text-fallback", false, false},
-      {"hadoop.security.key.provider.path", false, false},
-      {"hadoop.security.crypto.jceks.key.serialfilter", false, false},
-  };
-  
   protected static final String[] EMPTY_CLASSNAMES = {};
 
   protected static final List<URI> EMPTY_ENDPOINTS = new ArrayList<>(0);
@@ -78,7 +64,8 @@ public class StoreDiagnosticsInfo {
   public static StoreDiagnosticsInfo bindToStore(final URI fsURI) {
     StoreDiagnosticsInfo store;
     Preconditions.checkArgument(fsURI != null, "Null fsURI argument");
-    switch (fsURI.getScheme()) {
+    String scheme = fsURI.getScheme();
+    switch (scheme) {
     case "hdfs":
       store = new HDFSDiagnosticsInfo(fsURI);
       break;
@@ -86,16 +73,30 @@ public class StoreDiagnosticsInfo {
       store = new S3ADiagnosticsInfo(fsURI);
       break;
     case "adl":
+    case "adls":
       store = new ADLDiagnosticsInfo(fsURI);
       break;
     case "wasb":
+    case "wasbs":
       store = new WasbDiagnosticsInfo(fsURI);
       break;
     case "abfs":
     case "abfss":
       store = new AbfsDiagnosticsInfo(fsURI);
       break;
+
+    case "s3":
+    case "s3n":
+      // fail on s3n and s3a. Yes, this breaks AWS S3 connector. 
+      // No, I don't care about this. Not my problem.
+      // If the AWS team are going to take all of Hadoop and serve it
+      // up without contributing code back, they get to do the same
+      // for the diagnostics tools.
+      throw new IllegalArgumentException("Store URI unsuppported: " + scheme);
+      
+      
     default:
+      // any other FS: create the generic one
       store = new StoreDiagnosticsInfo(fsURI);
     }
     return store;
@@ -234,5 +235,29 @@ public class StoreDiagnosticsInfo {
 
   public URI getFsURI() {
     return fsURI;
+  }
+
+  /**
+   * Warn if the Fs URI is in the wrong domain.
+   * It's tempting to fail fast here to stop people missing it, but
+   * there's a risk that people are using a custom domain and they
+   * don't want a failure.
+   * @param printout dest for messages
+   * @param domain domain to expect.
+   */
+  protected void warnOnInvalidDomain(final Printout printout,
+      final String domain,
+      final String followupURL) {
+    final String host = getFsURI().getHost();
+    if (!host.endsWith(domain)) {
+      printout.warn("The URL for this store normally contains the domain %s," 
+              + " but it is %s",
+          domain, host);
+      printout.warn("Unless you are using a private endpoint, this is NOT" 
+          + " GOING TO WORK");
+      if (followupURL != null) {
+        printout.warn("For more information, see: %s", followupURL);
+      }
+    }
   }
 }

@@ -18,6 +18,7 @@
 
 package org.apache.hadoop.fs.store.diag;
 
+import java.io.IOException;
 import java.net.URI;
 
 import org.apache.hadoop.conf.Configuration;
@@ -94,4 +95,14 @@ public class WasbDiagnosticsInfo extends StoreDiagnosticsInfo {
   public String[] getOptionalClassnames(final Configuration conf) {
     return optionalClassnames;
   }
+
+  @Override
+  protected void validateConfig(final Printout printout,
+      final Configuration conf)
+      throws IOException {
+    super.validateConfig(printout, conf);
+    warnOnInvalidDomain(printout, ".blob.core.windows.net", 
+        "https://docs.microsoft.com/en-us/azure/storage/blobs/storage-custom-domain-name");
+  }
+
 }

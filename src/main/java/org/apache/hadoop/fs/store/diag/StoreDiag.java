@@ -73,10 +73,12 @@ import org.apache.hadoop.util.StringUtils;
 import org.apache.hadoop.util.ToolRunner;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.apache.hadoop.fs.store.diag.StoreDiagnosticsInfo.SECURITY_OPTIONS;
+import static org.apache.hadoop.fs.store.StoreExitCodes.E_ERROR;
+import static org.apache.hadoop.fs.store.StoreExitCodes.E_SUCCESS;
+import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
+import static org.apache.hadoop.fs.store.diag.OptionSets.CLUSTER_OPTIONS;
+import static org.apache.hadoop.fs.store.diag.OptionSets.SECURITY_OPTIONS;
 import static org.apache.hadoop.util.VersionInfo.*;
-import static org.apache.hadoop.fs.store.StoreExitCodes.*;
 
 @SuppressWarnings("UseOfSystemOutOrSystemErr")
 public class StoreDiag extends StoreEntryPoint
@@ -93,13 +95,17 @@ public class StoreDiag extends StoreEntryPoint
   public static final String TOKENFILE = "tokenfile";
 
   public static final String XMLFILE = "xmlfile";
-  public static final String JARS = "j";
+  
   public static final String DELEGATION = "t";
-  public static final String READONLY = "r";
-  public static final String MD5 = "5";
+  public static final String JARS = "j";
   public static final String LOGDUMP = "l";
+  public static final String MD5 = "5";
+  public static final String READONLY = "r";
+  public static final String SYSPROPS = "s";
 
   public static final String LOG_4_PROPERTIES = "log4.properties";
+
+  public static final int LIST_LIMIT = 25;
 
   protected CommandFormat commandFormat;
 
@@ -114,14 +120,17 @@ public class StoreDiag extends StoreEntryPoint
           + optusage(DELEGATION)
           + optusage(MD5)
           + optusage(LOGDUMP)
+          + optusage(SYSPROPS)
           + "<filesystem>" 
           + "\n" 
           + "-tokenfile <file>  Hadoop token file to load\n"  
           + "-r   Readonly filesystem: do not attempt writes\n"
           + "-t    Require delegation tokens to be issued\n"
-          + "-j    List the JARs\n"
+          + "-j    List the JARs on the classpath\n"
+          + "-s    List the JVMs System Properties\n"
           + "-5    Print MD5 checksums of the jars listed (requires -j)\n";
 
+  
   private StoreDiagnosticsInfo storeInfo;
   
   
@@ -132,7 +141,8 @@ public class StoreDiag extends StoreEntryPoint
          DELEGATION,
          READONLY,
          LOGDUMP,
-         MD5);
+         MD5,
+         SYSPROPS);
      commandFormat.addOptionWithValue(TOKENFILE);
      commandFormat.addOptionWithValue(XMLFILE);
   }
@@ -261,7 +271,7 @@ public class StoreDiag extends StoreEntryPoint
    * @param value option value.
    * @return sanitized value.
    */
-  public String sanitize(final String value) {
+  public static String sanitize(final String value) {
     String safe = value;
     int len = safe.length();
     if (len > THRESHOLD) {
@@ -338,6 +348,16 @@ public class StoreDiag extends StoreEntryPoint
       errorln(USAGE);
       return E_USAGE;
     }
+    
+    // add all the various configuration files
+    Configuration.addDefaultResource("hdfs-default.xml");
+    Configuration.addDefaultResource("hdfs-site.xml");
+    // this order is what JobConf does via
+    // org.apache.hadoop.mapreduce.util.ConfigUtil.loadResources()
+    Configuration.addDefaultResource("mapred-default.xml");
+    Configuration.addDefaultResource("mapred-site.xml");
+    Configuration.addDefaultResource("yarn-default.xml");
+    Configuration.addDefaultResource("yarn-site.xml");
 
     println("Store Diagnostics for %s on %s",
       UserGroupInformation.getCurrentUser(),
@@ -369,7 +389,10 @@ public class StoreDiag extends StoreEntryPoint
     // and its FS URI
     storeInfo = bindToStore(path.toUri());
     printHadoopVersionInfo();
-    printJVMOptions();
+    if (hasOption(SYSPROPS)) {
+      printJVMOptions();
+      dumpLog4J();
+    }
     if (hasOption(LOGDUMP)) {
       dumpLog4J();
     }
@@ -404,17 +427,13 @@ public class StoreDiag extends StoreEntryPoint
    */
   public void printStoreConfiguration() throws IOException {
 
-
     final Configuration conf = getConf();
+    printOptions("Hadoop Options", conf, CLUSTER_OPTIONS);
     printOptions("Security Options", conf, SECURITY_OPTIONS);
     printOptions("Selected Configuration Options",
         conf, storeInfo.getFilesystemOptions());
-
   }
 
-  
-  
-  
   /**
    * Bind the diagnostics to a store.
    * @param fsURI filesystem
@@ -665,6 +684,14 @@ public class StoreDiag extends StoreEntryPoint
     }
   }
   
+  private String statusToString(FileStatus status) {
+    return String.format("%s%s",
+        status.getPath(),
+        status.isFile() ?
+            ("\t[" + status.getLen() + "]")
+            : ("/"));
+  }
+
   /**
    * Execute the FS level operations, one by one.
    */
@@ -694,13 +721,25 @@ public class StoreDiag extends StoreEntryPoint
 
     FileStatus rootFile = null;
     try (DurationInfo ignored = new DurationInfo(LOG,
-        "Listing  %s", root)) {
+        "Listing %s", root)) {
       FileStatus[] statuses = fs.listStatus(root);
       println("%s root entry count: %d", root, statuses.length);
+      int limit = LIST_LIMIT;
       for (FileStatus status : statuses) {
         if (status.isFile() && rootFile == null) {
           rootFile = status;
         }
+        limit--;
+        if (limit > 0) {
+          println(statusToString(status));
+        } else {
+          // finished our listing, if a file is found
+          // then its time to leave.
+          if (rootFile != null) {
+            break;
+          }
+        }
+        
       }
     }
 
@@ -717,7 +756,7 @@ public class StoreDiag extends StoreEntryPoint
         println("First character of file %s is 0x%02x: '%s'",
             rootFilePath,
             c,
-            c > 32? Character.toString((char)c) : "(n/a)");
+            (c > 32) ? Character.toString((char) c) : "(n/a)");
         in.close();
       } finally {
         IOUtils.closeStream(in);
@@ -731,17 +770,11 @@ public class StoreDiag extends StoreEntryPoint
       if (status.isFile()) {
         throw new IOException("Not a directory: " + status);
       }
-
-      RemoteIterator<LocatedFileStatus> files = fs.listFiles(path, false);
-      while (files.hasNext()) {
+      int limit = LIST_LIMIT;
+      RemoteIterator<LocatedFileStatus> files = fs.listFiles(path, true);
+      while (files.hasNext() && (limit--)> 0) {
         status = files.next();
-        if (status.isFile()) {
-          println("%s: is a file of size %d", status.getPath(),
-              status.getLen());
-        } else {
-          println("%s: is a directory", status.getPath());
-
-        }
+        println(statusToString(status));
       }
     } catch (FileNotFoundException e) {
       // this is fine.
@@ -905,7 +938,7 @@ public class StoreDiag extends StoreEntryPoint
    */
   private List<String> parseArgs(String[] args) {
     return args.length > 0 ? commandFormat.parse(args, 0)
-        : new ArrayList<String>(0);
+        : new ArrayList<>(0);
   }
 
   /**

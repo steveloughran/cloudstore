@@ -85,4 +85,13 @@ public class ADLDiagnosticsInfo extends StoreDiagnosticsInfo {
     uris.add(StoreDiag.toURI("host", String.format("https://%s", bucket)));
     return uris;
   }
+
+  @Override
+  protected void validateConfig(final Printout printout,
+      final Configuration conf)
+      throws IOException {
+    super.validateConfig(printout, conf);
+    warnOnInvalidDomain(printout, ".azuredatalakestore.net",
+        "https://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.6.5/bk_cloud-data-access/content/adls-uri.html");
+  }
 }

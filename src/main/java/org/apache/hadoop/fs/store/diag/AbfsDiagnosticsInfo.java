@@ -18,6 +18,7 @@
 
 package org.apache.hadoop.fs.store.diag;
 
+import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -185,4 +186,12 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
     return classnames;
   }
 
+  @Override
+  protected void validateConfig(final Printout printout,
+      final Configuration conf)
+      throws IOException {
+    super.validateConfig(printout, conf);
+    warnOnInvalidDomain(printout, ".dfs.core.windows.net",
+        "https://docs.microsoft.com/en-us/azure/storage/data-lake-storage/introduction-abfs-uri");
+  }
 }
