@@ -26,6 +26,8 @@ import java.util.List;
 import com.google.common.base.Preconditions;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
 
 /**
  * Class for filesystems to implement to provide better diagnostics than the
@@ -259,5 +261,25 @@ public class StoreDiagnosticsInfo {
         printout.warn("For more information, see: %s", followupURL);
       }
     }
+  }
+
+  /**
+   * Perform any validation of the filesystem itself (is it the right type,
+   * are there any options you can check for. This is
+   * called after the FS has been created, but before any read or
+   * write IO has taken place.
+   * Important: if you try to cast the FS for these checks, then if
+   * the FS JARs aren't on the classpath, the specific diagnostics
+   * info subclass will fail with a ClassNotFoundException. Do not cast,
+   * at least not directly in that specific class.
+   * 
+   * @param printout dest for messages
+   * @param path created filesystem
+   * @param filesystem filesystem instance.
+   */
+  public void validateFilesystem(final Printout printout,
+      final Path path,
+      final FileSystem filesystem) throws IOException {
+    
   }
 }

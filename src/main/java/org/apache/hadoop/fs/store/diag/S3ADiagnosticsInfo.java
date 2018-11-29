@@ -28,7 +28,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.LocalDirAllocator;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.s3a.Constants;
 import org.apache.hadoop.fs.s3a.S3AEncryptionMethods;
 import org.apache.hadoop.fs.s3a.S3AUtils;
@@ -280,6 +282,19 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
     default:
       // all good
       break;
+    }
+  }
+
+  @Override
+  public void validateFilesystem(final Printout printout,
+      final Path path,
+      final FileSystem filesystem) throws IOException {
+    super.validateFilesystem(printout, path, filesystem);
+    
+    if (!"org.apache.hadoop.fs.s3a.S3AFileSystem".equals(
+        filesystem.getClass().getCanonicalName())) {
+      printout.warn("The filesystem class %s is not the S3AFileSystem",
+          filesystem.getClass());
     }
   }
 }

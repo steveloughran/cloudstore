@@ -685,11 +685,19 @@ public class StoreDiag extends StoreEntryPoint
   }
   
   private String statusToString(FileStatus status) {
+    String suffix;
+    if (status.isFile()) {
+      suffix = "\t[" + status.getLen() + "]";
+    } else {
+      if (!status.getPath().toString().endsWith("/")) {
+        suffix = "/";
+      } else {
+        suffix = "/";
+      }
+    }
     return String.format("%s%s",
         status.getPath(),
-        status.isFile() ?
-            ("\t[" + status.getLen() + "]")
-            : ("/"));
+        suffix);
   }
 
   /**
@@ -711,6 +719,9 @@ public class StoreDiag extends StoreEntryPoint
     }
 
     println("%s", fs);
+    println("Implementation class %s", fs.getClass());
+
+    storeInfo.validateFilesystem(this, path, fs);
 
 
     Path root = fs.makeQualified(new Path("/"));
