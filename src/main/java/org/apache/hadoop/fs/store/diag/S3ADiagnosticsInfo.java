@@ -23,10 +23,11 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
-import com.amazonaws.services.codecommit.model.TargetRequiredException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -234,7 +235,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
    */
   @Override
   public List<URI> listEndpointsToProbe(final Configuration conf)
-      throws IOException {
+      throws IOException, URISyntaxException {
     String endpoint = conf.getTrimmed(Constants.ENDPOINT, "s3.amazonaws.com");
     String bucketURI;
     String bucket = getFsURI().getHost();
@@ -255,7 +256,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
     } else {
       bucketURI = String.format("%s://%s/", scheme, fqdn);
     }
-    List<URI> uris = new ArrayList<>(2);
+    List<URI> uris = new ArrayList<>(3);
     uris.add(StoreDiag.toURI("Bucket URI", bucketURI));
     // If the STS endpoints is set, work out the URI
     final String sts = conf.get(ASSUMED_ROLE_STS_ENDPOINT, "");
@@ -266,6 +267,14 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
     return uris;
   }
 
+  @Override
+  public List<URI> listOptionalEndpointsToProbe(final Configuration conf)
+      throws IOException, URISyntaxException {
+    List<URI> l = new ArrayList<>(0);
+    l.add(new URI("http://169.254.169.254"));
+    return l;
+  }
+  
   @Override
   protected void validateConfig(final Printout printout,
       final Configuration conf) throws IOException {

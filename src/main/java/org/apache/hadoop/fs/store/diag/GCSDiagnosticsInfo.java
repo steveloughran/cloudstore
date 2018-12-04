@@ -18,7 +18,11 @@
 
 package org.apache.hadoop.fs.store.diag;
 
+import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.apache.hadoop.conf.Configuration;
 
@@ -32,6 +36,7 @@ public class GCSDiagnosticsInfo extends StoreDiagnosticsInfo {
    */
   public static final String[] classnames = {
       "com.google.cloud.hadoop.fs.gcs.GoogleHadoopFS",
+      "com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystemBase",
   };
 
   /**
@@ -39,8 +44,11 @@ public class GCSDiagnosticsInfo extends StoreDiagnosticsInfo {
    */
   public static final String[] optionalClassnames = {
       "com.google.cloud.hadoop.repackaged.gcs.com.google.cloud.hadoop.gcsio.GoogleCloudStorage",
-      "com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystemBase",
       "com.google.cloud.hadoop.util.AccessTokenProvider",
+      // Knox Integration (WiP)
+      "org.apache.knox.gateway.shell.knox.token.Token",
+      "org.apache.commons.configuration.Configuration",
+      "com.google.api.client.util.DateTime",
       "org.apache.knox.gateway.cloud.idbroker.google.CloudAccessBrokerTokenProvider",
   };
 
@@ -110,5 +118,11 @@ public class GCSDiagnosticsInfo extends StoreDiagnosticsInfo {
     return optionalClassnames;
   }
 
-
+  @Override
+  public List<URI> listOptionalEndpointsToProbe(final Configuration conf)
+      throws IOException, URISyntaxException {
+    List<URI> l = new ArrayList<>(0);
+    l.add(new URI("http://169.254.169.254"));
+    return l;
+  }
 }

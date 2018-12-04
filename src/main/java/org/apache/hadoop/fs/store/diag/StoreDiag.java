@@ -419,7 +419,13 @@ public class StoreDiag extends StoreEntryPoint
   public void probeAllEndpoints() throws IOException  {
     heading("Endpoints");
 
-    probeEndpoints(storeInfo.listEndpointsToProbe(getConf()));
+    try {
+      probeEndpoints(storeInfo.listEndpointsToProbe(getConf()));
+      probeOptionalEndpoints(storeInfo.listOptionalEndpointsToProbe(getConf()));
+    } catch (URISyntaxException e) {
+      LOG.warn("Bad URI", e);
+    }
+    
   }
 
   /**
@@ -484,6 +490,22 @@ public class StoreDiag extends StoreEntryPoint
 
       for (URI endpoint : endpoints) {
         probeOneEndpoint(endpoint);
+      }
+    }
+  }
+
+  /**
+   * Probe the list of endpoints.
+   * @param endpoints list to probe (unauthed)
+   * @throws IOException  IO Failure
+   */
+  public void probeOptionalEndpoints(final List<URI> endpoints)
+      throws IOException {
+    for (URI endpoint : endpoints) {
+      try {
+        probeOneEndpoint(endpoint);
+      } catch (IOException e) {
+        LOG.info("Connecting to {}", endpoint, e);
       }
     }
   }
@@ -570,6 +592,7 @@ public class StoreDiag extends StoreEntryPoint
 
 
     HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+    conn.setConnectTimeout(1_000);
     conn.connect();
     int responseCode = conn.getResponseCode();
     String responseMessage = conn.getResponseMessage();

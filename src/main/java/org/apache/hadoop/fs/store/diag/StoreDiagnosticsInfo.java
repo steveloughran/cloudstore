@@ -20,6 +20,7 @@ package org.apache.hadoop.fs.store.diag;
 
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -200,7 +201,19 @@ public class StoreDiagnosticsInfo {
    * connections.
    */
   public List<URI> listEndpointsToProbe(Configuration conf)
-      throws IOException {
+      throws IOException, URISyntaxException {
+    return EMPTY_ENDPOINTS;
+  }
+
+  /**
+   * List optional endpoints to probe; its not an error if these aren't
+   * reachable.
+   * @param conf configuration to use, will already have been patched.
+   * @return a possibly empty ist of endpoints for DNS lookup and HTTP
+   * connections.
+   */
+  public List<URI> listOptionalEndpointsToProbe(Configuration conf)
+      throws IOException, URISyntaxException {
     return EMPTY_ENDPOINTS;
   }
 
