@@ -20,10 +20,13 @@ package org.apache.hadoop.fs.store.diag;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.amazonaws.services.codecommit.model.TargetRequiredException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,7 +36,6 @@ import org.apache.hadoop.fs.LocalDirAllocator;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.s3a.Constants;
 import org.apache.hadoop.fs.s3a.S3AEncryptionMethods;
-import org.apache.hadoop.fs.s3a.S3AUtils;
 
 import static com.google.common.base.Preconditions.checkState;
 import static org.apache.hadoop.fs.s3a.Constants.*;
@@ -127,7 +129,11 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
   };
 
   public static final String[] optionalClassnames = {
+      // AWS features outwith the aws-s3-sdk JAR and needed for later releases.
        "com.amazonaws.services.dynamodbv2.AmazonDynamoDB",
+      // STS
+      "com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClient",
+
       /* Jackson stuff */
       "com.fasterxml.jackson.annotation.JacksonAnnotation",
       "com.fasterxml.jackson.core.JsonParseException",
@@ -135,14 +141,28 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       /* And Joda-time. Not relevant on the shaded SDK,
        *  but critical for older ones */
       "org.joda.time.Interval",
-      // STS
-      "com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClient",
+      
+      // S3Guard
+      "org.apache.hadoop.fs.s3a.s3guard.S3Guard",
+      
+      // Committers
+      "org.apache.hadoop.fs.s3a.commit.staging.StagingCommitter",
+      
+      // Assumed Role tokens
+      "org.apache.hadoop.fs.s3a.auth.AssumedRoleCredentialProvider",
+      
       // S3 Select
       "com.amazonaws.services.s3.model.SelectObjectContentRequest",
       // Delegation Tokens
-//      "org.apache.knox.gateway.shell.Hadoop",
+      // core S3A implementation
+      "org.apache.hadoop.fs.s3a.auth.delegation.S3ADelegationTokens",
+      
+      // Knox Integration (WiP)
       "org.apache.knox.gateway.shell.knox.token.Token",
       "org.apache.commons.configuration.Configuration",
+      
+      // S3 Select: HADOOP-15229
+      "org.apache.hadoop.fs.s3a.select.SelectInputStream",
       "",
   };
 
@@ -188,8 +208,24 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
   }
 
   @Override
-  public Configuration patchConfigurationToInitalization(final Configuration conf) {
-    return S3AUtils.propagateBucketOptions(conf, getFsURI().getHost());
+  public Configuration patchConfigurationToInitalization(final Configuration conf)
+      {
+    try {
+      Class<?> aClass = getClass().getClassLoader()
+          .loadClass("org.apache.hadoop.fs.s3a.S3AUtils");
+      Method m = aClass.getMethod("propagateBucketOptions",
+          Configuration.class,
+          String.class);
+      return (Configuration)m.invoke(null, conf, getFsURI().getHost());
+    } catch (ClassNotFoundException e) {
+      LOG.error("S3AUtils not found: hadoop-aws is not on the CP", e);
+      // this will carry on elsewhere
+    } catch (NoSuchMethodException
+        | IllegalAccessException
+        | InvocationTargetException e) {
+      LOG.info("S3AUtils.propagateBucketOptions() not found; assume old Hadoop version");
+    }
+    return conf;
   }
 
   /**
