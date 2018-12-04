@@ -87,7 +87,7 @@ public class StoreDiagnosticsInfo {
       store = new AbfsDiagnosticsInfo(fsURI);
       break;
       
-    case "gcs":
+    case "gs":
       store = new GCSDiagnosticsInfo(fsURI);
       break;
 
