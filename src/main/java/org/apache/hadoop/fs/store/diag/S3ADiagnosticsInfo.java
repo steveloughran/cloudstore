@@ -267,14 +267,14 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
     return uris;
   }
 
-  @Override
+/*  @Override
   public List<URI> listOptionalEndpointsToProbe(final Configuration conf)
       throws IOException, URISyntaxException {
     List<URI> l = new ArrayList<>(0);
     l.add(new URI("http://169.254.169.254"));
     return l;
   }
-  
+  */
   @Override
   protected void validateConfig(final Printout printout,
       final Configuration conf) throws IOException {
