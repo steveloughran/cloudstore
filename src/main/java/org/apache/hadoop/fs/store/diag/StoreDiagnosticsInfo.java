@@ -86,6 +86,10 @@ public class StoreDiagnosticsInfo {
     case "abfss":
       store = new AbfsDiagnosticsInfo(fsURI);
       break;
+      
+    case "gcs":
+      store = new GCSDiagnosticsInfo(fsURI);
+      break;
 
     case "s3":
     case "s3n":
