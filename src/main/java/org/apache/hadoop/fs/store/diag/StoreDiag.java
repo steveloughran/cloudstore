@@ -593,6 +593,7 @@ public class StoreDiag extends StoreEntryPoint
 
     HttpURLConnection conn = (HttpURLConnection) url.openConnection();
     conn.setConnectTimeout(1_000);
+    conn.setReadTimeout(1_000);
     conn.connect();
     int responseCode = conn.getResponseCode();
     String responseMessage = conn.getResponseMessage();

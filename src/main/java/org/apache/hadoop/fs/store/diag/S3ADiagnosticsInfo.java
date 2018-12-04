@@ -25,7 +25,6 @@ import java.lang.reflect.Method;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -119,7 +118,8 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
 
   protected static final Object[][] ENV_VARS = {
       {"AWS_ACCESS_KEY_ID", false},
-      {"AWS_SECRET_ACCESS_KEY", true},
+      {"AWS_ACCESS_KEY", true},
+      {"AWS_SECRET_KEY", true},
       {"AWS_SESSION_TOKEN", true},
   };
 
