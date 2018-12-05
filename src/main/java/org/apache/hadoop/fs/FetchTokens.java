@@ -145,7 +145,12 @@ public class FetchTokens extends StoreEntryPoint {
       }
     }
     // all the tokens are collected, so save
-    cred.writeTokenStorageFile(dest, conf, format);
+    try(DurationInfo ignored =
+            new DurationInfo(LOG, "Saving tokens to %s in format %s",
+                dest, format)) {
+      cred.writeTokenStorageFile(dest, conf, format);
+
+    }
     return cred;
   }
 

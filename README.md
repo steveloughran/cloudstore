@@ -69,7 +69,6 @@ hadoop jar cloudstore-0.1-SNAPSHOT fetchdt hdfs://tokens.bin s3a://landsat-pds/ 
 Usage: fetchdt <file> [-renewer <renewer>] [-r] [-p] <url1> ... <url999> 
  -r: require each filesystem to issue a token
  -p: protobuf format
-
 ```
 
 Examples
@@ -77,7 +76,7 @@ Examples
 Successful query of an S3A session delegation token.
 
 ```bash
-> bin/hadoop jar /Users/stevel/Projects/Misc/cloudstore/target/cloudstore-0.1-SNAPSHOT.jar fetchdt -p -r file:/tmp/secrets.bin s3a://landsat-pds/
+> bin/hadoop jar cloudstore-0.1-SNAPSHOT.jar fetchdt -p -r file:/tmp/secrets.bin s3a://landsat-pds/
   Collecting tokens for 1 filesystem to to file:/tmp/secrets.bin
   2018-12-05 17:50:44,276 INFO fs.FetchTokens: Starting: Fetching token for s3a://landsat-pds/
   2018-12-05 17:50:44,399 INFO impl.MetricsConfig: Loaded properties from hadoop-metrics2.properties
@@ -98,7 +97,6 @@ Successful query of an S3A session delegation token.
   2018-12-05 17:50:47,166 INFO impl.MetricsSystemImpl: s3a-file-system metrics system stopped.
   2018-12-05 17:50:47,166 INFO impl.MetricsSystemImpl: s3a-file-system metrics system shutdown complete.
   ~/P/h/h/t/hadoop-3.1.2-SNAPSHOT (cloud/BUG-99335-HADOOP-15364-S3Select-HDP-3.0.100 ⚡↩) 
-
 ```
 
 
