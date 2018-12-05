@@ -69,6 +69,7 @@ import org.apache.hadoop.security.Credentials;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.security.token.Token;
 import org.apache.hadoop.security.token.TokenIdentifier;
+import org.apache.hadoop.util.ExitUtil;
 import org.apache.hadoop.util.StringUtils;
 import org.apache.hadoop.util.ToolRunner;
 
@@ -107,14 +108,12 @@ public class StoreDiag extends StoreEntryPoint
 
   public static final int LIST_LIMIT = 25;
 
-  protected CommandFormat commandFormat;
-
   private static String optusage(String opt) {
     return "[-" + opt + "] ";
   }
 
-  static final String USAGE =
-      "Usage: StoreDiag [-tokenfile <file>] "
+  public static final String USAGE =
+      "Usage: storediag [-tokenfile <file>] "
           + optusage(JARS)
           + optusage(READONLY)
           + optusage(DELEGATION)
@@ -133,18 +132,16 @@ public class StoreDiag extends StoreEntryPoint
   
   private StoreDiagnosticsInfo storeInfo;
   
-  
-
   public StoreDiag() {
-     commandFormat = new CommandFormat(1, 1,
+     setCommandFormat(new CommandFormat(1, 1,
          JARS,
          DELEGATION,
          READONLY,
          LOGDUMP,
          MD5,
-         SYSPROPS);
-     commandFormat.addOptionWithValue(TOKENFILE);
-     commandFormat.addOptionWithValue(XMLFILE);
+         SYSPROPS));
+     getCommandFormat().addOptionWithValue(TOKENFILE);
+     getCommandFormat().addOptionWithValue(XMLFILE);
   }
 
   /**
@@ -348,16 +345,7 @@ public class StoreDiag extends StoreEntryPoint
       errorln(USAGE);
       return E_USAGE;
     }
-    
-    // add all the various configuration files
-    Configuration.addDefaultResource("hdfs-default.xml");
-    Configuration.addDefaultResource("hdfs-site.xml");
-    // this order is what JobConf does via
-    // org.apache.hadoop.mapreduce.util.ConfigUtil.loadResources()
-    Configuration.addDefaultResource("mapred-default.xml");
-    Configuration.addDefaultResource("mapred-site.xml");
-    Configuration.addDefaultResource("yarn-default.xml");
-    Configuration.addDefaultResource("yarn-site.xml");
+    addAllDefaultXMLFiles();
 
     println("Store Diagnostics for %s on %s",
       UserGroupInformation.getCurrentUser(),
@@ -425,7 +413,6 @@ public class StoreDiag extends StoreEntryPoint
     } catch (URISyntaxException e) {
       LOG.warn("Bad URI", e);
     }
-    
   }
 
   /**
@@ -963,38 +950,6 @@ public class StoreDiag extends StoreEntryPoint
     }
   }
 
-
-  /**
-   * Parse CLI arguments and returns the position arguments.
-   * The options are stored in {@link #commandFormat}.
-   *
-   * @param args command line arguments.
-   * @return the position arguments from CLI.
-   */
-  private List<String> parseArgs(String[] args) {
-    return args.length > 0 ? commandFormat.parse(args, 0)
-        : new ArrayList<>(0);
-  }
-
-  /**
-   * Get the value of a key-val option.
-   * @param opt option.
-   * @return the value
-   */
-  private String getOption(String opt) {
-    return commandFormat.getOptValue(opt);
-  }
-
-  /**
-   * Did the command line have a specific option.
-   * @param opt option.
-   * @return true iff it was set.
-   */
-  private boolean hasOption(String opt) {
-    return commandFormat.getOpt(opt);
-  }
-  
-
   /**
    * Get a sorted list of all the JARs on the classpath
    * @return the set of JARs; the iterator will be sorted.
@@ -1067,6 +1022,9 @@ public class StoreDiag extends StoreEntryPoint
     } catch (CommandFormat.UnknownOptionException e) {
       errorln(e.getMessage());
       exit(E_USAGE, e.getMessage());
+    } catch (ExitUtil.ExitException e) {
+      LOG.debug("Command failure", e);
+      exit(e);
     } catch (Throwable e) {
       e.printStackTrace(System.err);
       exit(E_ERROR, e.toString());

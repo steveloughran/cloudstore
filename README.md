@@ -15,7 +15,9 @@ do much in terms of meaningful diagnostics.
 1. And in support calls, it's all to easy to get those secrets, even
 though its a major security breach to get them.
 
-The StoreDiag entry point is designed to pick up the FS settings, dump them
+## StoreDiag
+
+The `storediag` entry point is designed to pick up the FS settings, dump them
 with sanitized secrets, and display their provenance. It then
 bootstraps connectivity with an attempt to initiate (unauthed) HTTP connections
 to the store's endpoints. This should be sufficient to detect proxy and
@@ -42,7 +44,7 @@ The `--tokenfile` option loads tokens saved with `hdfs fetchdt`. It does
 not need Kerberos, though most filesystems expect Kerberos enabled for
 them to pick up tokens (not S3A, potentially other stores).
 
-## Options
+### Options
 
 ```
 -tokenfile <file>  Hadoop token file to load
@@ -52,3 +54,32 @@ them to pick up tokens (not S3A, potentially other stores).
 -5    Print MD5 checksums of the jars listed (requires -j)
 ```
 
+## fetchdt
+
+This is an extension of `hdfs fetchdt` which collects delegation tokens
+from a list of filesystems, saving them to a file.
+
+```bash
+hadoop jar cloudstore-0.1-SNAPSHOT fetchdt hdfs://tokens.bin s3a://landsat-pds/ s3a://bucket2
+```
+
+### Options
+
+```
+Usage: fetchdt <file> [-renewer <renewer>] [-r] [-p] <url1> ... <url999> 
+ -r: require each filesystem to issue a token
+ -p: protobuf format
+
+```
+
+Example
+
+```bash
+> hadoop jar cloudstore-0.1-SNAPSHOT.jar fetchdt -p -r file:/tmm/secrets.bin file:///
+
+Collecting tokens for 1 filesystem to to file:/tmm/secrets.bin
+2018-12-05 17:47:00,970 INFO fs.FetchTokens: Starting: Fetching token for file:/
+No token for file:/
+2018-12-05 17:47:00,972 INFO fs.FetchTokens: Fetching token for file:/: duration 0:00:003
+2018-12-05 17:47:00,973 INFO util.ExitUtil: Exiting with status 44: No token issued by filesystem file:///
+```

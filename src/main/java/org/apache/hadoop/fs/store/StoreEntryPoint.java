@@ -19,11 +19,15 @@
 package org.apache.hadoop.fs.store;
 
 import java.io.PrintStream;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
+import org.apache.hadoop.fs.shell.CommandFormat;
 import org.apache.hadoop.fs.store.diag.Printout;
 import org.apache.hadoop.util.ExitUtil;
 import org.apache.hadoop.util.Tool;
@@ -34,6 +38,8 @@ import org.apache.hadoop.util.Tool;
 public class StoreEntryPoint extends Configured implements Tool {
 
   private static final Logger LOG = LoggerFactory.getLogger(StoreEntryPoint.class);
+
+  protected CommandFormat commandFormat;
 
   private PrintStream out = System.out;
 
@@ -82,5 +88,61 @@ public class StoreEntryPoint extends Configured implements Tool {
 
   protected static void exit(int status, String text) {
     ExitUtil.terminate(status, text);
+  }
+
+  protected static void exit(ExitUtil.ExitException ex) {
+    ExitUtil.terminate(ex);
+  }
+
+  public CommandFormat getCommandFormat() {
+    return commandFormat;
+  }
+
+  public void setCommandFormat(CommandFormat commandFormat) {
+    this.commandFormat = commandFormat;
+  }
+
+  /**
+   * Parse CLI arguments and returns the position arguments.
+   * The options are stored in {@link #commandFormat}.
+   *
+   * @param args command line arguments.
+   * @return the position arguments from CLI.
+   */
+  protected List<String> parseArgs(String[] args) {
+    return args.length > 0 ? getCommandFormat().parse(args, 0)
+        : new ArrayList<>(0);
+  }
+
+  /**
+   * Get the value of a key-val option.
+   * @param opt option.
+   * @return the value or null
+   */
+  protected String getOption(String opt) {
+    return getCommandFormat().getOptValue(opt);
+  }
+
+  /**
+   * Did the command line have a specific option.
+   * @param opt option.
+   * @return true iff it was set.
+   */
+  protected boolean hasOption(String opt) {
+    return getCommandFormat().getOpt(opt);
+  }
+
+  /**
+   * Add all the various configuration files.
+   */
+  protected void addAllDefaultXMLFiles() {
+    Configuration.addDefaultResource("hdfs-default.xml");
+    Configuration.addDefaultResource("hdfs-site.xml");
+    // this order is what JobConf does via
+    // org.apache.hadoop.mapreduce.util.ConfigUtil.loadResources()
+    Configuration.addDefaultResource("mapred-default.xml");
+    Configuration.addDefaultResource("mapred-site.xml");
+    Configuration.addDefaultResource("yarn-default.xml");
+    Configuration.addDefaultResource("yarn-site.xml");
   }
 }
