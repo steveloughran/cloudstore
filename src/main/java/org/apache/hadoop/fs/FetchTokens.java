@@ -106,7 +106,11 @@ public class FetchTokens extends StoreEntryPoint {
           }
         });
     int n = retrieved.numberOfTokens();
-    println("Saved %d token%s to %s", n, plural(n), dest);
+    if (n > 0) {
+      println("Saved %d token%s to %s", n, plural(n), dest);
+    } else {
+      println("No tokens collected, file %s unchanged", dest);
+    }
     return 0;
   }
 
