@@ -20,6 +20,7 @@ package org.apache.hadoop.fs.store.diag;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -35,7 +36,6 @@ import java.net.URL;
 import java.nio.file.AccessDeniedException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -97,6 +97,8 @@ public class StoreDiag extends StoreEntryPoint
 
   public static final String XMLFILE = "xmlfile";
   
+  public static final String CLASSES = "classes";
+  
   public static final String DELEGATION = "t";
   public static final String JARS = "j";
   public static final String LOGDUMP = "l";
@@ -111,6 +113,10 @@ public class StoreDiag extends StoreEntryPoint
   private static String optusage(String opt) {
     return "[-" + opt + "] ";
   }
+  
+  private static String optusage(String opt, String second, String text) {
+    return String.format("-%s <%s>\t%s%n", opt, second, text);
+  }
 
   public static final String USAGE =
       "Usage: storediag [-tokenfile <file>] "
@@ -122,13 +128,14 @@ public class StoreDiag extends StoreEntryPoint
           + optusage(SYSPROPS)
           + "<filesystem>" 
           + "\n" 
-          + "-tokenfile <file>  Hadoop token file to load\n"  
+          + optusage(TOKENFILE, "file", "Hadoop token file to load")
+          + optusage(XMLFILE, "file", "XML config file to load")
+          + optusage(CLASSES, "file", "text file of extra classes to require")
           + "-r   Readonly filesystem: do not attempt writes\n"
           + "-t    Require delegation tokens to be issued\n"
           + "-j    List the JARs on the classpath\n"
           + "-s    List the JVMs System Properties\n"
           + "-5    Print MD5 checksums of the jars listed (requires -j)\n";
-
   
   private StoreDiagnosticsInfo storeInfo;
   
@@ -142,6 +149,7 @@ public class StoreDiag extends StoreEntryPoint
          SYSPROPS));
      getCommandFormat().addOptionWithValue(TOKENFILE);
      getCommandFormat().addOptionWithValue(XMLFILE);
+     getCommandFormat().addOptionWithValue(CLASSES);
   }
 
   /**
@@ -200,7 +208,7 @@ public class StoreDiag extends StoreEntryPoint
    * @param keys keys to sort.
    * @return new set of sorted keys
    */
-  private Set<String> sortKeys(final Iterable<?> keys) {
+  public static Set<String> sortKeys(final Iterable<?> keys) {
     TreeSet<String> sorted = new TreeSet<>();
     for (Object k : keys) {
       sorted.add(k.toString());
@@ -443,7 +451,8 @@ public class StoreDiag extends StoreEntryPoint
    * @param fsURI filesystem
    * @return the store's diagnostics.
    */
-  public StoreDiagnosticsInfo bindToStore(final URI fsURI) {
+  public StoreDiagnosticsInfo bindToStore(final URI fsURI)
+      throws IOException {
     heading("Diagnostics for filesystem %s", fsURI);
 
     StoreDiagnosticsInfo store = StoreDiagnosticsInfo.bindToStore(fsURI);
@@ -451,7 +460,18 @@ public class StoreDiag extends StoreEntryPoint
     println("%s%n%s%n%s",
         store.getName(), store.getDescription(), store.getHomepage());
 
-    setConf(store.patchConfigurationToInitalization(getConf()));
+    Configuration conf = getConf();
+    // load XML file
+    String file = getOption(XMLFILE);
+    if (file != null) {
+      File f = new File(file);
+      if (!f.exists()) {
+        throw new FileNotFoundException(f.toString());
+      }
+      println("Adding XML configuration file %s", f);
+      conf.addResource(f.toURI().toURL());
+    }
+    setConf(store.patchConfigurationToInitalization(conf));
     return store;
   }
 
@@ -615,12 +635,56 @@ public class StoreDiag extends StoreEntryPoint
    * Probe all the required classes.
    * @throws ClassNotFoundException no class
    */
-  public void probeRequiredAndOptionalClasses() throws ClassNotFoundException {
+  public void probeRequiredAndOptionalClasses() throws ClassNotFoundException,
+      IOException {
     probeRequiredClasses(storeInfo.getClassnames(getConf()));
     probeOptionalClasses(storeInfo.getOptionalClassnames(getConf()));
+    // load any .classes files
+    String file = getOption(CLASSES);
+    if (file != null) {
+      File f = new File(file);
+      if (!f.exists()) {
+        throw new FileNotFoundException(f.toString());
+      }
+      println("Adding class list file %s", f);
+      probeRequiredClassesOrResources(
+          org.apache.commons.io.IOUtils.readLines(
+              new FileInputStream(f), Charsets.UTF_8));
+    }
   }
 
+  /**
+   * Take a list of lines containing: comments, classes, resources
+   * and possibly blankness, trip and either probe for or print the comment.
+   * @param lines lines to scan
+   * @throws ClassNotFoundException class was not found
+   */
+  private void probeRequiredClassesOrResources(List<String> lines)
+      throws ClassNotFoundException {
+    for (String line : lines) {
+      String name = line.trim();
+      if (name.isEmpty() || name.startsWith("#")) {
+        println(name);
+        continue;
+      }
+      if (name.contains("/")) {
+        probeRequiredResource(name);
+      } else {
+        probeRequiredClass(name);
+      }
+    }
+  }
 
+  /**
+   * Look for a resource; print its origin.
+   * @param resource resource
+   */
+  public void probeRequiredResource(final String resource){
+    String name = resource.trim();
+    println("resource: %s", name);
+    println("       %s", this.getClass().getClassLoader().getResource(name));
+  }
+  
   /**
    * Look for a class; print its origin.
    * @param classname classname
@@ -628,12 +692,11 @@ public class StoreDiag extends StoreEntryPoint
    */
   public void probeRequiredClass(final String classname)
       throws ClassNotFoundException {
-    if (classname.isEmpty()) {
-      return;
-    }
-    println("class: %s", classname);
-    Class<?> clazz = this.getClass().getClassLoader().loadClass(classname);
-    println("       %s", clazz.getProtectionDomain().getCodeSource().getLocation());
+    String name = classname.trim();
+    println("class: %s", name);
+    Class<?> clazz = this.getClass().getClassLoader().loadClass(name);
+    println("       %s",
+        clazz.getProtectionDomain().getCodeSource().getLocation());
   }
 
   /**

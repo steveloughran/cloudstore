@@ -26,6 +26,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,6 +41,7 @@ import org.apache.hadoop.fs.s3a.S3AEncryptionMethods;
 
 import static com.google.common.base.Preconditions.checkState;
 import static org.apache.hadoop.fs.s3a.Constants.*;
+import static org.apache.hadoop.fs.store.diag.StoreDiag.sortKeys;
 
 public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
 
@@ -149,20 +152,15 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       // Committers
       "org.apache.hadoop.fs.s3a.commit.staging.StagingCommitter",
       
-      // Assumed Role tokens
+      // Assumed Role credential provider (Hadoop 3.1)
       "org.apache.hadoop.fs.s3a.auth.AssumedRoleCredentialProvider",
       
-      // S3 Select
-      "com.amazonaws.services.s3.model.SelectObjectContentRequest",
       // Delegation Tokens
-      // core S3A implementation
       "org.apache.hadoop.fs.s3a.auth.delegation.S3ADelegationTokens",
-      
-      // Knox Integration (WiP)
-      "org.apache.knox.gateway.shell.knox.token.Token",
-      "org.apache.commons.configuration.Configuration",
+
       
       // S3 Select: HADOOP-15229
+      "com.amazonaws.services.s3.model.SelectObjectContentRequest",
       "org.apache.hadoop.fs.s3a.select.SelectInputStream",
       "",
   };
@@ -275,10 +273,10 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
     return l;
   }
   */
+
   @Override
   protected void validateConfig(final Printout printout,
       final Configuration conf) throws IOException {
-    URI fsURI = getFsURI();
     String bufferOption = conf.get(BUFFER_DIR) != null
         ? BUFFER_DIR : HADOOP_TMP_DIR;
     printout.heading("S3A Config validation");
@@ -328,6 +326,17 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       // all good
       break;
     }
+    
+    // now print everything fs.s3a.ext, assuming that
+    // there are no secrets in it. Don't do that.
+    String ext = "fs.s3a.ext.";
+    Map<String, String> propsWithPrefix = conf.getPropsWithPrefix(ext);
+    Set<String> sorted = sortKeys(propsWithPrefix.keySet());
+    for (String k: sorted) {
+      printout.println("%s%s=\"%s\"",
+          ext, k, propsWithPrefix.get(k));
+    }
+
   }
 
   @Override

@@ -91,7 +91,7 @@ public class CheckStoreProperty extends StoreEntryPoint {
    * @param args command line arguments.
    * @return the position arguments from CLI.
    */
-  private List<String> parseArgs(String[] args) {
+  public List<String> parseArgs(String[] args) {
     return args.length > 0 ? commandFormat.parse(args, 0)
         : new ArrayList<String>(0);
   }

@@ -44,12 +44,6 @@ public class GCSDiagnosticsInfo extends StoreDiagnosticsInfo {
    */
   public static final String[] optionalClassnames = {
       "com.google.cloud.hadoop.repackaged.gcs.com.google.cloud.hadoop.gcsio.GoogleCloudStorage",
-      "com.google.cloud.hadoop.util.AccessTokenProvider",
-      // Knox Integration (WiP)
-      "org.apache.knox.gateway.shell.knox.token.Token",
-      "org.apache.commons.configuration.Configuration",
-      "com.google.api.client.util.DateTime",
-      "org.apache.knox.gateway.cloud.idbroker.google.CloudAccessBrokerTokenProvider",
   };
 
   /**
