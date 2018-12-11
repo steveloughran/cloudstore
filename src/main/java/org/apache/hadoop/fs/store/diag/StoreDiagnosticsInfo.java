@@ -71,10 +71,27 @@ public class StoreDiagnosticsInfo {
    * @param fsURI filesystem URI
    * @return the diagnostics info provider.
    */
-  public static StoreDiagnosticsInfo bindToStore(final URI fsURI) {
+  public static StoreDiagnosticsInfo bindToStore(URI fsURI)
+      throws IOException {
     StoreDiagnosticsInfo store;
     Preconditions.checkArgument(fsURI != null, "Null fsURI argument");
     String scheme = fsURI.getScheme();
+    if (scheme == null) {
+      try {
+        // no scheme. Switch to default FS.
+        URI defaultUri = FileSystem.getDefaultUri(new Configuration());
+        fsURI = new URI(defaultUri.getScheme(),
+            defaultUri.getUserInfo(),
+            defaultUri.getHost(),
+            defaultUri.getPort(),
+            fsURI.getPath(),
+            fsURI.getQuery(),
+            fsURI.getFragment());
+        scheme = fsURI.getScheme();
+      } catch (URISyntaxException e) {
+        throw new IOException("Unable to build new URI from " + fsURI, e);
+      }
+    }
     switch (scheme) {
     case "hdfs":
       store = new HDFSDiagnosticsInfo(fsURI);

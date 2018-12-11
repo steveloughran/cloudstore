@@ -65,6 +65,7 @@ import org.apache.hadoop.fs.store.DurationInfo;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
 import org.apache.hadoop.io.IOUtils;
 import org.apache.hadoop.net.NetUtils;
+import org.apache.hadoop.security.AccessControlException;
 import org.apache.hadoop.security.Credentials;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.security.token.Token;
@@ -865,9 +866,16 @@ public class StoreDiag extends StoreEntryPoint
       }
       int limit = LIST_LIMIT;
       RemoteIterator<LocatedFileStatus> files = fs.listFiles(path, true);
-      while (files.hasNext() && (limit--)> 0) {
-        status = files.next();
-        println(statusToString(status));
+      try {
+        while (files.hasNext() && (limit--)> 0) {
+          status = files.next();
+          println(statusToString(status));
+        }
+      } catch (AccessControlException e) {
+        // didn't have permissions to scan everything down the tree
+        // continue rather than fail
+        LOG.warn("Permission denied during recursive scan",
+            e);
       }
     } catch (FileNotFoundException e) {
       // this is fine.
