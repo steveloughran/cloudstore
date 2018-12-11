@@ -47,12 +47,43 @@ them to pick up tokens (not S3A, potentially other stores).
 ### Options
 
 ```
--tokenfile <file>  Hadoop token file to load
--r   Readonly filesystem: do not attempt writes
+-r    Readonly filesystem: do not attempt writes
 -t    Require delegation tokens to be issued
 -j    List the JARs
 -5    Print MD5 checksums of the jars listed (requires -j)
+-tokenfile <file>   Hadoop token file to load
+-xmlfile <file>     Hadoop XML file to load
+-require <file>     Text file of classes and resources to require
 ```
+
+The `-require` option takes a text file where every line is one of
+a #-prefixed comment, a blank line, a classname, a resource (with "/" in).
+These are all loaded
+
+```bash
+hadoop jar cloudstore-0.1-SNAPSHOT.jar storediag -j -5  -required required.txt s3a://something/
+```
+
+and with a `required.txt` listing things you require
+
+```
+# S3A
+org.apache.hadoop.fs.s3a.auth.delegation.S3ADelegationTokens
+# Misc
+org.apache.commons.configuration.Configuration
+org.apache.commons.lang3.StringUtils
+``` 
+
+This is useful to dynamically add some extra mandatory classes to 
+the list of classes you need to work with a store...most useful when either
+you are developing new features and want to verify they are on the classpath,
+or you are working with an unknown object store and just want to check its depencies
+up front.
+
+Missing file or resource will result in an error and the command failing.
+
+The comments are printed too! This means you can use them in the reports.
+
 
 ## fetchdt
 

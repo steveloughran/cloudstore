@@ -97,7 +97,7 @@ public class StoreDiag extends StoreEntryPoint
 
   public static final String XMLFILE = "xmlfile";
   
-  public static final String CLASSES = "classes";
+  public static final String REQUIRED = "required";
   
   public static final String DELEGATION = "t";
   public static final String JARS = "j";
@@ -130,7 +130,7 @@ public class StoreDiag extends StoreEntryPoint
           + "\n" 
           + optusage(TOKENFILE, "file", "Hadoop token file to load")
           + optusage(XMLFILE, "file", "XML config file to load")
-          + optusage(CLASSES, "file", "text file of extra classes to require")
+          + optusage(REQUIRED, "file", "text file of extra classes+resources to require")
           + "-r   Readonly filesystem: do not attempt writes\n"
           + "-t    Require delegation tokens to be issued\n"
           + "-j    List the JARs on the classpath\n"
@@ -149,7 +149,7 @@ public class StoreDiag extends StoreEntryPoint
          SYSPROPS));
      getCommandFormat().addOptionWithValue(TOKENFILE);
      getCommandFormat().addOptionWithValue(XMLFILE);
-     getCommandFormat().addOptionWithValue(CLASSES);
+     getCommandFormat().addOptionWithValue(REQUIRED);
   }
 
   /**
@@ -640,13 +640,13 @@ public class StoreDiag extends StoreEntryPoint
     probeRequiredClasses(storeInfo.getClassnames(getConf()));
     probeOptionalClasses(storeInfo.getOptionalClassnames(getConf()));
     // load any .classes files
-    String file = getOption(CLASSES);
+    String file = getOption(REQUIRED);
     if (file != null) {
       File f = new File(file);
       if (!f.exists()) {
         throw new FileNotFoundException(f.toString());
       }
-      println("Adding class list file %s", f);
+      heading("Probing required classes listed in %s", f);
       probeRequiredClassesOrResources(
           org.apache.commons.io.IOUtils.readLines(
               new FileInputStream(f), Charsets.UTF_8));
@@ -660,7 +660,7 @@ public class StoreDiag extends StoreEntryPoint
    * @throws ClassNotFoundException class was not found
    */
   private void probeRequiredClassesOrResources(List<String> lines)
-      throws ClassNotFoundException {
+      throws ClassNotFoundException, FileNotFoundException {
     for (String line : lines) {
       String name = line.trim();
       if (name.isEmpty() || name.startsWith("#")) {
@@ -679,10 +679,15 @@ public class StoreDiag extends StoreEntryPoint
    * Look for a resource; print its origin.
    * @param resource resource
    */
-  public void probeRequiredResource(final String resource){
+  public void probeRequiredResource(final String resource)
+      throws FileNotFoundException {
     String name = resource.trim();
     println("resource: %s", name);
-    println("       %s", this.getClass().getClassLoader().getResource(name));
+    URL r = this.getClass().getClassLoader().getResource(name);
+    if (r == null) {
+      throw new FileNotFoundException("Resource not found: " + name); 
+    }
+    println("       %s", r);
   }
   
   /**
@@ -693,6 +698,9 @@ public class StoreDiag extends StoreEntryPoint
   public void probeRequiredClass(final String classname)
       throws ClassNotFoundException {
     String name = classname.trim();
+    if (name.isEmpty()) {
+      return;
+    }
     println("class: %s", name);
     Class<?> clazz = this.getClass().getClassLoader().loadClass(name);
     println("       %s",
