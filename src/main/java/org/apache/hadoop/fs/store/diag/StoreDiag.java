@@ -873,9 +873,6 @@ public class StoreDiag extends StoreEntryPoint
       // this is fine.
     }
 
-    if (!attempWriteOperations) {
-      return;
-    }
 
     heading("Security and Delegation Tokens");
     boolean issued = false;
@@ -913,6 +910,10 @@ public class StoreDiag extends StoreEntryPoint
     }
     if (hasOption(DELEGATION) && !issued) {
       throw new IOException("No delegation token issued by filesystem");
+    }
+
+    if (!attempWriteOperations) {
+      return;
     }
     heading("Filesystem Write Operations");
 
