@@ -119,5 +119,16 @@ public class GCSDiagnosticsInfo extends StoreDiagnosticsInfo {
     l.add(new URI("http://169.254.169.254"));
     return l;
   }
- */ 
+ */
+
+  @Override
+  protected void validateConfig(final Printout printout,
+      final Configuration conf)
+      throws IOException {
+    super.validateConfig(printout, conf);
+
+    // now print everything fs.s3a.ext, assuming that
+    // there are no secrets in it. Don't do that.
+    printPrefixedOptions(printout, conf, "fs.gs.ext.");
+  }
 }

@@ -23,12 +23,16 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import com.google.common.base.Preconditions;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+
+import static org.apache.hadoop.fs.store.diag.StoreDiag.sortKeys;
 
 /**
  * Class for filesystems to implement to provide better diagnostics than the
@@ -301,6 +305,25 @@ public class StoreDiagnosticsInfo {
       if (followupURL != null) {
         printout.warn("For more information, see: %s", followupURL);
       }
+    }
+  }
+
+  /**
+   * Print all options with a prefix, assuming
+   * that there are no secrets in them.
+   * @param printout where to print
+   * @param conf config to read
+   * @param prefix prefix to scan
+   */
+  protected void printPrefixedOptions(final Printout printout,
+      final Configuration conf,
+      final String prefix) {
+    printout.heading("Configuration options with prefix %s", prefix);
+    Map<String, String> propsWithPrefix = conf.getPropsWithPrefix(prefix);
+    Set<String> sorted = sortKeys(propsWithPrefix.keySet());
+    for (String k: sorted) {
+      printout.println("%s%s=\"%s\"",
+          prefix, k, propsWithPrefix.get(k));
     }
   }
 

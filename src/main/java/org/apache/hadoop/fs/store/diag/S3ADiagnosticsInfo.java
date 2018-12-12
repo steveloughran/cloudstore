@@ -329,14 +329,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
     
     // now print everything fs.s3a.ext, assuming that
     // there are no secrets in it. Don't do that.
-    String ext = "fs.s3a.ext.";
-    Map<String, String> propsWithPrefix = conf.getPropsWithPrefix(ext);
-    Set<String> sorted = sortKeys(propsWithPrefix.keySet());
-    for (String k: sorted) {
-      printout.println("%s%s=\"%s\"",
-          ext, k, propsWithPrefix.get(k));
-    }
-
+    printPrefixedOptions(printout, conf, "fs.s3a.ext.");
   }
 
   @Override

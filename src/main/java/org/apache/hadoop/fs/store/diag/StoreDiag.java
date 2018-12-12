@@ -397,6 +397,7 @@ public class StoreDiag extends StoreEntryPoint
       printJARS(hasOption(MD5));
     }
     printEnvVars(storeInfo.getEnvVars());
+    printSecurityState();
     printStoreConfiguration();
     probeRequiredAndOptionalClasses();
     storeInfo.validateConfig(this, getConf());
@@ -434,6 +435,23 @@ public class StoreDiag extends StoreEntryPoint
     printOptions("Security Options", conf, SECURITY_OPTIONS);
     printOptions("Selected Configuration Options",
         conf, storeInfo.getFilesystemOptions());
+  }
+  
+  /**
+   * Print some security stuff, though KDiag iss your friend there.
+   */
+  public void printSecurityState() throws IOException {
+
+    heading("Security");
+    println("Security Enabled: %s",
+        UserGroupInformation.isSecurityEnabled());
+    println("Keytab login: %s",
+        UserGroupInformation.isLoginKeytabBased());
+    println("Ticket login: %s",
+        UserGroupInformation.isLoginKeytabBased());
+    
+    println("Current user: %s",
+        UserGroupInformation.getCurrentUser());
   }
 
   /**
