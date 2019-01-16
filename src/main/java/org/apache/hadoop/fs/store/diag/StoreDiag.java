@@ -815,9 +815,10 @@ public class StoreDiag extends StoreEntryPoint
     FileSystem fs;
 
     try(DurationInfo ignored = new DurationInfo(
-        LOG, "Creating filesystem")) {
+        LOG, "Creating filesystem %s", path)) {
       fs = path.getFileSystem(conf);
     }
+    URI fsUri = fs.getUri();
 
     println("%s", fs);
     println("Implementation class %s", fs.getClass());
@@ -892,8 +893,8 @@ public class StoreDiag extends StoreEntryPoint
       } catch (AccessControlException e) {
         // didn't have permissions to scan everything down the tree
         // continue rather than fail
-        LOG.warn("Permission denied during recursive scan",
-            e);
+        LOG.warn("Permission denied during recursive scan of {}",
+            path, e);
       }
     } catch (FileNotFoundException e) {
       // this is fine.
@@ -913,8 +914,9 @@ public class StoreDiag extends StoreEntryPoint
     }
     String serviceName = fs.getCanonicalServiceName();
     if (serviceName == null) {
-      println("FS does not provide delegation tokens%s",
-          securityEnabled ? "" : " at least while security is disabled");
+      println("Filesystem %s does not/is not configured to issue delegation tokens%s",
+          fsUri,
+          securityEnabled ? "" : " (at least while security is disabled)");
     } else {
       Credentials cred = new Credentials();
       try (DurationInfo ignored = new DurationInfo(LOG,
@@ -931,11 +933,13 @@ public class StoreDiag extends StoreEntryPoint
           println("Token %s", token);
         }
       } else {
-        println("Filesystem did not issue any delegation tokens");
+        println("Filesystem %s did not issue any delegation tokens",
+            fsUri);
       }
     }
     if (hasOption(DELEGATION) && !issued) {
-      throw new IOException("No delegation token issued by filesystem");
+      throw new StoreDiagException("No delegation token issued by filesystem %s",
+          fsUri);
     }
 
     if (!attempWriteOperations) {
@@ -961,8 +965,7 @@ public class StoreDiag extends StoreEntryPoint
     } catch (AccessDeniedException e) {
       println("Unable to create directory %s", dir);
       println("If this is a read-only filesystem, this is normal%n");
-      println(
-          "Please supply a R/W filesystem or use the CLI option " + READONLY);
+      println("Please supply a R/W filesystem or use the CLI option " + READONLY);
       throw e;
     }
 
@@ -971,7 +974,7 @@ public class StoreDiag extends StoreEntryPoint
         "Creating a directory %s", dir)) {
       FileStatus status = fs.getFileStatus(dir);
       if (!status.isDirectory()) {
-        throw new IOException("Not a directory: " + status);
+        throw new StoreDiagException("Not a directory: %s", status);
       }
     }
 
@@ -996,8 +999,9 @@ public class StoreDiag extends StoreEntryPoint
         String utf = in.readUTF();
         in.close();
         if (!HELLO.equals(utf)) {
-          throw new IOException("Expected " + file + " to contain the text "
-              + HELLO + " -but it has the text \"" + utf + "\"");
+          throw new StoreDiagException("Expected  %s to contain the text %s" 
+              + " -but it has the text \"%s",
+              HELLO, file, utf);
         }
       } finally {
         IOUtils.closeStream(in);
