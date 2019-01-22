@@ -52,7 +52,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       = "fs.s3a.assumed.role.sts.endpoint";
 
   private static final Object[][] options = {
-      {"fs.s3a.access.key", true, false},
+      {"fs.s3a.access.key", true, true},
       {"fs.s3a.secret.key", true, true},
       {"fs.s3a.session.token", true, true},
       {"fs.s3a.server-side-encryption-algorithm", true, false},

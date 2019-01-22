@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.net.URI;
 import java.security.PrivilegedExceptionAction;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -38,8 +37,8 @@ import org.apache.hadoop.security.token.Token;
 import org.apache.hadoop.util.ExitUtil;
 import org.apache.hadoop.util.ToolRunner;
 
-import static org.apache.hadoop.fs.store.StoreExitCodes.E_ERROR;
-import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
+import static org.apache.hadoop.service.launcher.LauncherExitCodes.EXIT_FAIL;
+import static org.apache.hadoop.service.launcher.LauncherExitCodes.EXIT_USAGE;
 
 /**
  * Fetch delegation tokens 
@@ -72,7 +71,7 @@ public class FetchTokens extends StoreEntryPoint {
     List<String> paths = parseArgs(args);
     if (paths.size() < 2) {
       errorln(USAGE);
-      return E_USAGE;
+      return EXIT_USAGE;
     }
     addAllDefaultXMLFiles();
     final Configuration conf = new Configuration();
@@ -183,13 +182,13 @@ public class FetchTokens extends StoreEntryPoint {
       exit(exec(args), "");
     } catch (CommandFormat.UnknownOptionException e) {
       errorln(e.getMessage());
-      exit(E_USAGE, e.getMessage());
+      exit(EXIT_USAGE, e.getMessage());
     } catch (ExitUtil.ExitException e) {
       LOG.debug("Command failure", e);
       exit(e);
     } catch (Throwable e) {
       e.printStackTrace(System.err);
-      exit(E_ERROR, e.toString());
+      exit(EXIT_FAIL, e.toString());
     }
   }
 

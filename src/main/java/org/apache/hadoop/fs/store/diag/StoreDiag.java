@@ -273,6 +273,19 @@ public class StoreDiag extends StoreEntryPoint
   }
 
   /**
+   * Create a list of star characters.
+   * @param n number to create.
+   * @return a string of stars
+   */
+  private static String stars(int n) {
+    StringBuilder b = new StringBuilder(n);
+    for (int i = 0; i < n; i++) {
+      b.append('*');
+    }
+    return b.toString();
+  }
+
+  /**
    * Sanitize a sensitive option.
    * @param value option value.
    * @return sanitized value.
@@ -280,17 +293,17 @@ public class StoreDiag extends StoreEntryPoint
   public static String sanitize(final String value) {
     String safe = value;
     int len = safe.length();
+    StringBuilder b = new StringBuilder(len);
+    int prefix = 2;
+    int suffix = 1;
     if (len > THRESHOLD) {
-      StringBuilder b = new StringBuilder(len);
-      b.append(value.charAt(0));
-      for (int i = 1; i < len - 1; i++) {
-        b.append('*');
-      }
-      b.append(value.charAt(len - 1));
+      b.append(value, 0, prefix);
+      b.append(stars(len - prefix - suffix));
+      b.append(value, len - suffix, len);
       safe = b.toString();
     } else {
       // short values get special treatment
-      safe = "**";
+      safe = stars(THRESHOLD);
     }
     return String.format("\"%s\" [%d]", safe, len);
   }
