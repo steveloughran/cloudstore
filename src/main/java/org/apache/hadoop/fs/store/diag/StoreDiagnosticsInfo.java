@@ -56,7 +56,6 @@ public class StoreDiagnosticsInfo {
       {"PYSPARK_DRIVER_PYTHON", false},
       {"SPARK_SCALA_VERSION", false},
       {"YARN_CONF_DIR", false},
-      
       // TODO: add the https proxy vars
   };
 
@@ -115,7 +114,6 @@ public class StoreDiagnosticsInfo {
     case "abfss":
       store = new AbfsDiagnosticsInfo(fsURI);
       break;
-      
     case "gs":
       store = new GCSDiagnosticsInfo(fsURI);
       break;
@@ -128,8 +126,6 @@ public class StoreDiagnosticsInfo {
       // up without contributing code back, they get to do the same
       // for the diagnostics tools.
       throw new IllegalArgumentException("Store URI unsuppported: " + scheme);
-      
-      
     default:
       // any other FS: create the generic one
       store = new StoreDiagnosticsInfo(fsURI);
@@ -191,7 +187,7 @@ public class StoreDiagnosticsInfo {
    * @return the configuration to work with.
    */
   public Configuration patchConfigurationToInitalization(
-      final Configuration conf) {
+      final Configuration conf) throws IOException {
     return conf;
   }
 

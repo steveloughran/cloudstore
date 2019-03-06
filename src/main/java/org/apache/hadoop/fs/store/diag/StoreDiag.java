@@ -106,6 +106,7 @@ public class StoreDiag extends StoreEntryPoint
   public static final String MD5 = "5";
   public static final String READONLY = "r";
   public static final String SYSPROPS = "s";
+  public static final String PRINCIPAL = "principal";
 
   public static final String LOG_4_PROPERTIES = "log4.properties";
 
@@ -132,6 +133,7 @@ public class StoreDiag extends StoreEntryPoint
           + optusage(TOKENFILE, "file", "Hadoop token file to load")
           + optusage(XMLFILE, "file", "XML config file to load")
           + optusage(REQUIRED, "file", "text file of extra classes+resources to require")
+          + optusage(PRINCIPAL, "princpal", "kerberos principal to request a DT for")
           + "-r   Readonly filesystem: do not attempt writes\n"
           + "-t    Require delegation tokens to be issued\n"
           + "-j    List the JARs on the classpath\n"
@@ -151,6 +153,7 @@ public class StoreDiag extends StoreEntryPoint
      getCommandFormat().addOptionWithValue(TOKENFILE);
      getCommandFormat().addOptionWithValue(XMLFILE);
      getCommandFormat().addOptionWithValue(REQUIRED);
+     getCommandFormat().addOptionWithValue(PRINCIPAL);
   }
 
   /**
@@ -915,7 +918,10 @@ public class StoreDiag extends StoreEntryPoint
 
 
     heading("Security and Delegation Tokens");
+    boolean requireToken = hasOption(DELEGATION);
     boolean issued = false;
+    String outcome = "did not";
+    String error = "";
     // play with security
     boolean securityEnabled = UserGroupInformation.isSecurityEnabled();
     if (securityEnabled) {
@@ -934,7 +940,22 @@ public class StoreDiag extends StoreEntryPoint
       Credentials cred = new Credentials();
       try (DurationInfo ignored = new DurationInfo(LOG,
           "Attempting to add delegation tokens")) {
-        fs.addDelegationTokens("yarn@EXAMPLE", cred);
+        try {
+          String renewer = "yarn@EXAMPLE";
+          String principal = getOption(PRINCIPAL);
+          if (principal != null) {
+            renewer = principal;
+          }
+          fs.addDelegationTokens(renewer, cred);
+        } catch (IOException e) {
+          if (requireToken) {
+            throw e;
+          } else {
+            LOG.warn("Failed to fetch DT", e);
+            outcome = "failed to";
+            error = ": " + e;
+          }
+        }
       }
       Collection<Token<? extends TokenIdentifier>> tokens
           = cred.getAllTokens();
@@ -946,11 +967,11 @@ public class StoreDiag extends StoreEntryPoint
           println("Token %s", token);
         }
       } else {
-        println("Filesystem %s did not issue any delegation tokens",
-            fsUri);
+        println("Filesystem %s %s issue any delegation tokens %s",
+            fsUri, outcome, error);
       }
     }
-    if (hasOption(DELEGATION) && !issued) {
+    if (requireToken && !issued) {
       throw new StoreDiagException("No delegation token issued by filesystem %s",
           fsUri);
     }

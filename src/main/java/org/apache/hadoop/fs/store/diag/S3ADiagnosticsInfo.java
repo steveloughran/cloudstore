@@ -26,8 +26,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +39,6 @@ import org.apache.hadoop.fs.s3a.S3AEncryptionMethods;
 
 import static com.google.common.base.Preconditions.checkState;
 import static org.apache.hadoop.fs.s3a.Constants.*;
-import static org.apache.hadoop.fs.store.diag.StoreDiag.sortKeys;
 
 public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
 
