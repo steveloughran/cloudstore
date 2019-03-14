@@ -139,9 +139,9 @@ public class StoreDiag extends StoreEntryPoint
           + "-j    List the JARs on the classpath\n"
           + "-s    List the JVMs System Properties\n"
           + "-5    Print MD5 checksums of the jars listed (requires -j)\n";
-  
+
   private StoreDiagnosticsInfo storeInfo;
-  
+
   public StoreDiag() {
      setCommandFormat(new CommandFormat(1, 1,
          JARS,
@@ -465,7 +465,7 @@ public class StoreDiag extends StoreEntryPoint
         UserGroupInformation.isLoginKeytabBased());
     println("Ticket login: %s",
         UserGroupInformation.isLoginKeytabBased());
-    
+
     println("Current user: %s",
         UserGroupInformation.getCurrentUser());
   }
@@ -480,7 +480,7 @@ public class StoreDiag extends StoreEntryPoint
 
       return bindToStore(toURI("command", fsURI));
   }
-  
+
   /**
    * Bind the diagnostics to a store.
    * @param fsURI filesystem
@@ -800,7 +800,7 @@ public class StoreDiag extends StoreEntryPoint
       println("%s", token);
     }
   }
-  
+
   private String statusToString(FileStatus status) {
     String suffix;
     if (status.isFile()) {

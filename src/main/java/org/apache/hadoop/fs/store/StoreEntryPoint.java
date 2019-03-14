@@ -21,6 +21,7 @@ package org.apache.hadoop.fs.store;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -65,7 +66,7 @@ public class StoreEntryPoint extends Configured implements Tool {
     out.println(String.format(format, args));
     out.flush();
   }
-  
+
   public void warn(String format, Object... args) {
     out.println("WARNING: " + String.format(format, args));
     out.flush();
@@ -132,6 +133,14 @@ public class StoreEntryPoint extends Configured implements Tool {
     return getCommandFormat().getOpt(opt);
   }
 
+  /**
+   * Get the value of a key-val option.
+   * @param opt option.
+   * @return the value or null
+   */
+  protected Optional<String> getOptional(String opt) {
+    return Optional.ofNullable(getCommandFormat().getOptValue(opt));
+  }
   /**
    * Add all the various configuration files.
    */

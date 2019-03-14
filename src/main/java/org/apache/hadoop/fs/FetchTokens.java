@@ -156,7 +156,7 @@ public class FetchTokens extends StoreEntryPoint {
   private String plural(int n) {
     return n == 1 ? "" : "s";
   }
-  
+
   @Override
   public final int run(String[] args) throws Exception {
     return run(args, System.out);
