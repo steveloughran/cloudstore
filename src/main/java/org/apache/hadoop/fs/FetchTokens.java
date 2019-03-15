@@ -37,7 +37,6 @@ import org.apache.hadoop.security.token.Token;
 import org.apache.hadoop.util.ExitUtil;
 import org.apache.hadoop.util.ToolRunner;
 
-import static org.apache.hadoop.service.launcher.LauncherExitCodes.EXIT_FAIL;
 import static org.apache.hadoop.service.launcher.LauncherExitCodes.EXIT_USAGE;
 
 /**
@@ -180,15 +179,8 @@ public class FetchTokens extends StoreEntryPoint {
   public static void main(String[] args) {
     try {
       exit(exec(args), "");
-    } catch (CommandFormat.UnknownOptionException e) {
-      errorln(e.getMessage());
-      exit(EXIT_USAGE, e.getMessage());
-    } catch (ExitUtil.ExitException e) {
-      LOG.debug("Command failure", e);
-      exit(e);
     } catch (Throwable e) {
-      e.printStackTrace(System.err);
-      exit(EXIT_FAIL, e.toString());
+      exitOnThrowable(e);
     }
   }
 

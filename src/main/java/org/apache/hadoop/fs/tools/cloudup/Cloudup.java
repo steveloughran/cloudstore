@@ -548,12 +548,8 @@ public class Cloudup extends StoreEntryPoint {
   public static void main(String[] args) {
     try {
       exit(exec(args), "");
-    } catch (CommandFormat.UnknownOptionException e) {
-      errorln(e.getMessage());
-      exit(E_USAGE, e.getMessage());
     } catch (Throwable e) {
-      e.printStackTrace(System.err);
-      exit(E_ERROR, e.toString());
+      exitOnThrowable(e);
     }
   }
 

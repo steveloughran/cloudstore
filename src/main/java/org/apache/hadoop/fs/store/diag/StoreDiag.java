@@ -70,12 +70,10 @@ import org.apache.hadoop.security.Credentials;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.security.token.Token;
 import org.apache.hadoop.security.token.TokenIdentifier;
-import org.apache.hadoop.util.ExitUtil;
 import org.apache.hadoop.util.StringUtils;
 import org.apache.hadoop.util.ToolRunner;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static org.apache.hadoop.fs.store.StoreExitCodes.E_ERROR;
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_SUCCESS;
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
 import static org.apache.hadoop.fs.store.diag.OptionSets.CLUSTER_OPTIONS;
@@ -97,9 +95,9 @@ public class StoreDiag extends StoreEntryPoint
   public static final String TOKENFILE = "tokenfile";
 
   public static final String XMLFILE = "xmlfile";
-  
+
   public static final String REQUIRED = "required";
-  
+
   public static final String DELEGATION = "t";
   public static final String JARS = "j";
   public static final String LOGDUMP = "l";
@@ -115,7 +113,7 @@ public class StoreDiag extends StoreEntryPoint
   private static String optusage(String opt) {
     return "[-" + opt + "] ";
   }
-  
+
   private static String optusage(String opt, String second, String text) {
     return String.format("-%s <%s>\t%s%n", opt, second, text);
   }
@@ -206,7 +204,7 @@ public class StoreDiag extends StoreEntryPoint
       println(text);
     }
   }
-  
+
   /**
    * Sort the keys.
    * @param keys keys to sort.
@@ -1155,15 +1153,8 @@ public class StoreDiag extends StoreEntryPoint
   public static void main(String[] args) {
     try {
       exit(exec(args), "");
-    } catch (CommandFormat.UnknownOptionException e) {
-      errorln(e.getMessage());
-      exit(E_USAGE, e.getMessage());
-    } catch (ExitUtil.ExitException e) {
-      LOG.debug("Command failure", e);
-      exit(e);
     } catch (Throwable e) {
-      e.printStackTrace(System.err);
-      exit(E_ERROR, e.toString());
+      exitOnThrowable(e);
     }
   }
 

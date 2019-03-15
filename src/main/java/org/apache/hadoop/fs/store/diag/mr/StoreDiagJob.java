@@ -36,7 +36,6 @@ import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileContext;
 import org.apache.hadoop.fs.Options;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.fs.shell.CommandFormat;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
 import org.apache.hadoop.fs.store.diag.StoreDiag;
 import org.apache.hadoop.io.Text;
@@ -50,8 +49,6 @@ import org.apache.hadoop.mapreduce.lib.output.TextOutputFormat;
 
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_ERROR;
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_SUCCESS;
-import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
-
 
 /**
  MR job for diagnostics. WiP
@@ -176,12 +173,8 @@ public class StoreDiagJob extends StoreEntryPoint {
   public static void main(String[] args) {
     try {
       exit(exec(args), "");
-    } catch (CommandFormat.UnknownOptionException e) {
-      errorln(e.getMessage());
-      exit(E_USAGE, e.getMessage());
     } catch (Throwable e) {
-      e.printStackTrace(System.err);
-      exit(E_ERROR, e.toString());
+      exitOnThrowable(e);
     }
   }
 

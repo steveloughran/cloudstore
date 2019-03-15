@@ -29,9 +29,11 @@ import org.slf4j.LoggerFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.shell.CommandFormat;
-import org.apache.hadoop.fs.store.diag.Printout;
 import org.apache.hadoop.util.ExitUtil;
 import org.apache.hadoop.util.Tool;
+
+import static org.apache.hadoop.service.launcher.LauncherExitCodes.EXIT_FAIL;
+import static org.apache.hadoop.service.launcher.LauncherExitCodes.EXIT_USAGE;
 
 /**
  * Entry point for store applications
@@ -154,4 +156,22 @@ public class StoreEntryPoint extends Configured implements Tool {
     Configuration.addDefaultResource("yarn-default.xml");
     Configuration.addDefaultResource("yarn-site.xml");
   }
+
+  /**
+   * For subclasses: exit after a throwable was raised.
+   * @param ex exception caught
+   */
+  protected static void exitOnThrowable(Throwable ex) {
+    if (ex instanceof CommandFormat.UnknownOptionException) {
+      errorln(ex.getMessage());
+      exit(EXIT_USAGE, ex.getMessage());
+    } else if (ex instanceof ExitUtil.ExitException) {
+      LOG.debug("Command failure", ex);
+      exit((ExitUtil.ExitException) ex);
+    } else {
+      ex.printStackTrace(System.err);
+      exit(EXIT_FAIL, ex.toString());
+    }
+  }
+
 }

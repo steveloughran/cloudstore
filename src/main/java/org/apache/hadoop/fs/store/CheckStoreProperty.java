@@ -31,7 +31,6 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.shell.CommandFormat;
 import org.apache.hadoop.util.ToolRunner;
 
-import static org.apache.hadoop.fs.store.StoreExitCodes.E_ERROR;
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
 
 public class CheckStoreProperty extends StoreEntryPoint {
@@ -93,7 +92,7 @@ public class CheckStoreProperty extends StoreEntryPoint {
    */
   public List<String> parseArgs(String[] args) {
     return args.length > 0 ? commandFormat.parse(args, 0)
-        : new ArrayList<String>(0);
+        : new ArrayList<>(0);
   }
     /**
      * Execute the command, return the result or throw an exception,
@@ -113,12 +112,8 @@ public class CheckStoreProperty extends StoreEntryPoint {
   public static void main(String[] args) {
     try {
       exit(exec(args), "");
-    } catch (CommandFormat.UnknownOptionException e) {
-      errorln(e.getMessage());
-      exit(E_USAGE, e.getMessage());
     } catch (Throwable e) {
-      e.printStackTrace(System.err);
-      exit(E_ERROR, e.toString());
+      exitOnThrowable(e);
     }
   }
 
