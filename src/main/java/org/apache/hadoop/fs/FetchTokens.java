@@ -38,7 +38,6 @@ import org.apache.hadoop.util.ExitUtil;
 import org.apache.hadoop.util.ToolRunner;
 
 import static org.apache.hadoop.fs.store.diag.StoreDiag.XMLFILE;
-import static org.apache.hadoop.service.launcher.LauncherExitCodes.EXIT_USAGE;
 
 /**
  * Fetch delegation tokens 
@@ -50,20 +49,16 @@ public class FetchTokens extends StoreEntryPoint {
   public static final String USAGE =
       "Usage: fetchdt <file> [-renewer <renewer>] [-r] [-p] [-xmlfile file] <url1> ... <url999>\n"
           + "-r: require each filesystem to issue a token\n"
-          + "-p: protobuf format";
+          + "";
 
   private static final String RENEWER = "renewer";
 
   private static final String REQUIRED = "r";
 
-  private static final String PROTOBUF = "p";
-
-
   public FetchTokens() {
     setCommandFormat(
         new CommandFormat(2, 999,
-            REQUIRED, 
-            PROTOBUF));
+            REQUIRED));
     getCommandFormat().addOptionWithValue(RENEWER);
     getCommandFormat().addOptionWithValue(XMLFILE);
   }
@@ -84,10 +79,6 @@ public class FetchTokens extends StoreEntryPoint {
     final String renewer = ropt != null ?
         ropt : self.getShortUserName();
 
-    final Credentials.SerializedFormat format =
-        hasOption(PROTOBUF) ?
-            Credentials.SerializedFormat.PROTOBUF :
-            Credentials.SerializedFormat.WRITABLE;
     final List<String> urls = paths.subList(1, paths.size());
     final boolean required = hasOption(REQUIRED);
 
@@ -104,7 +95,7 @@ public class FetchTokens extends StoreEntryPoint {
         new PrivilegedExceptionAction<Credentials>() {
           @Override
           public Credentials run() throws Exception {
-            return saveTokens(conf, dest, renewer, required, format, urls);
+            return saveTokens(conf, dest, renewer, required, urls);
           }
         });
     int n = retrieved.numberOfTokens();
@@ -121,7 +112,6 @@ public class FetchTokens extends StoreEntryPoint {
       Path dest,
       String renewer,
       boolean required,
-      Credentials.SerializedFormat format,
       List<String> urls) throws IOException {
 
     Credentials cred = new Credentials();
@@ -148,9 +138,8 @@ public class FetchTokens extends StoreEntryPoint {
     }
     // all the tokens are collected, so save
     try(DurationInfo ignored =
-            new DurationInfo(LOG, "Saving tokens to %s in format %s",
-                dest, format)) {
-      cred.writeTokenStorageFile(dest, conf, format);
+            new DurationInfo(LOG, "Saving tokens to %s", dest)) {
+      cred.writeTokenStorageFile(dest, conf);
 
     }
     return cred;

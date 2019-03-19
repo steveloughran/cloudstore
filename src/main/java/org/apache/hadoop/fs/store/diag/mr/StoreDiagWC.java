@@ -19,7 +19,6 @@
 package org.apache.hadoop.fs.store.diag.mr;
 
 import java.io.IOException;
-import java.net.URI;
 import java.util.StringTokenizer;
 
 import org.slf4j.Logger;
@@ -28,6 +27,8 @@ import org.slf4j.LoggerFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.store.StoreEntryPoint;
+import org.apache.hadoop.fs.store.StoreExitException;
 import org.apache.hadoop.fs.store.diag.StoreDiag;
 import org.apache.hadoop.fs.store.diag.StoreDiagnosticsInfo;
 import org.apache.hadoop.io.IntWritable;
@@ -37,7 +38,6 @@ import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-import org.apache.hadoop.service.launcher.LauncherExitCodes;
 import org.apache.hadoop.util.ExitUtil;
 import org.apache.hadoop.util.GenericOptionsParser;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
@@ -98,12 +98,11 @@ public class StoreDiagWC {
     }
   }
 
-
   public int run(Configuration conf, String[] args) throws Exception {
     String[] otherArgs = new GenericOptionsParser(conf,
         args).getRemainingArgs();
     if (otherArgs.length != 2) {
-      throw new ExitUtil.ExitException(LauncherExitCodes.EXIT_USAGE,
+      throw new StoreExitException(StoreEntryPoint.EXIT_USAGE,
           "Usage: StoreDiagWC <in> <out>");
     }
     Path source = new Path(otherArgs[0]);
@@ -139,7 +138,7 @@ public class StoreDiagWC {
     int exitcode;
     try {
       exitcode = new StoreDiagWC().run(conf, args);
-    } catch (ExitUtil.ExitException e) {
+    } catch (StoreExitException e) {
       LOG.info("{}", e.toString());
       exitcode = e.getExitCode();
     } catch (Exception e) {

@@ -23,10 +23,6 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
-import org.apache.hadoop.util.ExitUtil;
-
-import static org.apache.hadoop.service.launcher.LauncherExitCodes.EXIT_USAGE;
-
 public class StoreUtils {
 
   /**
@@ -73,7 +69,7 @@ public class StoreUtils {
     int split = param.indexOf('=');
     int len = param.length();
     if (split == 0 || split + 1 == len) {
-      throw new ExitUtil.ExitException(EXIT_USAGE,
+      throw new StoreExitException(StoreEntryPoint.EXIT_USAGE,
           "Unable to parse argument " + param);
     }
     String key = split > 0 ? param.substring(0, split) : param;
@@ -103,4 +99,5 @@ public class StoreUtils {
       return value;
     }
   }
+
 }

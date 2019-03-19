@@ -35,15 +35,17 @@ import org.apache.hadoop.fs.shell.CommandFormat;
 import org.apache.hadoop.util.ExitUtil;
 import org.apache.hadoop.util.Tool;
 
-import static org.apache.hadoop.service.launcher.LauncherExitCodes.EXIT_FAIL;
-import static org.apache.hadoop.service.launcher.LauncherExitCodes.EXIT_USAGE;
-
 /**
  * Entry point for store applications
  */
 public class StoreEntryPoint extends Configured implements Tool {
 
   private static final Logger LOG = LoggerFactory.getLogger(StoreEntryPoint.class);
+
+  /**
+   * Exit code when a usage message was printed: {@value}.
+   */
+  public static int EXIT_USAGE = StoreExitCodes.E_USAGE;
 
   protected CommandFormat commandFormat;
 
@@ -96,8 +98,8 @@ public class StoreEntryPoint extends Configured implements Tool {
     ExitUtil.terminate(status, text);
   }
 
-  protected static void exit(ExitUtil.ExitException ex) {
-    ExitUtil.terminate(ex);
+  protected static void exit(StoreExitException ex) {
+    ExitUtil.terminate(ex.getExitCode(), ex.getMessage());
   }
 
   public CommandFormat getCommandFormat() {
@@ -168,12 +170,12 @@ public class StoreEntryPoint extends Configured implements Tool {
     if (ex instanceof CommandFormat.UnknownOptionException) {
       errorln(ex.getMessage());
       exit(EXIT_USAGE, ex.getMessage());
-    } else if (ex instanceof ExitUtil.ExitException) {
+    } else if (ex instanceof StoreExitException) {
       LOG.debug("Command failure", ex);
-      exit((ExitUtil.ExitException) ex);
+      exit((StoreExitException) ex);
     } else {
       ex.printStackTrace(System.err);
-      exit(EXIT_FAIL, ex.toString());
+      exit(StoreExitCodes.E_ERROR, ex.toString());
     }
   }
 

@@ -18,20 +18,31 @@
 
 package org.apache.hadoop.fs.store;
 
+import org.apache.hadoop.util.ExitUtil;
+
 /**
- * See LauncherExitCodes; here just to build against older versions
+ * This is a subclass to handle working with 2.8.x releases.
  */
-public class StoreExitCodes {
+public class StoreExitException extends ExitUtil.ExitException {
 
-  public static final int E_SUCCESS = 0;
-  public static final int E_ERROR = -1;
+  public StoreExitException(final int status, final String message) {
+    super(status, message);
+  }
 
-  public static final int E_USAGE = 42;
+  public StoreExitException(final int status,
+      final String message,
+      final Throwable cause) {
+    super(status, message);
+    initCause(cause);
+  }
 
-  public static final int E_INVALID_ARGUMENT = -1;
+  public StoreExitException(final int status, final Throwable cause) {
+    super(status, cause.getMessage());
+    initCause(cause);
+  }
 
-  public static final int E_NOT_FOUND = 44;
-
-  public static final int E_NO_ACCESS = 41;
+  public int getExitCode() {
+    return status;
+  }
 
 }

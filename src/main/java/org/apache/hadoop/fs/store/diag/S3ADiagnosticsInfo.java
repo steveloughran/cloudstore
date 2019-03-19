@@ -35,7 +35,6 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.LocalDirAllocator;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.s3a.Constants;
-import org.apache.hadoop.fs.s3a.S3AEncryptionMethods;
 
 import static com.google.common.base.Preconditions.checkState;
 import static org.apache.hadoop.fs.s3a.Constants.*;
@@ -290,25 +289,23 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
         temp.getParentFile());
     temp.delete();
 
-    String encryption = conf.get(SERVER_SIDE_ENCRYPTION_ALGORITHM, "").trim();
-    S3AEncryptionMethods encryptionMethod =
-        S3AEncryptionMethods.getMethod(encryption);
-    String key = conf.get(SERVER_SIDE_ENCRYPTION_KEY, "").trim();
+    String encryption = conf.get("fs.s3a.server-side-encryption-algorithm", "").trim();
+    String key = conf.get("fs.s3a.server-side-encryption.key", "").trim();
     boolean hasKey = !key.isEmpty();
-    switch (encryptionMethod) {
-      
-    case SSE_C:
+    switch (encryption) {
+
+    case "SSE-C":
       checkState(hasKey,
         "Encryption method %s requires a key in %s",
-      encryptionMethod, SERVER_SIDE_ENCRYPTION_KEY);
+          encryption, "fs.s3a.server-side-encryption.key");
       break;
 
-    case SSE_KMS:
+    case "SSE-KMS":
       if (!hasKey) {
         printout.warn("SSE-KMS is enabled in %s"
                 + " but there is no key set in %s",
-            SERVER_SIDE_ENCRYPTION_ALGORITHM,
-            SERVER_SIDE_ENCRYPTION_KEY);
+            "fs.s3a.server-side-encryption-algorithm",
+            "fs.s3a.server-side-encryption.key");
         printout.warn("The default key will be used%n"
             + "the current user MUST have permissions to use this");
       } else {
@@ -318,12 +315,14 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
         }
       }
       break;
-    case NONE:
-    default:
+    case "":
+    case "AES-256":
       // all good
       break;
+    default:
+      printout.warn("Unknown encryption method: %s", encryption);
     }
-    
+
     // now print everything fs.s3a.ext, assuming that
     // there are no secrets in it. Don't do that.
     printPrefixedOptions(printout, conf, "fs.s3a.ext.");
