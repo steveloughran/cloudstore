@@ -18,7 +18,10 @@
 
 package org.apache.hadoop.fs.store;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.PrintStream;
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -174,4 +177,18 @@ public class StoreEntryPoint extends Configured implements Tool {
     }
   }
 
+  protected void maybeAddXMLFileOption(
+      final Configuration conf,
+      final String opt)
+      throws FileNotFoundException, MalformedURLException {
+    String xmlfile = getOption(opt);
+    if (xmlfile != null) {
+      File f = new File(xmlfile);
+      if (!f.exists()) {
+        throw new FileNotFoundException(f.toString());
+      }
+      println("Adding XML configuration file %s", f);
+      conf.addResource(f.toURI().toURL());
+    }
+  }
 }

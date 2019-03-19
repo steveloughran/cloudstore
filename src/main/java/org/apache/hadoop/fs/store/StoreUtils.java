@@ -19,8 +19,13 @@
 package org.apache.hadoop.fs.store;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+
+import org.apache.hadoop.util.ExitUtil;
+
+import static org.apache.hadoop.service.launcher.LauncherExitCodes.EXIT_USAGE;
 
 public class StoreUtils {
 
@@ -28,8 +33,6 @@ public class StoreUtils {
    * Take an exception from a Future and convert to an IOE.
    * @param ex exception
    * @return the extracted or wrapped exception
-   * @throws RuntimeException if that is the cause
-   * @throws IOException if the underlying ex was one, otherwise a wrapper
    */
   public static IOException uprate(ExecutionException ex) {
     Throwable cause = ex.getCause();
@@ -56,6 +59,48 @@ public class StoreUtils {
       return future.get();
     } catch (ExecutionException e) {
       throw uprate(e);
+    }
+  }
+
+
+  /**
+   * split a key=value pair. Why not return a Pair class? Commons-lang
+   * versions: don't want to commit.
+   * @param param param to split
+   * @return a param split key = val,
+   */
+  public static Map.Entry<String, String> split(String param, String defVal) {
+    int split = param.indexOf('=');
+    int len = param.length();
+    if (split == 0 || split + 1 == len) {
+      throw new ExitUtil.ExitException(EXIT_USAGE,
+          "Unable to parse argument " + param);
+    }
+    String key = split > 0 ? param.substring(0, split) : param;
+    String value = split > 0 ? param.substring(split + 1, len) : defVal;
+    return new StringPair(key, value);
+  }
+
+  public static class StringPair implements Map.Entry<String, String>{
+    private String key, value;
+
+    private StringPair(final String left, final String right) {
+      this.key = left;
+      this.value = right;
+    }
+
+    public String getKey() {
+      return key;
+    }
+
+    public String getValue() {
+      return value;
+    }
+
+    @Override
+    public String setValue(final String value) {
+      this.value = value;
+      return value;
     }
   }
 }

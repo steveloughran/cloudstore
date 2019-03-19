@@ -37,6 +37,7 @@ import org.apache.hadoop.security.token.Token;
 import org.apache.hadoop.util.ExitUtil;
 import org.apache.hadoop.util.ToolRunner;
 
+import static org.apache.hadoop.fs.store.diag.StoreDiag.XMLFILE;
 import static org.apache.hadoop.service.launcher.LauncherExitCodes.EXIT_USAGE;
 
 /**
@@ -47,7 +48,7 @@ public class FetchTokens extends StoreEntryPoint {
   private static final Logger LOG = LoggerFactory.getLogger(FetchTokens.class);
 
   public static final String USAGE =
-      "Usage: fetchdt <file> [-renewer <renewer>] [-r] [-p] <url1> ... <url999>\n"
+      "Usage: fetchdt <file> [-renewer <renewer>] [-r] [-p] [-xmlfile file] <url1> ... <url999>\n"
           + "-r: require each filesystem to issue a token\n"
           + "-p: protobuf format";
 
@@ -57,12 +58,14 @@ public class FetchTokens extends StoreEntryPoint {
 
   private static final String PROTOBUF = "p";
 
+
   public FetchTokens() {
     setCommandFormat(
         new CommandFormat(2, 999,
             REQUIRED, 
             PROTOBUF));
     getCommandFormat().addOptionWithValue(RENEWER);
+    getCommandFormat().addOptionWithValue(XMLFILE);
   }
 
   public int run(String[] args, PrintStream stream) throws Exception {
@@ -92,6 +95,7 @@ public class FetchTokens extends StoreEntryPoint {
     FileSystem fs = tokenfile.getFileSystem(conf);
     Path dest = tokenfile.makeQualified(fs.getUri(), fs.getWorkingDirectory());
 
+    maybeAddXMLFileOption(conf, XMLFILE);
     println("Collecting tokens for %d filesystem%s to to %s",
         urls.size(),
         plural(urls.size()),

@@ -76,6 +76,7 @@ import org.apache.hadoop.util.ToolRunner;
 import static com.google.common.base.Preconditions.checkArgument;
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_SUCCESS;
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
+import static org.apache.hadoop.fs.store.StoreUtils.split;
 import static org.apache.hadoop.fs.store.diag.OptionSets.CLUSTER_OPTIONS;
 import static org.apache.hadoop.fs.store.diag.OptionSets.SECURITY_OPTIONS;
 import static org.apache.hadoop.util.VersionInfo.*;
@@ -96,15 +97,18 @@ public class StoreDiag extends StoreEntryPoint
 
   public static final String XMLFILE = "xmlfile";
 
+  public static final String PRINCIPAL = "principal";
+
   public static final String REQUIRED = "required";
 
-  public static final String DELEGATION = "t";
+
+  public static final String MD5 = "5";
+  public static final String DEFINE = "D";
   public static final String JARS = "j";
   public static final String LOGDUMP = "l";
-  public static final String MD5 = "5";
   public static final String READONLY = "r";
   public static final String SYSPROPS = "s";
-  public static final String PRINCIPAL = "principal";
+  public static final String DELEGATION = "t";
 
   public static final String LOG_4_PROPERTIES = "log4.properties";
 
@@ -114,29 +118,28 @@ public class StoreDiag extends StoreEntryPoint
     return "[-" + opt + "] ";
   }
 
+  private static String optusage(String opt, String text) {
+    return String.format("-%s\t%s%n", opt, text);
+  }
+
   private static String optusage(String opt, String second, String text) {
     return String.format("-%s <%s>\t%s%n", opt, second, text);
   }
-
   public static final String USAGE =
-      "Usage: storediag [-tokenfile <file>] "
-          + optusage(JARS)
-          + optusage(READONLY)
-          + optusage(DELEGATION)
-          + optusage(MD5)
-          + optusage(LOGDUMP)
-          + optusage(SYSPROPS)
-          + "<filesystem>" 
-          + "\n" 
+      "Usage: storediag%n"
+          + optusage(JARS, "List the JARs on the classpath")
+          + optusage(READONLY, "Readonly filesystem: do not attempt writes")
+          + optusage(MD5, "Print MD5 checksums of the jars listed (requires -j)")
+          + optusage(LOGDUMP, "Dump the Log4J settings")
+          + optusage(DELEGATION, "Require delegation tokens to be issued")
+          + optusage(SYSPROPS, "List the JVMs System Properties")
           + optusage(TOKENFILE, "file", "Hadoop token file to load")
           + optusage(XMLFILE, "file", "XML config file to load")
-          + optusage(REQUIRED, "file", "text file of extra classes+resources to require")
-          + optusage(PRINCIPAL, "princpal", "kerberos principal to request a DT for")
-          + "-r   Readonly filesystem: do not attempt writes\n"
-          + "-t    Require delegation tokens to be issued\n"
-          + "-j    List the JARs on the classpath\n"
-          + "-s    List the JVMs System Properties\n"
-          + "-5    Print MD5 checksums of the jars listed (requires -j)\n";
+          + optusage(REQUIRED, "file",
+          "text file of extra classes+resources to require")
+          + optusage(PRINCIPAL, "principal",
+          "kerberos principal to request a DT for")
+          + "<filesystem>";
 
   private StoreDiagnosticsInfo storeInfo;
 
@@ -152,6 +155,7 @@ public class StoreDiag extends StoreEntryPoint
      getCommandFormat().addOptionWithValue(XMLFILE);
      getCommandFormat().addOptionWithValue(REQUIRED);
      getCommandFormat().addOptionWithValue(PRINCIPAL);
+     getCommandFormat().addOptionWithValue(DEFINE);
   }
 
   /**
@@ -495,16 +499,14 @@ public class StoreDiag extends StoreEntryPoint
 
     Configuration conf = getConf();
     // load XML file
-    String file = getOption(XMLFILE);
-    if (file != null) {
-      File f = new File(file);
-      if (!f.exists()) {
-        throw new FileNotFoundException(f.toString());
-      }
-      println("Adding XML configuration file %s", f);
-      conf.addResource(f.toURI().toURL());
-    }
+    maybeAddXMLFileOption(conf, XMLFILE);
     setConf(store.patchConfigurationToInitalization(conf));
+
+    // now add any -D value
+    getOptional(DEFINE).ifPresent(d -> {
+          Map.Entry<String, String> pair = split(d, "true");
+          conf.set(pair.getKey(), pair.getValue());
+        });
     return store;
   }
 
@@ -1142,7 +1144,7 @@ public class StoreDiag extends StoreEntryPoint
    * @return return code
    * @throws Exception failure
    */
-  public static int exec(String... args) throws Exception {
+  public static int exec(String...args) throws Exception {
     return ToolRunner.run(new StoreDiag(), args);
   }
 
