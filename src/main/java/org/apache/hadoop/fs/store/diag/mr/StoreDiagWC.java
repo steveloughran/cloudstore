@@ -38,7 +38,6 @@ import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.hadoop.mapreduce.Reducer;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-import org.apache.hadoop.util.ExitUtil;
 import org.apache.hadoop.util.GenericOptionsParser;
 import org.apache.hadoop.yarn.conf.YarnConfiguration;
 
@@ -71,8 +70,7 @@ public class StoreDiagWC {
         StoreDiagnosticsInfo diagnosticsInfo = diags.bindToStore(dest);
       }
       diags.dumpUserTokens();
-      
-      
+
       StringTokenizer itr = new StringTokenizer(value.toString());
       while (itr.hasMoreTokens()) {
         word.set(itr.nextToken());
@@ -113,8 +111,8 @@ public class StoreDiagWC {
     // source and dest options
     conf.set(STOREDIAG_SRC, source.makeQualified(sourceFS).toUri().toString());
     conf.set(STOREDIAG_DEST, dest.makeQualified(destFS).toUri().toString());
-        
-    
+
+
     // jobconf clones conf at this point.
     Job job = Job.getInstance(conf, "word count");
     job.setJarByClass(StoreDiagWC.class);
@@ -123,7 +121,7 @@ public class StoreDiagWC {
     job.setReducerClass(IntSumReducer.class);
     job.setOutputKeyClass(Text.class);
     job.setOutputValueClass(IntWritable.class);
-    
+
     for (int i = 0; i < otherArgs.length - 1; ++i) {
       FileInputFormat.addInputPath(job, new Path(otherArgs[i]));
     }
