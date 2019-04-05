@@ -16,11 +16,11 @@
  * limitations under the License.
  */
 
-import org.apache.hadoop.fs.store.diag.StoreDiag;
+import org.apache.hadoop.fs.tools.ListFiles;
 
-public class storediag {
+public class list {
 
   public static void main(String[] args) throws Exception {
-    StoreDiag.main(args);
+    ListFiles.main(args);
   }
 }

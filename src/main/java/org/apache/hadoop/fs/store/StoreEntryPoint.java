@@ -20,10 +20,13 @@ package org.apache.hadoop.fs.store;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.PrintStream;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.slf4j.Logger;
@@ -31,9 +34,16 @@ import org.slf4j.LoggerFactory;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
+import org.apache.hadoop.fs.LocatedFileStatus;
 import org.apache.hadoop.fs.shell.CommandFormat;
+import org.apache.hadoop.security.Credentials;
+import org.apache.hadoop.security.UserGroupInformation;
+import org.apache.hadoop.security.token.Token;
+import org.apache.hadoop.security.token.TokenIdentifier;
 import org.apache.hadoop.util.ExitUtil;
 import org.apache.hadoop.util.Tool;
+
+import static org.apache.hadoop.fs.store.StoreUtils.split;
 
 /**
  * Entry point for store applications
@@ -193,4 +203,34 @@ public class StoreEntryPoint extends Configured implements Tool {
       conf.addResource(f.toURI().toURL());
     }
   }
+
+  /**
+   * Add a token file from the command line.
+   * @param opt option
+   * @throws IOException failures
+   */
+  protected void maybeAddTokens(String opt) throws IOException {
+    String tokenfile = getOption(opt);
+    if (tokenfile != null) {
+      heading("Adding tokenfile %s", tokenfile);
+      Credentials credentials = Credentials.readTokenStorageFile(
+          new File(tokenfile), getConf());
+      Collection<Token<? extends TokenIdentifier>> tokens
+          = credentials.getAllTokens();
+      println("Loaded %d token(s)", tokens.size());
+      for (Token<? extends TokenIdentifier> token : tokens) {
+        println(token.toString());
+      }
+      UserGroupInformation.getCurrentUser().addCredentials(credentials);
+    }
+  }
+
+  protected void maybePatchDefined(final Configuration conf, final String opt) {
+    getOptional(opt).ifPresent(d -> {
+          Map.Entry<String, String> pair = split(d, "true");
+          conf.set(pair.getKey(), pair.getValue());
+        });
+  }
+
+
 }

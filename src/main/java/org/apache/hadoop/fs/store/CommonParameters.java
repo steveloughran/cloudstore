@@ -16,11 +16,13 @@
  * limitations under the License.
  */
 
-import org.apache.hadoop.fs.store.diag.StoreDiag;
+package org.apache.hadoop.fs.store;
 
-public class storediag {
+public class CommonParameters {
 
-  public static void main(String[] args) throws Exception {
-    StoreDiag.main(args);
-  }
+  public static final String TOKENFILE = "tokenfile";
+
+  public static final String XMLFILE = "xmlfile";
+
+  public static final String DEFINE = "D";
 }

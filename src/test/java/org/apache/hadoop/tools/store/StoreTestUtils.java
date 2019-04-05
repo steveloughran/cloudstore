@@ -27,9 +27,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang.StringUtils;
 import org.apache.hadoop.fs.FileUtil;
 import org.apache.hadoop.fs.contract.ContractTestUtils;
+import org.apache.hadoop.util.StringUtils;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 
@@ -101,7 +101,7 @@ public final class StoreTestUtils extends Assert {
   }
 
   public static String toString(String[] args) {
-    return "exec(" + StringUtils.join(args, " ") + ")";
+    return "exec(" + StringUtils.join(" ", args) + ")";
   }
 
   public static void mkdirs(File dir) {

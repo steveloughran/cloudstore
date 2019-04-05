@@ -74,9 +74,11 @@ import org.apache.hadoop.util.StringUtils;
 import org.apache.hadoop.util.ToolRunner;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static org.apache.hadoop.fs.store.CommonParameters.DEFINE;
+import static org.apache.hadoop.fs.store.CommonParameters.TOKENFILE;
+import static org.apache.hadoop.fs.store.CommonParameters.XMLFILE;
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_SUCCESS;
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
-import static org.apache.hadoop.fs.store.StoreUtils.split;
 import static org.apache.hadoop.fs.store.diag.OptionSets.CLUSTER_OPTIONS;
 import static org.apache.hadoop.fs.store.diag.OptionSets.SECURITY_OPTIONS;
 import static org.apache.hadoop.util.VersionInfo.*;
@@ -93,17 +95,13 @@ public class StoreDiag extends StoreEntryPoint
 
   public static final String CLASSPATH = "java.class.path";
 
-  public static final String TOKENFILE = "tokenfile";
-
-  public static final String XMLFILE = "xmlfile";
-
   public static final String PRINCIPAL = "principal";
 
   public static final String REQUIRED = "required";
 
 
   public static final String MD5 = "5";
-  public static final String DEFINE = "D";
+
   public static final String JARS = "j";
   public static final String LOGDUMP = "l";
   public static final String READONLY = "r";
@@ -379,19 +377,7 @@ public class StoreDiag extends StoreEntryPoint
       NetUtils.getHostname());
 
     // process the options
-    String tokenfile = getOption(TOKENFILE);
-    if (tokenfile != null) {
-      heading("Adding tokenfile %s", tokenfile);
-      Credentials credentials = Credentials.readTokenStorageFile(
-          new File(tokenfile), getConf());
-      Collection<Token<? extends TokenIdentifier>> tokens
-          = credentials.getAllTokens();
-      println("Loaded %d token(s)", tokens.size());
-      for (Token<? extends TokenIdentifier> token : tokens) {
-        println(token.toString());
-      }
-      UserGroupInformation.getCurrentUser().addCredentials(credentials);
-    }
+    maybeAddTokens(TOKENFILE);
 
     // path on the CLI
     String pathString = paths.get(0);
@@ -503,10 +489,7 @@ public class StoreDiag extends StoreEntryPoint
     setConf(store.patchConfigurationToInitalization(conf));
 
     // now add any -D value
-    getOptional(DEFINE).ifPresent(d -> {
-          Map.Entry<String, String> pair = split(d, "true");
-          conf.set(pair.getKey(), pair.getValue());
-        });
+    maybePatchDefined(conf, DEFINE);
     return store;
   }
 
@@ -1110,6 +1093,7 @@ public class StoreDiag extends StoreEntryPoint
   private byte[] md5sum(File file)
       throws NoSuchAlgorithmException, IOException {
     return Files.getDigest(file, MessageDigest.getInstance("MD5"));
+
   }
 
   private String toHex(byte[] digest32) {

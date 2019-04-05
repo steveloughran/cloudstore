@@ -37,7 +37,7 @@ import org.apache.hadoop.security.token.Token;
 import org.apache.hadoop.util.ExitUtil;
 import org.apache.hadoop.util.ToolRunner;
 
-import static org.apache.hadoop.fs.store.diag.StoreDiag.XMLFILE;
+import static org.apache.hadoop.fs.store.CommonParameters.XMLFILE;
 
 /**
  * Fetch delegation tokens 

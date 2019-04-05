@@ -156,3 +156,8 @@ No tokens collected, file file:/tmp/secrets.bin unchanged
 
 The token file is not modified.
 
+
+## list
+
+Do a recursive listing of a path. Uses listFiles(recursive), so for any object store
+which can do this as a deep paginated scan, is much, much faster.
