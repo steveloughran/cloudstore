@@ -18,7 +18,9 @@
 
 package org.apache.hadoop.fs.tools;
 
+import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -43,14 +45,22 @@ public class ListFiles extends StoreEntryPoint {
 
   private static final Logger LOG = LoggerFactory.getLogger(ListFiles.class);
 
+  public static final String LIMIT = "limit";
+
   public static final String USAGE
-      = "Usage: listfiles <path>";
+      = "Usage: list\n"
+      + optusage(DEFINE, "key=value", "Define a property")
+      + optusage(TOKENFILE, "file", "Hadoop token file to load")
+      + optusage(XMLFILE, "file", "XML config file to load")
+      + optusage(LIMIT, "limit", "limit of files to list")
+      + " <path>";
 
   public ListFiles() {
     setCommandFormat(new CommandFormat(1, 1));
     getCommandFormat().addOptionWithValue(TOKENFILE);
     getCommandFormat().addOptionWithValue(XMLFILE);
     getCommandFormat().addOptionWithValue(DEFINE);
+    getCommandFormat().addOptionWithValue(LIMIT);
   }
 
   @Override
@@ -68,9 +78,13 @@ public class ListFiles extends StoreEntryPoint {
     maybeAddXMLFileOption(conf, XMLFILE);
     maybePatchDefined(conf, DEFINE);
 
-    final Path source = new Path(paths.get(0));
+    int limit = getOptional(LIMIT).map(Integer::valueOf).orElse(0);
 
-    println("Listing files under %s", source);
+    final Path source = new Path(paths.get(0));
+    println("");
+    println("Listing%s files under %s",
+        limit == 0 ? "" : (" up to " + limit),
+        source);
 
     FileSystem fs = source.getFileSystem(conf);
     final DurationInfo duration = new DurationInfo(LOG, "Directory list");
@@ -92,7 +106,14 @@ public class ListFiles extends StoreEntryPoint {
                 status.getOwner(),
                 status.getGroup(),
                 status.isEncrypted() ? "encrypted" : "");
+            if (limit > 0 && c >= limit) {
+              throw new LimitReachedException();
+            }
           });
+    } catch(LimitReachedException expected) {
+
+      // the limit has been reached
+
     } finally {
       duration.close();
     }
@@ -100,6 +121,7 @@ public class ListFiles extends StoreEntryPoint {
     double millisPerFile = files > 0 ? (((float)duration.value()) / files) : 0;
     long totalSize = size.get();
     long bytesPerFile = (long) (files > 0 ? totalSize / files : 0);
+    println("");
     println("Found %s files, %,.0f milliseconds per file",
         files, millisPerFile);
     println("Data size %,d bytes, %,d bytes per file",
@@ -127,6 +149,13 @@ public class ListFiles extends StoreEntryPoint {
       exit(exec(args), "");
     } catch (Throwable e) {
       exitOnThrowable(e);
+    }
+  }
+
+  private class LimitReachedException extends IOException {
+
+    public LimitReachedException() {
+      super("Limit reached");
     }
   }
 }

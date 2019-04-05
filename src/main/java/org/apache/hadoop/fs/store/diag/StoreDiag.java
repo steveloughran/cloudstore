@@ -34,7 +34,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.AccessDeniedException;
-import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Collection;
 import java.util.Enumeration;
@@ -48,7 +47,6 @@ import java.util.UUID;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.CharStreams;
-import com.google.common.io.Files;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -112,17 +110,6 @@ public class StoreDiag extends StoreEntryPoint
 
   public static final int LIST_LIMIT = 25;
 
-  private static String optusage(String opt) {
-    return "[-" + opt + "] ";
-  }
-
-  private static String optusage(String opt, String text) {
-    return String.format("-%s\t%s%n", opt, text);
-  }
-
-  private static String optusage(String opt, String second, String text) {
-    return String.format("-%s <%s>\t%s%n", opt, second, text);
-  }
   public static final String USAGE =
       "Usage: storediag%n"
           + optusage(JARS, "List the JARs on the classpath")
@@ -131,6 +118,7 @@ public class StoreDiag extends StoreEntryPoint
           + optusage(LOGDUMP, "Dump the Log4J settings")
           + optusage(DELEGATION, "Require delegation tokens to be issued")
           + optusage(SYSPROPS, "List the JVMs System Properties")
+          + optusage(DEFINE, "key=value", "Define a property")
           + optusage(TOKENFILE, "file", "Hadoop token file to load")
           + optusage(XMLFILE, "file", "XML config file to load")
           + optusage(REQUIRED, "file",

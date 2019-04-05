@@ -61,6 +61,18 @@ public class StoreEntryPoint extends Configured implements Tool {
 
   private PrintStream out = System.out;
 
+  private static String optusage(String opt) {
+    return "[-" + opt + "] ";
+  }
+
+  protected static String optusage(String opt, String text) {
+    return String.format("\t-%s\t%s%n", opt, text);
+  }
+
+  protected static String optusage(String opt, String second, String text) {
+    return String.format("\t-%s <%s>\t%s%n", opt, second, text);
+  }
+
   @Override
   public int run(String[] args) throws Exception {
     return 0;

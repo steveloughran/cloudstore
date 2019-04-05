@@ -161,3 +161,34 @@ The token file is not modified.
 
 Do a recursive listing of a path. Uses listFiles(recursive), so for any object store
 which can do this as a deep paginated scan, is much, much faster.
+
+```
+Usage: list
+  -D <key=value>	Define a property
+  -tokenfile <file>	Hadoop token file to load
+  -xmlfile <file>	XML config file to load
+  -limit <limit>	limit of files to list
+```
+
+```
+> bin/hadoop jar cloudstore-0.1-SNAPSHOT.jar list -limit 10 s3a://landsat-pds/
+
+Listing up to 10 files under s3a://landsat-pds/
+2019-04-05 21:32:14,523 [main] INFO  tools.ListFiles (DurationInfo.java:<init>(53)) - Starting: Directory list
+2019-04-05 21:32:14,524 [main] INFO  tools.ListFiles (DurationInfo.java:<init>(53)) - Starting: First listing
+2019-04-05 21:32:15,754 [main] INFO  tools.ListFiles (DurationInfo.java:close(100)) - First listing: duration 0:01:230
+[1]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B1.TIF	63,786,465	stevel	stevel	[encrypted]
+[2]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B1.TIF.ovr	8,475,353	stevel	stevel	[encrypted]
+[3]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B10.TIF	35,027,713	stevel	stevel	[encrypted]
+[4]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B10.TIF.ovr	6,029,012	stevel	stevel	[encrypted]
+[5]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B10_wrk.IMD	10,213	stevel	stevel	[encrypted]
+[6]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B11.TIF	34,131,348	stevel	stevel	[encrypted]
+[7]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B11.TIF.ovr	5,891,395	stevel	stevel	[encrypted]
+[8]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B11_wrk.IMD	10,213	stevel	stevel	[encrypted]
+[9]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B1_wrk.IMD	10,213	stevel	stevel	[encrypted]
+[10]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B2.TIF	64,369,211	stevel	stevel	[encrypted]
+2019-04-05 21:32:15,757 [main] INFO  tools.ListFiles (DurationInfo.java:close(100)) - Directory list: duration 0:01:235
+
+Found 10 files, 124 milliseconds per file
+Data size 217,741,136 bytes, 21,774,113 bytes per file
+```
