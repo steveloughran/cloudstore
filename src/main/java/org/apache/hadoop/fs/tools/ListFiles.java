@@ -19,6 +19,8 @@
 package org.apache.hadoop.fs.tools;
 
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,20 +73,37 @@ public class ListFiles extends StoreEntryPoint {
     println("Listing files under %s", source);
 
     FileSystem fs = source.getFileSystem(conf);
-
-    try (DurationInfo listing = new DurationInfo(LOG,
-        "Directory list")) {
+    final DurationInfo duration = new DurationInfo(LOG, "Directory list");
+    final DurationInfo firstLoad = new DurationInfo(LOG, "First listing");
+    final AtomicInteger count = new AtomicInteger(0);
+    final AtomicLong size = new AtomicLong(0);
+    try {
       applyLocatedFiles(fs.listFiles(source, true),
           (status) -> {
-
-            println("%s %04d %s %s [%s]",
+            int c = count.incrementAndGet();
+            if (c == 1) {
+              firstLoad.close();
+            }
+            size.addAndGet(status.getLen());
+            println("[%d]\t%s\t%,d\t%s\t%s\t[%s]",
+                c,
                 status.getPath(),
                 status.getLen(),
                 status.getOwner(),
                 status.getGroup(),
                 status.isEncrypted() ? "encrypted" : "");
           });
+    } finally {
+      duration.close();
     }
+    long files = count.get();
+    double millisPerFile = files > 0 ? (((float)duration.value()) / files) : 0;
+    long totalSize = size.get();
+    long bytesPerFile = (long) (files > 0 ? totalSize / files : 0);
+    println("Found %s files, %,.0f milliseconds per file",
+        files, millisPerFile);
+    println("Data size %,d bytes, %,d bytes per file",
+        totalSize, bytesPerFile);
     return 0;
   }
 

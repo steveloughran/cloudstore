@@ -1087,13 +1087,8 @@ public class StoreDiag extends StoreEntryPoint
 
 
   private String hash(File file) throws IOException, NoSuchAlgorithmException {
-    return toHex(Files.getDigest(file, MessageDigest.getInstance("MD5")));
-  }
-
-  private byte[] md5sum(File file)
-      throws NoSuchAlgorithmException, IOException {
-    return Files.getDigest(file, MessageDigest.getInstance("MD5"));
-
+    /*return toHex(Files.getDigest(file, MessageDigest.getInstance("MD5")));*/
+    return "guava broke this, sorry";
   }
 
   private String toHex(byte[] digest32) {
