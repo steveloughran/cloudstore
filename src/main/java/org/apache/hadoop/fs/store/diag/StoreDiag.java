@@ -72,6 +72,8 @@ import org.apache.hadoop.util.StringUtils;
 import org.apache.hadoop.util.ToolRunner;
 
 import static com.google.common.base.Preconditions.checkArgument;
+//import static org.apache.hadoop.fs.CommonConfigurationKeysPublic.FS_DEFAULT_NAME_DEFAULT;
+//import static org.apache.hadoop.fs.CommonConfigurationKeysPublic.FS_DEFAULT_NAME_KEY;
 import static org.apache.hadoop.fs.store.CommonParameters.DEFINE;
 import static org.apache.hadoop.fs.store.CommonParameters.TOKENFILE;
 import static org.apache.hadoop.fs.store.CommonParameters.XMLFILE;
@@ -352,13 +354,22 @@ public class StoreDiag extends StoreEntryPoint
   }
 
   public int run(String[] args, PrintStream stream) throws Exception {
+    addAllDefaultXMLFiles();
     setOut(stream);
     List<String> paths = parseArgs(args);
     if (paths.size() != 1) {
       errorln(USAGE);
       return E_USAGE;
     }
-    addAllDefaultXMLFiles();
+/*
+
+    if (paths.isEmpty()) {
+      String defaultFS = new Configuration().get(FS_DEFAULT_NAME_KEY,
+          FS_DEFAULT_NAME_DEFAULT);
+      println("Using default filesystem: %s", defaultFS);
+      paths.add(defaultFS);
+    }
+*/
 
     println("Store Diagnostics for %s on %s",
       UserGroupInformation.getCurrentUser(),

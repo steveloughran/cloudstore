@@ -60,8 +60,12 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.s3a.proxy.password", true, true},
       {"fs.s3a.proxy.domain", false, false},
       {"fs.s3a.proxy.workstation", false, false},
+      {"fs.s3a.ssl.channel.mode", false, false},
       {"fs.s3a.connection.ssl.enabled", false, false},
       {"fs.s3a.connection.maximum", false, false},
+      {"fs.s3a.path.style.access", false, false},
+      {"fs.s3a.connection.establish.timeout", false, false},
+      {"fs.s3a.connection.timeout", false, false},
       {"fs.s3a.multipart.size", false, false},
       {"fs.s3a.buffer.dir", false, false},
       {"fs.s3a.block.size", false, false},
@@ -87,11 +91,16 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       /* s3guard */
       {"fs.s3a.metadatastore.impl", false, false},
       {"fs.s3a.metadatastore.authoritative", false, false},
+      {"fs.s3a.metadatastore.authoritative.dir.ttl", false, false},
+      {"fs.s3a.metadatastore.fail.on.write.error", false, false},
       {"fs.s3a.s3guard.ddb.table", false, false},
       {"fs.s3a.s3guard.ddb.region", false, false},
-      {"fs.s3a.s3guard.ddb.table.create", false, false},
-      {"fs.s3a.s3guard.ddb.max.retries", false, false},
       {"fs.s3a.s3guard.ddb.background.sleep", false, false},
+      {"fs.s3a.s3guard.ddb.max.retries", false, false},
+      {"fs.s3a.s3guard.ddb.table.capacity.read", false, false},
+      {"fs.s3a.s3guard.ddb.table.capacity.write", false, false},
+      {"fs.s3a.s3guard.ddb.table.create", false, false},
+      {"fs.s3a.s3guard.ddb.throttle.retry.interval", false, false},
 
       /* committer */
       {"fs.s3a.committer.magic.enabled", false, false},
@@ -103,13 +112,20 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
 
       /* misc */
       {"fs.s3a.etag.checksum.enabled", false, false},
+      {"fs.s3a.retry.limit", false, false},
       {"fs.s3a.retry.interval", false, false},
       {"fs.s3a.retry.throttle.limit", false, false},
       {"fs.s3a.retry.throttle.interval", false, false},
       {"fs.s3a.attempts.maximum", false, false},
+      {"fs.s3a.list.version", false, false},
 
-      // delegation       
+      /* delegation */
       {"fs.s3a.delegation.token.binding", false, false},
+
+      /* change detection */
+      {"fs.s3a.change.detection.source", false, false},
+      {"fs.s3a.change.detection.mode", false, false},
+      {"fs.s3a.change.detection.version.required", false, false},
 
       {"", false, false},
 
