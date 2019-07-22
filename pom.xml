@@ -214,6 +214,18 @@
     </profile>
 
     <profile>
+      <id>hadoop-3.1</id>
+      <activation>
+        <property>
+          <name>hadoop-3.1</name>
+        </property>
+      </activation>
+      <properties>
+        <hadoop.version>3.1.1</hadoop.version>
+      </properties>
+    </profile>
+
+    <profile>
       <id>hadoop-3.2</id>
       <activation>
         <property>

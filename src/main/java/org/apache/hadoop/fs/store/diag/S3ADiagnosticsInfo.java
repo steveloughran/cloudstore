@@ -48,36 +48,52 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       = "fs.s3a.assumed.role.sts.endpoint";
 
   private static final Object[][] options = {
+      /* Core auth */
       {"fs.s3a.access.key", true, true},
       {"fs.s3a.secret.key", true, true},
       {"fs.s3a.session.token", true, true},
       {"fs.s3a.server-side-encryption-algorithm", true, false},
       {"fs.s3a.server-side-encryption.key", true, true},
       {"fs.s3a.aws.credentials.provider", false, false},
+      {"fs.s3a.endpoint", false, false},
+      {"fs.s3a.signing-algorithm", false, false},
+
+      /* Core Set */
+      {"fs.s3a.acl.default", false, false},
+      {"fs.s3a.attempts.maximum", false, false},
+      {"fs.s3a.block.size", false, false},
+      {"fs.s3a.buffer.dir", false, false},
+      {"fs.s3a.connection.ssl.enabled", false, false},
+      {"fs.s3a.connection.maximum", false, false},
+      {"fs.s3a.connection.establish.timeout", false, false},
+      {"fs.s3a.connection.timeout", false, false},
+      {"fs.s3a.experimental.input.fadvise", false, false},
+      {"fs.s3a.fast.buffer.size", false, false},
+      {"fs.s3a.fast.upload.buffer", false, false},
+      {"fs.s3a.fast.upload.active.blocks", false, false},
+      {"fs.s3a.list.version", false, false},
+      {"fs.s3a.max.total.tasks", false, false},
+      {"fs.s3a.multipart.size", false, false},
+      {"fs.s3a.paging.maximum", false, false},
+      {"fs.s3a.multiobjectdelete.enable", false, false},
+      {"fs.s3a.multipart.purge", false, false},
+      {"fs.s3a.multipart.purge.age", false, false},
+      {"fs.s3a.path.style.access", false, false},
       {"fs.s3a.proxy.host", false, false},
       {"fs.s3a.proxy.port", false, false},
       {"fs.s3a.proxy.username", false, false},
       {"fs.s3a.proxy.password", true, true},
       {"fs.s3a.proxy.domain", false, false},
       {"fs.s3a.proxy.workstation", false, false},
+      {"fs.s3a.readahead.range", false, false},
+      {"fs.s3a.retry.limit", false, false},
+      {"fs.s3a.retry.interval", false, false},
+      {"fs.s3a.retry.throttle.limit", false, false},
+      {"fs.s3a.retry.throttle.interval", false, false},
       {"fs.s3a.ssl.channel.mode", false, false},
-      {"fs.s3a.connection.ssl.enabled", false, false},
-      {"fs.s3a.connection.maximum", false, false},
-      {"fs.s3a.path.style.access", false, false},
-      {"fs.s3a.connection.establish.timeout", false, false},
-      {"fs.s3a.connection.timeout", false, false},
-      {"fs.s3a.multipart.size", false, false},
-      {"fs.s3a.buffer.dir", false, false},
-      {"fs.s3a.block.size", false, false},
-
-      {"fs.s3a.signing-algorithm", false, false},
-      {"fs.s3a.fast.upload.buffer", false, false},
-      {"fs.s3a.fast.upload.active.blocks", false, false},
-      {"fs.s3a.experimental.input.fadvise", false, false},
-      {"fs.s3a.user.agent.prefix", false, false},
       {"fs.s3a.threads.max", false, false},
       {"fs.s3a.threads.keepalivetime", false, false},
-      {"fs.s3a.max.total.tasks", false, false},
+      {"fs.s3a.user.agent.prefix", false, false},
 
       /* Assumed Role */
       {"fs.s3a.assumed.role.arn", false, false},
@@ -91,8 +107,10 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       /* s3guard */
       {"fs.s3a.metadatastore.impl", false, false},
       {"fs.s3a.metadatastore.authoritative", false, false},
+      {"fs.s3a.authoritative.path", false, false},
       {"fs.s3a.metadatastore.authoritative.dir.ttl", false, false},
       {"fs.s3a.metadatastore.fail.on.write.error", false, false},
+      {"fs.s3a.metadatastore.metadata.ttl", false, false},
       {"fs.s3a.s3guard.ddb.table", false, false},
       {"fs.s3a.s3guard.ddb.region", false, false},
       {"fs.s3a.s3guard.ddb.background.sleep", false, false},
@@ -112,12 +130,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
 
       /* misc */
       {"fs.s3a.etag.checksum.enabled", false, false},
-      {"fs.s3a.retry.limit", false, false},
-      {"fs.s3a.retry.interval", false, false},
-      {"fs.s3a.retry.throttle.limit", false, false},
-      {"fs.s3a.retry.throttle.interval", false, false},
-      {"fs.s3a.attempts.maximum", false, false},
-      {"fs.s3a.list.version", false, false},
+      {"fs.s3a.s3.client.factory.impl", false, false},
 
       /* delegation */
       {"fs.s3a.delegation.token.binding", false, false},
@@ -157,23 +170,24 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       /* And Joda-time. Not relevant on the shaded SDK,
        *  but critical for older ones */
       "org.joda.time.Interval",
-      
+
       // S3Guard
       "org.apache.hadoop.fs.s3a.s3guard.S3Guard",
-      
+
       // Committers
       "org.apache.hadoop.fs.s3a.commit.staging.StagingCommitter",
-      
+
       // Assumed Role credential provider (Hadoop 3.1)
       "org.apache.hadoop.fs.s3a.auth.AssumedRoleCredentialProvider",
-      
+
       // Delegation Tokens
       "org.apache.hadoop.fs.s3a.auth.delegation.S3ADelegationTokens",
 
-      
       // S3 Select: HADOOP-15229
       "com.amazonaws.services.s3.model.SelectObjectContentRequest",
       "org.apache.hadoop.fs.s3a.select.SelectInputStream",
+      // S3Guard rename extensions
+      "org.apache.hadoop.fs.s3a.impl.RenameOperation",
       "",
   };
 
@@ -323,7 +337,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
             "fs.s3a.server-side-encryption-algorithm",
             "fs.s3a.server-side-encryption.key");
         printout.warn("The default key will be used%n"
-            + "the current user MUST have permissions to use this");
+            + "The current user MUST have permissions to use this");
       } else {
         if (!key.startsWith("arn:aws:kms:")) {
           printout.warn("The SSE-KMS key does not contain a full key" 
@@ -349,7 +363,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       final Path path,
       final FileSystem filesystem) throws IOException {
     super.validateFilesystem(printout, path, filesystem);
-    
+
     if (!"org.apache.hadoop.fs.s3a.S3AFileSystem".equals(
         filesystem.getClass().getCanonicalName())) {
       printout.warn("The filesystem class %s is not the S3AFileSystem",

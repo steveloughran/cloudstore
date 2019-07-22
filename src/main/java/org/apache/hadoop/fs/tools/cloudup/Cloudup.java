@@ -24,7 +24,10 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutorCompletionService;
@@ -50,19 +53,18 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.LocatedFileStatus;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.RemoteIterator;
-import org.apache.hadoop.fs.shell.CommandFormat;
+import org.apache.hadoop.fs.StorageStatistics;
 import org.apache.hadoop.fs.store.DurationInfo;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
 import org.apache.hadoop.fs.store.StoreUtils;
 import org.apache.hadoop.util.ToolRunner;
 
-import static org.apache.hadoop.fs.store.StoreExitCodes.E_ERROR;
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
 
 /**
  * Entry point for Cloudup: parallelized upload of local files
  * to remote (cloud) storage with shuffle after selective choice
- * of largest files
+ * of largest files.
  */
 public class Cloudup extends StoreEntryPoint {
 
@@ -179,7 +181,7 @@ public class Cloudup extends StoreEntryPoint {
     // worker pool
     workers = new ThreadPoolExecutor(threads, threads,
         0L, TimeUnit.MILLISECONDS,
-        new LinkedBlockingQueue<Runnable>());
+        new LinkedBlockingQueue<>());
 
     final DurationInfo preparationDuration = new DurationInfo();
     // list the files
@@ -512,9 +514,9 @@ public class Cloudup extends StoreEntryPoint {
    * @param fs filesystem.
    */
   private void dumpStats(FileSystem fs, String header) {
- /*  // Not supported on Hadoop 2.7
+   // Not supported on Hadoop 2.7
     LOG.info("\n" + header +": " + fs.getUri());
-    Iterator<org.apache.hadoop.fs.StorageStatistics.LongStatistic> iterator
+    Iterator<StorageStatistics.LongStatistic> iterator
         = fs.getStorageStatistics().getLongStatistics();
     // convert to a (sorted) treemap
     TreeMap<String, Long> results = new TreeMap<>();
@@ -526,7 +528,6 @@ public class Cloudup extends StoreEntryPoint {
     for (Map.Entry<String, Long> entry : results.entrySet()) {
       LOG.info("{}={}", entry.getKey(), entry.getValue());
     }
-*/
 
   }
 
