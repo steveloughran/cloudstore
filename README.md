@@ -2,7 +2,7 @@
 
 This is going to be for a general cloudstore CLI command for Hadoop.
 
-Initally its a diagnostics entry point, designed to work with Hadoop 2.8+
+Primarily: diagnostics
 
 Why? 
 
