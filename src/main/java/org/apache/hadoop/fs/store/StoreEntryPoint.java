@@ -207,6 +207,12 @@ public class StoreEntryPoint extends Configured implements Tool {
       throws FileNotFoundException, MalformedURLException {
     String xmlfile = getOption(opt);
     if (xmlfile != null) {
+      if (xmlfile.isEmpty()) {
+        throw new StoreExitException(
+            StoreExitCodes.E_INVALID_ARGUMENT,
+            "XML file option " + opt
+            + " found but no value was provided");
+      }
       File f = new File(xmlfile);
       if (!f.exists()) {
         throw new FileNotFoundException(f.toString());
@@ -240,6 +246,8 @@ public class StoreEntryPoint extends Configured implements Tool {
   protected void maybePatchDefined(final Configuration conf, final String opt) {
     getOptional(opt).ifPresent(d -> {
           Map.Entry<String, String> pair = split(d, "true");
+      println("Patching configuration with \"%s\"=\"%s\"",
+          pair.getKey(), pair.getValue());
           conf.set(pair.getKey(), pair.getValue());
         });
   }

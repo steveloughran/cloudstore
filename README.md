@@ -15,7 +15,7 @@ do much in terms of meaningful diagnostics.
 1. And in support calls, it's all to easy to get those secrets, even
 though its a major security breach to get them.
 
-## StoreDiag
+## Command `storediag`
 
 The `storediag` entry point is designed to pick up the FS settings, dump them
 with sanitized secrets, and display their provenance. It then
@@ -85,7 +85,7 @@ Missing file or resource will result in an error and the command failing.
 The comments are printed too! This means you can use them in the reports.
 
 
-## fetchdt
+##  Command`fetchdt`
 
 This is an extension of `hdfs fetchdt` which collects delegation tokens
 from a list of filesystems, saving them to a file.
@@ -170,7 +170,7 @@ Usage: list
   -limit <limit>	limit of files to list
 ```
 
-```
+```bash
 > bin/hadoop jar cloudstore-0.1-SNAPSHOT.jar list -limit 10 s3a://landsat-pds/
 
 Listing up to 10 files under s3a://landsat-pds/
@@ -191,4 +191,63 @@ Listing up to 10 files under s3a://landsat-pds/
 
 Found 10 files, 124 milliseconds per file
 Data size 217,741,136 bytes, 21,774,113 bytes per file
+```
+
+## Command `bucketstate`
+
+Prints some of the low level diagnostics information about a bucket which
+can be obtained via the AWS APIs.
+
+```bash
+bin/hadoop jar cloudstore-0.1-SNAPSHOT.jar \
+            bucketstate \
+            s3a://mybucket/
+
+2019-07-25 16:54:50,678 [main] INFO  tools.BucketState (DurationInfo.java:<init>(53)) - Starting: Bucket State
+2019-07-25 16:54:54,216 [main] WARN  s3a.S3AFileSystem (S3AFileSystem.java:getAmazonS3ClientForTesting(675)) - Access to S3A client requested, reason Diagnostics
+Bucket owner is alice (ID=593...e1)
+Bucket policy:
+NONE
+```
+
+If you don't have the permissions to read the bucket policy, you get a stack trace.
+
+```bash
+bin/hadoop jar cloudstore-0.1-SNAPSHOT.jar \
+            bucketstate \
+            s3a://mybucket/
+
+2019-07-25 16:55:23,023 [main] INFO  tools.BucketState (DurationInfo.java:<init>(53)) - Starting: Bucket State
+2019-07-25 16:55:25,993 [main] WARN  s3a.S3AFileSystem (S3AFileSystem.java:getAmazonS3ClientForTesting(675)) - Access to S3A client requested, reason Diagnostics
+Bucket owner is aws-coreqe (ID=34459abbf523b3870c184f1cc7d800f68b1f3ba75faf0015f6b98d28df3c45e0)
+2019-07-25 16:55:26,883 [main] INFO  tools.BucketState (DurationInfo.java:close(100)) - Bucket State: duration 0:03:862
+com.amazonaws.services.s3.model.AmazonS3Exception: The specified method is not allowed against this resource. (Service: Amazon S3; Status Code: 405; Error Code: MethodNotAllowed; Request ID: 3844E3089E3801D8; S3 Extended Request ID: 3HJVN5+MvOGit087AFqKLUyOUCU9inCakvJ44GW5Wb4toiVipEiv5uK6A54LQBjdKFYUU8ZI5XQ=), S3 Extended Request ID: 3HJVN5+MvOGit087AFqKLUyOUCU9inCakvJ44GW5Wb4toiVipEiv5uK6A54LQBjdKFYUU8ZI5XQ=
+  at com.amazonaws.http.AmazonHttpClient$RequestExecutor.handleErrorResponse(AmazonHttpClient.java:1712)
+  at com.amazonaws.http.AmazonHttpClient$RequestExecutor.executeOneRequest(AmazonHttpClient.java:1367)
+  at com.amazonaws.http.AmazonHttpClient$RequestExecutor.executeHelper(AmazonHttpClient.java:1113)
+  at com.amazonaws.http.AmazonHttpClient$RequestExecutor.doExecute(AmazonHttpClient.java:770)
+  at com.amazonaws.http.AmazonHttpClient$RequestExecutor.executeWithTimer(AmazonHttpClient.java:744)
+  at com.amazonaws.http.AmazonHttpClient$RequestExecutor.execute(AmazonHttpClient.java:726)
+  at com.amazonaws.http.AmazonHttpClient$RequestExecutor.access$500(AmazonHttpClient.java:686)
+  at com.amazonaws.http.AmazonHttpClient$RequestExecutionBuilderImpl.execute(AmazonHttpClient.java:668)
+  at com.amazonaws.http.AmazonHttpClient.execute(AmazonHttpClient.java:532)
+  at com.amazonaws.http.AmazonHttpClient.execute(AmazonHttpClient.java:512)
+  at com.amazonaws.services.s3.AmazonS3Client.invoke(AmazonS3Client.java:4920)
+  at com.amazonaws.services.s3.AmazonS3Client.invoke(AmazonS3Client.java:4866)
+  at com.amazonaws.services.s3.AmazonS3Client.getBucketPolicy(AmazonS3Client.java:2917)
+  at com.amazonaws.services.s3.AmazonS3Client.getBucketPolicy(AmazonS3Client.java:2890)
+  at org.apache.hadoop.fs.tools.BucketState.run(BucketState.java:93)
+  at org.apache.hadoop.util.ToolRunner.run(ToolRunner.java:76)
+  at org.apache.hadoop.util.ToolRunner.run(ToolRunner.java:90)
+  at org.apache.hadoop.fs.tools.BucketState.exec(BucketState.java:111)
+  at org.apache.hadoop.fs.tools.BucketState.main(BucketState.java:120)
+  at bucketstate.main(bucketstate.java:24)
+  at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+  at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+  at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+  at java.lang.reflect.Method.invoke(Method.java:498)
+  at org.apache.hadoop.util.RunJar.run(RunJar.java:318)
+  at org.apache.hadoop.util.RunJar.main(RunJar.java:232)
+2019-07-25 16:55:26,886 [main] INFO  util.ExitUtil (ExitUtil.java:terminate(210)) - Exiting with status -1: com.amazonaws.services.s3.model.AmazonS3Exception: The specified method is not allowed against this resource. (Service: Amazon S3; Status Code: 405; Error Code: MethodNotAllowed; Request ID: 3844E3089E3801D8; S3 Extended Request ID: 3HJVN5+MvOGit087AFqKLUyOUCU9inCakvJ44GW5Wb4toiVipEiv5uK6A54LQBjdKFYUU8ZI5XQ=), S3 Extended Request ID: 3HJVN5+MvOGit087AFqKLUyOUCU9inCakvJ44GW5Wb4toiVipEiv5uK6A54LQBjdKFYUU8ZI5XQ=
+
 ```

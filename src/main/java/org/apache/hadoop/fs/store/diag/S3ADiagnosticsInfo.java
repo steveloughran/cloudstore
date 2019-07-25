@@ -39,6 +39,11 @@ import org.apache.hadoop.fs.s3a.Constants;
 import static com.google.common.base.Preconditions.checkState;
 import static org.apache.hadoop.fs.s3a.Constants.*;
 
+/**
+ * Reminder: do not cast to any S3A FS class or reference Constants so
+ * that the diagnostics will work even if S3AFileSystem or a dependency
+ * is not on the classpath.
+ */
 public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
 
   private static final Logger LOG = LoggerFactory.getLogger(

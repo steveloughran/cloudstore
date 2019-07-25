@@ -830,15 +830,15 @@ public class StoreDiag extends StoreEntryPoint
       println("root entry %s", fs.getFileStatus(root));
     }
 
-    FileStatus rootFile = null;
+    FileStatus firstFile = null;
+    int limit = LIST_LIMIT;
     try (DurationInfo ignored = new DurationInfo(LOG,
-        "Listing %s", root)) {
-      FileStatus[] statuses = fs.listStatus(root);
-      println("%s root entry count: %d", root, statuses.length);
-      int limit = LIST_LIMIT;
+        "First %d entries of listStatus(%s)", limit, path)) {
+      FileStatus[] statuses = fs.listStatus(path);
+      println("%s entry count: %d", path, statuses.length);
       for (FileStatus status : statuses) {
-        if (status.isFile() && rootFile == null) {
-          rootFile = status;
+        if (status.isFile() && firstFile == null) {
+          firstFile = status;
         }
         limit--;
         if (limit > 0) {
@@ -846,26 +846,25 @@ public class StoreDiag extends StoreEntryPoint
         } else {
           // finished our listing, if a file is found
           // then its time to leave.
-          if (rootFile != null) {
+          if (firstFile != null) {
             break;
           }
         }
-        
       }
     }
 
-    if (rootFile != null) {
+    if (firstFile != null) {
       // found a file to read
-      Path rootFilePath = rootFile.getPath();
-      heading("reading file %s", rootFilePath);
+      Path firstFilePath = firstFile.getPath();
+      heading("reading file %s", firstFilePath);
       FSDataInputStream in = null;
       try (DurationInfo ignored = new DurationInfo(LOG,
-          "Reading file %s", rootFilePath)) {
-        in = fs.open(rootFilePath);
+          "Reading file %s", firstFilePath)) {
+        in = fs.open(firstFilePath);
         // read the first char or -1
         int c = in.read();
         println("First character of file %s is 0x%02x: '%s'",
-            rootFilePath,
+            firstFilePath,
             c,
             (c > 32) ? Character.toString((char) c) : "(n/a)");
         in.close();
@@ -875,17 +874,13 @@ public class StoreDiag extends StoreEntryPoint
     }
 
     // now work with the full path
+    limit = LIST_LIMIT;
     try(DurationInfo ignored = new DurationInfo(LOG,
-        "Listing directory %s", path)) {
-      FileStatus status = fs.getFileStatus(path);
-      if (status.isFile()) {
-        throw new IOException("Not a directory: " + status);
-      }
-      int limit = LIST_LIMIT;
+        "First %d entries of listFiles(%s)", limit, path)) {
       RemoteIterator<LocatedFileStatus> files = fs.listFiles(path, true);
       try {
         while (files.hasNext() && (limit--)> 0) {
-          status = files.next();
+          FileStatus status = files.next();
           println(statusToString(status));
         }
       } catch (AccessControlException e) {
