@@ -1,8 +1,27 @@
-# cloudstore
+# Cloudstore
 
-This is going to be for a general cloudstore CLI command for Hadoop.
+This is a general cloudstore CLI command for Hadoop which can evolve fast
+as it can be released daily, if need be.
 
-Primarily: diagnostics
+*License*: Apache ASF 2.0
+
+All the implementation classes are under the `org.apache.hadoop.fs` package
+tree with a goal of ultimately moving this into Hadoop itself; it's been
+kept out right now for various reasons
+
+1. Faster release cycle, so the diagnostics can evolve to track features going
+   into Hadoop-trunk.
+2. Fewer test requirements. This is naughty, but...
+3. Ability to compile against older versions. We've currently switched to Hadoop 3.x+
+   due to the need to make API calls and operations not in older versions.
+   That said, we try to make the core storediag command work with older versions,
+   even while some of the other commands fail. 
+ 
+*Author*: Steve Loughran, Hadoop Committer.
+ 
+## Features
+
+### Primarily: diagnostics
 
 Why? 
 
@@ -14,6 +33,19 @@ do much in terms of meaningful diagnostics.
 1. This is compounded by the fact that we dare not log secret credentials.
 1. And in support calls, it's all to easy to get those secrets, even
 though its a major security breach to get them.
+
+### Secondary: higher performance cloud IO
+
+The main hadoop `hadoop fs` commands are written assuming a filesystem, where
+
+* Recursive treewalks are the way to traverse the store.
+* The code was written for Hadoop 1.0 and uses the filesystem APIs of that era.
+* The commands are often used in shell scripts and workflows, including parsing
+the output: we do not dare change the behaviour or output for this reason.
+* And the shell removes stack traces on failures, making it of "limited value"
+when things don't work. And object stores are fairly fussy to get working, 
+primarily due to authentication. (Note: HDFS needs Keberos Auth, which has its
+own issues &mdash; which is why I wrote KDiag).
 
 ## Command `storediag`
 
@@ -102,7 +134,7 @@ Usage: fetchdt <file> [-renewer <renewer>] [-r] [-p] <url1> ... <url999>
  -p: protobuf format
 ```
 
-Examples
+### Examples
 
 Successful query of an S3A session delegation token.
 
@@ -157,9 +189,9 @@ No tokens collected, file file:/tmp/secrets.bin unchanged
 The token file is not modified.
 
 
-## list
+## Command: `list`
 
-Do a recursive listing of a path. Uses listFiles(recursive), so for any object store
+Do a recursive listing of a path. Uses `listFiles(path, recursive)`, so for any object store
 which can do this as a deep paginated scan, is much, much faster.
 
 ```
@@ -169,6 +201,8 @@ Usage: list
   -xmlfile <file>	XML config file to load
   -limit <limit>	limit of files to list
 ```
+
+Example: list some of the AWS public landsat store.
 
 ```bash
 > bin/hadoop jar cloudstore-0.1-SNAPSHOT.jar list -limit 10 s3a://landsat-pds/
@@ -219,7 +253,7 @@ bin/hadoop jar cloudstore-0.1-SNAPSHOT.jar \
 
 2019-07-25 16:55:23,023 [main] INFO  tools.BucketState (DurationInfo.java:<init>(53)) - Starting: Bucket State
 2019-07-25 16:55:25,993 [main] WARN  s3a.S3AFileSystem (S3AFileSystem.java:getAmazonS3ClientForTesting(675)) - Access to S3A client requested, reason Diagnostics
-Bucket owner is aws-coreqe (ID=34459abbf523b3870c184f1cc7d800f68b1f3ba75faf0015f6b98d28df3c45e0)
+Bucket owner is alice (ID=593...e1)
 2019-07-25 16:55:26,883 [main] INFO  tools.BucketState (DurationInfo.java:close(100)) - Bucket State: duration 0:03:862
 com.amazonaws.services.s3.model.AmazonS3Exception: The specified method is not allowed against this resource. (Service: Amazon S3; Status Code: 405; Error Code: MethodNotAllowed; Request ID: 3844E3089E3801D8; S3 Extended Request ID: 3HJVN5+MvOGit087AFqKLUyOUCU9inCakvJ44GW5Wb4toiVipEiv5uK6A54LQBjdKFYUU8ZI5XQ=), S3 Extended Request ID: 3HJVN5+MvOGit087AFqKLUyOUCU9inCakvJ44GW5Wb4toiVipEiv5uK6A54LQBjdKFYUU8ZI5XQ=
   at com.amazonaws.http.AmazonHttpClient$RequestExecutor.handleErrorResponse(AmazonHttpClient.java:1712)
@@ -251,3 +285,35 @@ com.amazonaws.services.s3.model.AmazonS3Exception: The specified method is not a
 2019-07-25 16:55:26,886 [main] INFO  util.ExitUtil (ExitUtil.java:terminate(210)) - Exiting with status -1: com.amazonaws.services.s3.model.AmazonS3Exception: The specified method is not allowed against this resource. (Service: Amazon S3; Status Code: 405; Error Code: MethodNotAllowed; Request ID: 3844E3089E3801D8; S3 Extended Request ID: 3HJVN5+MvOGit087AFqKLUyOUCU9inCakvJ44GW5Wb4toiVipEiv5uK6A54LQBjdKFYUU8ZI5XQ=), S3 Extended Request ID: 3HJVN5+MvOGit087AFqKLUyOUCU9inCakvJ44GW5Wb4toiVipEiv5uK6A54LQBjdKFYUU8ZI5XQ=
 
 ```
+
+
+## Development and Future Work
+
+_Roadmap_: Whatever we need to debug things.
+
+This file can be grabbed via `curl` statements and executed to help automate
+testing of cluster deployments.
+
+To help with doing this with the latest releases, it may be enhanced regularly,
+with new releases. 
+
+There is no real release plan other than this.
+
+Possible future work
+
+* Exploration of higher performance IO
+* Diagnostics/testing of integration with foundational Hadoop operations.
+* Improving CLI testing with various probes designed to be invoked in a shell
+  and fail with meaningful exit codes. E.g: verifying that a filesystem has a specific (key, val)
+  property, that a specific env var made it through.
+* something to scan hadoop installations for duplicate artifacts, which knowledge
+  of JARS which main contain the same classes (aws-shaded, aws-s3, etc),
+  and the knowledge of required consistencies (hadoop-*, jackson-*).
+* And extend to SPARK_HOME, Hive, etc.
+
+Contributions through PRs welcome.
+
+Bug reports: please include environment and ideally patches. 
+
+There is no formal support for this. Sorry. 
+

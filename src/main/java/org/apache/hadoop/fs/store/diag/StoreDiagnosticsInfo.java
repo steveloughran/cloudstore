@@ -273,7 +273,7 @@ public class StoreDiagnosticsInfo {
    */
   protected void validateConfig(Printout printout,
       final Configuration conf) throws IOException {
-    
+
   }
 
   public URI getFsURI() {

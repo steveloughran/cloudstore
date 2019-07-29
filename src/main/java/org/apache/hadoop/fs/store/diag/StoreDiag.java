@@ -1022,7 +1022,6 @@ public class StoreDiag extends StoreEntryPoint
           "Deleting file %s", file)) {
         fs.delete(file, true);
       }
-      
 
     } finally {
       // teardown: attempt to delete the directory

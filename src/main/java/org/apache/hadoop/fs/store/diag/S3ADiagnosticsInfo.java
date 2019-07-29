@@ -156,12 +156,18 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"AWS_SESSION_TOKEN", true},
   };
 
+  /**
+   * Mandatory classnames.
+   */
   public static final String[] classnames = {
       "org.apache.hadoop.fs.s3a.S3AFileSystem",
       "com.amazonaws.services.s3.AmazonS3",
       "com.amazonaws.ClientConfiguration",
   };
 
+  /**
+   * Optional classes.
+   */
   public static final String[] optionalClassnames = {
       // AWS features outwith the aws-s3-sdk JAR and needed for later releases.
        "com.amazonaws.services.dynamodbv2.AmazonDynamoDB",
@@ -248,7 +254,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
           String.class);
       return (Configuration)m.invoke(null, conf, getFsURI().getHost());
     } catch (ClassNotFoundException e) {
-      LOG.error("S3AUtils not found: hadoop-aws is not on the CP", e);
+      LOG.error("S3AUtils not found: hadoop-aws is not on the classpath", e);
       // this will carry on elsewhere
     } catch (NoSuchMethodException
         | IllegalAccessException

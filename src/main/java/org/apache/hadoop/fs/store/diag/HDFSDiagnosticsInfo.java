@@ -38,7 +38,7 @@ public class HDFSDiagnosticsInfo extends StoreDiagnosticsInfo {
 
   private static final Logger LOG = LoggerFactory.getLogger(
       HDFSDiagnosticsInfo.class);
-  
+
   private static final Object[][] options = {
       {"fs.defaultFS", false, false},
       {"hadoop.security.authentication", false, false},

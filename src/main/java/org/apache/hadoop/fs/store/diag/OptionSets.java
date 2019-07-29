@@ -35,9 +35,10 @@ public class OptionSets {
       {"hadoop.http.authentication.simple.anonymous.allowed", false, false},
       {"hadoop.rpc.protection", false, false},
       {"dfs.data.transfer.protection", false, false},
+      {"mapreduce.input.fileinputformat.list-status.num-threads", false, false},
       {"", false, false},
   };
-  
+
   protected static final Object[][] CLUSTER_OPTIONS = {
       {"fs.defaultFS", false, false},
       {"fs.default.name", false, false},
@@ -46,6 +47,5 @@ public class OptionSets {
       {"yarn.resourcemanager.webapp.address", false, false},
       {"yarn.resourcemanager.webapp.https.address", false, false},
   };
-  
-  
+
 }
