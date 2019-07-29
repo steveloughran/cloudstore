@@ -37,6 +37,9 @@ import org.apache.hadoop.security.token.Token;
 import org.apache.hadoop.util.ExitUtil;
 import org.apache.hadoop.util.ToolRunner;
 
+import static org.apache.hadoop.fs.store.CommonParameters.DEFINE;
+import static org.apache.hadoop.fs.store.CommonParameters.TOKENFILE;
+import static org.apache.hadoop.fs.store.CommonParameters.VERBOSE;
 import static org.apache.hadoop.fs.store.CommonParameters.XMLFILE;
 
 /**
@@ -56,9 +59,9 @@ public class FetchTokens extends StoreEntryPoint {
   private static final String REQUIRED = "r";
 
   public FetchTokens() {
-    setCommandFormat(
-        new CommandFormat(2, 999,
-            REQUIRED));
+    createCommandFormat(2, 999,
+            REQUIRED, VERBOSE);
+    addValueOptions(XMLFILE, DEFINE, RENEWER);
     getCommandFormat().addOptionWithValue(RENEWER);
     getCommandFormat().addOptionWithValue(XMLFILE);
   }
@@ -71,6 +74,7 @@ public class FetchTokens extends StoreEntryPoint {
       return EXIT_USAGE;
     }
     addAllDefaultXMLFiles();
+
     final Configuration conf = new Configuration();
     final UserGroupInformation self = UserGroupInformation.getLoginUser();
 
@@ -82,11 +86,13 @@ public class FetchTokens extends StoreEntryPoint {
     final List<String> urls = paths.subList(1, paths.size());
     final boolean required = hasOption(REQUIRED);
 
+    maybeAddXMLFileOption(conf, XMLFILE);
+    maybePatchDefined(conf, DEFINE);
+
     // qualify the FS so that what gets printed is absolute.
     FileSystem fs = tokenfile.getFileSystem(conf);
     Path dest = tokenfile.makeQualified(fs.getUri(), fs.getWorkingDirectory());
 
-    maybeAddXMLFileOption(conf, XMLFILE);
     println("Collecting tokens for %d filesystem%s to to %s",
         urls.size(),
         plural(urls.size()),

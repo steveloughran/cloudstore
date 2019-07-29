@@ -25,6 +25,7 @@ import java.io.PrintStream;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -34,7 +35,10 @@ import org.slf4j.LoggerFactory;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
+import org.apache.hadoop.fs.FileStatus;
+import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.LocatedFileStatus;
+import org.apache.hadoop.fs.StorageStatistics;
 import org.apache.hadoop.fs.shell.CommandFormat;
 import org.apache.hadoop.security.Credentials;
 import org.apache.hadoop.security.UserGroupInformation;
@@ -43,11 +47,16 @@ import org.apache.hadoop.security.token.TokenIdentifier;
 import org.apache.hadoop.util.ExitUtil;
 import org.apache.hadoop.util.Tool;
 
+import static org.apache.hadoop.fs.store.CommonParameters.DEFINE;
+import static org.apache.hadoop.fs.store.CommonParameters.TOKENFILE;
+import static org.apache.hadoop.fs.store.CommonParameters.VERBOSE;
+import static org.apache.hadoop.fs.store.CommonParameters.XMLFILE;
 import static org.apache.hadoop.fs.store.StoreUtils.split;
 
 /**
  * Entry point for store applications
  */
+@SuppressWarnings("UseOfSystemOutOrSystemErr")
 public class StoreEntryPoint extends Configured implements Tool {
 
   private static final Logger LOG = LoggerFactory.getLogger(StoreEntryPoint.class);
@@ -133,6 +142,28 @@ public class StoreEntryPoint extends Configured implements Tool {
   }
 
   /**
+   * Create the command format.
+   * Use {@link #addValueOptions(String...)} to declare the value
+   * options afterwards.
+   * @param min minimum number of non-option arguments.
+   * @param max max number of non-option arguments.
+   * @param options simple options.
+   */
+  protected void createCommandFormat(int min, int max, String... options) {
+    setCommandFormat(new CommandFormat(min, max, options));
+  }
+
+  /**
+   * Add a list of value options.
+   * @param names option names.
+   */
+  protected void addValueOptions(String...names) {
+    for (String s : names) {
+      commandFormat.addOptionWithValue(s);
+    }
+  }
+
+  /**
    * Parse CLI arguments and returns the position arguments.
    * The options are stored in {@link #commandFormat}.
    *
@@ -182,6 +213,10 @@ public class StoreEntryPoint extends Configured implements Tool {
     Configuration.addDefaultResource("mapred-site.xml");
     Configuration.addDefaultResource("yarn-default.xml");
     Configuration.addDefaultResource("yarn-site.xml");
+    Configuration.addDefaultResource("hive-site.xml");
+    Configuration.addDefaultResource("hive-default.xml");
+    Configuration.addDefaultResource("hbase-default.xml");
+    Configuration.addDefaultResource("hbase-site.xml");
   }
 
   /**
@@ -253,4 +288,40 @@ public class StoreEntryPoint extends Configured implements Tool {
   }
 
 
+  protected void printStatus(final int index, final FileStatus status) {
+    println("[%04d]\t%s\t%,d\t%s\t%s\t[%s]",
+        index,
+        status.getPath(),
+        status.getLen(),
+        status.getOwner(),
+        status.getGroup(),
+        status.isEncrypted() ? "encrypted" : "");
+  }
+
+  /**
+   * Dump the filesystem Storage Statistics iff the
+   * verbose flag was set.
+   * @param fs filesystem.
+   */
+
+  protected void maybeDumpStorageStatistics(final FileSystem fs) {
+    if (hasOption(VERBOSE)) {
+      dumpFileSystemStatistics(fs);
+    }
+  }
+
+  /**
+   * Dump the filesystem Storage Statistics.
+   * @param fs filesystem.
+   */
+  protected void dumpFileSystemStatistics(FileSystem fs) {
+    heading("Storage Statistics");
+    StorageStatistics st = fs.getStorageStatistics();
+    Iterator<StorageStatistics.LongStatistic> it
+        = st.getLongStatistics();
+    while (it.hasNext()) {
+      StorageStatistics.LongStatistic next = it.next();
+      println("%s\t%s", next.getName(), next.getValue());
+    }
+  }
 }

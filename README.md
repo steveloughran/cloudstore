@@ -227,6 +227,152 @@ Found 10 files, 124 milliseconds per file
 Data size 217,741,136 bytes, 21,774,113 bytes per file
 ```
 
+## Command `locatefiles`
+
+Use the mapreduce `LocatedFileStatusFetcher` to scan for all non-hidden
+files under a path. This matches exactly the scan process used in `FileInputFormat`,
+so offers a command line way to view and tune scans of object stores.
+It can also be used in comparison with the `list` command to compare the
+difference between the maximum performance of scanning the directory
+tree with the actual performance you are likely to see during query planning.
+
+Usage:
+
+```
+hadoop jar cloudstore-0.1-SNAPSHOT.jar locatefiles
+Usage: locatefiles
+  -D <key=value>	Define a property
+  -tokenfile <file>	Hadoop token file to load
+  -xmlfile <file>	XML config file to load
+  -threads <threads>	number of threads
+  -verbose	print verbose output
+[<path>|<pattern>]```
+```
+
+Example
+
+```
+> hadoop jar cloudstore-0.1-SNAPSHOT.jar locatefiles \
+ -threads 8 -verbose \
+ s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/
+
+
+Locating files under s3a://landsat-pds/L8/001/002/LC80010022016230LGN00 with thread count 8
+===========================================================================================
+
+2019-07-29 16:48:19,844 [main] INFO  tools.LocateFiles (DurationInfo.java:<init>(53)) - Starting: List located files
+2019-07-29 16:48:19,847 [main] INFO  tools.LocateFiles (DurationInfo.java:<init>(53)) - Starting: LocateFileStatus execution
+2019-07-29 16:48:24,645 [main] INFO  tools.LocateFiles (DurationInfo.java:close(100)) - LocateFileStatus execution: duration 0:04:798
+[0001]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B1.TIF	63,786,465	stevel	stevel	[encrypted]
+[0002]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B1.TIF.ovr	8,475,353	stevel	stevel	[encrypted]
+[0003]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B10.TIF	35,027,713	stevel	stevel	[encrypted]
+[0004]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B10.TIF.ovr	6,029,012	stevel	stevel	[encrypted]
+[0005]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B10_wrk.IMD	10,213	stevel	stevel	[encrypted]
+[0006]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B11.TIF	34,131,348	stevel	stevel	[encrypted]
+[0007]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B11.TIF.ovr	5,891,395	stevel	stevel	[encrypted]
+[0008]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B11_wrk.IMD	10,213	stevel	stevel	[encrypted]
+[0009]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B1_wrk.IMD	10,213	stevel	stevel	[encrypted]
+[0010]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B2.TIF	64,369,211	stevel	stevel	[encrypted]
+[0011]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B2.TIF.ovr	8,554,522	stevel	stevel	[encrypted]
+[0012]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B2_wrk.IMD	10,213	stevel	stevel	[encrypted]
+[0013]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B3.TIF	64,624,022	stevel	stevel	[encrypted]
+[0014]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B3.TIF.ovr	8,586,772	stevel	stevel	[encrypted]
+[0015]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B3_wrk.IMD	10,213	stevel	stevel	[encrypted]
+[0016]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B4.TIF	65,359,653	stevel	stevel	[encrypted]
+[0017]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B4.TIF.ovr	8,673,306	stevel	stevel	[encrypted]
+[0018]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B4_wrk.IMD	10,213	stevel	stevel	[encrypted]
+[0019]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B5.TIF	66,093,949	stevel	stevel	[encrypted]
+[0020]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B5.TIF.ovr	8,763,806	stevel	stevel	[encrypted]
+[0021]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B5_wrk.IMD	10,213	stevel	stevel	[encrypted]
+[0022]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B6.TIF	64,164,626	stevel	stevel	[encrypted]
+[0023]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B6.TIF.ovr	8,593,010	stevel	stevel	[encrypted]
+[0024]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B6_wrk.IMD	10,213	stevel	stevel	[encrypted]
+[0025]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B7.TIF	62,973,644	stevel	stevel	[encrypted]
+[0026]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B7.TIF.ovr	8,453,473	stevel	stevel	[encrypted]
+[0027]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B7_wrk.IMD	10,213	stevel	stevel	[encrypted]
+[0028]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B8.TIF	250,149,053	stevel	stevel	[encrypted]
+[0029]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B8.TIF.ovr	33,608,245	stevel	stevel	[encrypted]
+[0030]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B8_wrk.IMD	10,213	stevel	stevel	[encrypted]
+[0031]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B9.TIF	39,328,679	stevel	stevel	[encrypted]
+[0032]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B9.TIF.ovr	3,834,730	stevel	stevel	[encrypted]
+[0033]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B9_wrk.IMD	10,213	stevel	stevel	[encrypted]
+[0034]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_BQA.TIF	3,033,084	stevel	stevel	[encrypted]
+[0035]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_BQA.TIF.ovr	586,478	stevel	stevel	[encrypted]
+[0036]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_BQA_wrk.IMD	10,213	stevel	stevel	[encrypted]
+[0037]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_MTL.json	9,269	stevel	stevel	[encrypted]
+[0038]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_MTL.txt	7,645	stevel	stevel	[encrypted]
+[0039]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_thumb_large.jpg	270,427	stevel	stevel	[encrypted]
+[0040]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_thumb_small.jpg	12,873	stevel	stevel	[encrypted]
+[0041]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/index.html	3,780	stevel	stevel	[encrypted]
+2019-07-29 16:48:24,652 [main] INFO  tools.LocateFiles (DurationInfo.java:close(100)) - List located files: duration 0:04:810
+
+Found 41 files, 117 milliseconds per file
+Data size 923,518,099 bytes, 22,524,831 bytes per file
+
+Storage Statistics
+==================
+
+directories_created	0
+directories_deleted	0
+files_copied	0
+files_copied_bytes	0
+files_created	0
+files_deleted	0
+files_delete_rejected	0
+fake_directories_created	0
+fake_directories_deleted	0
+ignored_errors	0
+op_copy_from_local_file	0
+op_create	0
+op_create_non_recursive	0
+op_delete	0
+op_exists	0
+op_get_delegation_token	0
+op_get_file_checksum	0
+op_get_file_status	2
+op_glob_status	1
+op_is_directory	0
+op_is_file	0
+op_list_files	0
+op_list_located_status	1
+op_list_status	0
+op_mkdirs	0
+op_open	0
+op_rename	0
+object_copy_requests	0
+object_delete_requests	0
+object_list_requests	3
+object_continue_list_requests	0
+object_metadata_requests	4
+object_multipart_initiated	0
+object_multipart_aborted	0
+object_put_requests	0
+object_put_requests_completed	0
+object_put_requests_active	0
+object_put_bytes	0
+object_put_bytes_pending	0
+object_select_requests	0
+...
+store_io_throttled	0
+```
+
+You get the metrics with the `-verbose` option;
+
+
+There is plenty room for improvements in directory tree scanning. 
+
+1. There are needless HEAD/`getObjectMetadata` requests because
+`S3AFileSystem.listLocatedStatus` probes the path for being a file or dir
+before initiating the real LIST. It could do the LIST first and only fall back
+to a HEAD after, on the basis that the invocations in query planning only call
+this on directories, and in a real-world data source tree, there are fewer empty
+directories to worry about, than dirs with real data.
+1. when there are no wildcards in the supplied path, the globber should switch to
+using the `locateFiles` API.
+
+You can also explore what directory tree structure is most efficient here.
+
+
 ## Command `bucketstate`
 
 Prints some of the low level diagnostics information about a bucket which
@@ -247,7 +393,7 @@ NONE
 If you don't have the permissions to read the bucket policy, you get a stack trace.
 
 ```bash
-bin/hadoop jar cloudstore-0.1-SNAPSHOT.jar \
+hadoop jar cloudstore-0.1-SNAPSHOT.jar \
             bucketstate \
             s3a://mybucket/
 

@@ -76,6 +76,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 //import static org.apache.hadoop.fs.CommonConfigurationKeysPublic.FS_DEFAULT_NAME_KEY;
 import static org.apache.hadoop.fs.store.CommonParameters.DEFINE;
 import static org.apache.hadoop.fs.store.CommonParameters.TOKENFILE;
+import static org.apache.hadoop.fs.store.CommonParameters.VERBOSE;
 import static org.apache.hadoop.fs.store.CommonParameters.XMLFILE;
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_SUCCESS;
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
@@ -132,18 +133,15 @@ public class StoreDiag extends StoreEntryPoint
   private StoreDiagnosticsInfo storeInfo;
 
   public StoreDiag() {
-     setCommandFormat(new CommandFormat(1, 1,
-         JARS,
-         DELEGATION,
-         READONLY,
-         LOGDUMP,
-         MD5,
-         SYSPROPS));
-     getCommandFormat().addOptionWithValue(TOKENFILE);
-     getCommandFormat().addOptionWithValue(XMLFILE);
-     getCommandFormat().addOptionWithValue(REQUIRED);
-     getCommandFormat().addOptionWithValue(PRINCIPAL);
-     getCommandFormat().addOptionWithValue(DEFINE);
+    createCommandFormat(1, 1,
+        VERBOSE,
+        JARS,
+        DELEGATION,
+        READONLY,
+        LOGDUMP,
+        MD5,
+        SYSPROPS);
+    addValueOptions(TOKENFILE, XMLFILE, DEFINE, REQUIRED, PRINCIPAL);
   }
 
   /**

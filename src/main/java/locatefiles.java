@@ -16,15 +16,11 @@
  * limitations under the License.
  */
 
-package org.apache.hadoop.fs.store;
+import org.apache.hadoop.fs.tools.LocateFiles;
 
-public class CommonParameters {
+public class locatefiles {
 
-  public static final String TOKENFILE = "tokenfile";
-
-  public static final String XMLFILE = "xmlfile";
-
-  public static final String DEFINE = "D";
-
-  public static final String VERBOSE = "verbose";
+  public static void main(String[] args) throws Exception {
+    LocateFiles.main(args);
+  }
 }

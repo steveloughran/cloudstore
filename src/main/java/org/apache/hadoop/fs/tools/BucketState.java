@@ -58,10 +58,8 @@ public class BucketState extends StoreEntryPoint {
       + " <S3A path>";
 
   public BucketState() {
-    setCommandFormat(new CommandFormat(1, 1));
-    getCommandFormat().addOptionWithValue(TOKENFILE);
-    getCommandFormat().addOptionWithValue(XMLFILE);
-    getCommandFormat().addOptionWithValue(DEFINE);
+    createCommandFormat(1, 1);
+    addValueOptions(TOKENFILE, XMLFILE, DEFINE);
   }
 
   @Override
