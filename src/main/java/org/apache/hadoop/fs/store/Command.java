@@ -16,17 +16,19 @@
  * limitations under the License.
  */
 
-import org.apache.hadoop.fs.store.Command;
-import org.apache.hadoop.fs.tools.LocateFiles;
+package org.apache.hadoop.fs.store;
 
-public class locatefiles extends Command {
+/**
+ * This is the base class for the minimal CLI commands.
+ */
+public class Command {
 
-  public static void main(String[] args) throws Exception {
-    LocateFiles.main(args);
+  protected static void println(String s) {
+    System.out.println(s);
   }
 
-  public static void help() {
-    printCommand("locatefiles", "locate files");
+  protected static void printCommand(String name, String function) {
+    System.out.printf("%s\t--\t%s%n", name, function);
   }
 
 }

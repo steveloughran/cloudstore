@@ -18,8 +18,11 @@
 
 package org.apache.hadoop.fs.tools;
 
+import java.io.IOException;
+import java.nio.file.AccessDeniedException;
 import java.util.List;
 
+import com.amazonaws.SdkClientException;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.BucketPolicy;
 import com.amazonaws.services.s3.model.GetS3AccountOwnerRequest;
@@ -30,6 +33,7 @@ import org.slf4j.LoggerFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.s3a.InternalAccess;
+import org.apache.hadoop.fs.s3a.Invoker;
 import org.apache.hadoop.fs.s3a.S3AFileSystem;
 import org.apache.hadoop.fs.shell.CommandFormat;
 import org.apache.hadoop.fs.store.DurationInfo;
@@ -51,7 +55,7 @@ public class BucketState extends StoreEntryPoint {
   public static final String LIMIT = "limit";
 
   public static final String USAGE
-      = "Usage: list\n"
+      = "Usage: bucketstate\n"
       + optusage(DEFINE, "key=value", "Define a property")
       + optusage(TOKENFILE, "file", "Hadoop token file to load")
       + optusage(XMLFILE, "file", "XML config file to load")
@@ -88,10 +92,21 @@ public class BucketState extends StoreEntryPoint {
           new GetS3AccountOwnerRequest());
       println("Bucket owner is %s (ID=%s)", owner.getDisplayName(),
           owner.getId());
-      BucketPolicy policy = s3Client.getBucketPolicy(fs.getBucket());
-      String policyText = policy.getPolicyText();
-      println("Bucket policy:%n%s",
-          policyText != null ? policyText : "NONE" );
+      String policyText;
+      String bucket = fs.getBucket();
+      try {
+        BucketPolicy policy = Invoker.once("getBucketPolicy",
+            bucket, () ->
+                s3Client.getBucketPolicy(bucket));
+        String t = policy.getPolicyText();
+        policyText = t != null
+            ? "\n" + t
+            : "NONE";
+
+      } catch (AccessDeniedException e) {
+        policyText = "Access-Denied";
+      }
+      println("Bucket policy: %s", policyText);
     } finally {
       duration.close();
     }

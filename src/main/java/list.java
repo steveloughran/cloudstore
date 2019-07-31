@@ -16,11 +16,17 @@
  * limitations under the License.
  */
 
+import org.apache.hadoop.fs.store.Command;
 import org.apache.hadoop.fs.tools.ListFiles;
 
-public class list {
+public class list extends Command {
 
   public static void main(String[] args) throws Exception {
     ListFiles.main(args);
   }
+
+  public static void help() {
+    printCommand("list", "list files");
+  }
+
 }

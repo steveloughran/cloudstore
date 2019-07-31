@@ -17,10 +17,15 @@
  */
 
 import org.apache.hadoop.fs.FetchTokens;
+import org.apache.hadoop.fs.store.Command;
 
-public class fetchdt {
-  
+public class fetchdt extends Command {
+
   public static void main(String[] args) throws Exception {
     FetchTokens.main(args);
+  }
+
+  public static void help() {
+    printCommand("fetchdt", "fetch delegation tokens");
   }
 }

@@ -16,11 +16,16 @@
  * limitations under the License.
  */
 
+import org.apache.hadoop.fs.store.Command;
 import org.apache.hadoop.fs.tools.BucketState;
 
-public class bucketstate {
-  
+public class bucketstate extends Command {
+
   public static void main(String[] args) throws Exception {
     BucketState.main(args);
+  }
+
+  public static void help() {
+    printCommand("bucketstate","prints the AWS bucket state");
   }
 }

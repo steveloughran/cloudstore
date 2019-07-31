@@ -16,11 +16,16 @@
  * limitations under the License.
  */
 
+import org.apache.hadoop.fs.store.Command;
 import org.apache.hadoop.fs.store.diag.StoreDiag;
 
-public class storediag {
+public class storediag extends Command {
 
   public static void main(String[] args) throws Exception {
     StoreDiag.main(args);
+  }
+
+  public static void help() {
+    printCommand("storediag", "store diagnostics");
   }
 }

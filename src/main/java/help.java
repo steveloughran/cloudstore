@@ -17,16 +17,17 @@
  */
 
 import org.apache.hadoop.fs.store.Command;
-import org.apache.hadoop.fs.tools.LocateFiles;
 
-public class locatefiles extends Command {
+/**
+ * Help command: list the public commands.
+ */
+public class help extends Command {
 
   public static void main(String[] args) throws Exception {
-    LocateFiles.main(args);
+    bucketstate.help();
+    fetchdt.help();
+    list.help();
+    locatefiles.help();
+    storediag.help();
   }
-
-  public static void help() {
-    printCommand("locatefiles", "locate files");
-  }
-
 }

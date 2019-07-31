@@ -16,11 +16,11 @@
  * limitations under the License.
  */
 
-import org.apache.hadoop.fs.store.diag.mr.StoreDiagWC;
+import org.apache.hadoop.fs.store.diag.mr.StoreDiagJob;
 
 public class storediagjob {
 
   public static void main(String[] args) throws Exception {
-    StoreDiagWC.main(args);
+    StoreDiagJob.main(args);
   }
 }
