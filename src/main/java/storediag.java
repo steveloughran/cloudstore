@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import org.apache.hadoop.fs.store.Command;
+import org.apache.hadoop.fs.store.commands.Command;
 import org.apache.hadoop.fs.store.diag.StoreDiag;
 
 public class storediag extends Command {

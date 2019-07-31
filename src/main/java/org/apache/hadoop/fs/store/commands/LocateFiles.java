@@ -16,9 +16,8 @@
  * limitations under the License.
  */
 
-package org.apache.hadoop.fs.tools;
+package org.apache.hadoop.fs.store.commands;
 
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
@@ -31,8 +30,6 @@ import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.PathFilter;
-import org.apache.hadoop.fs.StorageStatistics;
-import org.apache.hadoop.fs.shell.CommandFormat;
 import org.apache.hadoop.fs.store.DurationInfo;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
 import org.apache.hadoop.mapred.LocatedFileStatusFetcher;

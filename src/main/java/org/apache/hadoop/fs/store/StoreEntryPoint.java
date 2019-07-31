@@ -301,7 +301,7 @@ public class StoreEntryPoint extends Configured implements Tool {
   /**
    * Dump the filesystem Storage Statistics iff the
    * verbose flag was set.
-   * @param fs filesystem.
+   * @param fs filesystem; can be null
    */
 
   protected void maybeDumpStorageStatistics(final FileSystem fs) {
@@ -312,9 +312,12 @@ public class StoreEntryPoint extends Configured implements Tool {
 
   /**
    * Dump the filesystem Storage Statistics.
-   * @param fs filesystem.
+   * @param fs filesystem; can be null
    */
   protected void dumpFileSystemStatistics(FileSystem fs) {
+    if (fs == null) {
+      return;
+    }
     heading("Storage Statistics");
     StorageStatistics st = fs.getStorageStatistics();
     Iterator<StorageStatistics.LongStatistic> it

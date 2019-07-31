@@ -378,7 +378,7 @@ You can also explore what directory tree structure is most efficient here.
 Prints some of the low level diagnostics information about a bucket which
 can be obtained via the AWS APIs.
 
-```bash
+```
 bin/hadoop jar cloudstore-0.1-SNAPSHOT.jar \
             bucketstate \
             s3a://mybucket/
@@ -392,7 +392,7 @@ NONE
 
 If you don't have the permissions to read the bucket policy, you get a stack trace.
 
-```bash
+```
 hadoop jar cloudstore-0.1-SNAPSHOT.jar \
             bucketstate \
             s3a://mybucket/
@@ -432,6 +432,29 @@ com.amazonaws.services.s3.model.AmazonS3Exception: The specified method is not a
 
 ```
 
+
+## Command `filestatus`
+
+Calls `getFileStatus` on the listed paths, prints the values. For stores
+which have more detail on the toString value of any subclass of `FileStatus`,
+this can be more meaningful.
+
+Also prints the time to execute each operation (including instantiating the store),
+and with the `-verbose` option, the store statistics.
+
+```
+hadoop jar  cloudstore-0.1-SNAPSHOT.jar \
+            filestatus  \
+            s3a://guarded-table/example
+
+2019-07-31 21:48:34,963 [main] INFO  commands.PrintStatus (DurationInfo.java:<init>(53)) - Starting: get path status
+s3a://guarded-table/example	S3AFileStatus{path=s3a://guarded-table/example; isDirectory=false; length=0; replication=1; 
+  blocksize=33554432; modification_time=1564602680000;
+  access_time=0; owner=stevel; group=stevel;
+  permission=rw-rw-rw-; isSymlink=false; hasAcl=false; isEncrypted=true; isErasureCoded=false}
+  isEmptyDirectory=FALSE eTag=d41d8cd98f00b204e9800998ecf8427e versionId=null
+2019-07-31 21:48:37,182 [main] INFO  commands.PrintStatus (DurationInfo.java:close(100)) - get path status: duration 0:02:221
+```
 
 ## Development and Future Work
 

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import org.apache.hadoop.fs.store.Command;
+import org.apache.hadoop.fs.store.commands.Command;
 
 /**
  * Help command: list the public commands.
@@ -26,6 +26,7 @@ public class help extends Command {
   public static void main(String[] args) throws Exception {
     bucketstate.help();
     fetchdt.help();
+    filestatus.help();
     list.help();
     locatefiles.help();
     storediag.help();

@@ -16,19 +16,17 @@
  * limitations under the License.
  */
 
-package org.apache.hadoop.fs.store;
+import org.apache.hadoop.fs.store.commands.Command;
+import org.apache.hadoop.fs.store.commands.PrintStatus;
 
-/**
- * This is the base class for the minimal CLI commands.
- */
-public class Command {
+public class filestatus extends Command {
 
-  protected static void println(String s) {
-    System.out.println(s);
+  public static void main(String[] args) throws Exception {
+    PrintStatus.main(args);
   }
 
-  protected static void printCommand(String name, String function) {
-    System.out.printf("%s\t--\t%s%n", name, function);
+  public static void help() {
+    printCommand("filestatus", "print file statuses");
   }
 
 }

@@ -16,13 +16,11 @@
  * limitations under the License.
  */
 
-package org.apache.hadoop.fs.tools;
+package org.apache.hadoop.fs.store.commands;
 
-import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.util.List;
 
-import com.amazonaws.SdkClientException;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.model.BucketPolicy;
 import com.amazonaws.services.s3.model.GetS3AccountOwnerRequest;
@@ -35,7 +33,6 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.s3a.InternalAccess;
 import org.apache.hadoop.fs.s3a.Invoker;
 import org.apache.hadoop.fs.s3a.S3AFileSystem;
-import org.apache.hadoop.fs.shell.CommandFormat;
 import org.apache.hadoop.fs.store.DurationInfo;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
 import org.apache.hadoop.util.ToolRunner;

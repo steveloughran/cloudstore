@@ -16,8 +16,8 @@
  * limitations under the License.
  */
 
-import org.apache.hadoop.fs.store.Command;
-import org.apache.hadoop.fs.tools.ListFiles;
+import org.apache.hadoop.fs.store.commands.Command;
+import org.apache.hadoop.fs.store.commands.ListFiles;
 
 public class list extends Command {
 
