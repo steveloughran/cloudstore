@@ -141,53 +141,6 @@
 
 
   <profiles>
-    <profile>
-      <id>branch-2.8</id>
-      <activation>
-        <property>
-          <name>branch-2.8</name>
-        </property>
-      </activation>
-      <properties>
-        <hadoop.version>2.8.4-SNAPSHOT</hadoop.version>
-      </properties>
-    </profile>
-
-    <profile>
-      <id>branch-2</id>
-      <activation>
-        <property>
-          <name>branch-2</name>
-        </property>
-      </activation>
-      <properties>
-        <hadoop.version>2.10.0-SNAPSHOT</hadoop.version>
-      </properties>
-    </profile>
-
-    <profile>
-      <id>hadoop-2.8</id>
-      <activation>
-        <property>
-          <name>hadoop-2.8</name>
-        </property>
-      </activation>
-      <properties>
-        <hadoop.version>2.8.4</hadoop.version>
-      </properties>
-    </profile>
-
-    <profile>
-      <id>hadoop-2.9</id>
-      <activation>
-        <property>
-          <name>hadoop-2.9</name>
-        </property>
-      </activation>
-      <properties>
-        <hadoop.version>2.9.2</hadoop.version>
-      </properties>
-    </profile>
 
     <profile>
       <id>branch-3.1</id>
@@ -210,6 +163,18 @@
       </activation>
       <properties>
         <hadoop.version>3.2.1-SNAPSHOT</hadoop.version>
+      </properties>
+    </profile>
+
+    <profile>
+      <id>hadoop-3.0</id>
+      <activation>
+        <property>
+          <name>hadoop-3.0</name>
+        </property>
+      </activation>
+      <properties>
+        <hadoop.version>3.0.3</hadoop.version>
       </properties>
     </profile>
 
@@ -246,18 +211,6 @@
       </activation>
       <properties>
         <hadoop.version>3.3.0-SNAPSHOT</hadoop.version>
-      </properties>
-    </profile>
-
-    <profile>
-      <id>hdp-2.6</id>
-      <activation>
-        <property>
-          <name>hdp-2.6</name>
-        </property>
-      </activation>
-      <properties>
-        <hadoop.version>2.7.3.2.6.3.0-SNAPSHOT</hadoop.version>
       </properties>
     </profile>
 

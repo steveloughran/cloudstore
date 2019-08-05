@@ -17,24 +17,17 @@
  */
 
 import org.apache.hadoop.fs.store.commands.Command;
+import org.apache.hadoop.fs.store.commands.CommitterInfo;
+import org.apache.hadoop.fs.store.commands.LocateFiles;
 
-/**
- * Help command: list the public commands.
- */
-public class help extends Command {
+public class committerinfo extends Command {
 
-  /**
-   * When adding new entries here, use alphabetical order.
-   * @param args
-   * @throws Exception
-   */
   public static void main(String[] args) throws Exception {
-    bucketstate.help();
-    committerinfo.help();
-    fetchdt.help();
-    filestatus.help();
-    list.help();
-    locatefiles.help();
-    storediag.help();
+    CommitterInfo.main(args);
   }
+
+  public static void help() {
+    printCommand("committerinfo", "Print committer information");
+  }
+
 }

@@ -267,40 +267,7 @@ Locating files under s3a://landsat-pds/L8/001/002/LC80010022016230LGN00 with thr
 [0002]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B1.TIF.ovr	8,475,353	stevel	stevel	[encrypted]
 [0003]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B10.TIF	35,027,713	stevel	stevel	[encrypted]
 [0004]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B10.TIF.ovr	6,029,012	stevel	stevel	[encrypted]
-[0005]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B10_wrk.IMD	10,213	stevel	stevel	[encrypted]
-[0006]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B11.TIF	34,131,348	stevel	stevel	[encrypted]
-[0007]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B11.TIF.ovr	5,891,395	stevel	stevel	[encrypted]
-[0008]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B11_wrk.IMD	10,213	stevel	stevel	[encrypted]
-[0009]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B1_wrk.IMD	10,213	stevel	stevel	[encrypted]
-[0010]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B2.TIF	64,369,211	stevel	stevel	[encrypted]
-[0011]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B2.TIF.ovr	8,554,522	stevel	stevel	[encrypted]
-[0012]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B2_wrk.IMD	10,213	stevel	stevel	[encrypted]
-[0013]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B3.TIF	64,624,022	stevel	stevel	[encrypted]
-[0014]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B3.TIF.ovr	8,586,772	stevel	stevel	[encrypted]
-[0015]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B3_wrk.IMD	10,213	stevel	stevel	[encrypted]
-[0016]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B4.TIF	65,359,653	stevel	stevel	[encrypted]
-[0017]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B4.TIF.ovr	8,673,306	stevel	stevel	[encrypted]
-[0018]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B4_wrk.IMD	10,213	stevel	stevel	[encrypted]
-[0019]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B5.TIF	66,093,949	stevel	stevel	[encrypted]
-[0020]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B5.TIF.ovr	8,763,806	stevel	stevel	[encrypted]
-[0021]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B5_wrk.IMD	10,213	stevel	stevel	[encrypted]
-[0022]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B6.TIF	64,164,626	stevel	stevel	[encrypted]
-[0023]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B6.TIF.ovr	8,593,010	stevel	stevel	[encrypted]
-[0024]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B6_wrk.IMD	10,213	stevel	stevel	[encrypted]
-[0025]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B7.TIF	62,973,644	stevel	stevel	[encrypted]
-[0026]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B7.TIF.ovr	8,453,473	stevel	stevel	[encrypted]
-[0027]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B7_wrk.IMD	10,213	stevel	stevel	[encrypted]
-[0028]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B8.TIF	250,149,053	stevel	stevel	[encrypted]
-[0029]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B8.TIF.ovr	33,608,245	stevel	stevel	[encrypted]
-[0030]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B8_wrk.IMD	10,213	stevel	stevel	[encrypted]
-[0031]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B9.TIF	39,328,679	stevel	stevel	[encrypted]
-[0032]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B9.TIF.ovr	3,834,730	stevel	stevel	[encrypted]
-[0033]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B9_wrk.IMD	10,213	stevel	stevel	[encrypted]
-[0034]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_BQA.TIF	3,033,084	stevel	stevel	[encrypted]
-[0035]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_BQA.TIF.ovr	586,478	stevel	stevel	[encrypted]
-[0036]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_BQA_wrk.IMD	10,213	stevel	stevel	[encrypted]
-[0037]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_MTL.json	9,269	stevel	stevel	[encrypted]
-[0038]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_MTL.txt	7,645	stevel	stevel	[encrypted]
+...
 [0039]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_thumb_large.jpg	270,427	stevel	stevel	[encrypted]
 [0040]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_thumb_small.jpg	12,873	stevel	stevel	[encrypted]
 [0041]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/index.html	3,780	stevel	stevel	[encrypted]
@@ -455,6 +422,76 @@ s3a://guarded-table/example	S3AFileStatus{path=s3a://guarded-table/example; isDi
   isEmptyDirectory=FALSE eTag=d41d8cd98f00b204e9800998ecf8427e versionId=null
 2019-07-31 21:48:37,182 [main] INFO  commands.PrintStatus (DurationInfo.java:close(100)) - get path status: duration 0:02:221
 ```
+
+
+## Command `committerinfo`
+
+Tries to instantiate a committer using the Hadoop 3.1+ committer factory mechanism, printing out
+what committer a specific path will create.
+
+If this command fails with a `ClassNotFoundException` it can mean that the version of hadoop the command is being
+run against doesn't have this new API. The committer is therefore explicitly the classic `FileOutputCommitter`.
+
+
+* Good: ABFS container with the classic `FileOutputCommitter`
+
+```
+> bin/hadoop jar loudstore-0.1-SNAPSHOT.jar committerinfo abfs://container@storage.dfs.core.windows.net/
+  2019-08-05 17:39:48,623 [main] INFO  commands.CommitterInfo (DurationInfo.java:<init>(53)) - Starting: Create committer
+  Committer factory for path abfs://container@storage.dfs.core.windows.net/ is org.apache.hadoop.mapreduce.lib.output.FileOutputCommitterFactory@316bcf94 (classname org.apache.hadoop.mapreduce.lib.output.FileOutputCommitterFactory)
+  2019-08-05 17:39:49,233 [main] INFO  output.FileOutputCommitter (FileOutputCommitter.java:<init>(141)) - File Output Committer Algorithm version is 2
+  2019-08-05 17:39:49,233 [main] INFO  output.FileOutputCommitter (FileOutputCommitter.java:<init>(156)) - FileOutputCommitter skip cleanup _temporary folders under output directory:false, ignore cleanup failures: false
+  Created committer of class org.apache.hadoop.mapreduce.lib.output.FileOutputCommitter: FileOutputCommitter{PathOutputCommitter{context=TaskAttemptContextImpl{JobContextImpl{jobId=job__0000}; taskId=attempt__0000_r_000000_1, status=''}; org.apache.hadoop.mapreduce.lib.output.FileOutputCommitter@54a7079e}; outputPath=abfs://container@storage.dfs.core.windows.net/, workPath=abfs://container@storage.dfs.core.windows.net/_temporary/0/_temporary/attempt__0000_r_000000_1, algorithmVersion=2, skipCleanup=false, ignoreCleanupFailures=false}
+  2019-08-05 17:39:49,234 [main] INFO  commands.CommitterInfo (DurationInfo.java:close(100)) - Create committer: duration 0:00:613
+```
+
+*Danger*: S3A Bucket with the classic `FileOutputCommitter`
+
+```
+> hadoop jar cloudstore-0.1-SNAPSHOT.jar committerinfo s3a://landsat-pds/
+  2019-08-05 17:38:38,213 [main] INFO  commands.CommitterInfo (DurationInfo.java:<init>(53)) - Starting: Create committer
+  2019-08-05 17:38:40,968 [main] WARN  commit.AbstractS3ACommitterFactory (S3ACommitterFactory.java:createTaskCommitter(90)) - Using standard FileOutputCommitter to commit work. This is slow and potentially unsafe.
+  2019-08-05 17:38:40,968 [main] INFO  output.FileOutputCommitter (FileOutputCommitter.java:<init>(141)) - File Output Committer Algorithm version is 2
+  2019-08-05 17:38:40,968 [main] INFO  output.FileOutputCommitter (FileOutputCommitter.java:<init>(156)) - FileOutputCommitter skip cleanup _temporary folders under output directory:false, ignore cleanup failures: false
+  2019-08-05 17:38:40,970 [main] INFO  commit.AbstractS3ACommitterFactory (AbstractS3ACommitterFactory.java:createOutputCommitter(54)) - Using Commmitter FileOutputCommitter{PathOutputCommitter{context=TaskAttemptContextImpl{JobContextImpl{jobId=job__0000}; taskId=attempt__0000_r_000000_1, status=''}; org.apache.hadoop.mapreduce.lib.output.FileOutputCommitter@6cc0bcf6}; outputPath=s3a://landsat-pds/, workPath=s3a://landsat-pds/_temporary/0/_temporary/attempt__0000_r_000000_1, algorithmVersion=2, skipCleanup=false, ignoreCleanupFailures=false} for s3a://landsat-pds/
+  Created committer of class org.apache.hadoop.mapreduce.lib.output.FileOutputCommitter: FileOutputCommitter{PathOutputCommitter{context=TaskAttemptContextImpl{JobContextImpl{jobId=job__0000}; taskId=attempt__0000_r_000000_1, status=''}; org.apache.hadoop.mapreduce.lib.output.FileOutputCommitter@6cc0bcf6}; outputPath=s3a://landsat-pds/, workPath=s3a://landsat-pds/_temporary/0/_temporary/attempt__0000_r_000000_1, algorithmVersion=2, skipCleanup=false, ignoreCleanupFailures=false}
+  2019-08-05 17:38:40,970 [main] INFO  commands.CommitterInfo (DurationInfo.java:close(100)) - Create committer: duration 0:02:758
+```
+
+
+*Good* : S3A bucket with a staging committer:
+
+```
+>  hadoop jar  cloudstore-0.1-SNAPSHOT.jar committerinfo s3a://hwdev-steve-ireland-new/
+  2019-08-05 17:42:53,563 [main] INFO  commands.CommitterInfo (DurationInfo.java:<init>(53)) - Starting: Create committer
+  Committer factory for path s3a://hwdev-steve-ireland-new/ is org.apache.hadoop.fs.s3a.commit.S3ACommitterFactory@3088660d (classname org.apache.hadoop.fs.s3a.commit.S3ACommitterFactory)
+  2019-08-05 17:42:55,433 [main] INFO  output.FileOutputCommitter (FileOutputCommitter.java:<init>(141)) - File Output Committer Algorithm version is 1
+  2019-08-05 17:42:55,434 [main] INFO  output.FileOutputCommitter (FileOutputCommitter.java:<init>(156)) - FileOutputCommitter skip cleanup _temporary folders under output directory:false, ignore cleanup failures: false
+  2019-08-05 17:42:55,434 [main] INFO  commit.AbstractS3ACommitterFactory (S3ACommitterFactory.java:createTaskCommitter(83)) - Using committer directory to output data to s3a://hwdev-steve-ireland-new/
+  2019-08-05 17:42:55,435 [main] INFO  commit.AbstractS3ACommitterFactory (AbstractS3ACommitterFactory.java:createOutputCommitter(54)) - Using Commmitter StagingCommitter{AbstractS3ACommitter{role=Task committer attempt__0000_r_000000_1, name=directory, outputPath=s3a://hwdev-steve-ireland-new/, workPath=file:/tmp/hadoop-stevel/s3a/job__0000/_temporary/0/_temporary/attempt__0000_r_000000_1}, conflictResolution=APPEND, wrappedCommitter=FileOutputCommitter{PathOutputCommitter{context=TaskAttemptContextImpl{JobContextImpl{jobId=job__0000}; taskId=attempt__0000_r_000000_1, status=''}; org.apache.hadoop.mapreduce.lib.output.FileOutputCommitter@5a865416}; outputPath=file:/Users/stevel/Projects/Releases/hadoop-3.3.0-SNAPSHOT/tmp/staging/stevel/job__0000/staging-uploads, workPath=null, algorithmVersion=1, skipCleanup=false, ignoreCleanupFailures=false}} for s3a://hwdev-steve-ireland-new/
+  Created committer of class org.apache.hadoop.fs.s3a.commit.staging.DirectoryStagingCommitter: StagingCommitter{AbstractS3ACommitter{role=Task committer attempt__0000_r_000000_1, name=directory, outputPath=s3a://hwdev-steve-ireland-new/, workPath=file:/tmp/hadoop-stevel/s3a/job__0000/_temporary/0/_temporary/attempt__0000_r_000000_1}, conflictResolution=APPEND, wrappedCommitter=FileOutputCommitter{PathOutputCommitter{context=TaskAttemptContextImpl{JobContextImpl{jobId=job__0000}; taskId=attempt__0000_r_000000_1, status=''}; org.apache.hadoop.mapreduce.lib.output.FileOutputCommitter@5a865416}; outputPath=file:/Users/stevel/Projects/Releases/hadoop-3.3.0-SNAPSHOT/tmp/staging/stevel/job__0000/staging-uploads, workPath=null, algorithmVersion=1, skipCleanup=false, ignoreCleanupFailures=false}}
+  2019-08-05 17:42:55,435 [main] INFO  commands.CommitterInfo (DurationInfo.java:close(100)) - Create committer: duration 0:01:874
+```
+
+The log entry about a FileOutputCommitter appears because the Staging Committers use the cluster filesystem (HDFS, etc) to safely pass information from the workers to the application master.
+
+The classic filesystem committer v1 is used because it works well here: the filesystem is consistent and operations are fast. Neither of those conditions are met with AWS S3.
+
+
+*Good* : S3A bucket with a magic committer:
+
+```
+> hadoop jar cloudstore-0.1-SNAPSHOT.jar committerinfo s3a://hwdev-steve-ireland-new/
+
+2019-08-05 17:37:42,615 [main] INFO  commands.CommitterInfo (DurationInfo.java:<init>(53)) - Starting: Create committer
+2019-08-05 17:37:44,462 [main] INFO  commit.AbstractS3ACommitterFactory (S3ACommitterFactory.java:createTaskCommitter(83)) - Using committer magic to output data to s3a://hwdev-steve-ireland-new/
+2019-08-05 17:37:44,462 [main] INFO  commit.AbstractS3ACommitterFactory (AbstractS3ACommitterFactory.java:createOutputCommitter(54)) - Using Commmitter MagicCommitter{} for s3a://hwdev-steve-ireland-new/
+Created committer of class org.apache.hadoop.fs.s3a.commit.magic.MagicS3GuardCommitter: MagicCommitter{}
+2019-08-05 17:37:44,462 [main] INFO  commands.CommitterInfo (DurationInfo.java:close(100)) - Create committer: duration 0:01:849
+```
+
+Note: unless this store has S3Guard enabled or is a third party object store with consistent directory listings, the magic committer is not iself safe to use.
+
 
 ## Development and Future Work
 

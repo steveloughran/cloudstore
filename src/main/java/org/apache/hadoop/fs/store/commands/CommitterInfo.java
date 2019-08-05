@@ -30,6 +30,11 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.store.DurationInfo;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
+import org.apache.hadoop.mapreduce.TaskAttemptID;
+import org.apache.hadoop.mapreduce.TaskID;
+import org.apache.hadoop.mapreduce.lib.output.PathOutputCommitter;
+import org.apache.hadoop.mapreduce.lib.output.PathOutputCommitterFactory;
+import org.apache.hadoop.mapreduce.task.TaskAttemptContextImpl;
 import org.apache.hadoop.util.ToolRunner;
 
 import static org.apache.hadoop.fs.store.CommonParameters.DEFINE;
@@ -39,23 +44,24 @@ import static org.apache.hadoop.fs.store.CommonParameters.XMLFILE;
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
 
 /**
- * Print the status.
+ * CommitterInfo.
+ * Finds out about what committer is in use for a path
  *
  * Prints some performance numbers at the end.
  */
-public class PrintStatus extends StoreEntryPoint {
+public class CommitterInfo extends StoreEntryPoint {
 
-  private static final Logger LOG = LoggerFactory.getLogger(PrintStatus.class);
+  private static final Logger LOG = LoggerFactory.getLogger(CommitterInfo.class);
 
   public static final String USAGE
-      = "Usage: filestatus\n"
+      = "Usage: committerinfo\n"
       + optusage(DEFINE, "key=value", "Define a property")
       + optusage(TOKENFILE, "file", "Hadoop token file to load")
       + optusage(XMLFILE, "file", "XML config file to load")
       + optusage(VERBOSE, "verbose output")
-      + " <path> [<path>*]";
+      + " <path>";
 
-  public PrintStatus() {
+  public CommitterInfo() {
     createCommandFormat(1, 999, VERBOSE);
     addValueOptions(TOKENFILE, XMLFILE, DEFINE);
   }
@@ -63,7 +69,7 @@ public class PrintStatus extends StoreEntryPoint {
   @Override
   public int run(String[] args) throws Exception {
     List<String> paths = parseArgs(args);
-    if (paths.size() < 1) {
+    if (paths.size() != 1) {
       errorln(USAGE);
       return E_USAGE;
     }
@@ -76,26 +82,21 @@ public class PrintStatus extends StoreEntryPoint {
     maybePatchDefined(conf, DEFINE);
 
     final Path source = new Path(paths.get(0));
-    FileSystem fs = null;
-    DurationInfo duration = new DurationInfo(LOG, "get path status");
-    try {
-      fs = source.getFileSystem(conf);
-      for (String path : paths) {
-        FileStatus st = fs.getFileStatus(new Path(path));
-        println("%s\t%s", st.getPath(), st);
-      }
-    } finally {
-      duration.close();
-    }
-    long files = paths.size();
-    if (files > 1) {
-      double millisPerFile = (float) duration.value() / files;
-      println("");
-      println("Retrieved the status of %s files, %,.0f milliseconds per file",
-          files, millisPerFile);
-    }
 
-    maybeDumpStorageStatistics(fs);
+    try (DurationInfo duration = new DurationInfo(LOG, "Create committer")) {
+      FileSystem fs = source.getFileSystem(conf);
+      Configuration fsConf = fs.getConf();
+      PathOutputCommitterFactory factory
+          = PathOutputCommitterFactory.getCommitterFactory(source, fsConf);
+      println("Committer factory for path %s is %s (classname %s)",
+          source, factory, factory.getClass().getCanonicalName());
+      PathOutputCommitter committer = factory.createOutputCommitter(
+          source,
+          new TaskAttemptContextImpl(fsConf,
+              new TaskAttemptID(new TaskID(), 1)));
+      println("Created committer of class %s: %s",
+          committer.getClass().getCanonicalName(), committer);
+    }
     return 0;
   }
 
@@ -107,7 +108,7 @@ public class PrintStatus extends StoreEntryPoint {
    * @throws Exception failure
    */
   public static int exec(String... args) throws Exception {
-    return ToolRunner.run(new PrintStatus(), args);
+    return ToolRunner.run(new CommitterInfo(), args);
   }
 
   /**

@@ -187,6 +187,8 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
 
       // Committers
       "org.apache.hadoop.fs.s3a.commit.staging.StagingCommitter",
+      "org.apache.hadoop.fs.s3a.commit.magic.MagicS3GuardCommitter",
+      "org.apache.hadoop.fs.s3a.Invoker",
 
       // Assumed Role credential provider (Hadoop 3.1)
       "org.apache.hadoop.fs.s3a.auth.AssumedRoleCredentialProvider",
