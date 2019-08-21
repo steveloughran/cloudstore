@@ -84,7 +84,7 @@ public class GCSDiagnosticsInfo extends StoreDiagnosticsInfo {
 
   @Override
   public String getName() {
-    return "gcs";
+    return "gs";
   }
 
   @Override

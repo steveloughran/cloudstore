@@ -116,6 +116,8 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.s3a.metadatastore.authoritative.dir.ttl", false, false},
       {"fs.s3a.metadatastore.fail.on.write.error", false, false},
       {"fs.s3a.metadatastore.metadata.ttl", false, false},
+      {"fs.s3a.s3guard.consistency.retry.interval", false, false},
+      {"fs.s3a.s3guard.consistency.retry.limit", false, false},
       {"fs.s3a.s3guard.ddb.table", false, false},
       {"fs.s3a.s3guard.ddb.region", false, false},
       {"fs.s3a.s3guard.ddb.background.sleep", false, false},
