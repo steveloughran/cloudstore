@@ -203,6 +203,8 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       "org.apache.hadoop.fs.s3a.select.SelectInputStream",
       // S3Guard rename extensions
       "org.apache.hadoop.fs.s3a.impl.RenameOperation",
+      // extra stuff from extension modules
+      "org.apache.knox.gateway.cloud.idbroker.s3a.IDBDelegationTokenBinding",
       "",
   };
 
