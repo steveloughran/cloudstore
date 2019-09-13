@@ -128,12 +128,12 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.s3a.s3guard.ddb.throttle.retry.interval", false, false},
 
       /* committer */
+      {"fs.s3a.committer.name", false, false},
       {"fs.s3a.committer.magic.enabled", false, false},
+      {"fs.s3a.committer.staging.conflict-mode", false, false},
       {"fs.s3a.committer.staging.tmp.path", false, false},
       {"fs.s3a.committer.threads", false, false},
       {"mapreduce.outputcommitter.factory.scheme.s3a", false, false},
-      {"fs.s3a.committer.name", false, false},
-      {"fs.s3a.committer.staging.conflict-mode", false, false},
 
       /* misc */
       {"fs.s3a.etag.checksum.enabled", false, false},
@@ -323,15 +323,15 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
     String bufferOption = conf.get(BUFFER_DIR) != null
         ? BUFFER_DIR : HADOOP_TMP_DIR;
     printout.heading("S3A Config validation");
-    
+
     printout.println("Buffer configuration option %s = %s",
         bufferOption, conf.get(bufferOption));
-    
+
     final LocalDirAllocator directoryAllocator = new LocalDirAllocator(
         bufferOption);
 
     File temp = directoryAllocator.createTmpFileForWrite("temp", 1, conf);
-    
+
     printout.println("Temporary files created in %s",
         temp.getParentFile());
     temp.delete();

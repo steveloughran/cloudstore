@@ -45,6 +45,7 @@ import static org.apache.hadoop.fs.store.CommonParameters.XMLFILE;
 /**
  * Fetch delegation tokens 
  */
+@SuppressWarnings("UseOfSystemOutOrSystemErr")
 public class FetchTokens extends StoreEntryPoint {
 
   private static final Logger LOG = LoggerFactory.getLogger(FetchTokens.class);
@@ -146,7 +147,6 @@ public class FetchTokens extends StoreEntryPoint {
     try(DurationInfo ignored =
             new DurationInfo(LOG, "Saving tokens to %s", dest)) {
       cred.writeTokenStorageFile(dest, conf);
-
     }
     return cred;
   }

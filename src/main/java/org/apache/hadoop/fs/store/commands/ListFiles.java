@@ -151,6 +151,8 @@ public class ListFiles extends StoreEntryPoint {
 
   private static final class LimitReachedException extends IOException {
 
+    private static final long serialVersionUID = -8594688586071585301L;
+
     private LimitReachedException() {
       super("Limit reached");
     }

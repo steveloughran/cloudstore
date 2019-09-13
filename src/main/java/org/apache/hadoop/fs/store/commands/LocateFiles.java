@@ -122,7 +122,7 @@ public class LocateFiles extends StoreEntryPoint {
     long files = count.get();
     double millisPerFile = files > 0 ? (((float)duration.value()) / files) : 0;
     long totalSize = size.get();
-    long bytesPerFile = (long) (files > 0 ? totalSize / files : 0);
+    long bytesPerFile = (files > 0 ? totalSize / files : 0);
     println("");
     println("Found %s files, %,.0f milliseconds per file",
         files, millisPerFile);

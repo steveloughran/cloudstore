@@ -21,6 +21,7 @@ package org.apache.hadoop.fs.store.commands;
 /**
  * This is the base class for the minimal CLI commands.
  */
+@SuppressWarnings("UseOfSystemOutOrSystemErr")
 public class Command {
 
   protected static void println(String s) {

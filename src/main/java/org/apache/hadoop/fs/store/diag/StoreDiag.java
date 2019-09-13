@@ -36,6 +36,7 @@ import java.net.URL;
 import java.nio.file.AccessDeniedException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Collection;
+import java.util.Date;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
@@ -58,7 +59,6 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.LocatedFileStatus;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.RemoteIterator;
-import org.apache.hadoop.fs.shell.CommandFormat;
 import org.apache.hadoop.fs.store.DurationInfo;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
 import org.apache.hadoop.io.IOUtils;
@@ -81,6 +81,8 @@ import static org.apache.hadoop.fs.store.CommonParameters.XMLFILE;
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_SUCCESS;
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
 import static org.apache.hadoop.fs.store.diag.OptionSets.CLUSTER_OPTIONS;
+import static org.apache.hadoop.fs.store.diag.OptionSets.HADOOP_TOKEN;
+import static org.apache.hadoop.fs.store.diag.OptionSets.HADOOP_TOKEN_FILE_LOCATION;
 import static org.apache.hadoop.fs.store.diag.OptionSets.SECURITY_OPTIONS;
 import static org.apache.hadoop.util.VersionInfo.*;
 
@@ -389,7 +391,6 @@ public class StoreDiag extends StoreEntryPoint
     printHadoopVersionInfo();
     if (hasOption(SYSPROPS)) {
       printJVMOptions();
-      dumpLog4J();
     }
     if (hasOption(LOGDUMP)) {
       dumpLog4J();
@@ -439,7 +440,7 @@ public class StoreDiag extends StoreEntryPoint
   }
   
   /**
-   * Print some security stuff, though KDiag iss your friend there.
+   * Print some security stuff, though KDiag is your friend there.
    */
   public void printSecurityState() throws IOException {
 
@@ -451,8 +452,38 @@ public class StoreDiag extends StoreEntryPoint
     println("Ticket login: %s",
         UserGroupInformation.isLoginKeytabBased());
 
-    println("Current user: %s",
-        UserGroupInformation.getCurrentUser());
+    UserGroupInformation currentUser = UserGroupInformation.getCurrentUser();
+    println("Current user: %s", currentUser);
+
+    String tokenPath = System.getenv(HADOOP_TOKEN);
+    if (tokenPath == null) {
+      tokenPath = System.getenv(HADOOP_TOKEN_FILE_LOCATION);
+    }
+    if (tokenPath != null) {
+      println("Token file is %s", tokenPath);
+      File tokenFile = new File(tokenPath);
+      if (!tokenFile.exists()) {
+        warn("Token file does not exist");
+      } else {
+        // Because tokens can take priority over other auth mechanisms,
+        // and if they have expired the fact is not alway obvious.
+        long modified = tokenFile.lastModified();
+        long age = System.currentTimeMillis() - modified;
+        long ageInMin = age / 60_000;
+        long ageInHours = ageInMin / 60;
+        long minutes = ageInHours > 0 ? (ageInMin % ageInHours) : 0;
+        println("Token file updated on %s; age is %d:%02d hours",
+            new Date(modified), ageInHours, minutes);
+        if (ageInHours > 12) {
+          warn("Token file is old: tokens may have expired");
+        }
+      }
+    }
+    Collection<Token<? extends TokenIdentifier>> tokens
+        = currentUser.getTokens();
+    println("Token count: %d", tokens.size());
+    tokens.stream().forEach(t ->
+        println("  %s", t));
   }
 
   /**
@@ -579,6 +610,13 @@ public class StoreDiag extends StoreEntryPoint
     println("  From source with checksum %s", getSrcChecksum());
   }
 
+  public void printHadoopXMLSources() throws FileNotFoundException {
+    heading("Hadoop XML Configurations");
+    probeResource("core-site.xml", true);
+    probeResource("hdfs-site.xml", false);
+    probeResource("mapred-site.xml", false);
+  }
+
   /**
    * Probe one endpoint, print proxy values, etc. No auth.
    * Ignores "0.0.0.0" addresses as they are silly.
@@ -683,7 +721,7 @@ public class StoreDiag extends StoreEntryPoint
         continue;
       }
       if (name.contains("/")) {
-        probeRequiredResource(name);
+        probeResource(name, true);
       } else {
         probeRequiredClass(name);
       }
@@ -693,18 +731,25 @@ public class StoreDiag extends StoreEntryPoint
   /**
    * Look for a resource; print its origin.
    * @param resource resource
+   * @param required is the resource required?
    */
-  public void probeRequiredResource(final String resource)
+  public void probeResource(final String resource,
+      final boolean required)
       throws FileNotFoundException {
     String name = resource.trim();
     println("resource: %s", name);
     URL r = this.getClass().getClassLoader().getResource(name);
     if (r == null) {
-      throw new FileNotFoundException("Resource not found: " + name); 
+      if (required) {
+        throw new FileNotFoundException("Resource not found: " + name);
+      } else {
+        println("       resource not found on classpath");
+      }
+    } else {
+      println("       %s", r);
     }
-    println("       %s", r);
   }
-  
+
   /**
    * Look for a class; print its origin.
    * @param classname classname

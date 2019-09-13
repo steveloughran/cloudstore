@@ -83,7 +83,7 @@ public class CommitterInfo extends StoreEntryPoint {
 
     final Path source = new Path(paths.get(0));
 
-    try (DurationInfo duration = new DurationInfo(LOG, "Create committer")) {
+    try (DurationInfo ignored = new DurationInfo(LOG, "Create committer")) {
       FileSystem fs = source.getFileSystem(conf);
       Configuration fsConf = fs.getConf();
       PathOutputCommitterFactory factory

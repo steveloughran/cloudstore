@@ -25,6 +25,11 @@ public class OptionSets {
    * Hadoop versions, so they are inlined.
    */
   protected static final Object[][] SECURITY_OPTIONS = {
+      {"dfs.data.transfer.protection", false, false},
+      {"hadoop.http.authentication.simple.anonymous.allowed", false, false},
+      {"hadoop.http.authentication.type", false, false},
+      {"hadoop.kerberos.min.seconds.before.relogin", false, false},
+      {"hadoop.kerberos.keytab.login.autorenewal.enabled", false, false},
       {"hadoop.security.authentication", false, false},
       {"hadoop.security.authorization", false, false},
       {"hadoop.security.credential.provider.path", false, false},
@@ -32,10 +37,9 @@ public class OptionSets {
       {"hadoop.security.credential.clear-text-fallback", false, false},
       {"hadoop.security.key.provider.path", false, false},
       {"hadoop.security.crypto.jceks.key.serialfilter", false, false},
-      {"hadoop.http.authentication.simple.anonymous.allowed", false, false},
       {"hadoop.rpc.protection", false, false},
-      {"dfs.data.transfer.protection", false, false},
-      {"mapreduce.input.fileinputformat.list-status.num-threads", false, false},
+      {"hadoop.tokens", false, false},
+      {"hadoop.token.files", false, false},
       {"", false, false},
   };
 
@@ -46,6 +50,30 @@ public class OptionSets {
       {"yarn.resourcemanager.address", false, false},
       {"yarn.resourcemanager.webapp.address", false, false},
       {"yarn.resourcemanager.webapp.https.address", false, false},
+      {"mapreduce.input.fileinputformat.list-status.num-threads", false, false},
   };
 
+  public static final String HADOOP_TOKEN = "HADOOP_TOKEN";
+
+  public static final String HADOOP_TOKEN_FILE_LOCATION
+      = "HADOOP_TOKEN_FILE_LOCATION";
+
+  protected static final Object[][] STANDARD_ENV_VARS = {
+      {"PATH", false},
+      {"HADOOP_HOME", false},
+      {"HADOOP_CONF_DIR", false},
+      {"HADOOP_OPTIONAL_TOOLS", false},
+      {"HADOOP_SHELL_SCRIPT_DEBUG", false},
+      {"HADOOP_TOOLS_HOME", false},
+      {"HADOOP_TOOLS_OPTIONS", false},
+      {"HDP_VERSION", false},
+      {"SPARK_HOME", false},
+      {"SPARK_CONF_DIR", false},
+      {"PYSPARK_DRIVER_PYTHON", false},
+      {"SPARK_SCALA_VERSION", false},
+      {"YARN_CONF_DIR", false},
+      {HADOOP_TOKEN_FILE_LOCATION, false},
+      {HADOOP_TOKEN, false},
+      // TODO: add the https proxy vars
+  };
 }
