@@ -112,6 +112,13 @@ public class Cloudup extends StoreEntryPoint {
     return System.currentTimeMillis();
   }
 
+  @Override
+  public synchronized void close() throws IOException {
+    if (workers != null) {
+      workers.shutdown();
+      workers = null;
+    }
+  }
 
   @Override
   public int run(String[] args) throws Exception {
@@ -209,8 +216,7 @@ public class Cloudup extends StoreEntryPoint {
     // upload initial sorted entries.
 
     // reverse sort to get largest first
-    Collections.sort(uploadList,
-        new ReverseComparator(new UploadEntry.SizeComparator()));
+    uploadList.sort(new ReverseComparator(new UploadEntry.SizeComparator()));
 
     // select the largest few of them
     final int sortUploadCount = Math.min(largest, uploadCount);
@@ -293,7 +299,7 @@ public class Cloudup extends StoreEntryPoint {
       try {
         final Outcome result = StoreUtils.await(outcome);
         result.maybeThrowException();
-        finalUploadedSize += naturalize(result.getUploaded());
+        finalUploadedSize += result.getBytesUploaded();
       } catch (InterruptedException ignored) {
         // ignored
     } catch (Exception e) {
@@ -314,15 +320,6 @@ public class Cloudup extends StoreEntryPoint {
     }
 
     return 0;
-  }
-
-  /**
-   * Make natural+ Z by converting all -ve numbers to 0.
-   * @param input input value
-   * @return 0 or higher
-   */
-  public long naturalize(long input) {
-    return input > 0 ? input : 0;
   }
 
   /**
@@ -394,22 +391,20 @@ public class Cloudup extends StoreEntryPoint {
   /**
    * Upload one entry.
    * @param upload upload information
-   * @return number of bytes upload, or -1 for no upload attempted.
-   * @throws IOException failure
+   * @return the outcome of the upload
    */
-  private Outcome uploadOneFile(final UploadEntry upload) throws IOException {
+  private Outcome uploadOneFile(final UploadEntry upload) {
 
     // fail fast on exit flag
     if (exit.get()) {
-      return new Outcome(-1);
+      return Outcome.notExecuted(upload);
     }
 
     //skip uploading duplicate (and uploaded already) files
     if (!upload.inState(UploadEntry.State.ready)
         && !upload.inState(UploadEntry.State.queued)) {
       LOG.warn("Skipping upload of {}", upload);
-      return new Outcome(-1);
-
+      return Outcome.notExecuted(upload);
     }
 
     // Although S3A in Hadoop 2.9 has a robust copy call which qualifies
@@ -421,22 +416,6 @@ public class Cloudup extends StoreEntryPoint {
     try {
       LOG.info("Uploading {} to {} (size: {}",
           source, dest, upload.getSize());
-/*
-      try {
-        final FileStatus status = destFS.getFileStatus(dest);
-        if (status.isDirectory()) {
-          throw new FileAlreadyExistsException(
-              String.format("Directory found at %s", dest));
-        }
-        if (!overwrite) {
-          throw new FileAlreadyExistsException(
-              String.format("File found at %s and overwrite=false",
-                  dest));
-        }
-      } catch (FileNotFoundException ignored) {
-        // no file at the destination.
-      }
-*/
       uploadOneFile(source, dest);
       upload.setState(UploadEntry.State.succeeded);
       upload.setEndTime(now());
@@ -444,7 +423,7 @@ public class Cloudup extends StoreEntryPoint {
           source,
           dest,
           DurationInfo.humanTime(upload.getDuration()));
-      return new Outcome(upload.getSize());
+      return Outcome.succeeded(upload);
     } catch (Exception e) {
       upload.setState(UploadEntry.State.failed);
       upload.setException(e);
@@ -452,7 +431,7 @@ public class Cloudup extends StoreEntryPoint {
       LOG.warn("Failed to  upload {} : {}", source, e.toString());
       LOG.debug("Upload to {} failed", dest, e);
       noteException(e);
-      return new Outcome(e);
+      return Outcome.failed(upload, e);
     }
   }
 
@@ -533,32 +512,57 @@ public class Cloudup extends StoreEntryPoint {
 
   }
 
-  private static class Outcome {
-    private final long uploaded;
+  /**
+   * Outcome of an upload: A count of uploaded data, outcome and error.
+   */
+  private static final class Outcome {
+    private final boolean executed;
+
+    private final UploadEntry upload;
+    private final long bytesUploaded;
 
     private final Exception exception;
 
-    private Outcome(final long uploaded) {
-      this(uploaded, null);
-    }
-
-    private Outcome(final Exception exception) {
-      this(-1, exception);
-    }
-
-    private Outcome(final long uploaded,
+    private Outcome(
+        final boolean executed,
+        final UploadEntry upload,
+        final long bytesUploaded,
         final Exception exception) {
-      this.uploaded = uploaded;
+      this.executed = executed;
+      this.upload = upload;
+      this.bytesUploaded = bytesUploaded;
       this.exception = exception;
     }
 
-    private long getUploaded() {
-      return uploaded;
+    private static Outcome notExecuted(final UploadEntry upload)  {
+      return new Outcome(false, upload, 0, null);
+    }
+
+    private static Outcome succeeded(final UploadEntry upload)  {
+      return new Outcome(true, upload, upload.getSize(), null);
+    }
+
+    private static Outcome failed(final UploadEntry upload,
+        final Exception exception)  {
+      return new Outcome(true, upload, 0, exception);
+    }
+
+    private long getBytesUploaded() {
+      return bytesUploaded;
+    }
+
+    private UploadEntry getUpload() {
+      return upload;
+    }
+
+    private boolean isExecuted() {
+      return executed;
     }
 
     private Exception getException() {
       return exception;
     }
+
     private void maybeThrowException() throws Exception {
       if (exception != null) {
         throw exception;
@@ -574,7 +578,9 @@ public class Cloudup extends StoreEntryPoint {
    * @throws Exception failure
    */
   public static int exec(String... args) throws Exception {
-    return ToolRunner.run(new Cloudup(), args);
+    try(final Cloudup tool = new Cloudup()) {
+      return ToolRunner.run(tool, args);
+    }
   }
 
   /**

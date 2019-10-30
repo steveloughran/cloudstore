@@ -18,6 +18,7 @@
 
 package org.apache.hadoop.fs.store;
 
+import java.io.Closeable;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -57,7 +58,7 @@ import static org.apache.hadoop.fs.store.StoreUtils.split;
  * Entry point for store applications
  */
 @SuppressWarnings("UseOfSystemOutOrSystemErr")
-public class StoreEntryPoint extends Configured implements Tool {
+public class StoreEntryPoint extends Configured implements Tool, Closeable {
 
   private static final Logger LOG = LoggerFactory.getLogger(StoreEntryPoint.class);
 
@@ -85,6 +86,11 @@ public class StoreEntryPoint extends Configured implements Tool {
   @Override
   public int run(String[] args) throws Exception {
     return 0;
+  }
+
+  @Override
+  public void close() throws IOException {
+
   }
 
   public PrintStream getOut() {

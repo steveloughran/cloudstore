@@ -93,7 +93,7 @@ a #-prefixed comment, a blank line, a classname, a resource (with "/" in).
 These are all loaded
 
 ```bash
-hadoop jar cloudstore-0.1-SNAPSHOT.jar storediag -j -5  -required required.txt s3a://something/
+hadoop jar cloudstore-0.1-SNAPSHOT.jar storediag -j -5 -required required.txt s3a://something/
 ```
 
 and with a `required.txt` listing things you require
@@ -492,6 +492,58 @@ Created committer of class org.apache.hadoop.fs.s3a.commit.magic.MagicS3GuardCom
 
 Note: unless this store has S3Guard enabled or is a third party object store with consistent directory listings, the magic committer is not iself safe to use.
 
+## Command `cloudup` -upload and download files; optimised for cloud storage 
+
+Bulk download of everything from s3a://bucket/qelogs/ to the local dir localquelogs (assuming the default fs is file://)
+
+Usage
+
+```
+cloudup -s source -d dest [-o] [-i] [-l <largest>] [-t threads] 
+
+-s <uri> : source
+-d <uri> : dest
+-o: overwrite
+-i: ignore failures
+-t <n> : number of threads
+-l <n> : number of "largest" files to start uploading before just randomly picking files.
+
+```
+
+Algorithm
+
+1. source files are listed.
+1. A pool of worker threads is created
+2. the largest N files are queued for upload first, where N is a default or the value set by `-l`.
+1. The remainder of the files are randomized to avoid throttling and then queued
+1. the program waits for everything to complete.
+1. Source and dest FS stats are printed.
+
+This is not discp run across a cluster; it's a single process with some threads. 
+Works best for reading lots of small files from an object store or when you have a 
+mix of large and small files to download or uplaod.
+
+
+
+```
+bin/hadoop jar cloudstore-0.1-SNAPSHOT.jar cloudup \
+ -s s3a://bucket/qelogs/ \
+ -d localqelogs \
+ -t 32 -o
+```
+
+and the other way
+
+
+
+```
+bin/hadoop jar cloudstore-0.1-SNAPSHOT.jar cloudup \
+ -d localqelogs \
+ -s s3a://bucket/qelogs/ \
+ -t 32 -o  -l 4
+```
+
+
 
 ## Development and Future Work
 
@@ -507,7 +559,7 @@ There is no real release plan other than this.
 
 Possible future work
 
-* Exploration of higher performance IO
+* Exploration of higher performance IO.
 * Diagnostics/testing of integration with foundational Hadoop operations.
 * Improving CLI testing with various probes designed to be invoked in a shell
   and fail with meaningful exit codes. E.g: verifying that a filesystem has a specific (key, val)
