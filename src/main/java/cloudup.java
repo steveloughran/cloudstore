@@ -16,26 +16,17 @@
  * limitations under the License.
  */
 
+import org.apache.hadoop.fs.store.commands.BucketState;
 import org.apache.hadoop.fs.store.commands.Command;
+import org.apache.hadoop.fs.tools.cloudup.Cloudup;
 
-/**
- * Help command: list the public commands.
- */
-public class help extends Command {
+public class cloudup extends Command {
 
-  /**
-   * When adding new entries here, use alphabetical order.
-   * @param args
-   * @throws Exception
-   */
   public static void main(String[] args) throws Exception {
-    bucketstate.help();
-    cloudup.help();
-    committerinfo.help();
-    fetchdt.help();
-    filestatus.help();
-    list.help();
-    locatefiles.help();
-    storediag.help();
+    Cloudup.main(args);
+  }
+
+  public static void help() {
+    printCommand("cloudup","copies to/from cloud storage");
   }
 }

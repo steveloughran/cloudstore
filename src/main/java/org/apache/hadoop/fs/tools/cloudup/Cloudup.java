@@ -20,6 +20,8 @@ package org.apache.hadoop.fs.tools.cloudup;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -48,8 +50,10 @@ import org.apache.commons.cli.GnuParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.collections.comparators.ReverseComparator;
+import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.LocalFileSystem;
 import org.apache.hadoop.fs.LocatedFileStatus;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.RemoteIterator;
@@ -57,6 +61,7 @@ import org.apache.hadoop.fs.StorageStatistics;
 import org.apache.hadoop.fs.store.DurationInfo;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
 import org.apache.hadoop.fs.store.StoreUtils;
+import org.apache.hadoop.io.IOUtils;
 import org.apache.hadoop.util.ToolRunner;
 
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
@@ -93,7 +98,7 @@ public class Cloudup extends StoreEntryPoint {
   private boolean ignoreFailures = true;
   // single element exception with sync access.
   private final Exception[] firstException = new Exception[1];
-  private CompletionService<Long> completion;
+  private CompletionService<Outcome> completion;
 
   private FileStatus sourcePathStatus;
 
@@ -132,11 +137,12 @@ public class Cloudup extends StoreEntryPoint {
 
     overwrite = OptionSwitch.OVERWRITE.hasOption(command);
     ignoreFailures = OptionSwitch.IGNORE_FAILURES.hasOption(command);
-    sourceFS = FileSystem.getLocal(getConf());
-    sourcePath = sourceFS.makeQualified(new Path(
-        OptionSwitch.SOURCE.required(command)));
+    final Path src = new Path(OptionSwitch.SOURCE.required(command));
+    final Configuration conf = getConf();
+    sourceFS = src.getFileSystem(conf);
+    sourcePath = sourceFS.makeQualified(src);
     destPath = new Path(OptionSwitch.DEST.required(command));
-    destFS = destPath.getFileSystem(getConf());
+    destFS = destPath.getFileSystem(conf);
 
     LOG.info("Uploading from {} to {};"
             + " threads={}; large files={}"
@@ -144,15 +150,6 @@ public class Cloudup extends StoreEntryPoint {
         sourcePath, destPath,
         threads, largest,
         overwrite, ignoreFailures);
-
-    // log S3A=specific details if this is an S3A connection.
-    // not using any constants in the S3A JAR so it links without
-    // needing that jar on the CP
-    if ("s3a".equals(destFS.getUri().getScheme())) {
-      String endpoint = destFS.getConf()
-          .getTrimmed("fs.s3a.endpoint", "(default)");
-      LOG.info("S3A endpoint = {}", endpoint);
-    }
 
 
     // see what we have for a source: file & dir are treated differently
@@ -263,9 +260,9 @@ public class Cloudup extends StoreEntryPoint {
 
     // now await all outcomes to complete
     LOG.info("Awaiting completion of {} operations", uploadCount);
-    List<Future<Long>> outcomes = new ArrayList<>(uploadCount);
+    List<Future<Outcome>> outcomes = new ArrayList<>(uploadCount);
     for (int i = 0; i < uploadCount; i++) {
-      Future<Long> outcome = completion.take();
+      Future<Outcome> outcome = completion.take();
       LOG.debug("Operation {} completed", i + 1);
       outcomes.add(outcome);
     }
@@ -292,21 +289,24 @@ public class Cloudup extends StoreEntryPoint {
     int errors = 0;
     Exception exception = firstException[0];
 
-    for (Future<Long> outcome : outcomes) {
+    for (Future<Outcome> outcome : outcomes) {
       try {
-        finalUploadedSize += naturalize(StoreUtils.await(outcome));
-      } catch (IOException e) {
+        final Outcome result = StoreUtils.await(outcome);
+        result.maybeThrowException();
+        finalUploadedSize += naturalize(result.getUploaded());
+      } catch (InterruptedException ignored) {
+        // ignored
+    } catch (Exception e) {
         errors++;
         if (exception == null) {
           exception = e;
         }
-      } catch (InterruptedException ignored) {
-        // ignored
       }
     }
 
     if (exception != null) {
-      LOG.info("Number of errors: {} actual bytes uploaded = {}",
+      LOG.warn("Upload failed due to an error");
+      LOG.warn("Number of errors: {} actual bytes uploaded = {}",
           errors, finalUploadedSize);
       if (!ignoreFailures) {
         throw exception;
@@ -322,7 +322,7 @@ public class Cloudup extends StoreEntryPoint {
    * @return 0 or higher
    */
   public long naturalize(long input) {
-    return input > 0 ? input : 9;
+    return input > 0 ? input : 0;
   }
 
   /**
@@ -330,13 +330,8 @@ public class Cloudup extends StoreEntryPoint {
    * @param upload upload entry
    * @return length of upload; -1 for "none"
    */
-  private Callable<Long> createUploadOperation(final UploadEntry upload) {
-    return new Callable<Long>() {
-      @Override
-      public Long call() throws Exception {
-        return uploadOneFile(upload);
-      }
-    };
+  private Callable<Outcome> createUploadOperation(final UploadEntry upload) {
+    return () -> uploadOneFile(upload);
   }
 
   /**
@@ -348,7 +343,7 @@ public class Cloudup extends StoreEntryPoint {
   private long submit(final UploadEntry upload) {
     LOG.debug("Submit {}", upload);
     if (upload.inState(UploadEntry.State.ready)) {
-      Callable<Long> operation = createUploadOperation(upload);
+      Callable<Outcome> operation = createUploadOperation(upload);
       upload.setState(UploadEntry.State.queued);
       LOG.debug("Queued {}", upload);
       completion.submit(operation);
@@ -362,26 +357,20 @@ public class Cloudup extends StoreEntryPoint {
    * @return a string for logging.
    */
   private Callable<String> prepareDest() {
-    return new Callable<String>() {
-      @Override
-      public String call() throws Exception {
-        try {
-          destFS.getFileStatus(destPath);
-        } catch (FileNotFoundException e) {
-          // dest doesn't exist
-        }
-        return destPath.toString();
+    return () -> {
+      try {
+        destFS.getFileStatus(destPath);
+      } catch (FileNotFoundException e) {
+        // dest doesn't exist
       }
+      return destPath.toString();
     };
   }
 
   private Callable<List<UploadEntry>> buildUploads() {
-    return new Callable<List<UploadEntry>>() {
-      @Override
-      public List<UploadEntry> call() throws Exception {
-        LOG.info("Listing source files under {}", sourcePath);
-        return createUploadList();
-      }
+    return () -> {
+      LOG.info("Listing source files under {}", sourcePath);
+      return createUploadList();
     };
   }
 
@@ -408,18 +397,19 @@ public class Cloudup extends StoreEntryPoint {
    * @return number of bytes upload, or -1 for no upload attempted.
    * @throws IOException failure
    */
-  private long uploadOneFile(final UploadEntry upload) throws IOException {
+  private Outcome uploadOneFile(final UploadEntry upload) throws IOException {
 
     // fail fast on exit flag
     if (exit.get()) {
-      return -1;
+      return new Outcome(-1);
     }
 
     //skip uploading duplicate (and uploaded already) files
     if (!upload.inState(UploadEntry.State.ready)
         && !upload.inState(UploadEntry.State.queued)) {
       LOG.warn("Skipping upload of {}", upload);
-      return -1;
+      return new Outcome(-1);
+
     }
 
     // Although S3A in Hadoop 2.9 has a robust copy call which qualifies
@@ -447,24 +437,36 @@ public class Cloudup extends StoreEntryPoint {
         // no file at the destination.
       }
 */
-      destFS.copyFromLocalFile(false, overwrite, source, dest);
+      uploadOneFile(source, dest);
       upload.setState(UploadEntry.State.succeeded);
       upload.setEndTime(now());
       LOG.info("Successful upload of {} tpo {} in {} s",
           source,
           dest,
           DurationInfo.humanTime(upload.getDuration()));
-    } catch (IOException e) {
+      return new Outcome(upload.getSize());
+    } catch (Exception e) {
       upload.setState(UploadEntry.State.failed);
       upload.setException(e);
       upload.setEndTime(now());
       LOG.warn("Failed to  upload {} : {}", source, e.toString());
       LOG.debug("Upload to {} failed", dest, e);
       noteException(e);
+      return new Outcome(e);
     }
-    return upload.inState(UploadEntry.State.succeeded) ?
-        upload.getSize()
-        : 0;
+  }
+
+  private void uploadOneFile(final Path source, final Path dest)
+      throws IOException {
+    if (sourceFS instanceof LocalFileSystem) {
+      // source is local, use the local operation
+      destFS.copyFromLocalFile(false, overwrite, source, dest);
+    } else {
+      try(InputStream in = sourceFS.open(source);
+          OutputStream out = destFS.create(dest, overwrite)) {
+        IOUtils.copyBytes(in, out, getConf(), true);
+      }
+    }
   }
 
   /**
@@ -473,7 +475,7 @@ public class Cloudup extends StoreEntryPoint {
    * if ignoreFailures == false, triggers the end of the upload
    * @param ex exception.
    */
-  private synchronized void noteException(IOException ex) {
+  private synchronized void noteException(Exception ex) {
     if (firstException[0] == null) {
       firstException[0] = ex;
       if (!ignoreFailures) {
@@ -529,6 +531,39 @@ public class Cloudup extends StoreEntryPoint {
       LOG.info("{}={}", entry.getKey(), entry.getValue());
     }
 
+  }
+
+  private static class Outcome {
+    private final long uploaded;
+
+    private final Exception exception;
+
+    private Outcome(final long uploaded) {
+      this(uploaded, null);
+    }
+
+    private Outcome(final Exception exception) {
+      this(-1, exception);
+    }
+
+    private Outcome(final long uploaded,
+        final Exception exception) {
+      this.uploaded = uploaded;
+      this.exception = exception;
+    }
+
+    private long getUploaded() {
+      return uploaded;
+    }
+
+    private Exception getException() {
+      return exception;
+    }
+    private void maybeThrowException() throws Exception {
+      if (exception != null) {
+        throw exception;
+      }
+    }
   }
 
   /**

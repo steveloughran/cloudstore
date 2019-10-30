@@ -68,7 +68,7 @@ final class UploadEntry implements Serializable, Comparable<UploadEntry> {
   /**
    * Exception, only non-null if {@code state == failed}.
    */
-  private IOException exception;
+  private Exception exception;
 
   public UploadEntry(Path source) {
     this.source = source;
@@ -139,11 +139,11 @@ final class UploadEntry implements Serializable, Comparable<UploadEntry> {
     this.endTime = endTime;
   }
 
-  public IOException getException() {
+  public Exception getException() {
     return exception;
   }
 
-  public void setException(IOException exception) {
+  public void setException(Exception exception) {
     this.exception = exception;
   }
 
