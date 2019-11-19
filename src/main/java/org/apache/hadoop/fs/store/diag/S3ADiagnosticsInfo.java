@@ -72,6 +72,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.s3a.connection.maximum", false, false},
       {"fs.s3a.connection.establish.timeout", false, false},
       {"fs.s3a.connection.timeout", false, false},
+      {"fs.s3a.custom.signers", false, false},
       {"fs.s3a.experimental.input.fadvise", false, false},
       {"fs.s3a.fast.buffer.size", false, false},
       {"fs.s3a.fast.upload.buffer", false, false},
@@ -130,10 +131,13 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       /* committer */
       {"fs.s3a.committer.name", false, false},
       {"fs.s3a.committer.magic.enabled", false, false},
+      {"fs.s3a.committer.staging.abort.pending.uploads", false, false},
       {"fs.s3a.committer.staging.conflict-mode", false, false},
       {"fs.s3a.committer.staging.tmp.path", false, false},
       {"fs.s3a.committer.threads", false, false},
+      {"fs.s3a.committer.staging.unique-filenames", false, false},
       {"mapreduce.outputcommitter.factory.scheme.s3a", false, false},
+      {"mapreduce.fileoutputcommitter.marksuccessfuljobs", false, false},
 
       /* misc */
       {"fs.s3a.etag.checksum.enabled", false, false},
