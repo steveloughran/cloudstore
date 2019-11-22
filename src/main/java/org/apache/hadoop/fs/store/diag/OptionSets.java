@@ -60,20 +60,21 @@ public class OptionSets {
 
   protected static final Object[][] STANDARD_ENV_VARS = {
       {"PATH", false},
-      {"HADOOP_HOME", false},
       {"HADOOP_CONF_DIR", false},
+      {"HADOOP_CREDSTORE_PASSWORD", false},
+      {"HADOOP_HOME", false},
       {"HADOOP_OPTIONAL_TOOLS", false},
       {"HADOOP_SHELL_SCRIPT_DEBUG", false},
+      {HADOOP_TOKEN, false},
+      {HADOOP_TOKEN_FILE_LOCATION, false},
       {"HADOOP_TOOLS_HOME", false},
       {"HADOOP_TOOLS_OPTIONS", false},
       {"HDP_VERSION", false},
+      {"PYSPARK_DRIVER_PYTHON", false},
       {"SPARK_HOME", false},
       {"SPARK_CONF_DIR", false},
-      {"PYSPARK_DRIVER_PYTHON", false},
       {"SPARK_SCALA_VERSION", false},
       {"YARN_CONF_DIR", false},
-      {HADOOP_TOKEN_FILE_LOCATION, false},
-      {HADOOP_TOKEN, false},
       // TODO: add the https proxy vars
   };
 }

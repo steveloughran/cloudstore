@@ -70,7 +70,7 @@ public class TemplateDiagnosticsInfo extends StoreDiagnosticsInfo {
 
   @Override
   public String getHomepage() {
-    return "https://hadoop.apache.org/docs/current//index.html";
+    return "https://hadoop.apache.org/docs/current/index.html";
   }
 
   @Override

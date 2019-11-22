@@ -19,6 +19,7 @@
 package org.apache.hadoop.fs.store;
 
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -58,7 +59,6 @@ public class StoreUtils {
     }
   }
 
-
   /**
    * split a key=value pair. Why not return a Pair class? Commons-lang
    * versions: don't want to commit.
@@ -75,6 +75,34 @@ public class StoreUtils {
     String key = split > 0 ? param.substring(0, split) : param;
     String value = split > 0 ? param.substring(split + 1, len) : defVal;
     return new StringPair(key, value);
+  }
+
+  /**
+   * Concatenate two arrays into a new one.
+   * If either array is empty, the other array is returned; no new
+   * array is created.
+   * see https://stackoverflow.com/questions/80476/how-can-i-concatenate-two-arrays-in-java
+   * @param left left side
+   * @param right right side
+   * @param <T> type of arrays
+   * @return the expanded array.
+   */
+  public static <T> T[] cat(T[] left, T[] right) {
+    int aLen = left.length;
+    int bLen = right.length;
+    if (aLen == 0) {
+      return right;
+    }
+    if (bLen == 0) {
+      return left;
+    }
+
+    T[] dest = (T[]) Array.newInstance(left.getClass().getComponentType(),
+        aLen + bLen);
+    System.arraycopy(left, 0, dest, 0, aLen);
+    System.arraycopy(right, 0, dest, aLen, bLen);
+
+    return dest;
   }
 
   public static class StringPair implements Map.Entry<String, String>{

@@ -38,6 +38,8 @@ import org.apache.hadoop.fs.s3a.Constants;
 
 import static com.google.common.base.Preconditions.checkState;
 import static org.apache.hadoop.fs.s3a.Constants.*;
+import static org.apache.hadoop.fs.store.StoreUtils.cat;
+import static org.apache.hadoop.fs.store.diag.OptionSets.STANDARD_ENV_VARS;
 
 /**
  * Reminder: do not cast to any S3A FS class or reference Constants so
@@ -243,7 +245,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
 
   @Override
   public Object[][] getEnvVars() {
-    return ENV_VARS;
+    return cat(ENV_VARS, STANDARD_ENV_VARS);
   }
 
   @Override
@@ -256,6 +258,11 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
     return optionalClassnames;
   }
 
+  /**
+   * Patch the config. This uses reflection to work on Hadoop 2.7.
+   * @param conf initial configuration.
+   * @return patched config.
+   */
   @Override
   public Configuration patchConfigurationToInitalization(final Configuration conf)
       {
