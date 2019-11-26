@@ -20,6 +20,7 @@ package org.apache.hadoop.fs.store.diag;
 
 import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -204,5 +205,14 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
     super.validateConfig(printout, conf);
     warnOnInvalidDomain(printout, ".dfs.core.windows.net",
         "https://docs.microsoft.com/en-us/azure/storage/data-lake-storage/introduction-abfs-uri");
+  }
+
+  @Override
+  public List<URI> listEndpointsToProbe(final Configuration conf)
+      throws IOException, URISyntaxException {
+    List<URI> uris = new ArrayList<>(2);
+    addUriOption(uris, conf, "fs.azure.account.oauth2.refresh.token.endpoint", "",
+        "https://login.microsoftonline.com/Common/oauth2/token");
+    return uris;
   }
 }

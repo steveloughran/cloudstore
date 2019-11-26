@@ -159,9 +159,9 @@ public class HDFSDiagnosticsInfo extends StoreDiagnosticsInfo {
     List<URI> uris = new ArrayList<>(2);
     boolean isHttps = conf.getBoolean("dfs.http.policy", false);
     if (isHttps) {
-      addUriOption(uris, conf, "dfs.namenode.https-address", "https://");
+      addUriOption(uris, conf, "dfs.namenode.https-address", "https://", "");
     } else {
-      addUriOption(uris, conf, "dfs.namenode.http-address", "http://");
+      addUriOption(uris, conf, "dfs.namenode.http-address", "http://", "");
     }
     return uris;
   }

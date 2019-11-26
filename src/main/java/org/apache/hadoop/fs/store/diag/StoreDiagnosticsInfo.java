@@ -231,14 +231,16 @@ public class StoreDiagnosticsInfo {
    * @param conf config
    * @param key key to check
    * @param uriPrefix any prefix to add to build the URI, e.g "https:"
+   * @param defVal
    * @return true iff there was a URI
    * @throws IOException parsing problem
    */
   protected boolean addUriOption(final List<URI> uris,
       final Configuration conf,
       final String key,
-      final String uriPrefix) throws IOException {
-    String endpoint = conf.getTrimmed(key, "");
+      final String uriPrefix,
+      final String defVal) throws IOException {
+    String endpoint = conf.getTrimmed(key, defVal);
     if (!endpoint.isEmpty()) {
         uris.add(StoreDiag.toURI(
             "From configuration key " + key,
