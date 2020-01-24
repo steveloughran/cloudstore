@@ -18,6 +18,7 @@
 
 package org.apache.hadoop.fs.store.commands;
 
+import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.util.List;
 
@@ -84,17 +85,21 @@ public class BucketState extends StoreEntryPoint {
     try {
       S3AFileSystem fs = (S3AFileSystem) source.getFileSystem(conf);
       InternalAccess internals = new InternalAccess(fs);
-      AmazonS3 s3Client = internals.getAmazonS3Client();
+      final AmazonS3 s3Client = internals.getAmazonS3Client();
       Owner owner = s3Client.getS3AccountOwner(
           new GetS3AccountOwnerRequest());
       println("Bucket owner is %s (ID=%s)", owner.getDisplayName(),
           owner.getId());
       String policyText;
-      String bucket = fs.getBucket();
+      final String bucket = fs.getBucket();
       try {
         BucketPolicy policy = Invoker.once("getBucketPolicy",
-            bucket, () ->
-                s3Client.getBucketPolicy(bucket));
+            bucket, new Invoker.Operation<BucketPolicy>() {
+              @Override
+              public BucketPolicy execute() throws IOException {
+                return s3Client.getBucketPolicy(bucket);
+              }
+            });
         String t = policy.getPolicyText();
         policyText = t != null
             ? "\n" + t

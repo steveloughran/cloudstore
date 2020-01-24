@@ -82,7 +82,8 @@ public class LocateFiles extends StoreEntryPoint {
     maybeAddXMLFileOption(conf, XMLFILE);
     maybePatchDefined(conf, DEFINE);
 
-    int threads = getOptional(THREADS).map(Integer::valueOf).orElse(2);
+    final int threads = getOptional(THREADS).isPresent() ?
+        Integer.valueOf(getOptional(THREADS).get()) : 2;
 
     final Path source = new Path(paths.get(0));
     println("");
@@ -156,8 +157,11 @@ public class LocateFiles extends StoreEntryPoint {
   }
 
   private static final PathFilter HIDDEN_FILE_FILTER =
-      (p) -> {
-        String n = p.getName();
-        return !n.startsWith("_") && !n.startsWith(".");
+      new PathFilter() {
+        @Override
+        public boolean accept(Path p) {
+          String n = p.getName();
+          return !n.startsWith("_") && !n.startsWith(".");
+        }
       };
 }

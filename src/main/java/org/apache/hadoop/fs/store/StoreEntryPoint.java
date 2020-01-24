@@ -29,7 +29,6 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -178,7 +177,7 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable {
    */
   protected List<String> parseArgs(String[] args) {
     return args.length > 0 ? getCommandFormat().parse(args, 0)
-        : new ArrayList<>(0);
+        : new ArrayList<String>(0);
   }
 
   /**
@@ -285,12 +284,13 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable {
   }
 
   protected void maybePatchDefined(final Configuration conf, final String opt) {
-    getOptional(opt).ifPresent(d -> {
-          Map.Entry<String, String> pair = split(d, "true");
+    if(getOptional(opt).isPresent()) {
+      final String d = getOptional(opt).get();
+      Map.Entry<String, String> pair = split(d, "true");
       println("Patching configuration with \"%s\"=\"%s\"",
           pair.getKey(), pair.getValue());
-          conf.set(pair.getKey(), pair.getValue());
-        });
+      conf.set(pair.getKey(), pair.getValue());
+    }
   }
 
 

@@ -92,7 +92,7 @@ public class FetchTokens extends StoreEntryPoint {
 
     // qualify the FS so that what gets printed is absolute.
     FileSystem fs = tokenfile.getFileSystem(conf);
-    Path dest = tokenfile.makeQualified(fs.getUri(), fs.getWorkingDirectory());
+    final Path dest = tokenfile.makeQualified(fs.getUri(), fs.getWorkingDirectory());
 
     println("Collecting tokens for %d filesystem%s to to %s",
         urls.size(),

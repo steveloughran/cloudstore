@@ -482,8 +482,9 @@ public class StoreDiag extends StoreEntryPoint
     Collection<Token<? extends TokenIdentifier>> tokens
         = currentUser.getTokens();
     println("Token count: %d", tokens.size());
-    tokens.stream().forEach(t ->
-        println("  %s", t));
+    for (Token<? extends TokenIdentifier> token : tokens) {
+      println("  %s", token);
+    }
   }
 
   /**

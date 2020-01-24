@@ -28,7 +28,9 @@ import org.slf4j.LoggerFactory;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.LocatedFileStatus;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.s3a.S3AUtils;
 import org.apache.hadoop.fs.store.DurationInfo;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
 import org.apache.hadoop.util.ToolRunner;
@@ -81,7 +83,8 @@ public class ListFiles extends StoreEntryPoint {
     maybeAddXMLFileOption(conf, XMLFILE);
     maybePatchDefined(conf, DEFINE);
 
-    int limit = getOptional(LIMIT).map(Integer::valueOf).orElse(0);
+    final int limit = getOptional(LIMIT).isPresent() ?
+        Integer.valueOf(getOptional(LIMIT).get()) : 0;
 
     final Path source = new Path(paths.get(0));
     heading("Listing%s files under %s",
@@ -95,15 +98,19 @@ public class ListFiles extends StoreEntryPoint {
     FileSystem fs = source.getFileSystem(conf);
     try {
       applyLocatedFiles(fs.listFiles(source, true),
-          (status) -> {
-            int c = count.incrementAndGet();
-            if (c == 1) {
-              firstLoad.close();
-            }
-            size.addAndGet(status.getLen());
-            printStatus(c, status);
-            if (limit > 0 && c >= limit) {
-              throw new LimitReachedException();
+          new S3AUtils.CallOnLocatedFileStatus() {
+            @Override
+            public void call(LocatedFileStatus status)
+                throws IOException {
+              int c = count.incrementAndGet();
+              if (c == 1) {
+                firstLoad.close();
+              }
+              size.addAndGet(status.getLen());
+              ListFiles.this.printStatus(c, status);
+              if (limit > 0 && c >= limit) {
+                throw new LimitReachedException();
+              }
             }
           });
     } catch(LimitReachedException expected) {

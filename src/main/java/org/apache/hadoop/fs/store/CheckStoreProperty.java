@@ -92,7 +92,7 @@ public class CheckStoreProperty extends StoreEntryPoint {
    */
   public List<String> parseArgs(String[] args) {
     return args.length > 0 ? commandFormat.parse(args, 0)
-        : new ArrayList<>(0);
+        : new ArrayList<String>(0);
   }
     /**
      * Execute the command, return the result or throw an exception,

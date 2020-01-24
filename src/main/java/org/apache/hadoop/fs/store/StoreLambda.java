@@ -32,9 +32,7 @@ public class StoreLambda {
    * An interface for use in lambda-expressions working with
    * directory tree listings.
    */
-  @FunctionalInterface
   public interface CallOnLocatedFileStatus {
-
     void call(LocatedFileStatus status) throws IOException;
   }
 
@@ -42,9 +40,7 @@ public class StoreLambda {
    * An interface for use in lambda-expressions working with
    * directory tree listings.
    */
-  @FunctionalInterface
   public interface LocatedFileStatusMap<T> {
-
     T call(LocatedFileStatus status) throws IOException;
   }
 
@@ -78,10 +74,16 @@ public class StoreLambda {
    */
   public static <T> List<T> mapLocatedFiles(
       RemoteIterator<LocatedFileStatus> iterator,
-      S3AUtils.LocatedFileStatusMap<T> eval) throws IOException {
+      final S3AUtils.LocatedFileStatusMap<T> eval) throws IOException {
     final List<T> results = new ArrayList<>();
     applyLocatedFiles(iterator,
-        (s) -> results.add(eval.call(s)));
+        new S3AUtils.CallOnLocatedFileStatus() {
+          @Override
+          public void call(LocatedFileStatus s)
+              throws IOException {
+            results.add(eval.call(s));
+          }
+        });
     return results;
   }
 }

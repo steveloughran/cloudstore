@@ -30,6 +30,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutorCompletionService;
@@ -41,6 +43,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -185,7 +188,7 @@ public class Cloudup extends StoreEntryPoint {
     // worker pool
     workers = new ThreadPoolExecutor(threads, threads,
         0L, TimeUnit.MILLISECONDS,
-        new LinkedBlockingQueue<>());
+        new ArrayBlockingQueue<Runnable>(16));
 
     final DurationInfo preparationDuration = new DurationInfo();
     // list the files
@@ -216,7 +219,8 @@ public class Cloudup extends StoreEntryPoint {
     // upload initial sorted entries.
 
     // reverse sort to get largest first
-    uploadList.sort(new ReverseComparator(new UploadEntry.SizeComparator()));
+    Collections.sort(uploadList,
+        new ReverseComparator(new UploadEntry.SizeComparator()));
 
     // select the largest few of them
     final int sortUploadCount = Math.min(largest, uploadCount);
@@ -328,7 +332,12 @@ public class Cloudup extends StoreEntryPoint {
    * @return length of upload; -1 for "none"
    */
   private Callable<Outcome> createUploadOperation(final UploadEntry upload) {
-    return () -> uploadOneFile(upload);
+    return new Callable<Outcome>() {
+      @Override
+      public Outcome call() throws Exception {
+        return Cloudup.this.uploadOneFile(upload);
+      }
+    };
   }
 
   /**
@@ -354,20 +363,26 @@ public class Cloudup extends StoreEntryPoint {
    * @return a string for logging.
    */
   private Callable<String> prepareDest() {
-    return () -> {
-      try {
-        destFS.getFileStatus(destPath);
-      } catch (FileNotFoundException e) {
-        // dest doesn't exist
+    return new Callable<String>() {
+      @Override
+      public String call() throws Exception {
+        try {
+          destFS.getFileStatus(destPath);
+        } catch (FileNotFoundException e) {
+          // dest doesn't exist
+        }
+        return destPath.toString();
       }
-      return destPath.toString();
     };
   }
 
   private Callable<List<UploadEntry>> buildUploads() {
-    return () -> {
-      LOG.info("Listing source files under {}", sourcePath);
-      return createUploadList();
+    return new Callable<List<UploadEntry>>() {
+      @Override
+      public List<UploadEntry> call() throws Exception {
+        LOG.info("Listing source files under {}", sourcePath);
+        return Cloudup.this.createUploadList();
+      }
     };
   }
 

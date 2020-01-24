@@ -24,7 +24,7 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <file.encoding>UTF-8</file.encoding>
-    <javac.version>1.8</javac.version>
+    <javac.version>1.7</javac.version>
     <enforced.java.version>${javac.version}</enforced.java.version>
 
     <hadoop.version>3.1.2</hadoop.version>
