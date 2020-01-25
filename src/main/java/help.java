@@ -29,12 +29,9 @@ public class help extends Command {
    * @throws Exception
    */
   public static void main(String[] args) throws Exception {
-    bucketstate.help();
     cloudup.help();
-    committerinfo.help();
     fetchdt.help();
     filestatus.help();
-    list.help();
     locatefiles.help();
     storediag.help();
   }
