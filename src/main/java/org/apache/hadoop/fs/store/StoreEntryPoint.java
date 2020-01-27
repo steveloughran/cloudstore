@@ -37,8 +37,6 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.LocatedFileStatus;
-import org.apache.hadoop.fs.StorageStatistics;
 import org.apache.hadoop.fs.shell.CommandFormat;
 import org.apache.hadoop.security.Credentials;
 import org.apache.hadoop.security.UserGroupInformation;
@@ -321,16 +319,7 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable {
    * @param fs filesystem; can be null
    */
   protected void dumpFileSystemStatistics(FileSystem fs) {
-    if (fs == null) {
-      return;
-    }
-    heading("Storage Statistics");
-    StorageStatistics st = fs.getStorageStatistics();
-    Iterator<StorageStatistics.LongStatistic> it
-        = st.getLongStatistics();
-    while (it.hasNext()) {
-      StorageStatistics.LongStatistic next = it.next();
-      println("%s\t%s", next.getName(), next.getValue());
-    }
+    /// not in hadoop 2.7
+
   }
 }

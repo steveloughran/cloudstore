@@ -29,10 +29,7 @@ public class help extends Command {
    * @throws Exception
    */
   public static void main(String[] args) throws Exception {
-    cloudup.help();
-    fetchdt.help();
     filestatus.help();
-    locatefiles.help();
     storediag.help();
   }
 }

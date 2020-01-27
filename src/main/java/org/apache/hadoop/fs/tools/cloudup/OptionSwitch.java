@@ -108,7 +108,7 @@ public enum OptionSwitch {
   public String required(CommandLine command) {
     String r = eval(command, null);
     Preconditions.checkArgument(r != null  && !r.isEmpty(),
-        "Unset option: %s.\n%s", getOptionName(), Cloudup.USAGE);
+        "Unset option: %s", getOptionName());
     return r;
   }
 

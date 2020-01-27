@@ -22,8 +22,11 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
 
 import com.google.common.base.Preconditions;
@@ -299,7 +302,7 @@ public class StoreDiagnosticsInfo {
       final Configuration conf,
       final String prefix) {
     printout.heading("Configuration options with prefix %s", prefix);
-    Map<String, String> propsWithPrefix = conf.getPropsWithPrefix(prefix);
+    Map<String, String> propsWithPrefix = getPropsWithPrefix(conf, prefix);
     Set<String> sorted = sortKeys(propsWithPrefix.keySet());
     for (String k: sorted) {
       printout.println("%s%s=\"%s\"",
@@ -307,6 +310,27 @@ public class StoreDiagnosticsInfo {
     }
   }
 
+  /**
+   * Constructs a mapping of configuration and includes all properties that
+   * start with the specified configuration prefix.  Property names in the
+   * mapping are trimmed to remove the configuration prefix.
+   *
+   * @param confPrefix configuration prefix
+   * @return mapping of configuration properties with prefix stripped
+   */
+  public Map<String, String> getPropsWithPrefix(final Configuration conf,
+      String confPrefix) {
+    Map<String, String> configMap = new HashMap<>();
+    for (Map.Entry<String, String> c : conf) {
+      String name = c.getKey();
+      if (name.startsWith(confPrefix)) {
+        String value = conf.get(name);
+        String keyName = name.substring(confPrefix.length());
+        configMap.put(keyName, value);
+      }
+    }
+    return configMap;
+  }
   /**
    * Perform any validation of the filesystem itself (is it the right type,
    * are there any options you can check for. This is
