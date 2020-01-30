@@ -23,6 +23,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
@@ -81,7 +82,11 @@ public class PrintStatus extends StoreEntryPoint {
       fs = source.getFileSystem(conf);
       for (String path : paths) {
         FileStatus st = fs.getFileStatus(new Path(path));
-        println("%s\t%s", st.getPath(), st);
+        println("%s\t%s\t[%s]", st.getPath(), st,
+            FileUtils.byteCountToDisplaySize(st.getLen()));
+        if (st.isDirectory() && st.getLen() > 0) {
+          LOG.warn("Entry is a directory but its length is {}", st.getLen());
+        }
       }
     } finally {
       duration.close();
@@ -94,7 +99,6 @@ public class PrintStatus extends StoreEntryPoint {
           files, millisPerFile);
     }
 
-    maybeDumpStorageStatistics(fs);
     return 0;
   }
 

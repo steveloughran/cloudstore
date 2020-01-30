@@ -26,7 +26,6 @@ import java.io.PrintStream;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -45,10 +44,7 @@ import org.apache.hadoop.security.token.TokenIdentifier;
 import org.apache.hadoop.util.ExitUtil;
 import org.apache.hadoop.util.Tool;
 
-import static org.apache.hadoop.fs.store.CommonParameters.DEFINE;
-import static org.apache.hadoop.fs.store.CommonParameters.TOKENFILE;
 import static org.apache.hadoop.fs.store.CommonParameters.VERBOSE;
-import static org.apache.hadoop.fs.store.CommonParameters.XMLFILE;
 import static org.apache.hadoop.fs.store.StoreUtils.split;
 
 /**
@@ -302,24 +298,4 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable {
         status.isEncrypted() ? "encrypted" : "");
   }
 
-  /**
-   * Dump the filesystem Storage Statistics iff the
-   * verbose flag was set.
-   * @param fs filesystem; can be null
-   */
-
-  protected void maybeDumpStorageStatistics(final FileSystem fs) {
-    if (hasOption(VERBOSE)) {
-      dumpFileSystemStatistics(fs);
-    }
-  }
-
-  /**
-   * Dump the filesystem Storage Statistics.
-   * @param fs filesystem; can be null
-   */
-  protected void dumpFileSystemStatistics(FileSystem fs) {
-    /// not in hadoop 2.7
-
-  }
 }
