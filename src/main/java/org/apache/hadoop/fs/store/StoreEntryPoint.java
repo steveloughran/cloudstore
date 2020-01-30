@@ -34,6 +34,7 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.FileStatus;
@@ -295,13 +296,16 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable {
 
 
   protected void printStatus(final int index, final FileStatus status) {
-    println("[%04d]\t%s\t%,d\t%s\t%s\t[%s]",
+    println("[%04d]\t%s\t%,d\t(%s)\t%s\t%s%s%s",
         index,
         status.getPath(),
         status.getLen(),
+        FileUtils.byteCountToDisplaySize(status.getLen()),
+        status.getLen(),
         status.getOwner(),
         status.getGroup(),
-        status.isEncrypted() ? "encrypted" : "");
+        status.isEncrypted() ? "\t[encrypted]" : "",
+        hasOption(VERBOSE) ? ("\t" + status) : "");
   }
 
   /**
