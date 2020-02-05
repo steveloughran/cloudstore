@@ -73,7 +73,7 @@ public class ListObjects extends StoreEntryPoint {
     DurationInfo duration = new DurationInfo(LOG, "listobjects");
     try {
       FileSystem fs = source.getFileSystem(conf);
-      final AmazonS3 s3 = AwsClientExtractor.extractAwsClient(fs);
+      final AmazonS3 s3 = AwsClientExtractor.createAwsClient(fs);
       String key = pathToKey(source);
       ListObjectsRequest request = createListObjectsRequest(
           source.toUri().getHost(), key, null);

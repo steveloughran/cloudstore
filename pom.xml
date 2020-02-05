@@ -243,6 +243,18 @@
       </properties>
     </profile>
 
+    <profile>
+      <id>cdh5</id>
+      <activation>
+        <property>
+          <name>trunk</name>
+        </property>
+      </activation>
+      <properties>
+        <hadoop.version>2.6.0-cdh5.14.0</hadoop.version>
+      </properties>
+    </profile>
+
   </profiles>
 
   <build>

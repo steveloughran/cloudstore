@@ -67,6 +67,10 @@ import static org.apache.hadoop.fs.s3a.S3AUtils.createAWSCredentialProviderSet;
  */
 public class InternalS3ClientFactory extends Configured {
 
+  public InternalS3ClientFactory(final Configuration conf) {
+    super(conf);
+  }
+
   private static final Logger LOG = S3AFileSystem.LOG;
 
   public AmazonS3 createS3Client(URI name) throws IOException {
