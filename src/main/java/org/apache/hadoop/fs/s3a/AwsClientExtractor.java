@@ -18,6 +18,7 @@
 
 package org.apache.hadoop.fs.s3a;
 
+import java.io.IOException;
 import java.lang.reflect.Method;
 
 import com.amazonaws.services.s3.AmazonS3;
@@ -25,6 +26,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.s3a.debug.InternalS3ClientFactory;
 
 public class AwsClientExtractor {
 
@@ -32,18 +34,17 @@ public class AwsClientExtractor {
       AwsClientExtractor.class);
 
   public static AmazonS3 extractAwsClient(FileSystem fs) {
-    S3AFileSystem s3a= (S3AFileSystem) fs;
+    S3AFileSystem s3a = (S3AFileSystem) fs;
     try {
       // try the later version
       final Method method27 = S3AFileSystem.class.getMethod(
           "getAmazonS3ClientForTesting", String.class);
       return (AmazonS3) method27.invoke(fs, "diagnostics");
     } catch (Exception e) {
-      LOG.info("Hadoop 3.3 getAmazonS3ClientForTesting() method not found; falling back");
+      LOG.info(
+          "Hadoop 3.3 getAmazonS3ClientForTesting() method not found; falling back");
       LOG.debug("falling back", e);
     }
-    return s3a.getAmazonS3Client();
-/*
     try {
       final Method method27 = S3AFileSystem.class.getDeclaredMethod(
           "getAmazonS3Client");
@@ -52,8 +53,12 @@ public class AwsClientExtractor {
       throw e;
     } catch (Exception e) {
       throw new RuntimeException("Failed to get AWS Client: from " + fs, e);
-   }
-*/
+    }
+  }
 
+  public static AmazonS3 createAwsClient(FileSystem fs) throws IOException {
+    final InternalS3ClientFactory factory
+        = new InternalS3ClientFactory(fs.getConf());
+    return factory.createS3Client(fs.getUri());
   }
 }
