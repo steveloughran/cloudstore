@@ -16,21 +16,17 @@
  * limitations under the License.
  */
 
+import org.apache.hadoop.fs.s3a.ListObjects;
 import org.apache.hadoop.fs.store.commands.Command;
 
-/**
- * Help command: list the public commands.
- */
-public class help extends Command {
+public class listobjects extends Command {
 
-  /**
-   * When adding new entries here, use alphabetical order.
-   * @param args
-   * @throws Exception
-   */
   public static void main(String[] args) throws Exception {
-    filestatus.help();
-    listobjects.help();
-    storediag.help();
+    ListObjects.main(args);
   }
+
+  public static void help() {
+    printCommand("listobjects", "list S3 objects and their translated statuses");
+  }
+
 }

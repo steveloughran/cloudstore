@@ -1,0 +1,326 @@
+/*
+ * Licensed to the Apache Software Foundation (ASF) under one
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package org.apache.hadoop.fs.s3a;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.NoSuchElementException;
+
+import com.amazonaws.AmazonClientException;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.ListObjectsRequest;
+import com.amazonaws.services.s3.model.ObjectListing;
+import com.amazonaws.services.s3.model.S3ObjectSummary;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Preconditions;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.RemoteIterator;
+import org.apache.hadoop.fs.store.DurationInfo;
+import org.apache.hadoop.fs.store.StoreEntryPoint;
+import org.apache.hadoop.util.ToolRunner;
+
+import static org.apache.hadoop.fs.s3a.S3AUtils.translateException;
+import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
+
+public class ListObjects extends StoreEntryPoint {
+
+  private static final Logger LOG = LoggerFactory.getLogger(ListObjects.class);
+
+
+  public static final String USAGE
+      = "Usage: listobjects <path>";
+
+
+  public ListObjects() {
+    createCommandFormat(1, 1);
+
+  }
+
+  @Override
+  public int run(String[] args) throws Exception {
+    List<String> paths = parseArgs(args);
+    if (paths.size() < 1) {
+      errorln(USAGE);
+      return E_USAGE;
+    }
+
+    addAllDefaultXMLFiles();
+    final Configuration conf = new Configuration();
+
+    final Path source = new Path(paths.get(0));
+    DurationInfo duration = new DurationInfo(LOG, "listobjects");
+    try {
+      FileSystem fs = source.getFileSystem(conf);
+      final AmazonS3 s3 = AwsClientExtractor.extractAwsClient(fs);
+      String key = pathToKey(source);
+      ListObjectsRequest request = createListObjectsRequest(
+          source.toUri().getHost(), key, null);
+
+      final ObjectListingIterator objects
+          = new ObjectListingIterator(s3, source, request);
+      List<String> prefixes = new ArrayList<>();
+      int objectCount = 0;
+      long size = 0;
+      heading("Listing objects under %s", source);
+      while (objects.hasNext()) {
+        final ObjectListing page = objects.next();
+        for (S3ObjectSummary summary : page.getObjectSummaries()) {
+          objectCount++;
+          size += summary.getSize();
+          println("%s\t%s",
+              stringify(summary),
+              fs.getFileStatus(keyToPath(summary.getKey())));
+        }
+        for (String prefix : page.getCommonPrefixes()) {
+          prefixes.add(prefix);
+        }
+      }
+
+      println("");
+      println("Found %s objects with total size %d", objectCount, size);
+      if (!prefixes.isEmpty()) {
+        println("");
+        heading("%s prefixes", prefixes.size());
+        for (String prefix : prefixes) {
+          println("prefix");
+        }
+      }
+    } finally {
+      duration.close();
+    }
+    return 0;
+  }
+
+  /**
+   * Turns a path (relative or otherwise) into an S3 key.
+   *
+   * @param path input path, may be relative to the working dir
+   * @return a key excluding the leading "/", or, if it is the root path, ""
+   */
+  @VisibleForTesting
+  String pathToKey(Path path) {
+    Preconditions.checkArgument(path.isAbsolute());
+    if (path.toUri().getScheme() != null && path.toUri().getPath().isEmpty()) {
+      return "";
+    }
+
+    return path.toUri().getPath().substring(1);
+  }
+
+  /**
+   * Convert a path back to a key.
+   * @param key input key
+   * @return the path from this key
+   */
+  private Path keyToPath(String key) {
+    return new Path("/" + key);
+  }
+  /**
+   * Create a {@code ListObjectsRequest} request against this bucket,
+   * with the maximum keys returned in a query set by {@link #maxKeys}.
+   *
+   * @param bucket
+   * @param key key for request
+   * @param delimiter any delimiter
+   * @return the request
+   */
+  private ListObjectsRequest createListObjectsRequest(final String bucket,
+      String key,
+      String delimiter) {
+    ListObjectsRequest request = new ListObjectsRequest();
+    request.setBucketName(bucket);
+    request.setMaxKeys(5000);
+    request.setPrefix(key);
+    if (delimiter != null) {
+      request.setDelimiter(delimiter);
+    }
+    return request;
+  }
+
+  /**
+   * String information about a summary entry.
+   * @param summary summary object
+   * @return string value
+   */
+  public static String stringify(S3ObjectSummary summary) {
+    return String.format("%s\t[%d]\t%s", summary.getKey(), summary.getSize(),
+        summary.getETag());
+  }
+
+  /**
+   * Wraps up AWS `ListObjects` requests in a remote iterator
+   * which will ask for more listing data if needed.
+   *
+   * That is:
+   *
+   * 1. The first invocation of the {@link #next()} call will return the results
+   * of the first request, the one created during the construction of the
+   * instance.
+   *
+   * 2. Second and later invocations will continue the ongoing listing,
+   * calling {@link S3AFileSystem#continueListObjects} to request the next
+   * batch of results.
+   *
+   * 3. The {@link #hasNext()} predicate returns true for the initial call,
+   * where {@link #next()} will return the initial results. It declares
+   * that it has future results iff the last executed request was truncated.
+   *
+   * Thread safety: none.
+   */
+  class ObjectListingIterator implements RemoteIterator<ObjectListing> {
+
+    /** The path listed. */
+    private final Path listPath;
+
+    private final AmazonS3 s3;
+
+    /** The most recent listing results. */
+    private ObjectListing objects;
+
+    /** Indicator that this is the first listing. */
+    private boolean firstListing = true;
+
+    /**
+     * Count of how many listings have been requested
+     * (including initial result).
+     */
+    private int listingCount = 1;
+
+    /**
+     * Maximum keys in a request.
+     */
+    private int maxKeys;
+
+    /**
+     * Constructor -calls `listObjects()` on the request to populate the
+     * initial set of results/fail if there was a problem talking to the bucket.
+     * @param listPath path of the listing
+     * @param request initial request to make
+     * */
+    ObjectListingIterator(
+        AmazonS3 s3,
+        Path listPath,
+        ListObjectsRequest request) {
+      this.listPath = listPath;
+      this.maxKeys = 5000;
+      this.s3 = s3;
+      this.objects = s3.listObjects(request);
+    }
+
+    /**
+     * Declare that the iterator has data if it is either is the initial
+     * iteration or it is a later one and the last listing obtained was
+     * incomplete.
+     * @throws IOException never: there is no IO in this operation.
+     */
+    @Override
+    public boolean hasNext() throws IOException {
+      return firstListing || objects.isTruncated();
+    }
+
+    /**
+     * Ask for the next listing.
+     * For the first invocation, this returns the initial set, with no
+     * remote IO. For later requests, S3 will be queried, hence the calls
+     * may block or fail.
+     * @return the next object listing.
+     * @throws IOException if a query made of S3 fails.
+     * @throws NoSuchElementException if there is no more data to list.
+     */
+    @Override
+    public ObjectListing next() throws IOException {
+      if (firstListing) {
+        // on the first listing, don't request more data.
+        // Instead just clear the firstListing flag so that it future calls
+        // will request new data.
+        firstListing = false;
+      } else {
+        try {
+          if (!objects.isTruncated()) {
+            // nothing more to request: fail.
+            throw new NoSuchElementException("No more results in listing of "
+                + listPath);
+          }
+          // need to request a new set of objects.
+          LOG.debug("[{}], Requesting next {} objects under {}",
+              listingCount, maxKeys, listPath);
+          objects = s3.listNextBatchOfObjects(objects);
+          listingCount++;
+          LOG.debug("New listing status: {}", this);
+        } catch (AmazonClientException e) {
+          throw translateException("listObjects()", listPath, e);
+        }
+      }
+      return objects;
+    }
+
+    @Override
+    public String toString() {
+      return "Object listing iterator against " + listPath
+          + "; listing count " + listingCount
+          + "; isTruncated=" + objects.isTruncated();
+    }
+
+    /**
+     * Get the path listed.
+     * @return the path used in this listing.
+     */
+    public Path getListPath() {
+      return listPath;
+    }
+
+    /**
+     * Get the count of listing requests.
+     * @return the counter of requests made (including the initial lookup).
+     */
+    public int getListingCount() {
+      return listingCount;
+    }
+  }
+
+  /**
+   * Execute the command, return the result or throw an exception,
+   * as appropriate.
+   * @param args argument varags.
+   * @return return code
+   * @throws Exception failure
+   */
+  public static int exec(String... args) throws Exception {
+    return ToolRunner.run(new ListObjects(), args);
+  }
+
+  /**
+   * Main entry point. Calls {@code System.exit()} on all execution paths.
+   * @param args argument list
+   */
+  public static void main(String[] args) {
+    try {
+      exit(exec(args), "");
+    } catch (Throwable e) {
+      exitOnThrowable(e);
+    }
+  }
+
+}
