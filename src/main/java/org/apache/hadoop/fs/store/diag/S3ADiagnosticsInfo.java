@@ -73,6 +73,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.s3a.connection.ssl.enabled", false, false},
       {"fs.s3a.connection.maximum", false, false},
       {"fs.s3a.connection.establish.timeout", false, false},
+      {"fs.s3a.connection.request.timeout", false, false},
       {"fs.s3a.connection.timeout", false, false},
       {"fs.s3a.custom.signers", false, false},
       {"fs.s3a.experimental.input.fadvise", false, false},
@@ -140,6 +141,11 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.s3a.committer.staging.unique-filenames", false, false},
       {"mapreduce.outputcommitter.factory.scheme.s3a", false, false},
       {"mapreduce.fileoutputcommitter.marksuccessfuljobs", false, false},
+
+      /* delete and throttling */
+      {"fs.s3a.experimental.aws.s3.throttling", false, false},
+      {"fs.s3a.experimental.optimized.directory.operations", false, false},
+      {"fs.s3a.bulk.delete.page.size", false, false},
 
       /* misc */
       {"fs.s3a.etag.checksum.enabled", false, false},
