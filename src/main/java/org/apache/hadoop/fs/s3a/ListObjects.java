@@ -89,7 +89,7 @@ public class ListObjects extends StoreEntryPoint {
         for (S3ObjectSummary summary : page.getObjectSummaries()) {
           objectCount++;
           size += summary.getSize();
-          println("%s\t%s",
+          println("object %s\t%s",
               stringify(summary),
               fs.getFileStatus(keyToPath(summary.getKey())));
         }
@@ -165,7 +165,7 @@ public class ListObjects extends StoreEntryPoint {
    * @return string value
    */
   public static String stringify(S3ObjectSummary summary) {
-    return String.format("%s\t[%d]\t%s", summary.getKey(), summary.getSize(),
+    return String.format("\"%s\"\tsize: [%d]\ttag: %s", summary.getKey(), summary.getSize(),
         summary.getETag());
   }
 
