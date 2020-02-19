@@ -25,6 +25,7 @@ import java.util.NoSuchElementException;
 
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.DeleteObjectsRequest;
 import com.amazonaws.services.s3.model.ListObjectsRequest;
 import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
@@ -48,14 +49,16 @@ public class ListObjects extends StoreEntryPoint {
 
   private static final Logger LOG = LoggerFactory.getLogger(ListObjects.class);
 
+  public static final String PURGE = "purge";
+
 
   public static final String USAGE
-      = "Usage: listobjects <path>";
+      = "Usage: listobjects [-purge] <path>";
 
 
   public ListObjects() {
-    createCommandFormat(1, 1);
-
+    createCommandFormat(1, 1,
+        PURGE);
   }
 
   @Override
@@ -69,10 +72,18 @@ public class ListObjects extends StoreEntryPoint {
     addAllDefaultXMLFiles();
     final Configuration conf = new Configuration();
 
+
+    boolean purge = hasOption(PURGE);
+    if (purge) {
+      println("directory markers will be purged");
+    }
+
+    List<String> markers = new ArrayList<>();
     final Path source = new Path(paths.get(0));
     DurationInfo duration = new DurationInfo(LOG, "listobjects");
     try {
       FileSystem fs = source.getFileSystem(conf);
+      String bucket = ((S3AFileSystem) fs).getBucket();
       final AmazonS3 s3 = AwsClientExtractor.createAwsClient(fs);
       String key = pathToKey(source);
       ListObjectsRequest request = createListObjectsRequest(
@@ -89,9 +100,13 @@ public class ListObjects extends StoreEntryPoint {
         for (S3ObjectSummary summary : page.getObjectSummaries()) {
           objectCount++;
           size += summary.getSize();
+          String k = summary.getKey();
           println("object %s\t%s",
               stringify(summary),
-              fs.getFileStatus(keyToPath(summary.getKey())));
+              fs.getFileStatus(keyToPath(k)));
+          if (objectRepresentsDirectory(summary)) {
+            markers.add(k);
+          }
         }
         for (String prefix : page.getCommonPrefixes()) {
           prefixes.add(prefix);
@@ -99,18 +114,69 @@ public class ListObjects extends StoreEntryPoint {
       }
 
       println("");
-      println("Found %s objects with total size %d", objectCount, size);
+      println("Found %s objects with total size %d bytes", objectCount, size);
       if (!prefixes.isEmpty()) {
         println("");
         heading("%s prefixes", prefixes.size());
         for (String prefix : prefixes) {
-          println("prefix");
+          println(prefix);
         }
+      }
+      if (!markers.isEmpty()) {
+        println("");
+        int markerCount = markers.size();
+        heading("marker count: %d", markerCount);
+        if (purge) {
+          println("Purging all directory markers");
+        }
+        int page = 250;
+        List<DeleteObjectsRequest.KeyVersion> kv = new ArrayList<>(
+            markerCount);
+        for (String marker : markers) {
+          println(marker);
+          if (purge) {
+            kv.add(new DeleteObjectsRequest.KeyVersion(marker));
+            if (kv.size() >= page) {
+              delete(s3, bucket, kv);
+            }
+          }
+        }
+        if (purge) {
+          delete(s3, bucket, kv);
+        } else {
+          println("\nTo delete these, rerun with the option -%s", PURGE);
+        }
+      } else if (purge) {
+        heading("No markers found to purge");
       }
     } finally {
       duration.close();
     }
     return 0;
+  }
+
+  /**
+   * Delete the entries; clears the list. No-op if empty.
+   * @param s3
+   * @param bucket
+   * @param kv
+   */
+  public void delete(AmazonS3 s3,
+      String bucket,
+      List<DeleteObjectsRequest.KeyVersion> kv) {
+    if (kv.isEmpty()) {
+      return;
+    }
+    DurationInfo duration = new DurationInfo(LOG, "deleting %s markers",
+        kv.size());
+    try {
+      DeleteObjectsRequest request = new DeleteObjectsRequest(bucket)
+          .withKeys(kv);
+      s3.deleteObjects(request);
+      kv.clear();
+    } finally {
+      duration.close();
+    }
   }
 
   /**
@@ -137,6 +203,7 @@ public class ListObjects extends StoreEntryPoint {
   private Path keyToPath(String key) {
     return new Path("/" + key);
   }
+
   /**
    * Create a {@code ListObjectsRequest} request against this bucket,
    * with the maximum keys returned in a query set by {@link #maxKeys}.
@@ -160,12 +227,43 @@ public class ListObjects extends StoreEntryPoint {
   }
 
   /**
+   * Predicate: does the object represent a directory?.
+   * @param name object name
+   * @param size object size
+   * @return true if it meets the criteria for being an object
+   */
+  public boolean objectRepresentsDirectory(final String name,
+      final long size) {
+    boolean hasDirName = !name.isEmpty()
+        && name.charAt(name.length() - 1) == '/';
+
+    boolean isEmpty = size == 0L;
+    if (hasDirName && !isEmpty) {
+      println("Warning: object %s has length %d so is not a directory marker",
+          name, size);
+    }
+    return hasDirName && isEmpty;
+  }
+
+  /**
+   * Predicate: does the object represent a directory?.
+   * @return true if it meets the criteria for being an object
+   */
+  public boolean objectRepresentsDirectory(
+      S3ObjectSummary summary) {
+    final String name = summary.getKey();
+    final long size = summary.getSize();
+    return objectRepresentsDirectory(name, size);
+  }
+
+  /**
    * String information about a summary entry.
    * @param summary summary object
    * @return string value
    */
   public static String stringify(S3ObjectSummary summary) {
-    return String.format("\"%s\"\tsize: [%d]\ttag: %s", summary.getKey(), summary.getSize(),
+    return String.format("\"%s\"\tsize: [%d]\ttag: %s", summary.getKey(),
+        summary.getSize(),
         summary.getETag());
   }
 

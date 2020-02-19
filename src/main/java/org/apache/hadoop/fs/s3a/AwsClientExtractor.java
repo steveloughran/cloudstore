@@ -48,7 +48,7 @@ public class AwsClientExtractor {
     try {
       final Method method27 = S3AFileSystem.class.getDeclaredMethod(
           "getAmazonS3Client");
-      return (AmazonS3) method27.invoke(fs);
+      return (AmazonS3) method27.invoke(s3a);
     } catch (RuntimeException e) {
       throw e;
     } catch (Exception e) {
