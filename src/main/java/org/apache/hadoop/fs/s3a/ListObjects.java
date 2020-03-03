@@ -29,7 +29,6 @@ import com.amazonaws.services.s3.model.DeleteObjectsRequest;
 import com.amazonaws.services.s3.model.ListObjectsRequest;
 import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
-import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -185,7 +184,6 @@ public class ListObjects extends StoreEntryPoint {
    * @param path input path, may be relative to the working dir
    * @return a key excluding the leading "/", or, if it is the root path, ""
    */
-  @VisibleForTesting
   String pathToKey(Path path) {
     checkArgument(path.isAbsolute(), "not absolute: " + path);
     if (path.toUri().getScheme() != null && path.toUri().getPath().isEmpty()) {

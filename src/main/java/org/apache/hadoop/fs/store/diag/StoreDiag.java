@@ -47,7 +47,6 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.UUID;
 
-import com.google.common.base.Charsets;
 import com.google.common.io.CharStreams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,6 +61,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.RemoteIterator;
 import org.apache.hadoop.fs.store.DurationInfo;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
+import org.apache.hadoop.fs.store.StoreUtils;
 import org.apache.hadoop.io.IOUtils;
 import org.apache.hadoop.net.NetUtils;
 import org.apache.hadoop.security.AccessControlException;
@@ -74,7 +74,6 @@ import org.apache.hadoop.util.ToolRunner;
 
 //import static org.apache.hadoop.fs.CommonConfigurationKeysPublic.FS_DEFAULT_NAME_DEFAULT;
 //import static org.apache.hadoop.fs.CommonConfigurationKeysPublic.FS_DEFAULT_NAME_KEY;
-import static com.google.common.base.Preconditions.checkArgument;
 import static org.apache.hadoop.fs.store.CommonParameters.DEFINE;
 import static org.apache.hadoop.fs.store.CommonParameters.TOKENFILE;
 import static org.apache.hadoop.fs.store.CommonParameters.VERBOSE;
@@ -808,11 +807,15 @@ public class StoreDiag extends StoreEntryPoint
     if (found > 1) {
       warn("Found multiple log4j.properties files");
     }
-    
+
+    warn("Dumping log4j not enabled in this build");
+/*
+
     println("%n%s",
       CharStreams.toString(new InputStreamReader(
           this.getClass().getResourceAsStream(resource),
-          Charsets.UTF_8)));
+          Charset.forName("UTF-8")));
+*/
   }
 
   /**
@@ -912,7 +915,7 @@ public class StoreDiag extends StoreEntryPoint
         println("First character of file %s is 0x%02x: '%s'",
             firstFilePath,
             c,
-            (c > 32) ? Character.toString((char) c) : "(n/a)");
+            (c > ' ') ? Character.toString((char) c) : "(n/a)");
         in.close();
       } finally {
         IOUtils.closeStream(in);
@@ -1090,7 +1093,7 @@ public class StoreDiag extends StoreEntryPoint
    * @throws IOException parsing problem
    */
   public static URI toURI(String origin, String uri) throws IOException {
-    checkArgument(uri != null && !uri.isEmpty());
+    StoreUtils.checkArgument(uri != null && !uri.isEmpty(), "no URI");
     try {
       return new URI(uri);
     } catch (URISyntaxException e) {
