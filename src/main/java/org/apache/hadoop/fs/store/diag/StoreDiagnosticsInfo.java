@@ -23,17 +23,14 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
-
-import com.google.common.base.Preconditions;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.store.StoreUtils;
 
 import static org.apache.hadoop.fs.store.diag.StoreDiag.sortKeys;
 
@@ -63,7 +60,7 @@ public class StoreDiagnosticsInfo {
   public static StoreDiagnosticsInfo bindToStore(URI fsURI)
       throws IOException {
     StoreDiagnosticsInfo store;
-    Preconditions.checkArgument(fsURI != null, "Null fsURI argument");
+    StoreUtils.checkArgument(fsURI != null, "Null fsURI argument");
     String scheme = fsURI.getScheme();
     if (scheme == null) {
       try {

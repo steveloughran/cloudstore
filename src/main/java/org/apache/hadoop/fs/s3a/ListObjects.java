@@ -30,7 +30,6 @@ import com.amazonaws.services.s3.model.ListObjectsRequest;
 import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,6 +43,7 @@ import org.apache.hadoop.util.ToolRunner;
 
 import static org.apache.hadoop.fs.s3a.S3AUtils.translateException;
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
+import static org.apache.hadoop.fs.store.StoreUtils.checkArgument;
 
 public class ListObjects extends StoreEntryPoint {
 
@@ -187,7 +187,7 @@ public class ListObjects extends StoreEntryPoint {
    */
   @VisibleForTesting
   String pathToKey(Path path) {
-    Preconditions.checkArgument(path.isAbsolute());
+    checkArgument(path.isAbsolute(), "not absolute: " + path);
     if (path.toUri().getScheme() != null && path.toUri().getPath().isEmpty()) {
       return "";
     }

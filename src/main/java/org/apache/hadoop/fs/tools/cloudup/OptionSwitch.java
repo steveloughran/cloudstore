@@ -18,11 +18,11 @@
 
 package org.apache.hadoop.fs.tools.cloudup;
 
-import com.google.common.base.Preconditions;
-
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
+
+import static org.apache.hadoop.fs.store.StoreUtils.checkArgument;
 
 /**
  * Enumeration mapping configuration keys to command line options.
@@ -107,8 +107,8 @@ public enum OptionSwitch {
    */
   public String required(CommandLine command) {
     String r = eval(command, null);
-    Preconditions.checkArgument(r != null  && !r.isEmpty(),
-        "Unset option: %s", getOptionName());
+    checkArgument(r != null  && !r.isEmpty(),
+        "Unset option: " + getOptionName());
     return r;
   }
 

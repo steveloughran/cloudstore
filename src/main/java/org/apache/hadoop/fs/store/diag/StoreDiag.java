@@ -33,6 +33,7 @@ import java.net.ProxySelector;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.nio.file.AccessDeniedException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Collection;
@@ -71,9 +72,9 @@ import org.apache.hadoop.security.token.TokenIdentifier;
 import org.apache.hadoop.util.StringUtils;
 import org.apache.hadoop.util.ToolRunner;
 
-import static com.google.common.base.Preconditions.checkArgument;
 //import static org.apache.hadoop.fs.CommonConfigurationKeysPublic.FS_DEFAULT_NAME_DEFAULT;
 //import static org.apache.hadoop.fs.CommonConfigurationKeysPublic.FS_DEFAULT_NAME_KEY;
+import static com.google.common.base.Preconditions.checkArgument;
 import static org.apache.hadoop.fs.store.CommonParameters.DEFINE;
 import static org.apache.hadoop.fs.store.CommonParameters.TOKENFILE;
 import static org.apache.hadoop.fs.store.CommonParameters.VERBOSE;
@@ -86,7 +87,7 @@ import static org.apache.hadoop.fs.store.diag.OptionSets.HADOOP_TOKEN_FILE_LOCAT
 import static org.apache.hadoop.fs.store.diag.OptionSets.SECURITY_OPTIONS;
 import static org.apache.hadoop.util.VersionInfo.*;
 
-@SuppressWarnings("UseOfSystemOutOrSystemErr")
+@SuppressWarnings({"UseOfSystemOutOrSystemErr", "CharsetObjectCanBeUsed"})
 public class StoreDiag extends StoreEntryPoint
   implements Printout {
 
@@ -703,7 +704,8 @@ public class StoreDiag extends StoreEntryPoint
       heading("Probing required classes listed in %s", f);
       probeRequiredClassesOrResources(
           org.apache.commons.io.IOUtils.readLines(
-              new FileInputStream(f), Charsets.UTF_8));
+              new FileInputStream(f),
+              Charset.forName("UTF-8")));
     }
   }
 
@@ -1088,7 +1090,7 @@ public class StoreDiag extends StoreEntryPoint
    * @throws IOException parsing problem
    */
   public static URI toURI(String origin, String uri) throws IOException {
-    checkArgument(uri != null && !uri.isEmpty(), "No URI");
+    checkArgument(uri != null && !uri.isEmpty());
     try {
       return new URI(uri);
     } catch (URISyntaxException e) {

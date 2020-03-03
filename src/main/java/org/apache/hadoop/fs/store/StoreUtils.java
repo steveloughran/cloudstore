@@ -26,6 +26,20 @@ import java.util.concurrent.Future;
 
 public class StoreUtils {
 
+  /** life without Guava. */
+  public static void checkArgument(boolean condition, String text) {
+    if (!condition) {
+      throw new IllegalArgumentException(text);
+    }
+  }
+
+  public static void checkState(boolean condition, String text) {
+    if (!condition) {
+      throw new IllegalStateException(text);
+    }
+  }
+
+
   /**
    * Take an exception from a Future and convert to an IOE.
    * @param ex exception
