@@ -16,22 +16,27 @@
  * limitations under the License.
  */
 
-import org.apache.hadoop.fs.store.commands.Command;
+package org.apache.hadoop.fs.store;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.util.Properties;
+
+import org.apache.log4j.LogManager;
+import org.apache.log4j.PropertyConfigurator;
 
 /**
- * Help command: list the public commands.
+ * Fixes up log4J from a given file.
  */
-public class help extends Command {
+public class LogFixup {
 
-  /**
-   * When adding new entries here, use alphabetical order.
-   * @param args
-   * @throws Exception
-   */
-  public static void main(String[] args) throws Exception {
-    filestatus.help();
-    listobjects.help();
-    mkdir.help();
-    storediag.help();
+  public static void useLogFile(File logProperties) throws IOException {
+    Properties properties = new Properties();
+    properties.load(
+        new FileInputStream(logProperties));
+    LogManager.resetConfiguration();
+    PropertyConfigurator.configure(properties);
   }
 }

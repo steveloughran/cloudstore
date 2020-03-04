@@ -18,6 +18,9 @@
 
 package org.apache.hadoop.fs.store;
 
+/**
+ * Common parameters across entry points.
+ */
 public class CommonParameters {
 
   public static final String TOKENFILE = "tokenfile";
@@ -27,4 +30,9 @@ public class CommonParameters {
   public static final String DEFINE = "D";
 
   public static final String VERBOSE = "verbose";
+
+  /**
+   * File for log4j properties: {@value}.
+   */
+  public static final String LOGFILE = "logfile";
 }
