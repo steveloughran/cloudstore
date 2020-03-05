@@ -19,17 +19,20 @@
 package org.apache.hadoop.fs.store.commands;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.fs.s3a.ListObjects;
 import org.apache.hadoop.fs.store.DurationInfo;
 import org.apache.hadoop.fs.store.LogFixup;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
+import org.apache.hadoop.fs.store.StoreExitCodes;
 import org.apache.hadoop.util.ToolRunner;
 
 import static org.apache.hadoop.fs.store.CommonParameters.LOGFILE;
@@ -42,9 +45,6 @@ public class MkdirCommand extends StoreEntryPoint {
 
   private static final Logger LOG = LoggerFactory.getLogger(MkdirCommand.class);
 
-  public static final String PURGE = "purge";
-
-
   public static final String USAGE
       = "Usage: mkdir [" +LOGFILE + " <filename>]"
       + " <path>";
@@ -53,7 +53,6 @@ public class MkdirCommand extends StoreEntryPoint {
   public MkdirCommand() {
     createCommandFormat(1, 1);
     addValueOptions(LOGFILE);
-
   }
 
   @Override
@@ -69,7 +68,7 @@ public class MkdirCommand extends StoreEntryPoint {
       File f = new File(logFile);
       if (!f.exists()) {
         errorln("File not found: %s", f.getAbsolutePath());
-        return 44;
+        return StoreExitCodes.E_NOT_FOUND;
       }
       LogFixup.useLogFile(f);
     }
@@ -82,9 +81,43 @@ public class MkdirCommand extends StoreEntryPoint {
     Path absPath = path.makeQualified(fs.getUri(), fs.getWorkingDirectory());
     try (DurationInfo ignored = new DurationInfo(
         LOG, "mkdirs(%s)", absPath)) {
+      // before we do that, we scan the tree, top to bottom
+      checkPathIsDir(fs, absPath);
+      // do the create
       fs.mkdirs(absPath);
     }
     return 0;
+  }
+
+
+  /**
+   * Recursive check for directory status.
+   * @param fs filesystem
+   * @param path Path to check
+   * @throws IOException Failure
+   */
+  private void checkPathIsDir(FileSystem fs, Path path) throws IOException {
+    if (path.isRoot()) {
+      return;
+    }
+    // its not root. Validate the parent
+    checkPathIsDir(fs, path.getParent());
+    // now us
+    LOG.info("Checking {}", path);
+    FileStatus status = null;
+    try {
+      status = fs.getFileStatus(path);
+    } catch (FileNotFoundException e) {
+      // not a problem
+      return;
+    }
+    if (!status.isDirectory()) {
+      String message = "Path "
+          + path + " must be a directory, but it is a file: "
+          + status;
+      LOG.error("{}", message);
+      throw new IOException(message);
+    }
   }
 
   /**
