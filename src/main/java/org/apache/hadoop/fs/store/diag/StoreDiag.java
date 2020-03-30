@@ -871,6 +871,9 @@ public class StoreDiag extends StoreEntryPoint
     try (DurationInfo ignored = new DurationInfo(LOG,
         "GetFileStatus %s", root)) {
       println("root entry %s", fs.getFileStatus(root));
+    } catch (FileNotFoundException e) {
+      errorln("The remote store doesn't seem to exist: %s", root);
+      throw e;
     }
 
     FileStatus firstFile = null;

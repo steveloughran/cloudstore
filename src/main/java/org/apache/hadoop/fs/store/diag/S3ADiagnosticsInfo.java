@@ -159,6 +159,8 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.s3a.change.detection.mode", false, false},
       {"fs.s3a.change.detection.version.required", false, false},
 
+      /* WIP: directories. */
+      {"fs.s3a.directory.markers", false, false},
       {"", false, false},
 
   };
