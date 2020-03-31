@@ -24,7 +24,6 @@ import java.util.List;
 
 import org.apache.hadoop.fs.LocatedFileStatus;
 import org.apache.hadoop.fs.RemoteIterator;
-import org.apache.hadoop.fs.s3a.S3AUtils;
 
 public class StoreLambda {
 
@@ -58,7 +57,7 @@ public class StoreLambda {
    */
   public static long applyLocatedFiles(
       RemoteIterator<LocatedFileStatus> iterator,
-      S3AUtils.CallOnLocatedFileStatus eval) throws IOException {
+      CallOnLocatedFileStatus eval) throws IOException {
     long count = 0;
     while (iterator.hasNext()) {
       count++;
@@ -78,10 +77,12 @@ public class StoreLambda {
    */
   public static <T> List<T> mapLocatedFiles(
       RemoteIterator<LocatedFileStatus> iterator,
-      S3AUtils.LocatedFileStatusMap<T> eval) throws IOException {
+      LocatedFileStatusMap<T> eval) throws IOException {
     final List<T> results = new ArrayList<>();
     applyLocatedFiles(iterator,
         (s) -> results.add(eval.call(s)));
     return results;
   }
+
+
 }
