@@ -304,8 +304,12 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
     String bucket = getFsURI().getHost();
     String fqdn;
     if (bucket.contains(".")) {
-      LOG.info("URI appears to be FQDN; using as endpoint");
+      LOG.info("URI appears to be FQDN; using {} as endpoint", bucket);
       fqdn = bucket;
+    } else if (endpoint.contains("://")) {
+      LOG.info("endpoint is URI {}", endpoint);
+      URI uri = new URI(endpoint);
+      fqdn = uri.getHost();
     } else {
       fqdn = bucket + "." + endpoint;
     }
