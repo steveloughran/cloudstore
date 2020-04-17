@@ -42,11 +42,13 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.LocatedFileStatus;
 import org.apache.hadoop.fs.StorageStatistics;
 import org.apache.hadoop.fs.shell.CommandFormat;
+import org.apache.hadoop.ipc.CallerContext;
 import org.apache.hadoop.security.Credentials;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.security.token.Token;
 import org.apache.hadoop.security.token.TokenIdentifier;
 import org.apache.hadoop.util.ExitUtil;
+import org.apache.hadoop.util.GenericOptionsParser;
 import org.apache.hadoop.util.Tool;
 
 import static org.apache.hadoop.fs.store.CommonParameters.DEFINE;
@@ -136,7 +138,7 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable {
     ExitUtil.terminate(status, text);
   }
 
-  protected static void exit(StoreExitException ex) {
+  protected static void exit(ExitUtil.ExitException ex) {
     ExitUtil.terminate(ex.getExitCode(), ex.getMessage());
   }
 
@@ -234,9 +236,9 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable {
     if (ex instanceof CommandFormat.UnknownOptionException) {
       errorln(ex.getMessage());
       exit(EXIT_USAGE, ex.getMessage());
-    } else if (ex instanceof StoreExitException) {
+    } else if (ex instanceof ExitUtil.ExitException) {
       LOG.debug("Command failure", ex);
-      exit((StoreExitException) ex);
+      exit((ExitUtil.ExitException) ex);
     } else {
       ex.printStackTrace(System.err);
       exit(StoreExitCodes.E_ERROR, ex.toString());
