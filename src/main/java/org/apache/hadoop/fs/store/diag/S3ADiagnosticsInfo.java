@@ -36,7 +36,6 @@ import org.apache.hadoop.fs.LocalDirAllocator;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.s3a.Constants;
 
-import static com.google.common.base.Preconditions.checkState;
 import static org.apache.hadoop.fs.s3a.Constants.*;
 import static org.apache.hadoop.fs.store.StoreUtils.cat;
 import static org.apache.hadoop.fs.store.diag.OptionSets.STANDARD_ENV_VARS;
@@ -368,9 +367,11 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
     switch (encryption) {
 
     case "SSE-C":
-      checkState(hasKey,
-        "Encryption method %s requires a key in %s",
-          encryption, "fs.s3a.server-side-encryption.key");
+      if (!hasKey) {
+        throw new IllegalStateException(String.format(
+            "Encryption method %s requires a key in %s",
+            encryption, "fs.s3a.server-side-encryption.key"));
+      }
       break;
 
     case "SSE-KMS":

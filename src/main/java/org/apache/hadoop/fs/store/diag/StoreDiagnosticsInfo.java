@@ -22,15 +22,15 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.google.common.base.Preconditions;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.store.StoreUtils;
 
 import static org.apache.hadoop.fs.store.diag.StoreDiag.sortKeys;
 
@@ -60,7 +60,7 @@ public class StoreDiagnosticsInfo {
   public static StoreDiagnosticsInfo bindToStore(URI fsURI)
       throws IOException {
     StoreDiagnosticsInfo store;
-    Preconditions.checkArgument(fsURI != null, "Null fsURI argument");
+    StoreUtils.checkArgument(fsURI != null, "Null fsURI argument");
     String scheme = fsURI.getScheme();
     if (scheme == null) {
       try {
@@ -309,6 +309,27 @@ public class StoreDiagnosticsInfo {
     }
   }
 
+  /**
+   * Constructs a mapping of configuration and includes all properties that
+   * start with the specified configuration prefix.  Property names in the
+   * mapping are trimmed to remove the configuration prefix.
+   *
+   * @param confPrefix configuration prefix
+   * @return mapping of configuration properties with prefix stripped
+   */
+  public Map<String, String> getPropsWithPrefix(final Configuration conf,
+      String confPrefix) {
+    Map<String, String> configMap = new HashMap<>();
+    for (Map.Entry<String, String> c : conf) {
+      String name = c.getKey();
+      if (name.startsWith(confPrefix)) {
+        String value = conf.get(name);
+        String keyName = name.substring(confPrefix.length());
+        configMap.put(keyName, value);
+      }
+    }
+    return configMap;
+  }
   /**
    * Perform any validation of the filesystem itself (is it the right type,
    * are there any options you can check for. This is

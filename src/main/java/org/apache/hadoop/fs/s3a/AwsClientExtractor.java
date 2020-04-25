@@ -28,6 +28,10 @@ import org.slf4j.LoggerFactory;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.s3a.debug.InternalS3ClientFactory;
 
+/**
+ * Unsuccessful attempt to get the AWS client from the S3A connector across different
+ * S3A Versions.
+ */
 public class AwsClientExtractor {
 
   private static final Logger LOG = LoggerFactory.getLogger(
@@ -48,7 +52,7 @@ public class AwsClientExtractor {
     try {
       final Method method27 = S3AFileSystem.class.getDeclaredMethod(
           "getAmazonS3Client");
-      return (AmazonS3) method27.invoke(fs);
+      return (AmazonS3) method27.invoke(s3a);
     } catch (RuntimeException e) {
       throw e;
     } catch (Exception e) {

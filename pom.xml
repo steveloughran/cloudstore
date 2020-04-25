@@ -182,6 +182,30 @@
     </profile>
 
     <profile>
+      <id>hadoop-2.8</id>
+      <activation>
+        <property>
+          <name>hadoop-2.8</name>
+        </property>
+      </activation>
+      <properties>
+        <hadoop.version>2.8.4</hadoop.version>
+      </properties>
+    </profile>
+
+    <profile>
+      <id>hadoop-2.7</id>
+      <activation>
+        <property>
+          <name>hadoop-2.7</name>
+        </property>
+      </activation>
+      <properties>
+        <hadoop.version>2.7.3</hadoop.version>
+      </properties>
+    </profile>
+
+    <profile>
       <id>hadoop-3.1</id>
       <activation>
         <property>

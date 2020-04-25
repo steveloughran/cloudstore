@@ -27,7 +27,6 @@ import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.S3ClientOptions;
-import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 
 import org.apache.hadoop.conf.Configuration;
@@ -60,6 +59,7 @@ import static org.apache.hadoop.fs.s3a.Constants.SOCKET_SEND_BUFFER;
 import static org.apache.hadoop.fs.s3a.Constants.SOCKET_TIMEOUT;
 import static org.apache.hadoop.fs.s3a.Constants.USER_AGENT_PREFIX;
 import static org.apache.hadoop.fs.s3a.S3AUtils.createAWSCredentialProviderSet;
+import static org.apache.hadoop.fs.store.StoreUtils.checkArgument;
 
 /**
  * The default factory implementation, which calls the AWS SDK to configure
@@ -149,7 +149,7 @@ public class InternalS3ClientFactory extends Configured {
    */
   static int intOption(Configuration conf, String key, int defVal, int min) {
     int v = conf.getInt(key, defVal);
-    Preconditions.checkArgument(v >= min,
+    checkArgument(v >= min,
         String.format("Value of %s: %d is below the minimum value %d",
             key, v, min));
     LOG.debug("Value of {} is {}", key, v);

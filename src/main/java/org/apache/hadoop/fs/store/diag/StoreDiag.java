@@ -33,6 +33,8 @@ import java.net.ProxySelector;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.UnknownHostException;
+import java.nio.charset.Charset;
 import java.nio.file.AccessDeniedException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Collection;
@@ -61,6 +63,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.RemoteIterator;
 import org.apache.hadoop.fs.store.DurationInfo;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
+import org.apache.hadoop.fs.store.StoreUtils;
 import org.apache.hadoop.io.IOUtils;
 import org.apache.hadoop.net.NetUtils;
 import org.apache.hadoop.security.AccessControlException;
@@ -71,7 +74,6 @@ import org.apache.hadoop.security.token.TokenIdentifier;
 import org.apache.hadoop.util.StringUtils;
 import org.apache.hadoop.util.ToolRunner;
 
-import static com.google.common.base.Preconditions.checkArgument;
 //import static org.apache.hadoop.fs.CommonConfigurationKeysPublic.FS_DEFAULT_NAME_DEFAULT;
 //import static org.apache.hadoop.fs.CommonConfigurationKeysPublic.FS_DEFAULT_NAME_KEY;
 import static org.apache.hadoop.fs.store.CommonParameters.DEFINE;
@@ -80,13 +82,14 @@ import static org.apache.hadoop.fs.store.CommonParameters.VERBOSE;
 import static org.apache.hadoop.fs.store.CommonParameters.XMLFILE;
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_SUCCESS;
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
+import static org.apache.hadoop.fs.store.StoreUtils.checkArgument;
 import static org.apache.hadoop.fs.store.diag.OptionSets.CLUSTER_OPTIONS;
 import static org.apache.hadoop.fs.store.diag.OptionSets.HADOOP_TOKEN;
 import static org.apache.hadoop.fs.store.diag.OptionSets.HADOOP_TOKEN_FILE_LOCATION;
 import static org.apache.hadoop.fs.store.diag.OptionSets.SECURITY_OPTIONS;
 import static org.apache.hadoop.util.VersionInfo.*;
 
-@SuppressWarnings("UseOfSystemOutOrSystemErr")
+@SuppressWarnings({"UseOfSystemOutOrSystemErr", "CharsetObjectCanBeUsed"})
 public class StoreDiag extends StoreEntryPoint
   implements Printout {
 
@@ -482,8 +485,9 @@ public class StoreDiag extends StoreEntryPoint
     Collection<Token<? extends TokenIdentifier>> tokens
         = currentUser.getTokens();
     println("Token count: %d", tokens.size());
-    tokens.stream().forEach(t ->
-        println("  %s", t));
+    for (Token<? extends TokenIdentifier> token : tokens) {
+      println("  %s", token);
+    }
   }
 
   /**
@@ -532,11 +536,12 @@ public class StoreDiag extends StoreEntryPoint
       println("No endpoints determined for this filesystem");
     } else {
       println("Attempting to list and connect to public service endpoints,");
-      println("without any authentication credentials.");
-      println("%nThis is just testing the reachability of the URLs.");
+      println("without any authentication credentials. ");
+      println("This is just testing the reachability of the URLs.");
 
-      println("%nIf the request fails with any network error it is likely%n"
-          + "to be configuration problem with address, proxy, etc%n");
+      println("If the request fails with any network error it is likely");
+
+      println("to be configuration problem with address, proxy, etc%n");
 
       println("If it is some authentication error, then don't worry so much%n"
           + "-look for the results of the filesystem operations");
@@ -628,7 +633,13 @@ public class StoreDiag extends StoreEntryPoint
     final String host = endpoint.getHost();
 
     heading("Endpoint: %s", endpoint);
-    InetAddress addr = InetAddress.getByName(host);
+    InetAddress addr = null;
+    try {
+      addr = InetAddress.getByName(host);
+    } catch (UnknownHostException e) {
+      warn("Host %s unknown", endpoint);
+      return;
+    }
     println("Canonical hostname %s%n  IP address %s",
         addr.getCanonicalHostName(),
         addr.getHostAddress());
@@ -702,7 +713,8 @@ public class StoreDiag extends StoreEntryPoint
       heading("Probing required classes listed in %s", f);
       probeRequiredClassesOrResources(
           org.apache.commons.io.IOUtils.readLines(
-              new FileInputStream(f), Charsets.UTF_8));
+              new FileInputStream(f),
+              Charset.forName("UTF-8")));
     }
   }
 
@@ -912,7 +924,7 @@ public class StoreDiag extends StoreEntryPoint
         println("First character of file %s is 0x%02x: '%s'",
             firstFilePath,
             c,
-            (c > 32) ? Character.toString((char) c) : "(n/a)");
+            (c > ' ') ? Character.toString((char) c) : "(n/a)");
         in.close();
       } finally {
         IOUtils.closeStream(in);

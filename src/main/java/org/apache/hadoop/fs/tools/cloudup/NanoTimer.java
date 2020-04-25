@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
  * printing some useful results in the process.
  */
 public final class NanoTimer {
-  private static final Logger LOG = LoggerFactory.getLogger(Cloudup.class);
+  private static final Logger LOG = LoggerFactory.getLogger(NanoTimer.class);
 
   private final long startTime;
   private long endTime;
