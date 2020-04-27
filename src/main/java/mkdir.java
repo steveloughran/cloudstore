@@ -17,27 +17,16 @@
  */
 
 import org.apache.hadoop.fs.store.commands.Command;
+import org.apache.hadoop.fs.store.commands.MkdirCommand;
 
-/**
- * Help command: list the public commands.
- */
-public class help extends Command {
+public class mkdir extends Command {
 
-  /**
-   * When adding new entries here, use alphabetical order.
-   * @param args
-   * @throws Exception
-   */
   public static void main(String[] args) throws Exception {
-    bucketstate.help();
-    cloudup.help();
-    committerinfo.help();
-    fetchdt.help();
-    filestatus.help();
-    list.help();
-    listobjects.help();
-    locatefiles.help();
-    mkdir.help();
-    storediag.help();
+    MkdirCommand.main(args);
   }
+
+  public static void help() {
+    printCommand("mkdir    ", "create a directory");
+  }
+
 }
