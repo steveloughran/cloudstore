@@ -53,6 +53,14 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
   public static final String ASSUMED_ROLE_STS_ENDPOINT
       = "fs.s3a.assumed.role.sts.endpoint";
 
+  public static final String HADOOP_TMP_DIR = "hadoop.tmp.dir";
+
+  //use a custom endpoint?
+  public static final String ENDPOINT = "fs.s3a.endpoint";
+
+  //Enable path style access? Overrides default virtual hosting
+  public static final String PATH_STYLE_ACCESS = "fs.s3a.path.style.access";
+
   private static final Object[][] options = {
       /* Core auth */
       {"fs.s3a.access.key", true, true},
@@ -86,7 +94,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.s3a.multiobjectdelete.enable", false, false},
       {"fs.s3a.multipart.purge", false, false},
       {"fs.s3a.multipart.purge.age", false, false},
-      {"fs.s3a.path.style.access", false, false},
+      {PATH_STYLE_ACCESS, false, false},
       {"fs.s3a.proxy.host", false, false},
       {"fs.s3a.proxy.port", false, false},
       {"fs.s3a.proxy.username", false, false},
@@ -224,8 +232,6 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
 
   };
 
-  public static final String HADOOP_TMP_DIR = "hadoop.tmp.dir";
-
   public S3ADiagnosticsInfo(final URI fsURI) {
     super(fsURI);
   }
@@ -298,7 +304,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
   @Override
   public List<URI> listEndpointsToProbe(final Configuration conf)
       throws IOException, URISyntaxException {
-    String endpoint = conf.getTrimmed(Constants.ENDPOINT, "s3.amazonaws.com");
+    String endpoint = conf.getTrimmed(ENDPOINT, "s3.amazonaws.com");
     String bucketURI;
     String bucket = getFsURI().getHost();
     String fqdn;
@@ -312,7 +318,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
     } else {
       fqdn = bucket + "." + endpoint;
     }
-    final boolean pathStyleAccess = conf.getBoolean("fs.s3a.path.style.access", false);
+    final boolean pathStyleAccess = conf.getBoolean(PATH_STYLE_ACCESS, false);
     boolean secureConnections =
         conf.getBoolean("fs.s3a.connection.ssl.enabled", true);
     String scheme = secureConnections ? "https" : "http";

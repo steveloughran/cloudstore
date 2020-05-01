@@ -46,6 +46,9 @@ public class OptionSets {
   protected static final Object[][] CLUSTER_OPTIONS = {
       {"fs.defaultFS", false, false},
       {"fs.default.name", false, false},
+      {"fs.trash.classname", false, false},
+      {"fs.trash.interval", false, false},
+      {"fs.trash.checkpoint.interval", false, false},
       {"hdp.version", false, false},
       {"yarn.resourcemanager.address", false, false},
       {"yarn.resourcemanager.webapp.address", false, false},

@@ -63,7 +63,6 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.RemoteIterator;
 import org.apache.hadoop.fs.store.DurationInfo;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
-import org.apache.hadoop.fs.store.StoreUtils;
 import org.apache.hadoop.io.IOUtils;
 import org.apache.hadoop.net.NetUtils;
 import org.apache.hadoop.security.AccessControlException;
@@ -74,8 +73,6 @@ import org.apache.hadoop.security.token.TokenIdentifier;
 import org.apache.hadoop.util.StringUtils;
 import org.apache.hadoop.util.ToolRunner;
 
-//import static org.apache.hadoop.fs.CommonConfigurationKeysPublic.FS_DEFAULT_NAME_DEFAULT;
-//import static org.apache.hadoop.fs.CommonConfigurationKeysPublic.FS_DEFAULT_NAME_KEY;
 import static org.apache.hadoop.fs.store.CommonParameters.DEFINE;
 import static org.apache.hadoop.fs.store.CommonParameters.TOKENFILE;
 import static org.apache.hadoop.fs.store.CommonParameters.VERBOSE;
@@ -857,10 +854,10 @@ public class StoreDiag extends StoreEntryPoint
   /**
    * Execute the FS level operations, one by one.
    */
-  public void executeFileSystemOperations(final Path path,
+  public void executeFileSystemOperations(final Path baseDir,
       final boolean attempWriteOperations) throws IOException {
     final Configuration conf = getConf();
-    heading("Test filesystem %s", path);
+    heading("Test filesystem %s", baseDir);
 
     println("This call tests a set of operations against the filesystem");
     println("Starting with some read operations, then trying to write%n");
@@ -868,15 +865,15 @@ public class StoreDiag extends StoreEntryPoint
     FileSystem fs;
 
     try(DurationInfo ignored = new DurationInfo(
-        LOG, "Creating filesystem %s", path)) {
-      fs = path.getFileSystem(conf);
+        LOG, "Creating filesystem %s", baseDir)) {
+      fs = baseDir.getFileSystem(conf);
     }
     URI fsUri = fs.getUri();
 
     println("%s", fs);
     println("Implementation class %s", fs.getClass());
 
-    storeInfo.validateFilesystem(this, path, fs);
+    storeInfo.validateFilesystem(this, baseDir, fs);
 
 
     Path root = fs.makeQualified(new Path("/"));
@@ -890,10 +887,12 @@ public class StoreDiag extends StoreEntryPoint
 
     FileStatus firstFile = null;
     int limit = LIST_LIMIT;
+    boolean baseDirFound;
     try (DurationInfo ignored = new DurationInfo(LOG,
-        "First %d entries of listStatus(%s)", limit, path)) {
-      FileStatus[] statuses = fs.listStatus(path);
-      println("%s entry count: %d", path, statuses.length);
+        "First %d entries of listStatus(%s)", limit, baseDir)) {
+      FileStatus[] statuses = fs.listStatus(baseDir);
+      println("%s entry count: %d", baseDir, statuses.length);
+      baseDirFound = true;
       for (FileStatus status : statuses) {
         if (status.isFile() && firstFile == null) {
           firstFile = status;
@@ -909,6 +908,10 @@ public class StoreDiag extends StoreEntryPoint
           }
         }
       }
+    } catch (FileNotFoundException e) {
+      // dir doesn't exist
+      println("Directory %s does not exist", baseDir);
+      baseDirFound = false;
     }
 
     if (firstFile != null) {
@@ -934,8 +937,8 @@ public class StoreDiag extends StoreEntryPoint
     // now work with the full path
     limit = LIST_LIMIT;
     try(DurationInfo ignored = new DurationInfo(LOG,
-        "First %d entries of listFiles(%s)", limit, path)) {
-      RemoteIterator<LocatedFileStatus> files = fs.listFiles(path, true);
+        "First %d entries of listFiles(%s)", limit, baseDir)) {
+      RemoteIterator<LocatedFileStatus> files = fs.listFiles(baseDir, true);
       try {
         while (files.hasNext() && (limit--)> 0) {
           FileStatus status = files.next();
@@ -945,7 +948,7 @@ public class StoreDiag extends StoreEntryPoint
         // didn't have permissions to scan everything down the tree
         // continue rather than fail
         LOG.warn("Permission denied during recursive scan of {}",
-            path, e);
+            baseDir, e);
       }
     } catch (FileNotFoundException e) {
       // this is fine.
@@ -974,7 +977,7 @@ public class StoreDiag extends StoreEntryPoint
     } else {
       Credentials cred = new Credentials();
       try (DurationInfo ignored = new DurationInfo(LOG,
-          "Attempting to add delegation tokens")) {
+          "collecting delegation tokens")) {
         try {
           String renewer = "yarn@EXAMPLE";
           String principal = getOption(PRINCIPAL);
@@ -1017,10 +1020,10 @@ public class StoreDiag extends StoreEntryPoint
     heading("Filesystem Write Operations");
 
     // now create a directory
-    Path dir = new Path(path, "dir-" + UUID.randomUUID());
+    Path dir = new Path(baseDir, "dir-" + UUID.randomUUID());
 
     try (DurationInfo ignored = new DurationInfo(LOG,
-        "Looking for a directory which does not yet exist %s", dir)) {
+        "probe for a directory which does not yet exist %s", dir)) {
       FileStatus status = fs.getFileStatus(dir);
       println("Unexpectedly got the status of a file which should not exist%n"
           + "    %s", status);
@@ -1040,7 +1043,7 @@ public class StoreDiag extends StoreEntryPoint
 
     // Directory ops
     try (DurationInfo ignored = new DurationInfo(LOG,
-        "Creating a directory %s", dir)) {
+        "create directory %s", dir)) {
       FileStatus status = fs.getFileStatus(dir);
       if (!status.isDirectory()) {
         throw new StoreDiagException("Not a directory: %s", status);
@@ -1051,8 +1054,10 @@ public class StoreDiag extends StoreEntryPoint
     // do a file underneath
     try {
       Path file = new Path(dir, "file");
+      verifyPathNotFound(fs, file);
+
       try (DurationInfo ignored = new DurationInfo(LOG,
-          "Creating a file %s", file)) {
+          "creating a file %s", file)) {
         FSDataOutputStream data = fs.create(file, true);
         data.writeUTF(HELLO);
         data.close();
@@ -1075,21 +1080,41 @@ public class StoreDiag extends StoreEntryPoint
       } finally {
         IOUtils.closeStream(in);
       }
+
+      // move the file into a subdir
+      Path subdir = new Path(dir, "subdir");
+      Path subdir2 = new Path(dir, "subdir2");
+      Path subfile = new Path(subdir, "subfile");
+      try (DurationInfo ignored = new DurationInfo(LOG,
+          "Renaming file %s under %s", file, subdir)) {
+        fs.mkdirs(subdir);
+        fs.rename(file, subfile);
+        fs.rename(subdir, subdir2);
+      }
+      verifyPathNotFound(fs, subfile);
       // delete the file
       try (DurationInfo ignored = new DurationInfo(LOG,
-          "Deleting file %s", file)) {
-        fs.delete(file, true);
+          "delete dir %s", subdir2)) {
+        fs.delete(subdir2, true);
       }
+      verifyPathNotFound(fs, subdir2);
 
     } finally {
       // teardown: attempt to delete the directory
-      try (DurationInfo ignored = new DurationInfo(LOG,
-          "Deleting directory %s", dir)) {
-        try {
-          fs.delete(dir, true);
-        } catch (Exception e) {
-          LOG.warn("When deleting {}: ", dir, e);
-        }
+      deleteDir(fs, dir);
+      if (!baseDirFound) {
+        deleteDir(fs, baseDir);
+      }
+    }
+  }
+
+  public void deleteDir(final FileSystem fs, final Path dir) {
+    try (DurationInfo ignored = new DurationInfo(LOG,
+        "delete directory %s", dir)) {
+      try {
+        fs.delete(dir, true);
+      } catch (Exception e) {
+        LOG.warn("When deleting {}: ", dir, e);
       }
     }
   }
@@ -1136,6 +1161,16 @@ public class StoreDiag extends StoreEntryPoint
     return jars;
   }
 
+  protected void verifyPathNotFound(FileSystem fs, Path path)
+      throws IOException {
+    try (DurationInfo ignored = new DurationInfo(LOG,
+        "probing path %s", path)) {
+      final FileStatus st = fs.getFileStatus(path);
+      throw new StoreDiagException(
+          "Found path which should be absent %s", st);
+    } catch (FileNotFoundException ignored) {
+    }
+  }
 
   private String hash(File file) throws IOException, NoSuchAlgorithmException {
     /*return toHex(Files.getDigest(file, MessageDigest.getInstance("MD5")));*/
