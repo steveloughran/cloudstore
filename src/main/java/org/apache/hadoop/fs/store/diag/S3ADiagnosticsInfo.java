@@ -34,7 +34,6 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.LocalDirAllocator;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.fs.s3a.Constants;
 
 import static org.apache.hadoop.fs.s3a.Constants.*;
 import static org.apache.hadoop.fs.store.StoreUtils.cat;
@@ -137,6 +136,8 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.s3a.s3guard.ddb.table.capacity.write", false, false},
       {"fs.s3a.s3guard.ddb.table.create", false, false},
       {"fs.s3a.s3guard.ddb.throttle.retry.interval", false, false},
+      {"fs.s3a.s3guard.local.max_records", false, false},
+      {"fs.s3a.s3guard.local.ttl", false, false},
 
       /* committer */
       {"fs.s3a.committer.name", false, false},
