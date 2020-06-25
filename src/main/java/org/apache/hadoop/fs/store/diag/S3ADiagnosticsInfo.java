@@ -161,6 +161,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
 
       /* delegation */
       {"fs.s3a.delegation.token.binding", false, false},
+      {"fs.s3a.delegation.token.secondary.bindings", false, false},
 
       /* change detection */
       {"fs.s3a.change.detection.source", false, false},
@@ -219,6 +220,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
 
       // Delegation Tokens
       "org.apache.hadoop.fs.s3a.auth.delegation.S3ADelegationTokens",
+      "org.apache.hadoop.fs.s3a.auth.delegation.SecondaryDelegationToken",
 
       // S3 Select: HADOOP-15229
       "com.amazonaws.services.s3.model.SelectObjectContentRequest",
