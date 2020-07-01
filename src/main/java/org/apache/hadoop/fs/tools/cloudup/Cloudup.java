@@ -174,12 +174,12 @@ public class Cloudup extends StoreEntryPoint {
 
       String s = sourcePath.toString();
       String d = destPath.toString();
-      Preconditions.checkArgument(!s.startsWith(d),
-          "Source path %s is under destination path %s",
-          s, d);
-      Preconditions.checkArgument(!s.startsWith(d),
-          "Destination path %s is under source path %s",
-          d, s);
+      StoreUtils.checkArgument(!s.startsWith(d),
+          "Source path " + s
+              + "%s is under destination path " + d);
+      StoreUtils.checkArgument(!d.startsWith(s),
+          "Destination path " + s
+              + "%s is under source path " + d);
     }
 
     // worker pool

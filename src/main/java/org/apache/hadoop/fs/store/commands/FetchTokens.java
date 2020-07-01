@@ -35,6 +35,7 @@ import org.apache.hadoop.fs.store.StoreEntryPoint;
 import org.apache.hadoop.security.Credentials;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.security.token.Token;
+import org.apache.hadoop.service.launcher.LauncherExitCodes;
 import org.apache.hadoop.util.ExitUtil;
 import org.apache.hadoop.util.ToolRunner;
 
@@ -43,7 +44,7 @@ import static org.apache.hadoop.fs.store.CommonParameters.VERBOSE;
 import static org.apache.hadoop.fs.store.CommonParameters.XMLFILE;
 
 /**
- * Fetch delegation tokens 
+ * Fetch all delegation tokens from the given filesystems.
  */
 @SuppressWarnings("UseOfSystemOutOrSystemErr")
 public class FetchTokens extends StoreEntryPoint {
@@ -122,30 +123,35 @@ public class FetchTokens extends StoreEntryPoint {
       List<String> urls) throws IOException {
 
     Credentials cred = new Credentials();
+    int count = 0;
     for (String url : urls) {
       Path path = new Path(url);
       try (DurationInfo ignored =
-               new DurationInfo(LOG, "Fetching token for %s", path)) {
+               new DurationInfo(LOG, "Fetching tokens for %s", path)) {
 
         FileSystem fs = path.getFileSystem(conf);
         URI fsUri = fs.getUri();
         LOG.debug("Acquired FS {}", fs);
-        Token<?> token = fs.getDelegationToken(renewer);
-        if (token != null) {
-          println("Fetched token: %s", token);
-          cred.addToken(token.getService(), token);
+        Token<?>[] tokens = fs.addDelegationTokens(renewer, cred);
+        if (tokens != null && tokens.length != 0) {
+          count += tokens.length;
+          for (Token<?> token : tokens) {
+            println("Fetched token: %s", token);
+          }
         } else {
           println("No token for %s", path);
           if (required) {
-            throw new ExitUtil.ExitException(44,
-                "No token issued by filesystem " + fsUri);
+            throw new ExitUtil.ExitException(
+                LauncherExitCodes.EXIT_NOT_FOUND,
+                "No tokens issued by filesystem " + fsUri);
           }
         }
       }
     }
     // all the tokens are collected, so save
     try(DurationInfo ignored =
-            new DurationInfo(LOG, "Saving tokens to %s", dest)) {
+            new DurationInfo(LOG, "Saving %d tokens to %s",
+                count, dest)) {
       cred.writeTokenStorageFile(dest, conf);
     }
     return cred;

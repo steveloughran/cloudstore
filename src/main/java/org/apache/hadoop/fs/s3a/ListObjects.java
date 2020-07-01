@@ -203,10 +203,9 @@ public class ListObjects extends StoreEntryPoint {
   }
 
   /**
-   * Create a {@code ListObjectsRequest} request against this bucket,
-   * with the maximum keys returned in a query set by {@link #maxKeys}.
+   * Create a {@code ListObjectsRequest} request against this bucket.
    *
-   * @param bucket
+   * @param bucket bucket to listJitendra
    * @param key key for request
    * @param delimiter any delimiter
    * @return the request

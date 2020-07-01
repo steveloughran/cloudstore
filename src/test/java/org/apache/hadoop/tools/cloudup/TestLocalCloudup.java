@@ -45,6 +45,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.RemoteIterator;
 import org.apache.hadoop.fs.tools.cloudup.Cloudup;
 
+import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
 import static org.apache.hadoop.tools.store.StoreTestUtils.*;
 
 public class TestLocalCloudup extends Assert {
@@ -92,9 +93,9 @@ public class TestLocalCloudup extends Assert {
   @Test
   public void testNoArgs() throws Throwable {
     // no args == failure
-    expectException(IllegalArgumentException.class,
-        new Cloudup(),
-        new String[0]);
+    expectOutcome(E_USAGE,
+        new Cloudup()
+    );
   }
 
   @Test
