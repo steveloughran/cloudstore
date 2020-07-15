@@ -158,7 +158,10 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable {
    * @param max max number of non-option arguments.
    * @param options simple options.
    */
-  protected void createCommandFormat(int min, int max, String... options) {
+  protected final void createCommandFormat(
+      int min,
+      int max,
+      String... options) {
     setCommandFormat(new CommandFormat(min, max, options));
   }
 
@@ -166,7 +169,7 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable {
    * Add a list of value options.
    * @param names option names.
    */
-  protected void addValueOptions(String...names) {
+  protected final void addValueOptions(String...names) {
     for (String s : names) {
       commandFormat.addOptionWithValue(s);
     }

@@ -41,6 +41,11 @@ import org.apache.hadoop.fs.store.StoreEntryPoint;
 import org.apache.hadoop.util.ToolRunner;
 
 import static org.apache.hadoop.fs.s3a.S3AUtils.translateException;
+import static org.apache.hadoop.fs.store.CommonParameters.DEFINE;
+import static org.apache.hadoop.fs.store.CommonParameters.LIMIT;
+import static org.apache.hadoop.fs.store.CommonParameters.TOKENFILE;
+import static org.apache.hadoop.fs.store.CommonParameters.VERBOSE;
+import static org.apache.hadoop.fs.store.CommonParameters.XMLFILE;
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
 import static org.apache.hadoop.fs.store.StoreUtils.checkArgument;
 
@@ -52,12 +57,20 @@ public class ListObjects extends StoreEntryPoint {
 
 
   public static final String USAGE
-      = "Usage: listobjects [-purge] <path>";
-
+      = "Usage: listobjects <path>\n"
+      + optusage(DEFINE, "key=value", "Define a property")
+      + optusage(LIMIT, "limit", "limit of files to list")
+      + optusage(PURGE, "purge directory markers")
+      + optusage(TOKENFILE, "file", "Hadoop token file to load")
+      + optusage(VERBOSE, "print verbose output")
+      + optusage(XMLFILE, "file", "XML config file to load")
+      ;
 
   public ListObjects() {
     createCommandFormat(1, 1,
-        PURGE);
+        PURGE,
+        VERBOSE);
+    addValueOptions(TOKENFILE, XMLFILE, DEFINE, LIMIT);
   }
 
   @Override
@@ -70,7 +83,9 @@ public class ListObjects extends StoreEntryPoint {
 
     addAllDefaultXMLFiles();
     final Configuration conf = new Configuration();
-
+    maybeAddXMLFileOption(conf, XMLFILE);
+    maybePatchDefined(conf, DEFINE);
+    int limit = getOptional(LIMIT).map(Integer::valueOf).orElse(0);
 
     boolean purge = hasOption(PURGE);
     if (purge) {
@@ -79,8 +94,7 @@ public class ListObjects extends StoreEntryPoint {
 
     List<String> markers = new ArrayList<>();
     final Path source = new Path(paths.get(0));
-    DurationInfo duration = new DurationInfo(LOG, "listobjects");
-    try {
+    try (DurationInfo duration = new DurationInfo(LOG, "listobjects")) {
       FileSystem fs = source.getFileSystem(conf);
       String bucket = ((S3AFileSystem) fs).getBucket();
       final AmazonS3 s3 = AwsClientExtractor.createAwsClient(fs);
@@ -109,6 +123,9 @@ public class ListObjects extends StoreEntryPoint {
         }
         for (String prefix : page.getCommonPrefixes()) {
           prefixes.add(prefix);
+        }
+        if (limit > 0 && objectCount >= limit) {
+          break;
         }
       }
 
@@ -143,14 +160,15 @@ public class ListObjects extends StoreEntryPoint {
         if (purge) {
           delete(s3, bucket, kv);
         } else {
-          println("\nTo delete these, rerun with the option -%s", PURGE);
+          println("\nTo delete these markers, rerun with the option -%s",
+              PURGE);
         }
       } else if (purge) {
         heading("No markers found to purge");
       }
-    } finally {
-      duration.close();
+      maybeDumpStorageStatistics(fs);
     }
+
     return 0;
   }
 

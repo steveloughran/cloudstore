@@ -17,28 +17,17 @@
  */
 
 import org.apache.hadoop.fs.store.commands.Command;
+import org.apache.hadoop.fs.store.commands.MkdirCommand;
+import org.apache.hadoop.fs.store.commands.PathCapability;
 
-/**
- * Help command: list the public commands.
- */
-public class help extends Command {
+public class pathcapability extends Command {
 
-  /**
-   * When adding new entries here, use alphabetical order.
-   * @param args
-   * @throws Exception
-   */
   public static void main(String[] args) throws Exception {
-    bucketstate.help();
-    cloudup.help();
-    committerinfo.help();
-    fetchdt.help();
-    filestatus.help();
-    list.help();
-    listobjects.help();
-    locatefiles.help();
-    mkdir.help();
-    pathcapability.help();
-    storediag.help();
+    PathCapability.main(args);
   }
+
+  public static void help() {
+    printCommand("pathcapability", "probe for path capabilities");
+  }
+
 }

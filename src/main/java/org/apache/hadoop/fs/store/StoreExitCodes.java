@@ -34,4 +34,36 @@ public class StoreExitCodes {
 
   public static final int E_NO_ACCESS = 41;
 
+  /**
+   * Exit code when an exception was thrown from the service: {@value}.
+   * <p>
+   * Approximate HTTP equivalent: {@code 500 Internal Server Error}
+   */
+  public static final int E_EXCEPTION_THROWN = 50;
+
+  /**
+   * Unimplemented feature: {@value}.
+   * <p>
+   * Approximate HTTP equivalent: {@code 501: Not Implemented}
+   */
+  public static final int E_UNIMPLEMENTED = 51;
+
+  /**
+   * Service Unavailable; it may be available later: {@value}.
+   * <p>
+   * Approximate HTTP equivalent: {@code 503 Service Unavailable}
+   */
+  public static final int E_SERVICE_UNAVAILABLE = 53;
+
+  /**
+   * The application does not support, or refuses to support this
+   * version: {@value}.
+   * <p>
+   * If raised, this is expected to be raised server-side and likely due
+   * to client/server version incompatibilities.
+   * <p>
+   * Approximate HTTP equivalent: {@code 505: Version Not Supported}
+   */
+  public static final int E_UNSUPPORTED_VERSION = 55;
+
 }

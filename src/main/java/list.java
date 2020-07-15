@@ -26,7 +26,7 @@ public class list extends Command {
   }
 
   public static void help() {
-    printCommand("list", "list files");
+    printCommand("list    ", "list files");
   }
 
 }

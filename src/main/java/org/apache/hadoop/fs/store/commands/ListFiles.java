@@ -35,6 +35,7 @@ import org.apache.hadoop.util.ToolRunner;
 
 import static org.apache.hadoop.fs.s3a.S3AUtils.applyLocatedFiles;
 import static org.apache.hadoop.fs.store.CommonParameters.DEFINE;
+import static org.apache.hadoop.fs.store.CommonParameters.LIMIT;
 import static org.apache.hadoop.fs.store.CommonParameters.TOKENFILE;
 import static org.apache.hadoop.fs.store.CommonParameters.VERBOSE;
 import static org.apache.hadoop.fs.store.CommonParameters.XMLFILE;
@@ -50,16 +51,15 @@ public class ListFiles extends StoreEntryPoint {
 
   private static final Logger LOG = LoggerFactory.getLogger(ListFiles.class);
 
-  public static final String LIMIT = "limit";
 
   public static final String USAGE
-      = "Usage: list\n"
+      = "Usage: list <path>\n"
       + optusage(DEFINE, "key=value", "Define a property")
-      + optusage(TOKENFILE, "file", "Hadoop token file to load")
-      + optusage(XMLFILE, "file", "XML config file to load")
       + optusage(LIMIT, "limit", "limit of files to list")
+      + optusage(TOKENFILE, "file", "Hadoop token file to load")
       + optusage(VERBOSE, "print verbose output")
-      + " <path>";
+      + optusage(XMLFILE, "file", "XML config file to load")
+      ;
 
   public ListFiles() {
     createCommandFormat(1, 1, VERBOSE);
@@ -106,7 +106,7 @@ public class ListFiles extends StoreEntryPoint {
               throw new LimitReachedException();
             }
           });
-    } catch(LimitReachedException expected) {
+    } catch (LimitReachedException expected) {
 
       // the limit has been reached
 
@@ -114,7 +114,7 @@ public class ListFiles extends StoreEntryPoint {
       duration.close();
     }
     long files = count.get();
-    double millisPerFile = files > 0 ? (((float)duration.value()) / files) : 0;
+    double millisPerFile = files > 0 ? (((float) duration.value()) / files) : 0;
     long totalSize = size.get();
     long bytesPerFile = (files > 0 ? totalSize / files : 0);
     println("");

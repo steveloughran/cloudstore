@@ -35,4 +35,6 @@ public class CommonParameters {
    * File for log4j properties: {@value}.
    */
   public static final String LOGFILE = "logfile";
+
+  public static final String LIMIT = "limit";
 }

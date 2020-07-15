@@ -49,8 +49,6 @@ public class BucketState extends StoreEntryPoint {
 
   private static final Logger LOG = LoggerFactory.getLogger(BucketState.class);
 
-  public static final String LIMIT = "limit";
-
   public static final String USAGE
       = "Usage: bucketstate\n"
       + optusage(DEFINE, "key=value", "Define a property")
@@ -80,8 +78,7 @@ public class BucketState extends StoreEntryPoint {
 
     final Path source = new Path(paths.get(0));
     println("");
-    final DurationInfo duration = new DurationInfo(LOG, "Bucket State");
-    try {
+    try (DurationInfo duration = new DurationInfo(LOG, "Bucket State")) {
       S3AFileSystem fs = (S3AFileSystem) source.getFileSystem(conf);
       InternalAccess internals = new InternalAccess(fs);
       AmazonS3 s3Client = internals.getAmazonS3Client();
@@ -104,8 +101,6 @@ public class BucketState extends StoreEntryPoint {
         policyText = "Access-Denied";
       }
       println("Bucket policy: %s", policyText);
-    } finally {
-      duration.close();
     }
     return 0;
   }

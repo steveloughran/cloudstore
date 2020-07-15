@@ -63,10 +63,10 @@ Finally, if things do fail, the printed configuration excludes the login secrets
 for safer reporting of issues in bug reports.
 
 ```bash
-hadoop jar cloudstore-0.1-SNAPSHOT.jar storediag -r -j -5 s3a://landsat-pds/
-hadoop jar cloudstore-0.1-SNAPSHOT.jar storediag --tokenfile mytokens.bin s3a://my-readwrite-bucket/
-hadoop jar cloudstore-0.1-SNAPSHOT.jar storediag wasb://container@user/subdir
-hadoop jar cloudstore-0.1-SNAPSHOT.jar storediag abfs://container@user/
+hadoop jar cloudstore.jar storediag -r -j -5 s3a://landsat-pds/
+hadoop jar cloudstore.jar storediag --tokenfile mytokens.bin s3a://my-readwrite-bucket/
+hadoop jar cloudstore.jar storediag wasb://container@user/subdir
+hadoop jar cloudstore.jar storediag abfs://container@user/
 ```
  
 The remote store is required to grant full R/W access to the caller, otherwise
@@ -93,7 +93,7 @@ a #-prefixed comment, a blank line, a classname, a resource (with "/" in).
 These are all loaded
 
 ```bash
-hadoop jar cloudstore-0.1-SNAPSHOT.jar storediag -j -5 -required required.txt s3a://something/
+hadoop jar cloudstore.jar storediag -j -5 -required required.txt s3a://something/
 ```
 
 and with a `required.txt` listing things you require
@@ -117,7 +117,158 @@ Missing file or resource will result in an error and the command failing.
 The comments are printed too! This means you can use them in the reports.
 
 
-##  Command`fetchdt`
+## Command `bucketstate`
+
+Prints some of the low level diagnostics information about an S3 bucket which
+can be obtained via the AWS APIs.
+
+```
+bin/hadoop jar cloudstore.jar \
+            bucketstate \
+            s3a://mybucket/
+
+2019-07-25 16:54:50,678 [main] INFO  tools.BucketState (DurationInfo.java:<init>(53)) - Starting: Bucket State
+2019-07-25 16:54:54,216 [main] WARN  s3a.S3AFileSystem (S3AFileSystem.java:getAmazonS3ClientForTesting(675)) - Access to S3A client requested, reason Diagnostics
+Bucket owner is alice (ID=593...e1)
+Bucket policy:
+NONE
+```
+
+If you don't have the permissions to read the bucket policy, you get a stack trace.
+
+```
+hadoop jar cloudstore.jar \
+            bucketstate \
+            s3a://mybucket/
+
+2019-07-25 16:55:23,023 [main] INFO  tools.BucketState (DurationInfo.java:<init>(53)) - Starting: Bucket State
+2019-07-25 16:55:25,993 [main] WARN  s3a.S3AFileSystem (S3AFileSystem.java:getAmazonS3ClientForTesting(675)) - Access to S3A client requested, reason Diagnostics
+Bucket owner is alice (ID=593...e1)
+2019-07-25 16:55:26,883 [main] INFO  tools.BucketState (DurationInfo.java:close(100)) - Bucket State: duration 0:03:862
+com.amazonaws.services.s3.model.AmazonS3Exception: The specified method is not allowed against this resource. (Service: Amazon S3; Status Code: 405; Error Code: MethodNotAllowed; Request ID: 3844E3089E3801D8; S3 Extended Request ID: 3HJVN5+MvOGit087AFqKLUyOUCU9inCakvJ44GW5Wb4toiVipEiv5uK6A54LQBjdKFYUU8ZI5XQ=), S3 Extended Request ID: 3HJVN5+MvOGit087AFqKLUyOUCU9inCakvJ44GW5Wb4toiVipEiv5uK6A54LQBjdKFYUU8ZI5XQ=
+
+```
+
+## Command `cloudup` -upload and download files; optimised for cloud storage 
+
+Bulk download of everything from s3a://bucket/qelogs/ to the local dir localquelogs (assuming the default fs is file://)
+
+Usage
+
+```
+cloudup -s source -d dest [-o] [-i] [-l <largest>] [-t threads] 
+
+-s <uri> : source
+-d <uri> : dest
+-o: overwrite
+-i: ignore failures
+-t <n> : number of threads
+-l <n> : number of "largest" files to start uploading before just randomly picking files.
+
+```
+
+Algorithm
+
+1. source files are listed.
+1. A pool of worker threads is created
+2. the largest N files are queued for upload first, where N is a default or the value set by `-l`.
+1. The remainder of the files are randomized to avoid throttling and then queued
+1. the program waits for everything to complete.
+1. Source and dest FS stats are printed.
+
+This is not discp run across a cluster; it's a single process with some threads. 
+Works best for reading lots of small files from an object store or when you have a 
+mix of large and small files to download or uplaod.
+
+
+
+```
+bin/hadoop jar cloudstore.jar cloudup \
+ -s s3a://bucket/qelogs/ \
+ -d localqelogs \
+ -t 32 -o
+```
+
+and the other way
+
+```
+bin/hadoop jar cloudstore.jar cloudup \
+ -d localqelogs \
+ -s s3a://bucket/qelogs/ \
+ -t 32 -o  -l 4
+```
+
+## Command `committerinfo`
+
+Tries to instantiate a committer using the Hadoop 3.1+ committer factory mechanism, printing out
+what committer a specific path will create.
+
+If this command fails with a `ClassNotFoundException` it can mean that the version of hadoop the command is being
+run against doesn't have this new API. The committer is therefore explicitly the classic `FileOutputCommitter`.
+
+
+* Good: ABFS container with the classic `FileOutputCommitter`
+
+```
+> bin/hadoop jar cloudstore.jar committerinfo abfs://container@storage.dfs.core.windows.net/
+  2019-08-05 17:39:48,623 [main] INFO  commands.CommitterInfo (DurationInfo.java:<init>(53)) - Starting: Create committer
+  Committer factory for path abfs://container@storage.dfs.core.windows.net/ is org.apache.hadoop.mapreduce.lib.output.FileOutputCommitterFactory@316bcf94 (classname org.apache.hadoop.mapreduce.lib.output.FileOutputCommitterFactory)
+  2019-08-05 17:39:49,233 [main] INFO  output.FileOutputCommitter (FileOutputCommitter.java:<init>(141)) - File Output Committer Algorithm version is 2
+  2019-08-05 17:39:49,233 [main] INFO  output.FileOutputCommitter (FileOutputCommitter.java:<init>(156)) - FileOutputCommitter skip cleanup _temporary folders under output directory:false, ignore cleanup failures: false
+  Created committer of class org.apache.hadoop.mapreduce.lib.output.FileOutputCommitter: FileOutputCommitter{PathOutputCommitter{context=TaskAttemptContextImpl{JobContextImpl{jobId=job__0000}; taskId=attempt__0000_r_000000_1, status=''}; org.apache.hadoop.mapreduce.lib.output.FileOutputCommitter@54a7079e}; outputPath=abfs://container@storage.dfs.core.windows.net/, workPath=abfs://container@storage.dfs.core.windows.net/_temporary/0/_temporary/attempt__0000_r_000000_1, algorithmVersion=2, skipCleanup=false, ignoreCleanupFailures=false}
+  2019-08-05 17:39:49,234 [main] INFO  commands.CommitterInfo (DurationInfo.java:close(100)) - Create committer: duration 0:00:613
+```
+
+*Danger*: S3A Bucket with the classic `FileOutputCommitter`
+
+```
+> hadoop jar cloudstore.jar committerinfo s3a://landsat-pds/
+  2019-08-05 17:38:38,213 [main] INFO  commands.CommitterInfo (DurationInfo.java:<init>(53)) - Starting: Create committer
+  2019-08-05 17:38:40,968 [main] WARN  commit.AbstractS3ACommitterFactory (S3ACommitterFactory.java:createTaskCommitter(90)) - Using standard FileOutputCommitter to commit work. This is slow and potentially unsafe.
+  2019-08-05 17:38:40,968 [main] INFO  output.FileOutputCommitter (FileOutputCommitter.java:<init>(141)) - File Output Committer Algorithm version is 2
+  2019-08-05 17:38:40,968 [main] INFO  output.FileOutputCommitter (FileOutputCommitter.java:<init>(156)) - FileOutputCommitter skip cleanup _temporary folders under output directory:false, ignore cleanup failures: false
+  2019-08-05 17:38:40,970 [main] INFO  commit.AbstractS3ACommitterFactory (AbstractS3ACommitterFactory.java:createOutputCommitter(54)) - Using Commmitter FileOutputCommitter{PathOutputCommitter{context=TaskAttemptContextImpl{JobContextImpl{jobId=job__0000}; taskId=attempt__0000_r_000000_1, status=''}; org.apache.hadoop.mapreduce.lib.output.FileOutputCommitter@6cc0bcf6}; outputPath=s3a://landsat-pds/, workPath=s3a://landsat-pds/_temporary/0/_temporary/attempt__0000_r_000000_1, algorithmVersion=2, skipCleanup=false, ignoreCleanupFailures=false} for s3a://landsat-pds/
+  Created committer of class org.apache.hadoop.mapreduce.lib.output.FileOutputCommitter: FileOutputCommitter{PathOutputCommitter{context=TaskAttemptContextImpl{JobContextImpl{jobId=job__0000}; taskId=attempt__0000_r_000000_1, status=''}; org.apache.hadoop.mapreduce.lib.output.FileOutputCommitter@6cc0bcf6}; outputPath=s3a://landsat-pds/, workPath=s3a://landsat-pds/_temporary/0/_temporary/attempt__0000_r_000000_1, algorithmVersion=2, skipCleanup=false, ignoreCleanupFailures=false}
+  2019-08-05 17:38:40,970 [main] INFO  commands.CommitterInfo (DurationInfo.java:close(100)) - Create committer: duration 0:02:758
+```
+
+
+*Good* : S3A bucket with a staging committer:
+
+```
+>  hadoop jar  cloudstore.jar committerinfo s3a://hwdev-steve-ireland-new/
+  2019-08-05 17:42:53,563 [main] INFO  commands.CommitterInfo (DurationInfo.java:<init>(53)) - Starting: Create committer
+  Committer factory for path s3a://hwdev-steve-ireland-new/ is org.apache.hadoop.fs.s3a.commit.S3ACommitterFactory@3088660d (classname org.apache.hadoop.fs.s3a.commit.S3ACommitterFactory)
+  2019-08-05 17:42:55,433 [main] INFO  output.FileOutputCommitter (FileOutputCommitter.java:<init>(141)) - File Output Committer Algorithm version is 1
+  2019-08-05 17:42:55,434 [main] INFO  output.FileOutputCommitter (FileOutputCommitter.java:<init>(156)) - FileOutputCommitter skip cleanup _temporary folders under output directory:false, ignore cleanup failures: false
+  2019-08-05 17:42:55,434 [main] INFO  commit.AbstractS3ACommitterFactory (S3ACommitterFactory.java:createTaskCommitter(83)) - Using committer directory to output data to s3a://hwdev-steve-ireland-new/
+  2019-08-05 17:42:55,435 [main] INFO  commit.AbstractS3ACommitterFactory (AbstractS3ACommitterFactory.java:createOutputCommitter(54)) - Using Commmitter StagingCommitter{AbstractS3ACommitter{role=Task committer attempt__0000_r_000000_1, name=directory, outputPath=s3a://hwdev-steve-ireland-new/, workPath=file:/tmp/hadoop-stevel/s3a/job__0000/_temporary/0/_temporary/attempt__0000_r_000000_1}, conflictResolution=APPEND, wrappedCommitter=FileOutputCommitter{PathOutputCommitter{context=TaskAttemptContextImpl{JobContextImpl{jobId=job__0000}; taskId=attempt__0000_r_000000_1, status=''}; org.apache.hadoop.mapreduce.lib.output.FileOutputCommitter@5a865416}; outputPath=file:/Users/stevel/Projects/Releases/hadoop-3.3.0-SNAPSHOT/tmp/staging/stevel/job__0000/staging-uploads, workPath=null, algorithmVersion=1, skipCleanup=false, ignoreCleanupFailures=false}} for s3a://hwdev-steve-ireland-new/
+  Created committer of class org.apache.hadoop.fs.s3a.commit.staging.DirectoryStagingCommitter: StagingCommitter{AbstractS3ACommitter{role=Task committer attempt__0000_r_000000_1, name=directory, outputPath=s3a://hwdev-steve-ireland-new/, workPath=file:/tmp/hadoop-stevel/s3a/job__0000/_temporary/0/_temporary/attempt__0000_r_000000_1}, conflictResolution=APPEND, wrappedCommitter=FileOutputCommitter{PathOutputCommitter{context=TaskAttemptContextImpl{JobContextImpl{jobId=job__0000}; taskId=attempt__0000_r_000000_1, status=''}; org.apache.hadoop.mapreduce.lib.output.FileOutputCommitter@5a865416}; outputPath=file:/Users/stevel/Projects/Releases/hadoop-3.3.0-SNAPSHOT/tmp/staging/stevel/job__0000/staging-uploads, workPath=null, algorithmVersion=1, skipCleanup=false, ignoreCleanupFailures=false}}
+  2019-08-05 17:42:55,435 [main] INFO  commands.CommitterInfo (DurationInfo.java:close(100)) - Create committer: duration 0:01:874
+```
+
+The log entry about a FileOutputCommitter appears because the Staging Committers use the cluster filesystem (HDFS, etc) to safely pass information from the workers to the application master.
+
+The classic filesystem committer v1 is used because it works well here: the filesystem is consistent and operations are fast. Neither of those conditions are met with AWS S3.
+
+
+*Good* : S3A bucket with a magic committer:
+
+```
+> hadoop jar cloudstore.jar committerinfo s3a://hwdev-steve-ireland-new/
+
+2019-08-05 17:37:42,615 [main] INFO  commands.CommitterInfo (DurationInfo.java:<init>(53)) - Starting: Create committer
+2019-08-05 17:37:44,462 [main] INFO  commit.AbstractS3ACommitterFactory (S3ACommitterFactory.java:createTaskCommitter(83)) - Using committer magic to output data to s3a://hwdev-steve-ireland-new/
+2019-08-05 17:37:44,462 [main] INFO  commit.AbstractS3ACommitterFactory (AbstractS3ACommitterFactory.java:createOutputCommitter(54)) - Using Commmitter MagicCommitter{} for s3a://hwdev-steve-ireland-new/
+Created committer of class org.apache.hadoop.fs.s3a.commit.magic.MagicS3GuardCommitter: MagicCommitter{}
+2019-08-05 17:37:44,462 [main] INFO  commands.CommitterInfo (DurationInfo.java:close(100)) - Create committer: duration 0:01:849
+```
+
+Note: unless this store has S3Guard enabled or is a third party object store with consistent directory listings, the magic committer is not iself safe to use.
+
+
+
+##  Command `fetchdt`
 
 This is an extension of `hdfs fetchdt` which collects delegation tokens
 from a list of filesystems, saving them to a file.
@@ -139,7 +290,7 @@ Usage: fetchdt <file> [-renewer <renewer>] [-r] [-p] <url1> ... <url999>
 Successful query of an S3A session delegation token.
 
 ```bash
-> bin/hadoop jar cloudstore-0.1-SNAPSHOT.jar fetchdt -p -r file:/tmp/secrets.bin s3a://landsat-pds/
+> bin/hadoop jar cloudstore.jar fetchdt -p -r file:/tmp/secrets.bin s3a://landsat-pds/
   Collecting tokens for 1 filesystem to to file:/tmp/secrets.bin
   2018-12-05 17:50:44,276 INFO fs.FetchTokens: Starting: Fetching token for s3a://landsat-pds/
   2018-12-05 17:50:44,399 INFO impl.MetricsConfig: Loaded properties from hadoop-metrics2.properties
@@ -166,7 +317,7 @@ Successful query of an S3A session delegation token.
 Failure to get anything from fs, with `-r` option to require them
 
 ```bash
-> hadoop jar cloudstore-0.1-SNAPSHOT.jar fetchdt -p -r file:/tmm/secrets.bin file:///
+> hadoop jar cloudstore.jar fetchdt -p -r file:/tmm/secrets.bin file:///
 
 Collecting tokens for 1 filesystem to to file:/tmm/secrets.bin
 2018-12-05 17:47:00,970 INFO fs.FetchTokens: Starting: Fetching token for file:/
@@ -178,7 +329,7 @@ No token for file:/
 Same command, without the -r. 
 
 ```bash
-> hadoop jar cloudstore-0.1-SNAPSHOT.jar fetchdt -p file:/tmm/secrets.bin file:///
+> hadoop jar cloudstore.jar fetchdt -p file:/tmm/secrets.bin file:///
 Collecting tokens for 1 filesystem to to file:/tmp/secrets.bin
 2018-12-05 17:54:26,776 INFO fs.FetchTokens: Starting: Fetching token for file:/tmp
 No token for file:/tmp
@@ -188,6 +339,29 @@ No tokens collected, file file:/tmp/secrets.bin unchanged
 
 The token file is not modified.
 
+
+## Command `filestatus`
+
+Calls `getFileStatus` on the listed paths, prints the values. For stores
+which have more detail on the toString value of any subclass of `FileStatus`,
+this can be more meaningful.
+
+Also prints the time to execute each operation (including instantiating the store),
+and with the `-verbose` option, the store statistics.
+
+```
+hadoop jar  cloudstore.jar \
+            filestatus  \
+            s3a://guarded-table/example
+
+2019-07-31 21:48:34,963 [main] INFO  commands.PrintStatus (DurationInfo.java:<init>(53)) - Starting: get path status
+s3a://guarded-table/example	S3AFileStatus{path=s3a://guarded-table/example; isDirectory=false; length=0; replication=1; 
+  blocksize=33554432; modification_time=1564602680000;
+  access_time=0; owner=stevel; group=stevel;
+  permission=rw-rw-rw-; isSymlink=false; hasAcl=false; isEncrypted=true; isErasureCoded=false}
+  isEmptyDirectory=FALSE eTag=d41d8cd98f00b204e9800998ecf8427e versionId=null
+2019-07-31 21:48:37,182 [main] INFO  commands.PrintStatus (DurationInfo.java:close(100)) - get path status: duration 0:02:221
+```
 
 ## Command: `list`
 
@@ -205,7 +379,7 @@ Usage: list
 Example: list some of the AWS public landsat store.
 
 ```bash
-> bin/hadoop jar cloudstore-0.1-SNAPSHOT.jar list -limit 10 s3a://landsat-pds/
+> bin/hadoop jar cloudstore.jar list -limit 10 s3a://landsat-pds/
 
 Listing up to 10 files under s3a://landsat-pds/
 2019-04-05 21:32:14,523 [main] INFO  tools.ListFiles (DurationInfo.java:<init>(53)) - Starting: Directory list
@@ -226,6 +400,23 @@ Listing up to 10 files under s3a://landsat-pds/
 Found 10 files, 124 milliseconds per file
 Data size 217,741,136 bytes, 21,774,113 bytes per file
 ```
+## Command: `listobjects`
+
+List all objects and a path through the low-level S3 APIs.
+This bypasses the filesystem metaphor and gives the real view
+of the object store.
+
+The `-purge` option will remove all directory markers.
+
+```
+Usage: listobjects <path>
+    -D <key=value>	Define a property
+    -limit <limit>	limit of files to list
+    -purge	purge directory markers
+    -tokenfile <file>	Hadoop token file to load
+    -verbose	print verbose output
+    -xmlfile <file>	XML config file to load
+```
 
 ## Command `locatefiles`
 
@@ -239,7 +430,7 @@ tree with the actual performance you are likely to see during query planning.
 Usage:
 
 ```
-hadoop jar cloudstore-0.1-SNAPSHOT.jar locatefiles
+hadoop jar cloudstore.jar locatefiles
 Usage: locatefiles
   -D <key=value>	Define a property
   -tokenfile <file>	Hadoop token file to load
@@ -252,7 +443,7 @@ Usage: locatefiles
 Example
 
 ```
-> hadoop jar cloudstore-0.1-SNAPSHOT.jar locatefiles \
+> hadoop jar cloudstore.jar locatefiles \
  -threads 8 -verbose \
  s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/
 
@@ -326,222 +517,36 @@ store_io_throttled	0
 You get the metrics with the `-verbose` option;
 
 
-There is plenty room for improvements in directory tree scanning. 
-
-1. There are needless HEAD/`getObjectMetadata` requests because
-`S3AFileSystem.listLocatedStatus` probes the path for being a file or dir
-before initiating the real LIST. It could do the LIST first and only fall back
-to a HEAD after, on the basis that the invocations in query planning only call
-this on directories, and in a real-world data source tree, there are fewer empty
-directories to worry about, than dirs with real data.
-1. when there are no wildcards in the supplied path, the globber should switch to
-using the `locateFiles` API.
+There is plenty room for improvements in S3A directory tree scanning.
+Patches welcome! 
 
 You can also explore what directory tree structure is most efficient here.
 
+## Command: `pathcapabilities`
 
-## Command `bucketstate`
+Probes a filesystem for offering a specific named capability on the given path.
 
-Prints some of the low level diagnostics information about a bucket which
-can be obtained via the AWS APIs.
-
-```
-bin/hadoop jar cloudstore-0.1-SNAPSHOT.jar \
-            bucketstate \
-            s3a://mybucket/
-
-2019-07-25 16:54:50,678 [main] INFO  tools.BucketState (DurationInfo.java:<init>(53)) - Starting: Bucket State
-2019-07-25 16:54:54,216 [main] WARN  s3a.S3AFileSystem (S3AFileSystem.java:getAmazonS3ClientForTesting(675)) - Access to S3A client requested, reason Diagnostics
-Bucket owner is alice (ID=593...e1)
-Bucket policy:
-NONE
-```
-
-If you don't have the permissions to read the bucket policy, you get a stack trace.
+Requires a version of Hadoop with the `PathCapabilities` interface, which includes Hadoop 3.3 onwards.
 
 ```
-hadoop jar cloudstore-0.1-SNAPSHOT.jar \
-            bucketstate \
-            s3a://mybucket/
-
-2019-07-25 16:55:23,023 [main] INFO  tools.BucketState (DurationInfo.java:<init>(53)) - Starting: Bucket State
-2019-07-25 16:55:25,993 [main] WARN  s3a.S3AFileSystem (S3AFileSystem.java:getAmazonS3ClientForTesting(675)) - Access to S3A client requested, reason Diagnostics
-Bucket owner is alice (ID=593...e1)
-2019-07-25 16:55:26,883 [main] INFO  tools.BucketState (DurationInfo.java:close(100)) - Bucket State: duration 0:03:862
-com.amazonaws.services.s3.model.AmazonS3Exception: The specified method is not allowed against this resource. (Service: Amazon S3; Status Code: 405; Error Code: MethodNotAllowed; Request ID: 3844E3089E3801D8; S3 Extended Request ID: 3HJVN5+MvOGit087AFqKLUyOUCU9inCakvJ44GW5Wb4toiVipEiv5uK6A54LQBjdKFYUU8ZI5XQ=), S3 Extended Request ID: 3HJVN5+MvOGit087AFqKLUyOUCU9inCakvJ44GW5Wb4toiVipEiv5uK6A54LQBjdKFYUU8ZI5XQ=
-  at com.amazonaws.http.AmazonHttpClient$RequestExecutor.handleErrorResponse(AmazonHttpClient.java:1712)
-  at com.amazonaws.http.AmazonHttpClient$RequestExecutor.executeOneRequest(AmazonHttpClient.java:1367)
-  at com.amazonaws.http.AmazonHttpClient$RequestExecutor.executeHelper(AmazonHttpClient.java:1113)
-  at com.amazonaws.http.AmazonHttpClient$RequestExecutor.doExecute(AmazonHttpClient.java:770)
-  at com.amazonaws.http.AmazonHttpClient$RequestExecutor.executeWithTimer(AmazonHttpClient.java:744)
-  at com.amazonaws.http.AmazonHttpClient$RequestExecutor.execute(AmazonHttpClient.java:726)
-  at com.amazonaws.http.AmazonHttpClient$RequestExecutor.access$500(AmazonHttpClient.java:686)
-  at com.amazonaws.http.AmazonHttpClient$RequestExecutionBuilderImpl.execute(AmazonHttpClient.java:668)
-  at com.amazonaws.http.AmazonHttpClient.execute(AmazonHttpClient.java:532)
-  at com.amazonaws.http.AmazonHttpClient.execute(AmazonHttpClient.java:512)
-  at com.amazonaws.services.s3.AmazonS3Client.invoke(AmazonS3Client.java:4920)
-  at com.amazonaws.services.s3.AmazonS3Client.invoke(AmazonS3Client.java:4866)
-  at com.amazonaws.services.s3.AmazonS3Client.getBucketPolicy(AmazonS3Client.java:2917)
-  at com.amazonaws.services.s3.AmazonS3Client.getBucketPolicy(AmazonS3Client.java:2890)
-  at org.apache.hadoop.fs.tools.BucketState.run(BucketState.java:93)
-  at org.apache.hadoop.util.ToolRunner.run(ToolRunner.java:76)
-  at org.apache.hadoop.util.ToolRunner.run(ToolRunner.java:90)
-  at org.apache.hadoop.fs.tools.BucketState.exec(BucketState.java:111)
-  at org.apache.hadoop.fs.tools.BucketState.main(BucketState.java:120)
-  at bucketstate.main(bucketstate.java:24)
-  at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
-  at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
-  at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
-  at java.lang.reflect.Method.invoke(Method.java:498)
-  at org.apache.hadoop.util.RunJar.run(RunJar.java:318)
-  at org.apache.hadoop.util.RunJar.main(RunJar.java:232)
-2019-07-25 16:55:26,886 [main] INFO  util.ExitUtil (ExitUtil.java:terminate(210)) - Exiting with status -1: com.amazonaws.services.s3.model.AmazonS3Exception: The specified method is not allowed against this resource. (Service: Amazon S3; Status Code: 405; Error Code: MethodNotAllowed; Request ID: 3844E3089E3801D8; S3 Extended Request ID: 3HJVN5+MvOGit087AFqKLUyOUCU9inCakvJ44GW5Wb4toiVipEiv5uK6A54LQBjdKFYUU8ZI5XQ=), S3 Extended Request ID: 3HJVN5+MvOGit087AFqKLUyOUCU9inCakvJ44GW5Wb4toiVipEiv5uK6A54LQBjdKFYUU8ZI5XQ=
-
+bin/hadoop jar $CLOUDSTORE pathcapability
+Usage: pathcapability [options] <capability> <path>
+    -D <key=value>	Define a property
+    -tokenfile <file>	Hadoop token file to load
+    -verbose	print verbose output
+    -xmlfile <file>	XML config file to load
 ```
 
-
-## Command `filestatus`
-
-Calls `getFileStatus` on the listed paths, prints the values. For stores
-which have more detail on the toString value of any subclass of `FileStatus`,
-this can be more meaningful.
-
-Also prints the time to execute each operation (including instantiating the store),
-and with the `-verbose` option, the store statistics.
-
 ```
-hadoop jar  cloudstore-0.1-SNAPSHOT.jar \
-            filestatus  \
-            s3a://guarded-table/example
-
-2019-07-31 21:48:34,963 [main] INFO  commands.PrintStatus (DurationInfo.java:<init>(53)) - Starting: get path status
-s3a://guarded-table/example	S3AFileStatus{path=s3a://guarded-table/example; isDirectory=false; length=0; replication=1; 
-  blocksize=33554432; modification_time=1564602680000;
-  access_time=0; owner=stevel; group=stevel;
-  permission=rw-rw-rw-; isSymlink=false; hasAcl=false; isEncrypted=true; isErasureCoded=false}
-  isEmptyDirectory=FALSE eTag=d41d8cd98f00b204e9800998ecf8427e versionId=null
-2019-07-31 21:48:37,182 [main] INFO  commands.PrintStatus (DurationInfo.java:close(100)) - get path status: duration 0:02:221
+hadoop jar $CLOUDSTORE pathcapability fs.s3a.capability.select.sql s3a://landsat-pds/
+Using filesystem s3a://landsat-pds
+Path s3a://landsat-pds/ has capability fs.s3a.capability.select.sql
 ```
 
-
-## Command `committerinfo`
-
-Tries to instantiate a committer using the Hadoop 3.1+ committer factory mechanism, printing out
-what committer a specific path will create.
-
-If this command fails with a `ClassNotFoundException` it can mean that the version of hadoop the command is being
-run against doesn't have this new API. The committer is therefore explicitly the classic `FileOutputCommitter`.
-
-
-* Good: ABFS container with the classic `FileOutputCommitter`
-
-```
-> bin/hadoop jar loudstore-0.1-SNAPSHOT.jar committerinfo abfs://container@storage.dfs.core.windows.net/
-  2019-08-05 17:39:48,623 [main] INFO  commands.CommitterInfo (DurationInfo.java:<init>(53)) - Starting: Create committer
-  Committer factory for path abfs://container@storage.dfs.core.windows.net/ is org.apache.hadoop.mapreduce.lib.output.FileOutputCommitterFactory@316bcf94 (classname org.apache.hadoop.mapreduce.lib.output.FileOutputCommitterFactory)
-  2019-08-05 17:39:49,233 [main] INFO  output.FileOutputCommitter (FileOutputCommitter.java:<init>(141)) - File Output Committer Algorithm version is 2
-  2019-08-05 17:39:49,233 [main] INFO  output.FileOutputCommitter (FileOutputCommitter.java:<init>(156)) - FileOutputCommitter skip cleanup _temporary folders under output directory:false, ignore cleanup failures: false
-  Created committer of class org.apache.hadoop.mapreduce.lib.output.FileOutputCommitter: FileOutputCommitter{PathOutputCommitter{context=TaskAttemptContextImpl{JobContextImpl{jobId=job__0000}; taskId=attempt__0000_r_000000_1, status=''}; org.apache.hadoop.mapreduce.lib.output.FileOutputCommitter@54a7079e}; outputPath=abfs://container@storage.dfs.core.windows.net/, workPath=abfs://container@storage.dfs.core.windows.net/_temporary/0/_temporary/attempt__0000_r_000000_1, algorithmVersion=2, skipCleanup=false, ignoreCleanupFailures=false}
-  2019-08-05 17:39:49,234 [main] INFO  commands.CommitterInfo (DurationInfo.java:close(100)) - Create committer: duration 0:00:613
-```
-
-*Danger*: S3A Bucket with the classic `FileOutputCommitter`
-
-```
-> hadoop jar cloudstore-0.1-SNAPSHOT.jar committerinfo s3a://landsat-pds/
-  2019-08-05 17:38:38,213 [main] INFO  commands.CommitterInfo (DurationInfo.java:<init>(53)) - Starting: Create committer
-  2019-08-05 17:38:40,968 [main] WARN  commit.AbstractS3ACommitterFactory (S3ACommitterFactory.java:createTaskCommitter(90)) - Using standard FileOutputCommitter to commit work. This is slow and potentially unsafe.
-  2019-08-05 17:38:40,968 [main] INFO  output.FileOutputCommitter (FileOutputCommitter.java:<init>(141)) - File Output Committer Algorithm version is 2
-  2019-08-05 17:38:40,968 [main] INFO  output.FileOutputCommitter (FileOutputCommitter.java:<init>(156)) - FileOutputCommitter skip cleanup _temporary folders under output directory:false, ignore cleanup failures: false
-  2019-08-05 17:38:40,970 [main] INFO  commit.AbstractS3ACommitterFactory (AbstractS3ACommitterFactory.java:createOutputCommitter(54)) - Using Commmitter FileOutputCommitter{PathOutputCommitter{context=TaskAttemptContextImpl{JobContextImpl{jobId=job__0000}; taskId=attempt__0000_r_000000_1, status=''}; org.apache.hadoop.mapreduce.lib.output.FileOutputCommitter@6cc0bcf6}; outputPath=s3a://landsat-pds/, workPath=s3a://landsat-pds/_temporary/0/_temporary/attempt__0000_r_000000_1, algorithmVersion=2, skipCleanup=false, ignoreCleanupFailures=false} for s3a://landsat-pds/
-  Created committer of class org.apache.hadoop.mapreduce.lib.output.FileOutputCommitter: FileOutputCommitter{PathOutputCommitter{context=TaskAttemptContextImpl{JobContextImpl{jobId=job__0000}; taskId=attempt__0000_r_000000_1, status=''}; org.apache.hadoop.mapreduce.lib.output.FileOutputCommitter@6cc0bcf6}; outputPath=s3a://landsat-pds/, workPath=s3a://landsat-pds/_temporary/0/_temporary/attempt__0000_r_000000_1, algorithmVersion=2, skipCleanup=false, ignoreCleanupFailures=false}
-  2019-08-05 17:38:40,970 [main] INFO  commands.CommitterInfo (DurationInfo.java:close(100)) - Create committer: duration 0:02:758
-```
-
-
-*Good* : S3A bucket with a staging committer:
-
-```
->  hadoop jar  cloudstore-0.1-SNAPSHOT.jar committerinfo s3a://hwdev-steve-ireland-new/
-  2019-08-05 17:42:53,563 [main] INFO  commands.CommitterInfo (DurationInfo.java:<init>(53)) - Starting: Create committer
-  Committer factory for path s3a://hwdev-steve-ireland-new/ is org.apache.hadoop.fs.s3a.commit.S3ACommitterFactory@3088660d (classname org.apache.hadoop.fs.s3a.commit.S3ACommitterFactory)
-  2019-08-05 17:42:55,433 [main] INFO  output.FileOutputCommitter (FileOutputCommitter.java:<init>(141)) - File Output Committer Algorithm version is 1
-  2019-08-05 17:42:55,434 [main] INFO  output.FileOutputCommitter (FileOutputCommitter.java:<init>(156)) - FileOutputCommitter skip cleanup _temporary folders under output directory:false, ignore cleanup failures: false
-  2019-08-05 17:42:55,434 [main] INFO  commit.AbstractS3ACommitterFactory (S3ACommitterFactory.java:createTaskCommitter(83)) - Using committer directory to output data to s3a://hwdev-steve-ireland-new/
-  2019-08-05 17:42:55,435 [main] INFO  commit.AbstractS3ACommitterFactory (AbstractS3ACommitterFactory.java:createOutputCommitter(54)) - Using Commmitter StagingCommitter{AbstractS3ACommitter{role=Task committer attempt__0000_r_000000_1, name=directory, outputPath=s3a://hwdev-steve-ireland-new/, workPath=file:/tmp/hadoop-stevel/s3a/job__0000/_temporary/0/_temporary/attempt__0000_r_000000_1}, conflictResolution=APPEND, wrappedCommitter=FileOutputCommitter{PathOutputCommitter{context=TaskAttemptContextImpl{JobContextImpl{jobId=job__0000}; taskId=attempt__0000_r_000000_1, status=''}; org.apache.hadoop.mapreduce.lib.output.FileOutputCommitter@5a865416}; outputPath=file:/Users/stevel/Projects/Releases/hadoop-3.3.0-SNAPSHOT/tmp/staging/stevel/job__0000/staging-uploads, workPath=null, algorithmVersion=1, skipCleanup=false, ignoreCleanupFailures=false}} for s3a://hwdev-steve-ireland-new/
-  Created committer of class org.apache.hadoop.fs.s3a.commit.staging.DirectoryStagingCommitter: StagingCommitter{AbstractS3ACommitter{role=Task committer attempt__0000_r_000000_1, name=directory, outputPath=s3a://hwdev-steve-ireland-new/, workPath=file:/tmp/hadoop-stevel/s3a/job__0000/_temporary/0/_temporary/attempt__0000_r_000000_1}, conflictResolution=APPEND, wrappedCommitter=FileOutputCommitter{PathOutputCommitter{context=TaskAttemptContextImpl{JobContextImpl{jobId=job__0000}; taskId=attempt__0000_r_000000_1, status=''}; org.apache.hadoop.mapreduce.lib.output.FileOutputCommitter@5a865416}; outputPath=file:/Users/stevel/Projects/Releases/hadoop-3.3.0-SNAPSHOT/tmp/staging/stevel/job__0000/staging-uploads, workPath=null, algorithmVersion=1, skipCleanup=false, ignoreCleanupFailures=false}}
-  2019-08-05 17:42:55,435 [main] INFO  commands.CommitterInfo (DurationInfo.java:close(100)) - Create committer: duration 0:01:874
-```
-
-The log entry about a FileOutputCommitter appears because the Staging Committers use the cluster filesystem (HDFS, etc) to safely pass information from the workers to the application master.
-
-The classic filesystem committer v1 is used because it works well here: the filesystem is consistent and operations are fast. Neither of those conditions are met with AWS S3.
-
-
-*Good* : S3A bucket with a magic committer:
-
-```
-> hadoop jar cloudstore-0.1-SNAPSHOT.jar committerinfo s3a://hwdev-steve-ireland-new/
-
-2019-08-05 17:37:42,615 [main] INFO  commands.CommitterInfo (DurationInfo.java:<init>(53)) - Starting: Create committer
-2019-08-05 17:37:44,462 [main] INFO  commit.AbstractS3ACommitterFactory (S3ACommitterFactory.java:createTaskCommitter(83)) - Using committer magic to output data to s3a://hwdev-steve-ireland-new/
-2019-08-05 17:37:44,462 [main] INFO  commit.AbstractS3ACommitterFactory (AbstractS3ACommitterFactory.java:createOutputCommitter(54)) - Using Commmitter MagicCommitter{} for s3a://hwdev-steve-ireland-new/
-Created committer of class org.apache.hadoop.fs.s3a.commit.magic.MagicS3GuardCommitter: MagicCommitter{}
-2019-08-05 17:37:44,462 [main] INFO  commands.CommitterInfo (DurationInfo.java:close(100)) - Create committer: duration 0:01:849
-```
-
-Note: unless this store has S3Guard enabled or is a third party object store with consistent directory listings, the magic committer is not iself safe to use.
-
-## Command `cloudup` -upload and download files; optimised for cloud storage 
-
-Bulk download of everything from s3a://bucket/qelogs/ to the local dir localquelogs (assuming the default fs is file://)
-
-Usage
-
-```
-cloudup -s source -d dest [-o] [-i] [-l <largest>] [-t threads] 
-
--s <uri> : source
--d <uri> : dest
--o: overwrite
--i: ignore failures
--t <n> : number of threads
--l <n> : number of "largest" files to start uploading before just randomly picking files.
-
-```
-
-Algorithm
-
-1. source files are listed.
-1. A pool of worker threads is created
-2. the largest N files are queued for upload first, where N is a default or the value set by `-l`.
-1. The remainder of the files are randomized to avoid throttling and then queued
-1. the program waits for everything to complete.
-1. Source and dest FS stats are printed.
-
-This is not discp run across a cluster; it's a single process with some threads. 
-Works best for reading lots of small files from an object store or when you have a 
-mix of large and small files to download or uplaod.
-
-
-
-```
-bin/hadoop jar cloudstore-0.1-SNAPSHOT.jar cloudup \
- -s s3a://bucket/qelogs/ \
- -d localqelogs \
- -t 32 -o
-```
-
-and the other way
-
-
-
-```
-bin/hadoop jar cloudstore-0.1-SNAPSHOT.jar cloudup \
- -d localqelogs \
- -s s3a://bucket/qelogs/ \
- -t 32 -o  -l 4
-```
+The exit code of the command is 0 if the capability is present, -1 if absent, and 55 if the hadoop version does not support the API.
+ Approximate HTTP equivalent: `505: Version Not Supported`. 
+ 
+As it is in Hadoop 3.3, all APIs new to that release (including `openFile()`) can absolutely be probed for. Otherwise, the 55 response may mean "an API is implemented, just not the probe". 
 
 
 
