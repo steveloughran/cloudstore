@@ -116,6 +116,7 @@ public class LocateFiles extends StoreEntryPoint {
         printStatus(c, status);
         LOG.debug("Status: {}", status);
       }
+      println("Fetched by: " + fetcher);
     } finally {
       duration.close();
     }

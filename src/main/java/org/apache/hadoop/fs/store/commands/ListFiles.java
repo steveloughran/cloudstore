@@ -28,7 +28,9 @@ import org.slf4j.LoggerFactory;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.LocatedFileStatus;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.RemoteIterator;
 import org.apache.hadoop.fs.store.DurationInfo;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
 import org.apache.hadoop.util.ToolRunner;
@@ -93,8 +95,10 @@ public class ListFiles extends StoreEntryPoint {
     final AtomicInteger count = new AtomicInteger(0);
     final AtomicLong size = new AtomicLong(0);
     FileSystem fs = source.getFileSystem(conf);
+    final RemoteIterator<LocatedFileStatus> lister = fs.listFiles(source,
+        true);
     try {
-      applyLocatedFiles(fs.listFiles(source, true),
+      applyLocatedFiles(lister,
           (status) -> {
             int c = count.incrementAndGet();
             if (c == 1) {
@@ -122,6 +126,7 @@ public class ListFiles extends StoreEntryPoint {
         files, millisPerFile);
     println("Data size %,d bytes, %,d bytes per file",
         totalSize, bytesPerFile);
+    println("List iterator: %s", lister);
     maybeDumpStorageStatistics(fs);
     return 0;
   }

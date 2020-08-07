@@ -950,6 +950,7 @@ public class StoreDiag extends StoreEntryPoint
         LOG.warn("Permission denied during recursive scan of {}",
             baseDir, e);
       }
+      println("Files listing provided by: %s", files);
     } catch (FileNotFoundException e) {
       // this is fine.
     }
@@ -1061,6 +1062,7 @@ public class StoreDiag extends StoreEntryPoint
         FSDataOutputStream data = fs.create(file, true);
         data.writeUTF(HELLO);
         data.close();
+        println("Output stream summary: %s", data);
       }
       try (DurationInfo ignored = new DurationInfo(LOG,
           "Listing  %s", dir)) {
@@ -1072,6 +1074,7 @@ public class StoreDiag extends StoreEntryPoint
         in = fs.open(file);
         String utf = in.readUTF();
         in.close();
+        println("input stream summary: %s", in);
         if (!HELLO.equals(utf)) {
           throw new StoreDiagException("Expected  %s to contain the text %s" 
               + " -but it has the text \"%s",
