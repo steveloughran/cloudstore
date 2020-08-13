@@ -93,7 +93,7 @@ public class PathCapability extends StoreEntryPoint {
     String capability = argList.get(0);
     String pathString = argList.get(1);
     Path path = new Path(pathString);
-    println("creating directory %s", path);
+    println("Probing %s for capability %s", path, capability);
     FileSystem fs = path.getFileSystem(conf);
     println("Using filesystem %s", fs.getUri());
     Path absPath = path.makeQualified(fs.getUri(), fs.getWorkingDirectory());

@@ -217,18 +217,24 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable {
    * Add all the various configuration files.
    */
   protected void addAllDefaultXMLFiles() {
-    Configuration.addDefaultResource("hdfs-default.xml");
-    Configuration.addDefaultResource("hdfs-site.xml");
-    // this order is what JobConf does via
-    // org.apache.hadoop.mapreduce.util.ConfigUtil.loadResources()
-    Configuration.addDefaultResource("mapred-default.xml");
-    Configuration.addDefaultResource("mapred-site.xml");
-    Configuration.addDefaultResource("yarn-default.xml");
-    Configuration.addDefaultResource("yarn-site.xml");
-    Configuration.addDefaultResource("hive-site.xml");
-    Configuration.addDefaultResource("hive-default.xml");
-    Configuration.addDefaultResource("hbase-default.xml");
-    Configuration.addDefaultResource("hbase-site.xml");
+    addDefaultResources("hdfs-default.xml",
+      "hdfs-site.xml",
+      // this order is what JobConf does via
+      // org.apache.hadoop.mapreduce.util.ConfigUtil.loadResources()
+      "mapred-default.xml",
+      "mapred-site.xml",
+      "yarn-default.xml",
+      "yarn-site.xml",
+      "hive-site.xml",
+      "hive-default.xml",
+      "hbase-default.xml",
+      "hbase-site.xml");
+  }
+
+  protected void addDefaultResources(String... resources) {
+    for (String resource : resources) {
+      Configuration.addDefaultResource(resource);
+    }
   }
 
   /**

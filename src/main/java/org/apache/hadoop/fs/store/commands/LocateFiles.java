@@ -82,7 +82,8 @@ public class LocateFiles extends StoreEntryPoint {
     maybeAddXMLFileOption(conf, XMLFILE);
     maybePatchDefined(conf, DEFINE);
 
-    int threads = getOptional(THREADS).map(Integer::valueOf).orElse(2);
+    int threads = getOptional(THREADS).map(Integer::valueOf).orElse(
+        DEFAULT_THREADS);
 
     final Path source = new Path(paths.get(0));
     println("");
@@ -98,7 +99,7 @@ public class LocateFiles extends StoreEntryPoint {
     FileSystem fs = source.getFileSystem(conf);
     try {
       Configuration roleConfig = fs.getConf();
-      roleConfig.setInt(LIST_STATUS_NUM_THREADS, DEFAULT_THREADS);
+      roleConfig.setInt(LIST_STATUS_NUM_THREADS, threads);
       LocatedFileStatusFetcher fetcher =
           new LocatedFileStatusFetcher(
               roleConfig,

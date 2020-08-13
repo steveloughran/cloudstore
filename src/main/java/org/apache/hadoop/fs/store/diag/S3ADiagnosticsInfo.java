@@ -179,7 +179,13 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"AWS_ACCESS_KEY_ID", false},
       {"AWS_ACCESS_KEY", true},
       {"AWS_SECRET_KEY", true},
+      {"AWS_SECRET_ACCESS_KEY", true},
       {"AWS_SESSION_TOKEN", true},
+      {"AWS_REGION_ENV_VAR", false},
+      {"AWS_CONTAINER_CREDENTIALS_RELATIVE_URI", false},
+      {"AWS_CONTAINER_CREDENTIALS_FULL_URI", false},
+      {"AWS_CONTAINER_AUTHORIZATION_TOKEN", true},
+      {"", false},
   };
 
   /**
