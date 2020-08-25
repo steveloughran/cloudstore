@@ -16,37 +16,17 @@
  * limitations under the License.
  */
 
+import org.apache.hadoop.fs.s3a.extra.SessionKeys;
 import org.apache.hadoop.fs.store.commands.Command;
+import org.apache.hadoop.fs.store.diag.StoreDiag;
 
-/**
- * Help command: list the public commands.
- */
-public class help extends Command {
+public class sessionkeys extends Command {
 
-  /**
-   * When adding new entries here, use alphabetical order.
-   * @param args
-   * @throws Exception
-   */
   public static void main(String[] args) throws Exception {
-    bucketstate.help();
-    cloudup.help();
-    committerinfo.help();
-    distcpdiag.help();
-    fetchdt.help();
-    filestatus.help();
-    list.help();
-    listobjects.help();
-    locatefiles.help();
-    mkdir.help();
-    pathcapability.help();
-    storediag.help();
+    SessionKeys.main(args);
+  }
 
-    // extras must not refer to the optional classes.
-    System.out.println("%nExtra Commands%n");
-    printCommand("sessionkeys", "optional extra: generate session keys");
-    System.out.println(
-        "%nThese are only available on some builds and require a compatible hadoop release");
-
+  public static void help() {
+    printCommand("storediag", "store diagnostics");
   }
 }

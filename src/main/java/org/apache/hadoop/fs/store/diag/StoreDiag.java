@@ -23,6 +23,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.net.HttpURLConnection;
@@ -400,11 +401,18 @@ public class StoreDiag extends DiagnosticsEntryPoint {
             StringUtils.join(",", headerFields.get(header)));
       }
     }
-    ByteArrayOutputStream out = new ByteArrayOutputStream();
-    IOUtils.copyBytes(
-        success ? conn.getInputStream() : conn.getErrorStream(),
-        out, 4096, true);
-    String body = out.toString();
+    String body;
+    InputStream in = success ? conn.getInputStream() : conn.getErrorStream();
+    if (in != null) {
+      ByteArrayOutputStream out = new ByteArrayOutputStream();
+      IOUtils.copyBytes(
+          in,
+          out, 4096, true);
+      body = out.toString();
+    } else {
+      body = "(empty response)";
+    }
+
     println("%n%s%n",
         body.substring(0, Math.min(1024, body.length())));
     if (success) {

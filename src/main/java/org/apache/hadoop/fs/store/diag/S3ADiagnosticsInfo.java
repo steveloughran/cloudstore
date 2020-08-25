@@ -74,18 +74,30 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       /* Core Set */
       {"fs.s3a.acl.default", false, false},
       {"fs.s3a.attempts.maximum", false, false},
+      {"fs.s3a.authoritative.path", false, false},
       {"fs.s3a.block.size", false, false},
       {"fs.s3a.buffer.dir", false, false},
+      {"fs.s3a.bulk.delete.page.size", false, false},
+      /* change detection */
+      {"fs.s3a.change.detection.source", false, false},
+      {"fs.s3a.change.detection.mode", false, false},
+      {"fs.s3a.change.detection.version.required", false, false},
+
       {"fs.s3a.connection.ssl.enabled", false, false},
       {"fs.s3a.connection.maximum", false, false},
       {"fs.s3a.connection.establish.timeout", false, false},
       {"fs.s3a.connection.request.timeout", false, false},
       {"fs.s3a.connection.timeout", false, false},
       {"fs.s3a.custom.signers", false, false},
+      {"fs.s3a.directory.marker.retention", false, false},
+      {"fs.s3a.etag.checksum.enabled", false, false},
       {"fs.s3a.experimental.input.fadvise", false, false},
+      {"fs.s3a.experimental.aws.s3.throttling", false, false},
+      {"fs.s3a.experimental.optimized.directory.operations", false, false},
       {"fs.s3a.fast.buffer.size", false, false},
       {"fs.s3a.fast.upload.buffer", false, false},
       {"fs.s3a.fast.upload.active.blocks", false, false},
+      {"fs.s3a.impl.disable.cache", false, false},
       {"fs.s3a.list.version", false, false},
       {"fs.s3a.max.total.tasks", false, false},
       {"fs.s3a.multipart.size", false, false},
@@ -106,9 +118,11 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.s3a.retry.throttle.limit", false, false},
       {"fs.s3a.retry.throttle.interval", false, false},
       {"fs.s3a.ssl.channel.mode", false, false},
+      {"fs.s3a.s3.client.factory.impl", false, false},
       {"fs.s3a.threads.max", false, false},
       {"fs.s3a.threads.keepalivetime", false, false},
       {"fs.s3a.user.agent.prefix", false, false},
+
 
       /* Assumed Role */
       {"fs.s3a.assumed.role.arn", false, false},
@@ -122,7 +136,6 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       /* s3guard */
       {"fs.s3a.metadatastore.impl", false, false},
       {"fs.s3a.metadatastore.authoritative", false, false},
-      {"fs.s3a.authoritative.path", false, false},
       {"fs.s3a.metadatastore.authoritative.dir.ttl", false, false},
       {"fs.s3a.metadatastore.fail.on.write.error", false, false},
       {"fs.s3a.metadatastore.metadata.ttl", false, false},
@@ -150,26 +163,11 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"mapreduce.outputcommitter.factory.scheme.s3a", false, false},
       {"mapreduce.fileoutputcommitter.marksuccessfuljobs", false, false},
 
-      /* delete and throttling */
-      {"fs.s3a.experimental.aws.s3.throttling", false, false},
-      {"fs.s3a.experimental.optimized.directory.operations", false, false},
-      {"fs.s3a.bulk.delete.page.size", false, false},
-
-      /* misc */
-      {"fs.s3a.etag.checksum.enabled", false, false},
-      {"fs.s3a.s3.client.factory.impl", false, false},
 
       /* delegation */
       {"fs.s3a.delegation.token.binding", false, false},
       {"fs.s3a.delegation.token.secondary.bindings", false, false},
 
-      /* change detection */
-      {"fs.s3a.change.detection.source", false, false},
-      {"fs.s3a.change.detection.mode", false, false},
-      {"fs.s3a.change.detection.version.required", false, false},
-
-      /* WIP: directories. */
-      {"fs.s3a.directory.marker.retention", false, false},
 
       {"", false, false},
 
@@ -195,6 +193,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       "org.apache.hadoop.fs.s3a.S3AFileSystem",
       "com.amazonaws.services.s3.AmazonS3",
       "com.amazonaws.ClientConfiguration",
+      "java.lang.System",
   };
 
   /**
@@ -224,6 +223,8 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
 
       // Assumed Role credential provider (Hadoop 3.1)
       "org.apache.hadoop.fs.s3a.auth.AssumedRoleCredentialProvider",
+      // session creds, just for completeness
+      "org.apache.hadoop.fs.s3a.TemporaryAWSCredentialsProvider",
 
       // Delegation Tokens
       "org.apache.hadoop.fs.s3a.auth.delegation.S3ADelegationTokens",
@@ -235,10 +236,15 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       "org.apache.hadoop.fs.s3a.select.SelectInputStream",
       // S3Guard rename extensions
       "org.apache.hadoop.fs.s3a.impl.RenameOperation",
+      "org.apache.hadoop.fs.s3a.impl.NetworkBinding",
+
+      // dir markers
+      "org.apache.hadoop.fs.s3a.impl.DirectoryPolicy",
+
       // extra stuff from extension modules
       "org.apache.knox.gateway.cloud.idbroker.s3a.IDBDelegationTokenBinding",
       "org.wildfly.openssl.OpenSSLProvider",
-      "org.apache.hadoop.fs.s3a.impl.NetworkBinding",
+
       "",
 
   };
@@ -249,7 +255,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
 
   @Override
   public String getName() {
-    return "S3A FileSystem connector";
+    return "S3A FileSystem Connector";
   }
 
   @Override

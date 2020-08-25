@@ -56,7 +56,12 @@ public class DiagnosticsEntryPoint extends StoreEntryPoint implements Printout {
 
   public static final String JARS = "j";
 
-  protected static final int THRESHOLD = 4;
+
+  protected static final int HIDE_PREFIX = 2;
+
+  protected static final int HIDE_SUFFIX = 4;
+
+  protected static final int HIDE_THRESHOLD = HIDE_PREFIX + HIDE_SUFFIX;
 
   /**
    * Sort the keys.
@@ -93,16 +98,16 @@ public class DiagnosticsEntryPoint extends StoreEntryPoint implements Printout {
     String safe = value;
     int len = safe.length();
     StringBuilder b = new StringBuilder(len);
-    int prefix = 2;
-    int suffix = 1;
-    if (len > THRESHOLD) {
+    int prefix = HIDE_PREFIX;
+    int suffix = HIDE_SUFFIX;
+    if (len > HIDE_THRESHOLD) {
       b.append(value, 0, prefix);
       b.append(DiagnosticsEntryPoint.stars(len - prefix - suffix));
       b.append(value, len - suffix, len);
       safe = b.toString();
     } else {
       // short values get special treatment
-      safe = DiagnosticsEntryPoint.stars(THRESHOLD);
+      safe = DiagnosticsEntryPoint.stars(HIDE_THRESHOLD);
     }
     return String.format("\"%s\" [%d]", safe, len);
   }

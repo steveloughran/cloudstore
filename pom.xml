@@ -257,13 +257,48 @@
       <id>cdh5</id>
       <activation>
         <property>
-          <name>trunk</name>
+          <name>cdh5</name>
         </property>
       </activation>
       <properties>
         <hadoop.version>2.6.0-cdh5.14.0</hadoop.version>
       </properties>
     </profile>
+
+    <profile>
+      <id>extra</id>
+      <activation>
+        <property>
+          <name>extra</name>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>build-helper-maven-plugin</artifactId>
+            <version>3.0.0</version>
+            <executions>
+              <execution>
+                <phase>generate-sources</phase>
+                <goals>
+                  <goal>add-source</goal>
+                </goals>
+                <configuration>
+                  <sources>
+                    <source>src/main/extra</source>
+                  </sources>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+      <properties>
+        <hadoop.version>2.6.0-cdh5.14.0</hadoop.version>
+      </properties>
+    </profile>
+
 
     <!--
      This is a profile to enable the use of the ASF snapshot and staging repositories
