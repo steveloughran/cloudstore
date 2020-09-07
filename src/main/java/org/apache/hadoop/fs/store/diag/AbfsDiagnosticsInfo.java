@@ -85,10 +85,9 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
       "com.google.common.base.Preconditions",
       "com.fasterxml.jackson.core.JsonFactory",
       "com.fasterxml.jackson.databind.ObjectReader",
-      "com.microsoft.azure.storage.StorageErrorCode",
       "org.apache.http.client.utils.URIBuilder",
-      "org.wildfly.openssl.OpenSSLProvider",
       "org.apache.hadoop.fs.azurebfs.AzureBlobFileSystem",
+      "org.wildfly.openssl.OpenSSLProvider",
   };
 
   public AbfsDiagnosticsInfo(final URI fsURI) {

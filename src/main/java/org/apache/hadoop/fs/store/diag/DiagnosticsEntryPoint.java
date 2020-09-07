@@ -25,6 +25,7 @@ import java.math.BigInteger;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.security.CodeSource;
 import java.security.NoSuchAlgorithmException;
 import java.util.HashMap;
 import java.util.Map;
@@ -381,8 +382,10 @@ public class DiagnosticsEntryPoint extends StoreEntryPoint implements Printout {
     }
     println("class: %s", name);
     Class<?> clazz = this.getClass().getClassLoader().loadClass(name);
-    println("       %s",
-        clazz.getProtectionDomain().getCodeSource().getLocation());
+    CodeSource source = clazz.getProtectionDomain().getCodeSource();
+    if (source != null) {
+      println("       %s", source.getLocation());
+    }
   }
 
   /**
