@@ -21,12 +21,7 @@
 <configuration>
 
   <include xmlns="http://www.w3.org/2001/XInclude"
-    href="///users/stevel/.ssh/auth-keys.xml">
+    href="auth-keys.xml">
   </include>
 
-
-  <property>
-    <name>test.fs.s3a</name>
-    <value>s3a://${hwx.ireland}/</value>
-  </property>
 </configuration>

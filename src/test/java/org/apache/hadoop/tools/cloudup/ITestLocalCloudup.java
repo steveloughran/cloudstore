@@ -23,6 +23,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.After;
 import org.junit.Assert;
@@ -48,7 +49,7 @@ import org.apache.hadoop.fs.tools.cloudup.Cloudup;
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
 import static org.apache.hadoop.tools.store.StoreTestUtils.*;
 
-public class TestLocalCloudup extends Assert {
+public class ITestLocalCloudup extends Assert {
 
   @Rule
   public TestName methodName = new TestName();
@@ -57,10 +58,10 @@ public class TestLocalCloudup extends Assert {
    * Set the timeout for every test.
    */
   @Rule
-  public Timeout testTimeout = new Timeout(15 * 1000);
+  public Timeout testTimeout = new Timeout(1, TimeUnit.MINUTES);
 
   protected static final Logger LOG =
-      LoggerFactory.getLogger(TestLocalCloudup.class);
+      LoggerFactory.getLogger(ITestLocalCloudup.class);
   private static File testDirectory;
   private File methodDir;
   private File sourceDir;
