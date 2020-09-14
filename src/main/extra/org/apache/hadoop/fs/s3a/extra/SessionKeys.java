@@ -18,6 +18,9 @@
 
 package org.apache.hadoop.fs.s3a.extra;
 
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -59,16 +62,21 @@ public class SessionKeys extends StoreEntryPoint {
 
   public static final String AWS_SESSION_TOKEN = "AWS_SESSION_TOKEN";
 
+  public static final String JSON = "json";
+  public static final String ROLE = "role";
+
   public static final String USAGE
       = "Usage: sessionkeys\n"
       + optusage(DEFINE, "key=value", "Define a property")
       + optusage(XMLFILE, "file", "XML config file to load")
+      + optusage(ROLE, "arn", "Role to assume")
+      + optusage(JSON, "file", "Json file to load (only valid if -role is set")
       + " <S3A path>";
 
   public SessionKeys() {
     createCommandFormat(1, 1,
         VERBOSE);
-    addValueOptions(TOKENFILE, XMLFILE, DEFINE);
+    addValueOptions(TOKENFILE, XMLFILE, DEFINE, ROLE, JSON);
   }
 
   @Override
@@ -83,10 +91,27 @@ public class SessionKeys extends StoreEntryPoint {
     final Configuration conf = new Configuration();
     maybeAddXMLFileOption(conf, XMLFILE);
     maybePatchDefined(conf, DEFINE);
+
+    // get JSON or empty string
+    String role = getOptional(ROLE).orElse("");
+    String jsonFile = getOptional(JSON).orElse("");
+    boolean hasRole = !role.isEmpty();
+    boolean hasJsonFile = !jsonFile.isEmpty();
+    String json = null;
+    if (hasJsonFile) {
+      if (!hasRole) {
+        errorln("No -role specified for JSON");
+        return E_USAGE;
+      }
+      json = new String(Files.readAllBytes(Paths.get(jsonFile)));
+    }
+
     AWSCredentialProviderList credentials = null;
 
     final Path source = new Path(paths.get(0));
-    try (DurationInfo ignored = new DurationInfo(LOG, "session")) {
+    try (DurationInfo ignored = new DurationInfo(LOG,
+        "requesting %s credentials",
+        hasRole ? "role" : "session")) {
       S3AFileSystem fs = (S3AFileSystem) source.getFileSystem(conf);
       credentials = fs.shareCredentials("session");
       Configuration fsconf = fs.getConf();
@@ -96,8 +121,16 @@ public class SessionKeys extends StoreEntryPoint {
       STSClientFactory2.STSClient stsClient
           = STSClientFactory2.createClientConnection(builder.build(),
           new Invoker(new S3ARetryPolicy(conf), Invoker.LOG_EVENT));
-      Credentials sessionCreds = stsClient.requestSessionCredentials(36,
-          TimeUnit.HOURS);
+      Credentials sessionCreds;
+      if (!hasRole) {
+        sessionCreds = stsClient.requestSessionCredentials(36,
+            TimeUnit.HOURS);
+      } else {
+        sessionCreds = stsClient.requestRole(role,
+            "role-session",
+            json,
+            12, TimeUnit.HOURS);
+      }
 
       String keyId = sessionCreds.getAccessKeyId();
       String secretKey = sessionCreds.getSecretAccessKey();
@@ -109,6 +142,7 @@ public class SessionKeys extends StoreEntryPoint {
       heading("XML settings");
 
       StringBuilder xml = new StringBuilder();
+      xml.append("<configuration>\n\n");
 
       xml.append(elt(ACCESS_KEY, keyId));
       xml.append(elt(SECRET_KEY, secretKey));
@@ -119,6 +153,8 @@ public class SessionKeys extends StoreEntryPoint {
       if (endpointkey != null) {
         xml.append(elt(endpointkey, endpoint));
       }
+      xml.append("\n</configuration>\n\n");
+
       println(xml.toString());
 
       heading("Properties");
@@ -172,7 +208,7 @@ public class SessionKeys extends StoreEntryPoint {
   }
 
   private String fishenv(String name, String text) {
-    return String.format("set -gx %s %s%n", name, text);
+    return String.format("set -gx %s %s;%n", name, text);
   }
 
   /**
