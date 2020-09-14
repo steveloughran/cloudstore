@@ -27,6 +27,6 @@ public class sessionkeys extends Command {
   }
 
   public static void help() {
-    printCommand("storediag", "store diagnostics");
+    printCommand("sessionkeys", "store diagnostics");
   }
 }

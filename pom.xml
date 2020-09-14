@@ -146,6 +146,18 @@
   <profiles>
 
     <profile>
+      <id>branch-3.2</id>
+      <activation>
+        <property>
+          <name>branch-3.2</name>
+        </property>
+      </activation>
+      <properties>
+        <hadoop.version>3.2.2-SNAPSHOT</hadoop.version>
+      </properties>
+    </profile>
+
+    <profile>
       <id>branch-3.1</id>
       <activation>
         <property>
@@ -158,14 +170,14 @@
     </profile>
 
     <profile>
-      <id>branch-3.2</id>
+      <id>branch-3.3</id>
       <activation>
         <property>
-          <name>branch-3.2</name>
+          <name>branch-3.3</name>
         </property>
       </activation>
       <properties>
-        <hadoop.version>3.2.2-SNAPSHOT</hadoop.version>
+        <hadoop.version>3.3.1-SNAPSHOT</hadoop.version>
       </properties>
     </profile>
 
@@ -294,9 +306,6 @@
           </plugin>
         </plugins>
       </build>
-      <properties>
-        <hadoop.version>2.6.0-cdh5.14.0</hadoop.version>
-      </properties>
     </profile>
 
 

@@ -110,17 +110,18 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable {
    * @param args optional arguments
    */
   public void println(String format, Object... args) {
-    out.println(String.format(format, args));
+    out.printf(format, args);
+    out.println();
     out.flush();
   }
 
   public void warn(String format, Object... args) {
-    out.println("WARNING: " + String.format(format, args));
-    out.flush();
+    println("WARNING: " + String.format(format, args));
   }
 
   public static void errorln(String format, Object... args) {
     System.err.println(String.format(format, args));
+    System.err.println();
     System.err.flush();
   }
 

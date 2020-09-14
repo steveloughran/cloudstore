@@ -16,21 +16,17 @@
  * limitations under the License.
  */
 
-package org.apache.hadoop.fs.store.commands;
+import org.apache.hadoop.fs.s3a.extra.CleanS3Guard;
+import org.apache.hadoop.fs.s3a.extra.IamPolicy;
+import org.apache.hadoop.fs.store.commands.Command;
 
-/**
- * This is the base class for the minimal CLI commands.
- */
-@SuppressWarnings("UseOfSystemOutOrSystemErr")
-public class Command {
+public class cleans3guard extends Command {
 
-  public static void println(String format, Object... args) {
-    System.out.printf(format, args);
-    System.out.println();
+  public static void main(String[] args) throws Exception {
+    CleanS3Guard.main(args);
   }
 
-  protected static void printCommand(String name, String function) {
-    System.out.printf("%s\t--\t%s%n", name, function);
+  public static void help() {
+    printCommand("cleans3guard", "Clean all s3guard entries");
   }
-
 }

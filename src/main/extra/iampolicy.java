@@ -16,21 +16,17 @@
  * limitations under the License.
  */
 
-package org.apache.hadoop.fs.store.commands;
+import org.apache.hadoop.fs.s3a.extra.IamPolicy;
+import org.apache.hadoop.fs.s3a.extra.SessionKeys;
+import org.apache.hadoop.fs.store.commands.Command;
 
-/**
- * This is the base class for the minimal CLI commands.
- */
-@SuppressWarnings("UseOfSystemOutOrSystemErr")
-public class Command {
+public class iampolicy extends Command {
 
-  public static void println(String format, Object... args) {
-    System.out.printf(format, args);
-    System.out.println();
+  public static void main(String[] args) throws Exception {
+    IamPolicy .main(args);
   }
 
-  protected static void printCommand(String name, String function) {
-    System.out.printf("%s\t--\t%s%n", name, function);
+  public static void help() {
+    printCommand("iampolicy", "generate IAM policy");
   }
-
 }

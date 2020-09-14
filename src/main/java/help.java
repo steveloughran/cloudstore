@@ -43,9 +43,15 @@ public class help extends Command {
     storediag.help();
 
     // extras must not refer to the optional classes.
-    System.out.println("%nExtra Commands%n");
+    println("");
+    println("");
+    println("Extra Commands");
+    println("==============");
+    println("");
+    printCommand("cleans3guard", "Clean all s3guard entries");
+    printCommand("iampolicy", "generate IAM policy");
     printCommand("sessionkeys", "optional extra: generate session keys");
-    System.out.println(
+    println(
         "%nThese are only available on some builds and require a compatible hadoop release");
 
   }

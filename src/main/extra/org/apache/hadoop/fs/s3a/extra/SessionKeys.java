@@ -59,6 +59,11 @@ public class SessionKeys extends StoreEntryPoint {
 
   public static final String AWS_SESSION_TOKEN = "AWS_SESSION_TOKEN";
 
+  public static final String USAGE
+      = "Usage: sessionkeys\n"
+      + optusage(DEFINE, "key=value", "Define a property")
+      + optusage(XMLFILE, "file", "XML config file to load")
+      + " <S3A path>";
 
   public SessionKeys() {
     createCommandFormat(1, 1,
@@ -70,6 +75,7 @@ public class SessionKeys extends StoreEntryPoint {
   public int run(String[] args) throws Exception {
     List<String> paths = parseArgs(args);
     if (paths.size() < 1) {
+      errorln(USAGE);
       return E_USAGE;
     }
 
