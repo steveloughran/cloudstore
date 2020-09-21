@@ -551,24 +551,22 @@ public class StoreDiag extends DiagnosticsEntryPoint {
     boolean baseDirFound;
     try (DurationInfo ignored = new DurationInfo(LOG,
         "First %d entries of listStatus(%s)", limit, baseDir)) {
-      FileStatus[] statuses = fs.listStatus(baseDir);
-      println("%s entry count: %d", baseDir, statuses.length);
+      RemoteIterator<FileStatus> statuses = fs.listStatusIterator(baseDir);
+      int statusCount = 0;
       baseDirFound = true;
-      for (FileStatus status : statuses) {
+      while (statuses.hasNext() &&
+          (limit > 0 || firstFile == null)) {
+        statusCount++;
+        FileStatus status = statuses.next();
         if (status.isFile() && firstFile == null) {
           firstFile = status;
         }
         limit--;
         if (limit > 0) {
           println(statusToString(status));
-        } else {
-          // finished our listing, if a file is found
-          // then its time to leave.
-          if (firstFile != null) {
-            break;
-          }
         }
       }
+      println("%s : scanned %d entries", baseDir, statusCount);
     } catch (FileNotFoundException e) {
       // dir doesn't exist
       println("Directory %s does not exist", baseDir);
