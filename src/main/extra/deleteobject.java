@@ -16,44 +16,16 @@
  * limitations under the License.
  */
 
+import org.apache.hadoop.fs.s3a.extra.DeleteObject;
 import org.apache.hadoop.fs.store.commands.Command;
 
-/**
- * Help command: list the public commands.
- */
-public class help extends Command {
+public class deleteobject extends Command {
 
-  /**
-   * When adding new entries here, use alphabetical order.
-   * @param args
-   * @throws Exception
-   */
   public static void main(String[] args) throws Exception {
-    bucketstate.help();
-    cloudup.help();
-    committerinfo.help();
-    distcpdiag.help();
-    fetchdt.help();
-    filestatus.help();
-    list.help();
-    listobjects.help();
-    locatefiles.help();
-    mkdir.help();
-    pathcapability.help();
-    storediag.help();
+    DeleteObject.main(args);
+  }
 
-    // extras must not refer to the optional classes.
-    println("");
-    println("");
-    println("Extra Commands");
-    println("==============");
-    println("");
-    printCommand("cleans3guard", "Clean all s3guard entries");
+  public static void help() {
     printCommand("deleteobject", "Delete an S3 object, bypassing S3Guard");
-    printCommand("iampolicy", "generate IAM policy");
-    printCommand("sessionkeys", "optional extra: generate session keys");
-    println(
-        "%nThese are only available on some builds and require a compatible hadoop release");
-
   }
 }

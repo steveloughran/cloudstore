@@ -21,15 +21,14 @@ package org.apache.hadoop.fs.s3a.extra;
 
 import java.util.List;
 
+import com.amazonaws.services.s3.AmazonS3;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.s3a.Invoker;
 import org.apache.hadoop.fs.s3a.S3AFileSystem;
-import org.apache.hadoop.fs.s3a.s3guard.BulkOperationState;
-import org.apache.hadoop.fs.s3a.s3guard.MetadataStore;
-import org.apache.hadoop.fs.s3a.s3guard.S3Guard;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
 import org.apache.hadoop.util.ToolRunner;
 
@@ -39,17 +38,16 @@ import static org.apache.hadoop.fs.store.CommonParameters.XMLFILE;
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
 
 /**
- * Clean out from S3Guard all entries under a path.
+ * Deletes the objects on the command line
  */
-public class CleanS3Guard extends StoreEntryPoint {
+public class DeleteObject extends StoreEntryPoint {
 
-  private static final Logger LOG = LoggerFactory.getLogger(CleanS3Guard.class);
+  private static final Logger LOG = LoggerFactory.getLogger(DeleteObject.class);
 
   public static final String USAGE
-      = "Usage: cleans3guard"
-      + " <S3A path>";
+      = "Usage: deleteobject <S3A path>";
 
-  public CleanS3Guard() {
+  public DeleteObject() {
     createCommandFormat(1, 1,
         VERBOSE);
   }
@@ -68,25 +66,13 @@ public class CleanS3Guard extends StoreEntryPoint {
     maybeAddXMLFileOption(conf, XMLFILE);
     maybePatchDefined(conf, DEFINE);
 
-    final Path path = new Path(paths.get(0));
-    S3AFileSystem fs = (S3AFileSystem) path.getFileSystem(conf);
-    if (!fs.hasMetadataStore()) {
-      println("S3 bucket %s does not have a S3Guard metadata store", fs.getUri());
-      return -1;
-    }
-    MetadataStore metastore = fs.getMetadataStore();
-    println("Removing from S3Guard all entries under %s", path);
-    try (BulkOperationState operationState = S3Guard.initiateBulkWrite(
-        metastore,
-        BulkOperationState.OperationType.Delete,
-        path)) {
-      metastore.deleteSubtree(path, operationState);
-    }
-    println("");
-    println("S3Guard cleanup completed. To repopulate the directory, run");
-    println("");
-    println("  hadoop s3guard import %s", path);
-    println("");
+    final Path source = new Path(paths.get(0));
+    S3AFileSystem fs = (S3AFileSystem) source.getFileSystem(conf);
+    AmazonS3 s3 = fs.getAmazonS3ClientForTesting("DeleteObjects");
+    Invoker.once("delete", source.toString(), () ->
+        s3.deleteObject(
+            fs.getBucket(),
+            fs.pathToKey(source)));
     return 0;
   }
 
@@ -98,7 +84,7 @@ public class CleanS3Guard extends StoreEntryPoint {
    * @throws Exception failure
    */
   public static int exec(String... args) throws Exception {
-    return ToolRunner.run(new CleanS3Guard(), args);
+    return ToolRunner.run(new DeleteObject(), args);
   }
 
   /**
