@@ -19,7 +19,9 @@
 package org.apache.hadoop.fs.store.commands;
 
 import java.io.IOException;
+import java.io.InterruptedIOException;
 import java.util.List;
+import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -110,6 +112,9 @@ public class ListFiles extends StoreEntryPoint {
               throw new LimitReachedException();
             }
           });
+    } catch (InterruptedIOException | RejectedExecutionException interrupted) {
+      println("Interrupted");
+      LOG.debug("Interrupted", interrupted);
     } catch (LimitReachedException expected) {
 
       // the limit has been reached

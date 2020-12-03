@@ -42,6 +42,8 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.LocatedFileStatus;
 import org.apache.hadoop.fs.StorageStatistics;
 import org.apache.hadoop.fs.shell.CommandFormat;
+import org.apache.hadoop.fs.statistics.IOStatistics;
+import org.apache.hadoop.fs.statistics.IOStatisticsSource;
 import org.apache.hadoop.ipc.CallerContext;
 import org.apache.hadoop.security.Credentials;
 import org.apache.hadoop.security.UserGroupInformation;
@@ -51,6 +53,8 @@ import org.apache.hadoop.util.ExitUtil;
 import org.apache.hadoop.util.GenericOptionsParser;
 import org.apache.hadoop.util.Tool;
 
+import static org.apache.hadoop.fs.statistics.IOStatisticsLogging.ioStatisticsSourceToString;
+import static org.apache.hadoop.fs.statistics.IOStatisticsSupport.retrieveIOStatistics;
 import static org.apache.hadoop.fs.store.CommonParameters.DEFINE;
 import static org.apache.hadoop.fs.store.CommonParameters.TOKENFILE;
 import static org.apache.hadoop.fs.store.CommonParameters.VERBOSE;
@@ -341,12 +345,18 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable {
       return;
     }
     heading("Storage Statistics");
-    StorageStatistics st = fs.getStorageStatistics();
-    Iterator<StorageStatistics.LongStatistic> it
-        = st.getLongStatistics();
-    while (it.hasNext()) {
-      StorageStatistics.LongStatistic next = it.next();
-      println("%s\t%s", next.getName(), next.getValue());
+    String report = ioStatisticsSourceToString(fs);
+    if (!report.isEmpty()) {
+      println("%s", report);
+    } else {
+      // fall back
+      StorageStatistics st = fs.getStorageStatistics();
+      Iterator<StorageStatistics.LongStatistic> it
+          = st.getLongStatistics();
+      while (it.hasNext()) {
+        StorageStatistics.LongStatistic next = it.next();
+        println("%s\t%s", next.getName(), next.getValue());
+      }
     }
   }
 }
