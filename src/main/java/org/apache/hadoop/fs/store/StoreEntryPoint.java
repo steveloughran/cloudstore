@@ -39,26 +39,24 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.LocatedFileStatus;
 import org.apache.hadoop.fs.StorageStatistics;
 import org.apache.hadoop.fs.shell.CommandFormat;
+/*
 import org.apache.hadoop.fs.statistics.IOStatistics;
 import org.apache.hadoop.fs.statistics.IOStatisticsSource;
-import org.apache.hadoop.ipc.CallerContext;
+*/
 import org.apache.hadoop.security.Credentials;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.security.token.Token;
 import org.apache.hadoop.security.token.TokenIdentifier;
 import org.apache.hadoop.util.ExitUtil;
-import org.apache.hadoop.util.GenericOptionsParser;
 import org.apache.hadoop.util.Tool;
 
+/*
 import static org.apache.hadoop.fs.statistics.IOStatisticsLogging.ioStatisticsSourceToString;
 import static org.apache.hadoop.fs.statistics.IOStatisticsSupport.retrieveIOStatistics;
-import static org.apache.hadoop.fs.store.CommonParameters.DEFINE;
-import static org.apache.hadoop.fs.store.CommonParameters.TOKENFILE;
+*/
 import static org.apache.hadoop.fs.store.CommonParameters.VERBOSE;
-import static org.apache.hadoop.fs.store.CommonParameters.XMLFILE;
 import static org.apache.hadoop.fs.store.StoreUtils.split;
 
 /**
@@ -345,7 +343,7 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable {
       return;
     }
     heading("Storage Statistics");
-    String report = ioStatisticsSourceToString(fs);
+    String report = ""; //ioStatisticsSourceToString(fs);
     if (!report.isEmpty()) {
       println("%s", report);
     } else {
