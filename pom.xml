@@ -27,7 +27,7 @@
     <javac.version>1.8</javac.version>
     <enforced.java.version>${javac.version}</enforced.java.version>
 
-    <hadoop.version>3.1.2</hadoop.version>
+    <hadoop.version>3.1.4</hadoop.version>
 
     <test.build.dir>${project.build.directory}/test-dir</test.build.dir>
     <test.build.data>${test.build.dir}</test.build.data>
