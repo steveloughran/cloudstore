@@ -58,7 +58,7 @@ public class JobTokens extends StoreEntryPoint {
 
   public static final String USAGE =
       "Usage: jobtokens <file> [-r] [-v] [-xmlfile file] <url1> ... <url999>\n"
-          + "-r: require each filesystem to issue a token\n"
+          + "-r: require a token to be issued\n"
           + "";
 
   private static final String REQUIRED = "r";
