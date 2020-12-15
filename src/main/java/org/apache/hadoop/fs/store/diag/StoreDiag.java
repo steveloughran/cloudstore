@@ -244,7 +244,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
         warn("Token file does not exist");
       } else {
         // Because tokens can take priority over other auth mechanisms,
-        // and if they have expired the fact is not alway obvious.
+        // and if they have expired the fact is not always obvious.
         long modified = tokenFile.lastModified();
         long age = System.currentTimeMillis() - modified;
         long ageInMin = age / 60_000;

@@ -52,9 +52,13 @@ public class OptionSets {
       {"hadoop.tmp.dir", false, false},
       {"hdp.version", false, false},
       {"yarn.resourcemanager.address", false, false},
+      {"yarn.resourcemanager.principal", false, false},
       {"yarn.resourcemanager.webapp.address", false, false},
       {"yarn.resourcemanager.webapp.https.address", false, false},
       {"mapreduce.input.fileinputformat.list-status.num-threads", false, false},
+      {"mapreduce.jobtracker.kerberos.principal", false, false},
+      {"mapreduce.job.hdfs-servers.token-renewal.exclude", false, false},
+      {"", false, false},
   };
 
   public static final String HADOOP_TOKEN = "HADOOP_TOKEN";

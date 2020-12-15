@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.net.URI;
 import java.security.PrivilegedExceptionAction;
+import java.util.Collection;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -32,9 +33,11 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.store.DurationInfo;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
+import org.apache.hadoop.mapreduce.security.TokenCache;
 import org.apache.hadoop.security.Credentials;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.security.token.Token;
+import org.apache.hadoop.security.token.TokenIdentifier;
 import org.apache.hadoop.service.launcher.LauncherExitCodes;
 import org.apache.hadoop.util.ExitUtil;
 import org.apache.hadoop.util.ToolRunner;
@@ -42,29 +45,28 @@ import org.apache.hadoop.util.ToolRunner;
 import static org.apache.hadoop.fs.store.CommonParameters.DEFINE;
 import static org.apache.hadoop.fs.store.CommonParameters.VERBOSE;
 import static org.apache.hadoop.fs.store.CommonParameters.XMLFILE;
+import static org.apache.hadoop.yarn.client.util.YarnClientUtils.getRmPrincipal;
 
 /**
- * Fetch all delegation tokens from the given filesystems.
+ * Fetch all delegation tokens from the given filesystems
+ * as if this was a job collecting its DTs.
  */
 @SuppressWarnings("UseOfSystemOutOrSystemErr")
-public class FetchTokens extends StoreEntryPoint {
+public class JobTokens extends StoreEntryPoint {
 
-  private static final Logger LOG = LoggerFactory.getLogger(FetchTokens.class);
+  private static final Logger LOG = LoggerFactory.getLogger(JobTokens.class);
 
   public static final String USAGE =
-      "Usage: fetchdt <file> [-renewer <renewer>] [-r] [-v] [-xmlfile file] <url1> ... <url999>\n"
+      "Usage: jobtokens <file> [-r] [-v] [-xmlfile file] <url1> ... <url999>\n"
           + "-r: require each filesystem to issue a token\n"
           + "";
 
-  private static final String RENEWER = "renewer";
-
   private static final String REQUIRED = "r";
 
-  public FetchTokens() {
+  public JobTokens() {
     createCommandFormat(2, 999,
             REQUIRED, VERBOSE);
-    addValueOptions(XMLFILE, DEFINE, RENEWER);
-    getCommandFormat().addOptionWithValue(RENEWER);
+    addValueOptions(XMLFILE, DEFINE);
     getCommandFormat().addOptionWithValue(XMLFILE);
   }
 
@@ -81,15 +83,15 @@ public class FetchTokens extends StoreEntryPoint {
     final UserGroupInformation self = UserGroupInformation.getLoginUser();
 
     final Path tokenfile = new Path(paths.get(0));
-    final String ropt = getOption(RENEWER);
-    final String renewer = ropt != null ?
-        ropt : self.getShortUserName();
 
     final List<String> urls = paths.subList(1, paths.size());
     final boolean required = hasOption(REQUIRED);
 
     maybeAddXMLFileOption(conf, XMLFILE);
     maybePatchDefined(conf, DEFINE);
+    final String renewer = getRmPrincipal(conf);
+    println("Yarn principal for Job Token renewal \"%s\"",
+        renewer == null ? "": renewer);
 
     // qualify the FS so that what gets printed is absolute.
     FileSystem fs = tokenfile.getFileSystem(conf);
@@ -124,27 +126,32 @@ public class FetchTokens extends StoreEntryPoint {
 
     Credentials cred = new Credentials();
     int count = 0;
+    Path[] paths = new Path[urls.size()];
+    StringBuilder sb = new StringBuilder();
+    int i = 0;
     for (String url : urls) {
-      Path path = new Path(url);
-      try (DurationInfo ignored =
-               new DurationInfo(LOG, "Fetching tokens for %s", path)) {
+      final Path p = new Path(url);
+      paths[i++] = p;
+      sb.append(p.toUri().getHost());
+    }
+    String hosts = sb.toString();
 
-        FileSystem fs = path.getFileSystem(conf);
-        URI fsUri = fs.getUri();
-        LOG.debug("Acquired FS {}", fs);
-        Token<?>[] tokens = fs.addDelegationTokens(renewer, cred);
-        if (tokens != null && tokens.length != 0) {
-          count += tokens.length;
-          for (Token<?> token : tokens) {
-            println("Fetched token: %s", token);
-          }
-        } else {
-          println("No token for %s", path);
-          if (required) {
-            throw new ExitUtil.ExitException(
-                LauncherExitCodes.EXIT_NOT_FOUND,
-                "No tokens issued by filesystem " + fsUri);
-          }
+    try (DurationInfo ignored =
+             new DurationInfo(LOG, "Fetching tokens for %s", hosts)) {
+
+      TokenCache.obtainTokensForNamenodes(cred, paths, conf);
+      final Collection<Token<? extends TokenIdentifier>> tokens
+          = cred.getAllTokens();
+      for (Token<?> token : tokens) {
+        println("Fetched token: %s", token);
+      }
+
+      if (tokens.isEmpty()) {
+        println("No tokens collected");
+        if (required) {
+          throw new ExitUtil.ExitException(
+              LauncherExitCodes.EXIT_NOT_FOUND,
+              "No tokens collected for hosts " + hosts);
         }
       }
     }
@@ -174,7 +181,7 @@ public class FetchTokens extends StoreEntryPoint {
    * @throws Exception failure
    */
   public static int exec(String... args) throws Exception {
-    return ToolRunner.run(new FetchTokens(), args);
+    return ToolRunner.run(new JobTokens(), args);
   }
 
   /**

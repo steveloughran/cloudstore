@@ -35,6 +35,7 @@ public class help extends Command {
     distcpdiag.help();
     fetchdt.help();
     filestatus.help();
+    jobtokens.help();
     list.help();
     listobjects.help();
     locatefiles.help();
