@@ -18,6 +18,7 @@
 
 package org.apache.hadoop.fs.store.diag;
 
+import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -25,6 +26,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.InterruptedIOException;
 import java.io.PrintStream;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
@@ -167,6 +169,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
     // and its FS URI
     storeInfo = bindToStore(path.toUri());
     printHadoopVersionInfo();
+    printOSVersion();
     if (hasOption(SYSPROPS)) {
       printJVMOptions();
     }
@@ -215,6 +218,37 @@ public class StoreDiag extends DiagnosticsEntryPoint {
     printOptions("Security Options", conf, SECURITY_OPTIONS);
     printOptions("Selected Configuration Options",
         conf, storeInfo.getFilesystemOptions());
+  }
+
+  public boolean printOSVersion() throws IOException {
+    heading("Determining OS version");
+    try {
+      String[] commands = {"uname", "-a"};
+      Process proc = Runtime.getRuntime().exec(commands);
+      try (BufferedReader stdin = new BufferedReader(new
+              InputStreamReader(proc.getInputStream()));
+          BufferedReader stderr = new BufferedReader(new
+              InputStreamReader(proc.getErrorStream()))) {
+        String s;
+        while ((s = stdin.readLine()) != null) {
+          println(s);
+        }
+        while ((s = stderr.readLine()) != null) {
+          println(s);
+        }
+        proc.waitFor();
+        return proc.exitValue() == 0;
+      }
+    } catch (IOException e) {
+      println("Failed to determine OS Version: %s", e);
+      LOG.debug("Failed to determine OS Version", e);
+      return false;
+    } catch (InterruptedException e) {
+      throw (IOException)new InterruptedIOException(e.toString())
+          .initCause(e);
+    }
+
+
   }
   
   /**
