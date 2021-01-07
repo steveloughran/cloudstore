@@ -229,6 +229,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       // Delegation Tokens
       "org.apache.hadoop.fs.s3a.auth.delegation.S3ADelegationTokens",
       // secondary tokens
+      "org.apache.hadoop.fs.s3a.auth.delegation.SecondaryDelegationToken",
       "org.apache.hadoop.fs.s3a.auth.delegation.providers.EncryptingTokenBinding",
 
       // S3 Select: HADOOP-15229
