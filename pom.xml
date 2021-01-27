@@ -180,17 +180,7 @@
         <hadoop.version>3.3.1-SNAPSHOT</hadoop.version>
       </properties>
     </profile>
-    <profile>
-      <id>branch-3.2</id>
-      <activation>
-        <property>
-          <name>branch-3.3</name>
-        </property>
-      </activation>
-      <properties>
-        <hadoop.version>3.3.1T</hadoop.version>
-      </properties>
-    </profile>
+
 
     <profile>
       <id>hadoop-3.0</id>
