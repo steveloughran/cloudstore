@@ -74,6 +74,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       /* Core Set */
       {"fs.s3a.acl.default", false, false},
       {"fs.s3a.attempts.maximum", false, false},
+      {"fs.s3a.audit.classname", false, false},
       {"fs.s3a.authoritative.path", false, false},
       {"fs.s3a.block.size", false, false},
       {"fs.s3a.buffer.dir", false, false},
@@ -105,6 +106,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.s3a.multiobjectdelete.enable", false, false},
       {"fs.s3a.multipart.purge", false, false},
       {"fs.s3a.multipart.purge.age", false, false},
+      {"fs.s3a.paging.maximum", false, false},
       {PATH_STYLE_ACCESS, false, false},
       {"fs.s3a.proxy.host", false, false},
       {"fs.s3a.proxy.port", false, false},

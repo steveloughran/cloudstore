@@ -580,3 +580,22 @@ Bug reports: please include environment and ideally patches.
 
 There is no formal support for this. Sorry. 
 
+## Building
+
+To build against the latest hadoop 3.3
+```
+mvn clean install -Phadoop-3.3 -Pextra
+```
+
+The `extra` profile pulls in extra source which calls some S3A FS API calls not in earlier hadoop versions
+(note: they are in CDP 7.x/CDP cloud).
+
+To build against Hadoop 3.2
+
+```
+mvn clean install -Phadoop-3.2
+```
+
+
+Building against older versions.
+This is generally done only in an emergency and hasn't been done for a while; it's probably not going to compile. Sorry.

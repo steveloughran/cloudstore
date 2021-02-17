@@ -72,6 +72,7 @@ public class OptionSets {
       {"HADOOP_CREDSTORE_PASSWORD", false},
       {"HADOOP_HOME", false},
       {"HADOOP_OPTIONAL_TOOLS", false},
+      {"HADOOP_OPTS", false},
       {"HADOOP_SHELL_SCRIPT_DEBUG", false},
       {HADOOP_TOKEN, false},
       {HADOOP_TOKEN_FILE_LOCATION, false},

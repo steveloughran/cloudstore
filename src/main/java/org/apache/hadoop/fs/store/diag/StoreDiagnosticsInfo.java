@@ -304,8 +304,13 @@ public class StoreDiagnosticsInfo {
     Map<String, String> propsWithPrefix = conf.getPropsWithPrefix(prefix);
     Set<String> sorted = sortKeys(propsWithPrefix.keySet());
     for (String k: sorted) {
-      printout.println("%s%s=\"%s\"",
-          prefix, k, propsWithPrefix.get(k));
+      if (!k.contains(".secret.")) {
+        printout.println("%s%s=\"%s\"",
+            prefix, k, propsWithPrefix.get(k));
+      } else
+        printout.println("%s%s=\"%s\"",
+            prefix, k, propsWithPrefix.get(k));
+
     }
   }
 

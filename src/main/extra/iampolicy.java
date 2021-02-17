@@ -23,7 +23,7 @@ import org.apache.hadoop.fs.store.commands.Command;
 public class iampolicy extends Command {
 
   public static void main(String[] args) throws Exception {
-    IamPolicy .main(args);
+    IamPolicy.main(args);
   }
 
   public static void help() {
