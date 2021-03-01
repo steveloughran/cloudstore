@@ -18,6 +18,7 @@
 
 package org.apache.hadoop.fs.tools.cloudup;
 
+import java.io.Closeable;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -51,6 +52,8 @@ import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.collections.comparators.ReverseComparator;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FSDataInputStream;
+import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.LocalFileSystem;
@@ -372,7 +375,7 @@ public class Cloudup extends StoreEntryPoint {
   }
 
   /**
-   * List the source files and build the list
+   * List the source files and build the list.
    * @return list of uploads
    * @throws IOException failure to list
    */
@@ -385,6 +388,11 @@ public class Cloudup extends StoreEntryPoint {
       entry.setDest(getFinalPath(status.getPath()));
       uploads.add(entry);
     }
+    LOG.info("List {}", ri);
+    if (ri instanceof Closeable) {
+      ((Closeable) ri).close();
+    }
+
     return uploads;
   }
 
@@ -441,9 +449,11 @@ public class Cloudup extends StoreEntryPoint {
       // source is local, use the local operation
       destFS.copyFromLocalFile(false, overwrite, source, dest);
     } else {
-      try(InputStream in = sourceFS.open(source);
-          OutputStream out = destFS.create(dest, overwrite)) {
+      try(FSDataInputStream in = sourceFS.open(source);
+          FSDataOutputStream out = destFS.create(dest, overwrite)) {
         IOUtils.copyBytes(in, out, getConf(), true);
+        LOG.info("In: {}", in);
+        LOG.info("Out: {}", out);
       }
     }
   }
@@ -497,6 +507,10 @@ public class Cloudup extends StoreEntryPoint {
   private void dumpStats(FileSystem fs, String header) {
    // Not supported on Hadoop 2.7
     LOG.info("\n" + header +": " + fs.getUri());
+
+    // hope to see FS IOStats
+    LOG.info("Filesystem {}", fs);
+
     Iterator<StorageStatistics.LongStatistic> iterator
         = fs.getStorageStatistics().getLongStatistics();
     // convert to a (sorted) treemap

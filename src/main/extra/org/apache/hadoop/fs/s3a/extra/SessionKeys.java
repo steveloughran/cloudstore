@@ -171,6 +171,18 @@ public class SessionKeys extends StoreEntryPoint {
       }
       println(props.toString());
 
+      heading("Spark");
+      StringBuilder spark = new StringBuilder();
+      spark.append(spark(AWS_ACCESS_KEY_ID, keyId));
+      spark.append(spark(AWS_SECRET_ACCESS_KEY, secretKey));
+      spark.append(spark(AWS_SESSION_TOKEN, sessionToken));
+      spark.append(spark(AWS_CREDENTIALS_PROVIDER,
+          TEMPORARY_AWSCREDENTIALS_PROVIDER));
+      spark.append(spark(SESSION_TOKEN, sessionToken));
+      if (endpointkey != null) {
+        spark.append(spark(endpointkey, endpoint));
+      }      println(spark.toString());
+
       heading("Bash");
 
       StringBuilder bash = new StringBuilder();
@@ -209,6 +221,9 @@ public class SessionKeys extends StoreEntryPoint {
 
   private String fishenv(String name, String text) {
     return String.format("set -gx %s %s;%n", name, text);
+  }
+  private String spark(String name, String text) {
+    return String.format("spark.hadoop.%s %n", name, text);
   }
 
   /**

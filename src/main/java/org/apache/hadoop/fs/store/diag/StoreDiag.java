@@ -189,6 +189,8 @@ public class StoreDiag extends DiagnosticsEntryPoint {
     // and the filesystem operations
     executeFileSystemOperations(path, !hasOption(READONLY));
 
+    // dump JVM status
+    printJVMStats();
     // Validate parameters.
     return E_SUCCESS;
   }
@@ -247,10 +249,16 @@ public class StoreDiag extends DiagnosticsEntryPoint {
       throw (IOException)new InterruptedIOException(e.toString())
           .initCause(e);
     }
-
-
   }
-  
+
+  /**
+   * Print any JVM stats we can get hold of.
+   */
+  public void printJVMStats() {
+    Runtime runtime = Runtime.getRuntime();
+    println("JVM: memory=%d", runtime.freeMemory());
+  }
+
   /**
    * Print some security stuff, though KDiag is your friend there.
    */

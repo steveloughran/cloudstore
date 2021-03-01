@@ -69,8 +69,11 @@ public class OptionSets {
   protected static final Object[][] STANDARD_ENV_VARS = {
       {"PATH", false},
       {"HADOOP_CONF_DIR", false},
-      {"HADOOP_CREDSTORE_PASSWORD", false},
+      {"HADOOP_CREDSTORE_PASSWORD", true},
+      {"HADOOP_HEAPSIZE", false},
+      {"HADOOP_HEAPSIZE_MIN", false},
       {"HADOOP_HOME", false},
+      {"HADOOP_LOG_DIR", false},
       {"HADOOP_OPTIONAL_TOOLS", false},
       {"HADOOP_OPTS", false},
       {"HADOOP_SHELL_SCRIPT_DEBUG", false},
