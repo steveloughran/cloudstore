@@ -20,7 +20,6 @@ package org.apache.hadoop.fs.store.commands;
 
 import java.io.IOException;
 import java.io.PrintStream;
-import java.net.URI;
 import java.security.PrivilegedExceptionAction;
 import java.util.Collection;
 import java.util.List;
@@ -31,7 +30,7 @@ import org.slf4j.LoggerFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.fs.store.DurationInfo;
+import org.apache.hadoop.fs.store.StoreDurationInfo;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
 import org.apache.hadoop.mapreduce.security.TokenCache;
 import org.apache.hadoop.security.Credentials;
@@ -136,8 +135,8 @@ public class JobTokens extends StoreEntryPoint {
     }
     String hosts = sb.toString();
 
-    try (DurationInfo ignored =
-             new DurationInfo(LOG, "Fetching tokens for %s", hosts)) {
+    try (StoreDurationInfo ignored =
+             new StoreDurationInfo(LOG, "Fetching tokens for %s", hosts)) {
 
       TokenCache.obtainTokensForNamenodes(cred, paths, conf);
       final Collection<Token<? extends TokenIdentifier>> tokens
@@ -156,8 +155,8 @@ public class JobTokens extends StoreEntryPoint {
       }
     }
     // all the tokens are collected, so save
-    try(DurationInfo ignored =
-            new DurationInfo(LOG, "Saving %d tokens to %s",
+    try(StoreDurationInfo ignored =
+            new StoreDurationInfo(LOG, "Saving %d tokens to %s",
                 count, dest)) {
       cred.writeTokenStorageFile(dest, conf);
     }

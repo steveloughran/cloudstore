@@ -18,17 +18,15 @@
 
 package org.apache.hadoop.fs.store.commands;
 
-import java.io.IOException;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.fs.store.DurationInfo;
+import org.apache.hadoop.fs.store.StoreDurationInfo;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
 import org.apache.hadoop.mapreduce.TaskAttemptID;
 import org.apache.hadoop.mapreduce.TaskID;
@@ -83,7 +81,7 @@ public class CommitterInfo extends StoreEntryPoint {
 
     final Path source = new Path(paths.get(0));
 
-    try (DurationInfo ignored = new DurationInfo(LOG, "Create committer")) {
+    try (StoreDurationInfo ignored = new StoreDurationInfo(LOG, "Create committer")) {
       FileSystem fs = source.getFileSystem(conf);
       Configuration fsConf = fs.getConf();
       PathOutputCommitterFactory factory

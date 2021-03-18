@@ -18,6 +18,7 @@
 
 package org.apache.hadoop.fs.store.commands;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.util.List;
@@ -28,16 +29,17 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.LocatedFileStatus;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.RemoteIterator;
-import org.apache.hadoop.fs.store.DurationInfo;
+import org.apache.hadoop.fs.store.StoreDurationInfo;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
 import org.apache.hadoop.util.ToolRunner;
 
-import static org.apache.hadoop.fs.s3a.S3AUtils.applyLocatedFiles;
+import static org.apache.commons.io.FileUtils.byteCountToDisplaySize;
 import static org.apache.hadoop.fs.store.CommonParameters.DEFINE;
 import static org.apache.hadoop.fs.store.CommonParameters.LIMIT;
 import static org.apache.hadoop.fs.store.CommonParameters.TOKENFILE;
@@ -92,26 +94,32 @@ public class ListFiles extends StoreEntryPoint {
         limit == 0 ? "" : (" up to " + limit),
         source);
 
-    final DurationInfo duration = new DurationInfo(LOG, "Directory list");
-    final DurationInfo firstLoad = new DurationInfo(LOG, "First listing");
+    final StoreDurationInfo duration = new StoreDurationInfo(LOG, "Directory list");
+    final StoreDurationInfo firstLoad = new StoreDurationInfo(LOG, "First listing");
     final AtomicInteger count = new AtomicInteger(0);
     final AtomicLong size = new AtomicLong(0);
     FileSystem fs = source.getFileSystem(conf);
+    // track the largest file
+    LocatedFileStatus largestFile = null;
     final RemoteIterator<LocatedFileStatus> lister = fs.listFiles(source,
         true);
     try {
-      applyLocatedFiles(lister,
-          (status) -> {
-            int c = count.incrementAndGet();
-            if (c == 1) {
-              firstLoad.close();
-            }
-            size.addAndGet(status.getLen());
-            printStatus(c, status);
-            if (limit > 0 && c >= limit) {
-              throw new LimitReachedException();
-            }
-          });
+      while (lister.hasNext()) {
+        final LocatedFileStatus status = lister.next();
+        int c = count.incrementAndGet();
+        if (c == 1) {
+          firstLoad.close();
+        }
+        final long len = status.getLen();
+        size.addAndGet(len);
+        printStatus(c, status);
+        if (largestFile == null || len > largestFile.getLen()) {
+          largestFile = status;
+        }
+        if (limit > 0 && c >= limit) {
+          throw new LimitReachedException();
+        }
+      }
     } catch (InterruptedIOException | RejectedExecutionException interrupted) {
       println("Interrupted");
       LOG.debug("Interrupted", interrupted);
@@ -121,6 +129,12 @@ public class ListFiles extends StoreEntryPoint {
 
     } finally {
       duration.close();
+      if (isVerbose()) {
+        println("List iterator: %s", lister);
+      }
+      if (lister instanceof Closeable) {
+        ((Closeable) lister).close();
+      }
     }
     long files = count.get();
     double millisPerFile = files > 0 ? (((float) duration.value()) / files) : 0;
@@ -129,9 +143,16 @@ public class ListFiles extends StoreEntryPoint {
     println("");
     println("Found %s files, %,.0f milliseconds per file",
         files, millisPerFile);
-    println("Data size %,d bytes, %,d bytes per file",
-        totalSize, bytesPerFile);
-    println("List iterator: %s", lister);
+    println("Data size %s (%,d bytes)",
+        byteCountToDisplaySize(totalSize),
+        totalSize);
+    println("Mean file size %s (%,d bytes)",
+        byteCountToDisplaySize(bytesPerFile), bytesPerFile);
+    if (largestFile != null) {
+      println("Largest file: %s: size %s",
+          largestFile.getPath(),
+          byteCountToDisplaySize(largestFile.getLen()));
+    }
     maybeDumpStorageStatistics(fs);
     return 0;
   }

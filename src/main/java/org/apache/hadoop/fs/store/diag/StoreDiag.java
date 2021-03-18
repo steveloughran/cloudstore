@@ -58,7 +58,7 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.LocatedFileStatus;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.RemoteIterator;
-import org.apache.hadoop.fs.store.DurationInfo;
+import org.apache.hadoop.fs.store.StoreDurationInfo;
 import org.apache.hadoop.io.IOUtils;
 import org.apache.hadoop.net.NetUtils;
 import org.apache.hadoop.security.AccessControlException;
@@ -567,7 +567,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
 
     FileSystem fs;
 
-    try(DurationInfo ignored = new DurationInfo(
+    try(StoreDurationInfo ignored = new StoreDurationInfo(
         LOG, "Creating filesystem %s", baseDir)) {
       fs = baseDir.getFileSystem(conf);
     }
@@ -580,7 +580,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
 
 
     Path root = fs.makeQualified(new Path("/"));
-    try (DurationInfo ignored = new DurationInfo(LOG,
+    try (StoreDurationInfo ignored = new StoreDurationInfo(LOG,
         "GetFileStatus %s", root)) {
       println("root entry %s", fs.getFileStatus(root));
     } catch (FileNotFoundException e) {
@@ -591,7 +591,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
     FileStatus firstFile = null;
     int limit = LIST_LIMIT;
     boolean baseDirFound;
-    try (DurationInfo ignored = new DurationInfo(LOG,
+    try (StoreDurationInfo ignored = new StoreDurationInfo(LOG,
         "First %d entries of listStatus(%s)", limit, baseDir)) {
       RemoteIterator<FileStatus> statuses = fs.listStatusIterator(baseDir);
       int statusCount = 0;
@@ -620,7 +620,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
       Path firstFilePath = firstFile.getPath();
       heading("reading file %s", firstFilePath);
       FSDataInputStream in = null;
-      try (DurationInfo ignored = new DurationInfo(LOG,
+      try (StoreDurationInfo ignored = new StoreDurationInfo(LOG,
           "Reading file %s", firstFilePath)) {
         in = fs.open(firstFilePath);
         // read the first char or -1
@@ -637,7 +637,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
 
     // now work with the full path
     limit = LIST_LIMIT;
-    try(DurationInfo ignored = new DurationInfo(LOG,
+    try(StoreDurationInfo ignored = new StoreDurationInfo(LOG,
         "First %d entries of listFiles(%s)", limit, baseDir)) {
       RemoteIterator<LocatedFileStatus> files = fs.listFiles(baseDir, true);
       try {
@@ -678,7 +678,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
           securityEnabled ? "" : " (at least while security is disabled)");
     } else {
       Credentials cred = new Credentials();
-      try (DurationInfo ignored = new DurationInfo(LOG,
+      try (StoreDurationInfo ignored = new StoreDurationInfo(LOG,
           "collecting delegation tokens")) {
         try {
           String renewer = "yarn@EXAMPLE";
@@ -724,7 +724,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
     // now create a directory
     Path dir = new Path(baseDir, "dir-" + UUID.randomUUID());
 
-    try (DurationInfo ignored = new DurationInfo(LOG,
+    try (StoreDurationInfo ignored = new StoreDurationInfo(LOG,
         "probe for a directory which does not yet exist %s", dir)) {
       FileStatus status = fs.getFileStatus(dir);
       println("Unexpectedly got the status of a file which should not exist%n"
@@ -733,7 +733,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
       // expected this; ignore it.
     }
 
-    try (DurationInfo ignored = new DurationInfo(LOG,
+    try (StoreDurationInfo ignored = new StoreDurationInfo(LOG,
         "Creating a directory %s", dir)) {
       fs.mkdirs(dir);
     } catch (AccessDeniedException e) {
@@ -744,7 +744,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
     }
 
     // Directory ops
-    try (DurationInfo ignored = new DurationInfo(LOG,
+    try (StoreDurationInfo ignored = new StoreDurationInfo(LOG,
         "create directory %s", dir)) {
       FileStatus status = fs.getFileStatus(dir);
       if (!status.isDirectory()) {
@@ -758,19 +758,19 @@ public class StoreDiag extends DiagnosticsEntryPoint {
       Path file = new Path(dir, "file");
       verifyPathNotFound(fs, file);
 
-      try (DurationInfo ignored = new DurationInfo(LOG,
+      try (StoreDurationInfo ignored = new StoreDurationInfo(LOG,
           "creating a file %s", file)) {
         FSDataOutputStream data = fs.create(file, true);
         data.writeUTF(HELLO);
         data.close();
         println("Output stream summary: %s", data);
       }
-      try (DurationInfo ignored = new DurationInfo(LOG,
+      try (StoreDurationInfo ignored = new StoreDurationInfo(LOG,
           "Listing  %s", dir)) {
         fs.listFiles(dir, false);
       }
       FSDataInputStream in = null;
-      try (DurationInfo ignored = new DurationInfo(LOG,
+      try (StoreDurationInfo ignored = new StoreDurationInfo(LOG,
           "Reading a file %s", file)) {
         in = fs.open(file);
         String utf = in.readUTF();
@@ -789,7 +789,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
       Path subdir = new Path(dir, "subdir");
       Path subdir2 = new Path(dir, "subdir2");
       Path subfile = new Path(subdir, "subfile");
-      try (DurationInfo ignored = new DurationInfo(LOG,
+      try (StoreDurationInfo ignored = new StoreDurationInfo(LOG,
           "Renaming file %s under %s", file, subdir)) {
         fs.mkdirs(subdir);
         fs.rename(file, subfile);
@@ -797,7 +797,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
       }
       verifyPathNotFound(fs, subfile);
       // delete the file
-      try (DurationInfo ignored = new DurationInfo(LOG,
+      try (StoreDurationInfo ignored = new StoreDurationInfo(LOG,
           "delete dir %s", subdir2)) {
         fs.delete(subdir2, true);
       }
@@ -813,7 +813,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
   }
 
   public void deleteDir(final FileSystem fs, final Path dir) {
-    try (DurationInfo ignored = new DurationInfo(LOG,
+    try (StoreDurationInfo ignored = new StoreDurationInfo(LOG,
         "delete directory %s", dir)) {
       try {
         fs.delete(dir, true);
@@ -825,7 +825,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
 
   protected void verifyPathNotFound(FileSystem fs, Path path)
       throws IOException {
-    try (DurationInfo ignored = new DurationInfo(LOG,
+    try (StoreDurationInfo ignored = new StoreDurationInfo(LOG,
         "probing path %s", path)) {
       final FileStatus st = fs.getFileStatus(path);
       throw new StoreDiagException(

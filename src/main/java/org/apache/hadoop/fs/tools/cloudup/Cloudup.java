@@ -21,8 +21,6 @@ package org.apache.hadoop.fs.tools.cloudup;
 import java.io.Closeable;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -41,7 +39,6 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import com.google.common.base.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,7 +58,7 @@ import org.apache.hadoop.fs.LocatedFileStatus;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.RemoteIterator;
 import org.apache.hadoop.fs.StorageStatistics;
-import org.apache.hadoop.fs.store.DurationInfo;
+import org.apache.hadoop.fs.store.StoreDurationInfo;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
 import org.apache.hadoop.fs.store.StoreUtils;
 import org.apache.hadoop.io.IOUtils;
@@ -190,7 +187,7 @@ public class Cloudup extends StoreEntryPoint {
         0L, TimeUnit.MILLISECONDS,
         new LinkedBlockingQueue<>());
 
-    final DurationInfo preparationDuration = new DurationInfo();
+    final StoreDurationInfo preparationDuration = new StoreDurationInfo();
     // list the files
     Future<List<UploadEntry>> listFilesOperation =
         workers.submit(buildUploads());
@@ -205,12 +202,12 @@ public class Cloudup extends StoreEntryPoint {
     final int uploadCount = uploadList.size();
 
     preparationDuration.finished();
-    LOG.info("Files to upload = {}; preparation DurationInfo = {}",
+    LOG.info("Files to upload = {}; preparation StoreDurationInfo = {}",
         uploadCount, preparationDuration);
 
 
     // full upload operation
-    final DurationInfo uploadDuration = new DurationInfo();
+    final StoreDurationInfo uploadDuration = new StoreDurationInfo();
     final NanoTimer uploadTimer = new NanoTimer();
 
     // now completion service for all outstanding workers
@@ -285,7 +282,7 @@ public class Cloudup extends StoreEntryPoint {
       dumpStats(destFS, "Dest statistics");
     }
 
-    LOG.info("\n\nUploads attempted: {}, size {}, DurationInfo:  {}",
+    LOG.info("\n\nUploads attempted: {}, size {}, StoreDurationInfo:  {}",
         uploadCount, uploadSize, uploadDuration);
     LOG.info("Bandwidth {} MB/s",
         uploadTimer.bandwidthDescription(uploadSize));
@@ -430,7 +427,7 @@ public class Cloudup extends StoreEntryPoint {
       LOG.info("Successful upload of {} tpo {} in {} s",
           source,
           dest,
-          DurationInfo.humanTime(upload.getDuration()));
+          StoreDurationInfo.humanTime(upload.getDuration()));
       return Outcome.succeeded(upload);
     } catch (Exception e) {
       upload.setState(UploadEntry.State.failed);

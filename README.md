@@ -382,8 +382,8 @@ Example: list some of the AWS public landsat store.
 > bin/hadoop jar cloudstore.jar list -limit 10 s3a://landsat-pds/
 
 Listing up to 10 files under s3a://landsat-pds/
-2019-04-05 21:32:14,523 [main] INFO  tools.ListFiles (DurationInfo.java:<init>(53)) - Starting: Directory list
-2019-04-05 21:32:14,524 [main] INFO  tools.ListFiles (DurationInfo.java:<init>(53)) - Starting: First listing
+2019-04-05 21:32:14,523 [main] INFO  tools.ListFiles (StoreDurationInfo.java:<init>(53)) - Starting: Directory list
+2019-04-05 21:32:14,524 [main] INFO  tools.ListFiles (StoreDurationInfo.java:<init>(53)) - Starting: First listing
 2019-04-05 21:32:15,754 [main] INFO  tools.ListFiles (DurationInfo.java:close(100)) - First listing: duration 0:01:230
 [1]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B1.TIF	63,786,465	stevel	stevel	[encrypted]
 [2]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B1.TIF.ovr	8,475,353	stevel	stevel	[encrypted]

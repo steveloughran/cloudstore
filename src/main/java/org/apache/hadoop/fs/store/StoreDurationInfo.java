@@ -28,7 +28,7 @@ import org.slf4j.Logger;
  * Base on the S3A one; adds an empty constructor which doesn't do
  * any logging.
  */
-public class DurationInfo
+public class StoreDurationInfo
     implements AutoCloseable {
 
   private final long started;
@@ -45,7 +45,7 @@ public class DurationInfo
    * @param format format string
    * @param args list of arguments
    */
-  public DurationInfo(Logger log, String format, Object... args) {
+  public StoreDurationInfo(Logger log, String format, Object... args) {
     started = time();
     finished = started;
     this.text = String.format(format, args);
@@ -59,7 +59,7 @@ public class DurationInfo
    * @param format format string
    * @param args list of arguments
    */
-  public DurationInfo() {
+  public StoreDurationInfo() {
     started = time();
     finished = started;
     this.text = "";

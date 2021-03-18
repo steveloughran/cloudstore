@@ -30,7 +30,7 @@ import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.PathFilter;
-import org.apache.hadoop.fs.store.DurationInfo;
+import org.apache.hadoop.fs.store.StoreDurationInfo;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
 import org.apache.hadoop.mapred.LocatedFileStatusFetcher;
 import org.apache.hadoop.util.ToolRunner;
@@ -91,8 +91,8 @@ public class LocateFiles extends StoreEntryPoint {
         source,
         threads);
 
-    final DurationInfo duration = new DurationInfo(LOG, "List located files");
-    final DurationInfo firstLoad = new DurationInfo(LOG,
+    final StoreDurationInfo duration = new StoreDurationInfo(LOG, "List located files");
+    final StoreDurationInfo firstLoad = new StoreDurationInfo(LOG,
         "LocateFileStatus execution");
     final AtomicInteger count = new AtomicInteger(0);
     final AtomicLong size = new AtomicLong(0);

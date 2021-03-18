@@ -34,6 +34,7 @@ import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.s3a.S3AFileSystem;
 import org.apache.hadoop.util.VersionInfo;
 
+import static org.apache.hadoop.fs.s3a.Constants.DEFAULT_ENDPOINT;
 import static org.apache.hadoop.fs.s3a.Constants.DEFAULT_ESTABLISH_TIMEOUT;
 import static org.apache.hadoop.fs.s3a.Constants.DEFAULT_MAXIMUM_CONNECTIONS;
 import static org.apache.hadoop.fs.s3a.Constants.DEFAULT_MAX_ERROR_RETRIES;
@@ -62,8 +63,10 @@ import static org.apache.hadoop.fs.s3a.S3AUtils.createAWSCredentialProviderSet;
 import static org.apache.hadoop.fs.store.StoreUtils.checkArgument;
 
 /**
- * The default factory implementation, which calls the AWS SDK to configure
+ * The S3 factory implementation, which calls the AWS SDK to configure
  * and create an {@link AmazonS3Client} that communicates with the S3 service.
+ *
+ * Copied from S3A FS 3.x, before it switched to the builder API.
  */
 public class InternalS3ClientFactory extends Configured {
 
@@ -241,7 +244,7 @@ public class InternalS3ClientFactory extends Configured {
   private static AmazonS3 createAmazonS3Client(AmazonS3 s3, Configuration conf,
       AWSCredentialsProvider credentials, ClientConfiguration awsConf)
       throws IllegalArgumentException {
-    String endPoint = conf.getTrimmed(ENDPOINT, "");
+    String endPoint = conf.getTrimmed(ENDPOINT, DEFAULT_ENDPOINT);
     if (!endPoint.isEmpty()) {
       try {
         s3.setEndpoint(endPoint);

@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.fs.store.DurationInfo;
+import org.apache.hadoop.fs.store.StoreDurationInfo;
 import org.apache.hadoop.fs.store.LogFixup;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
 import org.apache.hadoop.fs.store.StoreExitCodes;
@@ -79,7 +79,7 @@ public class MkdirCommand extends StoreEntryPoint {
     FileSystem fs = path.getFileSystem(getConf());
     println("Using filesystem %s", fs.getUri());
     Path absPath = path.makeQualified(fs.getUri(), fs.getWorkingDirectory());
-    try (DurationInfo ignored = new DurationInfo(
+    try (StoreDurationInfo ignored = new StoreDurationInfo(
         LOG, "mkdirs(%s)", absPath)) {
       // before we do that, we scan the tree, top to bottom
       checkPathIsDir(fs, absPath);

@@ -36,7 +36,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.RemoteIterator;
-import org.apache.hadoop.fs.store.DurationInfo;
+import org.apache.hadoop.fs.store.StoreDurationInfo;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
 import org.apache.hadoop.util.ToolRunner;
 
@@ -94,7 +94,7 @@ public class ListObjects extends StoreEntryPoint {
 
     List<String> markers = new ArrayList<>();
     final Path source = new Path(paths.get(0));
-    try (DurationInfo duration = new DurationInfo(LOG, "listobjects")) {
+    try (StoreDurationInfo duration = new StoreDurationInfo(LOG, "listobjects")) {
       FileSystem fs = source.getFileSystem(conf);
       String bucket = ((S3AFileSystem) fs).getBucket();
       final AmazonS3 s3 = AwsClientExtractor.createAwsClient(fs);
@@ -184,7 +184,7 @@ public class ListObjects extends StoreEntryPoint {
     if (kv.isEmpty()) {
       return;
     }
-    DurationInfo duration = new DurationInfo(LOG, "deleting %s markers",
+    StoreDurationInfo duration = new StoreDurationInfo(LOG, "deleting %s markers",
         kv.size());
     try {
       DeleteObjectsRequest request = new DeleteObjectsRequest(bucket)

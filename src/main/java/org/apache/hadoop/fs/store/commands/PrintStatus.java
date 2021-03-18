@@ -28,7 +28,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.fs.store.DurationInfo;
+import org.apache.hadoop.fs.store.StoreDurationInfo;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
 import org.apache.hadoop.util.ToolRunner;
 
@@ -77,7 +77,7 @@ public class PrintStatus extends StoreEntryPoint {
 
     final Path source = new Path(paths.get(0));
     FileSystem fs = null;
-    DurationInfo duration = new DurationInfo(LOG, "get path status");
+    StoreDurationInfo duration = new StoreDurationInfo(LOG, "get path status");
     try {
       fs = source.getFileSystem(conf);
       for (String path : paths) {

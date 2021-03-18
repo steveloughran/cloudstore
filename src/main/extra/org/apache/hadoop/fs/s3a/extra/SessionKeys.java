@@ -18,7 +18,6 @@
 
 package org.apache.hadoop.fs.s3a.extra;
 
-import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
@@ -35,7 +34,7 @@ import org.apache.hadoop.fs.s3a.AWSCredentialProviderList;
 import org.apache.hadoop.fs.s3a.Invoker;
 import org.apache.hadoop.fs.s3a.S3AFileSystem;
 import org.apache.hadoop.fs.s3a.S3ARetryPolicy;
-import org.apache.hadoop.fs.store.DurationInfo;
+import org.apache.hadoop.fs.store.StoreDurationInfo;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
 import org.apache.hadoop.util.ToolRunner;
 
@@ -109,7 +108,7 @@ public class SessionKeys extends StoreEntryPoint {
     AWSCredentialProviderList credentials = null;
 
     final Path source = new Path(paths.get(0));
-    try (DurationInfo ignored = new DurationInfo(LOG,
+    try (StoreDurationInfo ignored = new StoreDurationInfo(LOG,
         "requesting %s credentials",
         hasRole ? "role" : "session")) {
       S3AFileSystem fs = (S3AFileSystem) source.getFileSystem(conf);

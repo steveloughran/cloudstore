@@ -33,7 +33,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.s3a.InternalAccess;
 import org.apache.hadoop.fs.s3a.Invoker;
 import org.apache.hadoop.fs.s3a.S3AFileSystem;
-import org.apache.hadoop.fs.store.DurationInfo;
+import org.apache.hadoop.fs.store.StoreDurationInfo;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
 import org.apache.hadoop.util.ToolRunner;
 
@@ -78,7 +78,7 @@ public class BucketState extends StoreEntryPoint {
 
     final Path source = new Path(paths.get(0));
     println("");
-    try (DurationInfo duration = new DurationInfo(LOG, "Bucket State")) {
+    try (StoreDurationInfo duration = new StoreDurationInfo(LOG, "Bucket State")) {
       S3AFileSystem fs = (S3AFileSystem) source.getFileSystem(conf);
       InternalAccess internals = new InternalAccess(fs);
       AmazonS3 s3Client = internals.getAmazonS3Client();

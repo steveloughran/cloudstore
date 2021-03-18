@@ -323,7 +323,15 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable {
         status.getOwner(),
         status.getGroup(),
         status.isEncrypted() ? "\t[encrypted]" : "",
-        hasOption(VERBOSE) ? ("\t" + status) : "");
+        isVerbose() ? ("\t" + status) : "");
+  }
+
+  /**
+   * Did this command have the verbose option?
+   * @return true if -verbose was on the command line
+   */
+  protected boolean isVerbose() {
+    return hasOption(VERBOSE);
   }
 
   /**
@@ -333,7 +341,7 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable {
    */
 
   protected void maybeDumpStorageStatistics(final FileSystem fs) {
-    if (hasOption(VERBOSE)) {
+    if (isVerbose()) {
       dumpFileSystemStatistics(fs);
     }
   }

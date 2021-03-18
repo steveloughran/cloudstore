@@ -30,7 +30,7 @@ import org.slf4j.LoggerFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.fs.store.DurationInfo;
+import org.apache.hadoop.fs.store.StoreDurationInfo;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
 import org.apache.hadoop.security.Credentials;
 import org.apache.hadoop.security.UserGroupInformation;
@@ -126,8 +126,8 @@ public class FetchTokens extends StoreEntryPoint {
     int count = 0;
     for (String url : urls) {
       Path path = new Path(url);
-      try (DurationInfo ignored =
-               new DurationInfo(LOG, "Fetching tokens for %s", path)) {
+      try (StoreDurationInfo ignored =
+               new StoreDurationInfo(LOG, "Fetching tokens for %s", path)) {
 
         FileSystem fs = path.getFileSystem(conf);
         URI fsUri = fs.getUri();
@@ -149,8 +149,8 @@ public class FetchTokens extends StoreEntryPoint {
       }
     }
     // all the tokens are collected, so save
-    try(DurationInfo ignored =
-            new DurationInfo(LOG, "Saving %d tokens to %s",
+    try(StoreDurationInfo ignored =
+            new StoreDurationInfo(LOG, "Saving %d tokens to %s",
                 count, dest)) {
       cred.writeTokenStorageFile(dest, conf);
     }
