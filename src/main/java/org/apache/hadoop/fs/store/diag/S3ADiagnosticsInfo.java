@@ -56,6 +56,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
 
   //use a custom endpoint?
   public static final String ENDPOINT = "fs.s3a.endpoint";
+  public static final String DEFAULT_ENDPOINT = "";
 
   //Enable path style access? Overrides default virtual hosting
   public static final String PATH_STYLE_ACCESS = "fs.s3a.path.style.access";

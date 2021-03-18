@@ -32,9 +32,9 @@ import org.slf4j.Logger;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.Configured;
 import org.apache.hadoop.fs.s3a.S3AFileSystem;
+import org.apache.hadoop.fs.store.diag.S3ADiagnosticsInfo;
 import org.apache.hadoop.util.VersionInfo;
 
-import static org.apache.hadoop.fs.s3a.Constants.DEFAULT_ENDPOINT;
 import static org.apache.hadoop.fs.s3a.Constants.DEFAULT_ESTABLISH_TIMEOUT;
 import static org.apache.hadoop.fs.s3a.Constants.DEFAULT_MAXIMUM_CONNECTIONS;
 import static org.apache.hadoop.fs.s3a.Constants.DEFAULT_MAX_ERROR_RETRIES;
@@ -244,7 +244,8 @@ public class InternalS3ClientFactory extends Configured {
   private static AmazonS3 createAmazonS3Client(AmazonS3 s3, Configuration conf,
       AWSCredentialsProvider credentials, ClientConfiguration awsConf)
       throws IllegalArgumentException {
-    String endPoint = conf.getTrimmed(ENDPOINT, DEFAULT_ENDPOINT);
+    String endPoint = conf.getTrimmed(ENDPOINT,
+        S3ADiagnosticsInfo.DEFAULT_ENDPOINT);
     if (!endPoint.isEmpty()) {
       try {
         s3.setEndpoint(endPoint);
