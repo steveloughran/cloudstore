@@ -19,7 +19,6 @@
 package org.apache.hadoop.fs.store.commands;
 
 import java.io.Closeable;
-import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.util.List;
 import java.util.concurrent.RejectedExecutionException;
@@ -29,7 +28,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.LocatedFileStatus;
@@ -129,12 +127,8 @@ public class ListFiles extends StoreEntryPoint {
 
     } finally {
       duration.close();
-      if (isVerbose()) {
-        println("List iterator: %s", lister);
-      }
-      if (lister instanceof Closeable) {
-        ((Closeable) lister).close();
-      }
+      printIfVerbose("List iterator: %s", lister);
+      maybeClose(lister);
     }
     long files = count.get();
     double millisPerFile = files > 0 ? (((float) duration.value()) / files) : 0;
@@ -180,12 +174,4 @@ public class ListFiles extends StoreEntryPoint {
     }
   }
 
-  private static final class LimitReachedException extends IOException {
-
-    private static final long serialVersionUID = -8594688586071585301L;
-
-    private LimitReachedException() {
-      super("Limit reached");
-    }
-  }
 }

@@ -266,7 +266,64 @@ Created committer of class org.apache.hadoop.fs.s3a.commit.magic.MagicS3GuardCom
 
 Note: unless this store has S3Guard enabled or is a third party object store with consistent directory listings, the magic committer is not iself safe to use.
 
+## Command `dux`  "Du, extended"
 
+A variant on the hadoop `du` command which does a recursive `listFiles()`
+call on every directory immediately under the source path -in separate threads.
+
+For any store which supports higher performance deep tree listing (S3A in particular)
+This can be significantly faster than du's normal treewalk.
+
+Even without that, because lists are done in separate threads, a speedup is
+almost guaranteed. 
+
+There is no scheduling of work into separate threads within a directory; those stores
+which do prefetching in separate threads (recent ABFS and S3A builds) do add some
+paralellism here.
+
+
+```
+Usage: dux
+        -D <key=value>  Define a property
+        -tokenfile <file>       Hadoop token file to load
+        -xmlfile <file> XML config file to load
+        -threads <threads>      number of threads
+        -limit <limit>  limit of files to list
+        -verbose        print verbose output
+        <path>
+```
+
+The `-verbose` option prints out more filesystem statistics, and of
+the list iterators (useful if they publish statistics)
+
+`-limit` puts a limit on the total number of files to scan; this
+is useful when doing deep scans of buckets so as to put an upper bound
+on the scan. Note, when used against S3 an ERROR may be printed in the AWS SDK.
+This is harmless; it comes from the SDK thread pool being closed while
+a list page prefetch is in progress.
+
+```
+hadoop jar $CLOUDSTORE dux -threads 64 -limit 30000 s3a://landsat-pds/
+
+...
+
+path    files   size
+====================
+
+s3a://landsat-pds/4ac2fe6f-99c0-4940-81ea-2accba9370b9  24      8 KB
+s3a://landsat-pds/L8    10001   206 GB
+s3a://landsat-pds/c1    8946    181 GB
+s3a://landsat-pds/e6acf117-1cbf-4e88-af62-2098f464effe  12      4 KB
+s3a://landsat-pds/runs  11000   251 MB
+s3a://landsat-pds/tarq  0       0 bytes
+s3a://landsat-pds/tarq_corrupt  7       6 GB
+s3a://landsat-pds/test  7       13 MB
+
+Found 30002 files, 0.42 milliseconds per file
+Data size 394 GB (423,785,619,519 bytes)
+Average file size 13 MB (14,125,245 bytes)
+
+```
 
 ##  Command `fetchdt`
 

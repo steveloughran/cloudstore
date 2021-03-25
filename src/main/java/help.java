@@ -33,6 +33,7 @@ public class help extends Command {
     cloudup.help();
     committerinfo.help();
     distcpdiag.help();
+    dux.help();
     fetchdt.help();
     filestatus.help();
     jobtokens.help();

@@ -45,6 +45,7 @@ import org.apache.hadoop.fs.shell.CommandFormat;
 import org.apache.hadoop.fs.statistics.IOStatistics;
 import org.apache.hadoop.fs.statistics.IOStatisticsSource;
 */
+import org.apache.hadoop.io.IOUtils;
 import org.apache.hadoop.security.Credentials;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.security.token.Token;
@@ -367,6 +368,27 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable {
         StorageStatistics.LongStatistic next = it.next();
         println("%s\t%s", next.getName(), next.getValue());
       }
+    }
+  }
+
+  protected void printIfVerbose(String format, Object o) {
+    if (isVerbose()) {
+      println(format, o);
+    }
+  }
+
+  protected void maybeClose(Object o) {
+    if (o instanceof Closeable) {
+      IOUtils.closeStreams((Closeable) o);
+    }
+  }
+
+  protected static final class LimitReachedException extends IOException {
+
+    private static final long serialVersionUID = -8594688586071585301L;
+
+    public LimitReachedException() {
+      super("Limit reached");
     }
   }
 }
