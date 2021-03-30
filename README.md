@@ -302,28 +302,8 @@ on the scan. Note, when used against S3 an ERROR may be printed in the AWS SDK.
 This is harmless; it comes from the SDK thread pool being closed while
 a list page prefetch is in progress.
 
-```
-hadoop jar $CLOUDSTORE dux -threads 64 -limit 30000 s3a://landsat-pds/
 
-...
 
-path    files   size
-====================
-
-s3a://landsat-pds/4ac2fe6f-99c0-4940-81ea-2accba9370b9  24      8 KB
-s3a://landsat-pds/L8    10001   206 GB
-s3a://landsat-pds/c1    8946    181 GB
-s3a://landsat-pds/e6acf117-1cbf-4e88-af62-2098f464effe  12      4 KB
-s3a://landsat-pds/runs  11000   251 MB
-s3a://landsat-pds/tarq  0       0 bytes
-s3a://landsat-pds/tarq_corrupt  7       6 GB
-s3a://landsat-pds/test  7       13 MB
-
-Found 30002 files, 0.42 milliseconds per file
-Data size 394 GB (423,785,619,519 bytes)
-Average file size 13 MB (14,125,245 bytes)
-
-```
 
 ##  Command `fetchdt`
 

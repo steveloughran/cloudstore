@@ -18,6 +18,7 @@
 
 package org.apache.hadoop.fs.store.commands;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InterruptedIOException;
 import java.nio.file.AccessDeniedException;
@@ -114,9 +115,7 @@ public class ExtendedDu extends StoreEntryPoint {
         source,
         threads);
 
-    final StoreDurationInfo duration = new StoreDurationInfo(LOG, "List files");
-    final StoreDurationInfo firstLoad = new StoreDurationInfo(LOG,
-        "LocateFileStatus execution");
+    final StoreDurationInfo duration = new StoreDurationInfo(LOG, "List files under %s", source);
     fileCount = new AtomicInteger(0);
     totalSize = new AtomicLong(0);
     fs = source.getFileSystem(conf);
@@ -133,8 +132,13 @@ public class ExtendedDu extends StoreEntryPoint {
 
     try {
       long submitted = 0;
-      final RemoteIterator<FileStatus> dir
-          = fs.listStatusIterator(source);
+      RemoteIterator<FileStatus> dir;
+      try (StoreDurationInfo firstLoad = new StoreDurationInfo(LOG,
+          "Initial list of path %s", source)) {
+        dir = fs.listStatusIterator(source);
+      } finally {
+
+      }
       while (dir.hasNext()) {
         final FileStatus st = dir.next();
         if (st.isFile()) {
@@ -240,6 +244,8 @@ public class ExtendedDu extends StoreEntryPoint {
       LOG.debug("Interrupted", interrupted);
     } catch (AccessDeniedException | PathAccessDeniedException denied) {
       println("Access denied listing %s", path);
+    } catch (FileNotFoundException deleted) {
+      // path has been deleted; ignore
     } catch (LimitReachedException limited) {
 
       // the limit has been reached
