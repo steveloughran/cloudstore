@@ -98,7 +98,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
   public static final int LIST_LIMIT = 25;
 
   public static final String USAGE =
-      "Usage: storediag%n"
+      "Usage: storediag\n"
           + optusage(JARS, "List the JARs on the classpath")
           + optusage(READONLY, "Readonly filesystem: do not attempt writes")
           + optusage(MD5, "Print MD5 checksums of the jars listed (requires -j)")
@@ -364,7 +364,11 @@ public class StoreDiag extends DiagnosticsEntryPoint {
           + "-look for the results of the filesystem operations");
 
       for (URI endpoint : endpoints) {
-        probeOneEndpoint(endpoint);
+        try {
+          probeOneEndpoint(endpoint);
+        } catch (IOException e) {
+          LOG.warn("Failed to probe {}", endpoint, e);
+        }
       }
     }
   }

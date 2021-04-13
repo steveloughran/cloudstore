@@ -114,7 +114,8 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable {
    */
   public void println(String format, Object... args) {
     if (args.length == 0) {
-      out.println(format);
+      out.printf(format);
+      out.println();
     } else {
       out.printf(format, args);
       out.println();
