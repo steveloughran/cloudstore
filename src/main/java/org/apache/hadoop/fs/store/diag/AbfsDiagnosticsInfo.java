@@ -265,31 +265,19 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
     super.validateFilesystem(printout, path, filesystem);
 
     try (StoreDurationInfo ignored = new StoreDurationInfo(LOG,
-        "Probing for bucket being Wasb or ADLS Gen 2 storage")) {
-      Method isNamespaceEnabled = filesystem.getClass()
-          .getMethod("getIsNamespaceEnabled");
-
-      Boolean enabled = (Boolean) isNamespaceEnabled.invoke(filesystem);
-      if (enabled) {
-        printout.println("FileSystem %s is an ADLS Gen 2 store with hierarchical namespaces",
-            filesystem.getUri());
-      } else {
-        printout.warn(
-            "FileSystem %s is a WASB store without hierarchical namespaces",
-            filesystem.getUri());
-        printout.println("Directory rename/delete operations will be slower and non-atomic");
-
-      }
-    } catch (NoSuchMethodException e) {
-
-      printout.warn("FileSystem does not implement getIsNamespaceEnabled(): Boolean",
+        "Probing for bucket being classic Azure or ADLS Gen 2 Storage")) {
+      filesystem.getAclStatus(new Path("/"));
+      printout.println("FileSystem %s is an ADLS Gen 2 store",
           filesystem.getUri());
-    } catch (Exception e) {
+    } catch (UnsupportedOperationException e) {
 
+      printout.warn("FileSystem %s IS NOT an ADLS Gen 2 store",
+          filesystem.getUri());
+      printout.warn("Some operations will be slow/non-atomic");
+    } catch (Exception e) {
       printout.warn("FileSystem %s returned an error in getIsNamespaceEnabled(): %s",
           filesystem.getUri(), e.toString());
       printout.debug("Error calling getIsNamespaceEnabled()", e);
-
     }
   }
 }
