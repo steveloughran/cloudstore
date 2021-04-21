@@ -19,42 +19,62 @@
 package org.apache.hadoop.fs.store.diag;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.store.StoreDurationInfo;
+import org.apache.hadoop.fs.store.StoreEntryPoint;
 
 /**
  * Abfs diagnostics.
  */
 public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
 
+  private static final Logger LOG = LoggerFactory.getLogger(
+      AbfsDiagnosticsInfo.class);
+
   private static final Object[][] options = {
 
       {"abfs.external.authorization.class", false, false},
       {"fs.azure.abfs.endpoint", false, false},
       {"fs.azure.account.auth.type", false, false},
+      {"fs.azure.account.hns.enabled", false, false},
       {"fs.azure.account.keyprovider", false, false},
       {"fs.azure.account.oauth.provider.type", false, false},
       {"fs.azure.account.oauth2.client.id", false, false},
       {"fs.azure.account.oauth2.client.secret", true, true},
       {"fs.azure.account.oauth2.client.endpoint", false, false},
+      {"fs.azure.account.oauth2.msi.authority", false, false},
+      {"fs.azure.account.oauth2.msi.endpoint", false, false},
       {"fs.azure.account.oauth2.msi.tenant", false, false},
       {"fs.azure.account.oauth2.user.name", false, false},
       {"fs.azure.account.oauth2.user.password", true, true},
       {"fs.azure.account.oauth2.refresh.token", true, true},
       {"fs.azure.account.oauth2.refresh.token.endpoint", true, true},
       {"fs.azure.always.use.https", false, false},
+      {"fs.azure.appendblob.directories", false, false},
       {"fs.azure.atomic.rename.key", false, false},
       {"fs.azure.block.location.impersonatedhost", false, false},
       {"fs.azure.block.size", false, false},
+      {"fs.azure.concurrentRequestCount.out", false, false},
+      {"fs.azure.concurrentRequestCount.in", false, false},
       {"fs.azure.createRemoteFileSystemDuringInitialization", false, false},
+      {"fs.azure.custom.token.fetch.retry.count", false, false},
       {"fs.azure.delegation.token.provider.type", false, false},
       {"fs.azure.disable.outputstream.flush", false, false},
       {"fs.azure.enable.autothrottling", false, false},
+      {"fs.azure.enable.conditional.create.overwrite", false, false},
       {"fs.azure.enable.delegation.token", false, false},
       {"fs.azure.enable.flush", false, false},
       {"fs.azure.identity.transformer.enable.short.name", false, false},
@@ -62,13 +82,25 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.azure.identity.transformer.service.principal.id", false, false},
       {"fs.azure.identity.transformer.service.principal.substitution.list", false, false},
       {"fs.azure.identity.transformer.skip.superuser.replacement", false, false},
-      {"fs.azure.io.retry.backoff.interval", false, false},
-      {"fs.azure.io.retry.max.retries", false, false},
       {"fs.azure.io.read.tolerate.concurrent.append", false, false},
-      {"fs.azure.account.oauth2.msi.authority", false, false},
-      {"fs.azure.account.oauth2.msi.endpoint", false, false},
-      {"fs.azure.read.request.size", false, false},
+      {"fs.azure.io.retry.backoff.interval", false, false},
+      {"fs.azure.io.retry.max.backoff.interval", false, false},
+      {"fs.azure.io.retry.max.retries", false, false},
+      {"fs.azure.io.retry.min.backoff.interval", false, false},
+      {"fs.azure.io.read.tolerate.concurrent.append", false, false},
+      {"fs.azure.list.max.results", false, false},
+      {"fs.azure.oauth.token.fetch.retry.max.retries", false, false},
+      {"fs.azure.oauth.token.fetch.retry.min.backoff.interval", false, false},
+      {"fs.azure.oauth.token.fetch.retry.max.backoff.interval", false, false},
+      {"fs.azure.objectmapper.threadlocal.enabled", false, false},
+      {"fs.azure.readahead.range", false, false},
       {"fs.azure.readaheadqueue.depth", false, false},
+      {"fs.azure.read.alwaysReadBufferSize", false, false},
+      {"fs.azure.read.readahead.blocksize", false, false},
+      {"fs.azure.read.request.size", false, false},
+      {"fs.azure.read.readahead.blocksize", false, false},
+      {"fs.azure.sas.token.provider.type", false, false},
+      {"fs.azure.sas.token.renew.period.for.streams", false, false},
       {"fs.azure.secure.mode", false, false},
       {"fs.azure.skipUserGroupMetadataDuringInitialization", false, false},
       {"fs.azure.shellkeyprovider.script", false, false},
@@ -76,18 +108,24 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.azure.user.agent.prefix", false, false},
       {"fs.azure.use.upn", false, false},
       {"fs.azure.write.request.size", false, false},
+      {"fs.azure.write.max.concurrent.requests", false, false},
+      {"fs.azure.write.max.requests.to.queue", false, false},
+      {"", false, false},
       {"", false, false},
       {"", false, false},
   };
 
   public static final String[] classnames = {
       "com.fasterxml.jackson.annotation.JsonProperty",
-      "com.google.common.base.Preconditions",
       "com.fasterxml.jackson.core.JsonFactory",
       "com.fasterxml.jackson.databind.ObjectReader",
       "org.apache.http.client.utils.URIBuilder",
       "org.apache.hadoop.fs.azurebfs.AzureBlobFileSystem",
       "org.wildfly.openssl.OpenSSLProvider",
+  };
+
+  public static final String[] optionalClassnames = {
+      "com.google.common.base.Preconditions",
   };
 
   public AbfsDiagnosticsInfo(final URI fsURI) {
@@ -198,6 +236,11 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
   }
 
   @Override
+  public String[] getOptionalClassnames(final Configuration conf) {
+    return optionalClassnames;
+  }
+
+  @Override
   protected void validateConfig(final Printout printout,
       final Configuration conf)
       throws IOException {
@@ -213,5 +256,40 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
     addUriOption(uris, conf, "fs.azure.account.oauth2.refresh.token.endpoint", "",
         "https://login.microsoftonline.com/Common/oauth2/token");
     return uris;
+  }
+
+  @Override
+  public void validateFilesystem(final Printout printout,
+      final Path path,
+      final FileSystem filesystem) throws IOException {
+    super.validateFilesystem(printout, path, filesystem);
+
+    try (StoreDurationInfo ignored = new StoreDurationInfo(LOG,
+        "Probing for bucket being Wasb or ADLS Gen 2 storage")) {
+      Method isNamespaceEnabled = filesystem.getClass()
+          .getMethod("getIsNamespaceEnabled");
+
+      Boolean enabled = (Boolean) isNamespaceEnabled.invoke(filesystem);
+      if (enabled) {
+        printout.println("FileSystem %s is an ADLS Gen 2 store with hierarchical namespaces",
+            filesystem.getUri());
+      } else {
+        printout.warn(
+            "FileSystem %s is a WASB store without hierarchical namespaces",
+            filesystem.getUri());
+        printout.println("Directory rename/delete operations will be slower and non-atomic");
+
+      }
+    } catch (NoSuchMethodException e) {
+
+      printout.warn("FileSystem does not implement getIsNamespaceEnabled(): Boolean",
+          filesystem.getUri());
+    } catch (Exception e) {
+
+      printout.warn("FileSystem %s returned an error in getIsNamespaceEnabled(): %s",
+          filesystem.getUri(), e.toString());
+      printout.debug("Error calling getIsNamespaceEnabled()", e);
+
+    }
   }
 }

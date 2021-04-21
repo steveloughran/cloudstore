@@ -41,6 +41,13 @@ public interface Printout {
   void heading(String format, Object... args);
 
   /**
+   * Debug message.
+   * @param format format string
+   * @param args arguments.
+   */
+  void debug(String format, Object... args);
+
+  /**
    * Print the selected options in a config.
    * This is an array of (name, secret, obfuscate) entries.
    * @param title heading to print

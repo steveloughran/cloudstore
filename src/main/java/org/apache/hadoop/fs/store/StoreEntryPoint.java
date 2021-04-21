@@ -143,6 +143,19 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable {
     println("\n%s\n%s\n", text, sb.toString());
   }
 
+  /**
+   * Debug message.
+   * @param format format string
+   * @param args arguments.
+   */
+  public void debug(String format, Object... args) {
+    LOG.debug(format, args);
+/*
+    if (LOG.isDebugEnabled()) {
+      println(format, args);
+    }
+*/
+  }
   protected static void exit(int status, String text) {
     ExitUtil.terminate(status, text);
   }
