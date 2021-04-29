@@ -1,2 +1,2 @@
-Main-Class-obsolete: org.apache.hadoop.fs.store.diag.StoreDiag
+
 

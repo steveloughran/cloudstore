@@ -58,6 +58,7 @@ public class OptionSets {
       {"mapreduce.input.fileinputformat.list-status.num-threads", false, false},
       {"mapreduce.jobtracker.kerberos.principal", false, false},
       {"mapreduce.job.hdfs-servers.token-renewal.exclude", false, false},
+      {"mapreduce.application.framework.path", false, false},
       {"", false, false},
   };
 

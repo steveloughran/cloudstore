@@ -363,7 +363,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-compiler-plugin</artifactId>
-          <version>3.1</version>
+          <version>3.8.0</version>
           <configuration>
             <source>${javac.version}</source>
             <target>${javac.version}</target>
@@ -376,9 +376,9 @@
           <artifactId>maven-jar-plugin</artifactId>
           <version>3.0.2</version>
           <configuration>
-            <archive>
+<!--            <archive>
               <manifestFile>src/main/resources/META-INF/MANIFEST.MF</manifestFile>
-            </archive>
+            </archive>-->
           </configuration>
         </plugin>
 

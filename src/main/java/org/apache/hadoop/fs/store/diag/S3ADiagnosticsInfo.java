@@ -92,6 +92,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.s3a.connection.timeout", false, false},
       {"fs.s3a.custom.signers", false, false},
       {"fs.s3a.directory.marker.retention", false, false},
+      {"fs.s3a.downgrade.syncable.exceptions", false, false},
       {"fs.s3a.etag.checksum.enabled", false, false},
       {"fs.s3a.experimental.input.fadvise", false, false},
       {"fs.s3a.experimental.aws.s3.throttling", false, false},
@@ -170,6 +171,16 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       /* delegation */
       {"fs.s3a.delegation.token.binding", false, false},
       {"fs.s3a.delegation.token.secondary.bindings", false, false},
+
+      /* auditing */
+      {"fs.s3a.audit.service.classname", false, false},
+      {"fs.s3a.audit.request.handlers", false, false},
+      {"fs.s3a.audit.reject.out.of.span.operations", false, false},
+      {"fs.s3a.audit.add.referrer.header", false, false},
+      {"", false, false},
+      {"", false, false},
+      {"", false, false},
+      {"", false, false},
 
 
       {"", false, false},

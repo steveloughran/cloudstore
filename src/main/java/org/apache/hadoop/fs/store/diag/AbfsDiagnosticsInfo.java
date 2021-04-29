@@ -19,8 +19,6 @@
 package org.apache.hadoop.fs.store.diag;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -34,7 +32,6 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.store.StoreDurationInfo;
-import org.apache.hadoop.fs.store.StoreEntryPoint;
 
 /**
  * Abfs diagnostics.
@@ -73,6 +70,7 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.azure.custom.token.fetch.retry.count", false, false},
       {"fs.azure.delegation.token.provider.type", false, false},
       {"fs.azure.disable.outputstream.flush", false, false},
+      {"fs.azure.enable.abfslistiterator", false, false},
       {"fs.azure.enable.autothrottling", false, false},
       {"fs.azure.enable.conditional.create.overwrite", false, false},
       {"fs.azure.enable.delegation.token", false, false},
@@ -107,6 +105,7 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.azure.ssl.channel.mode", false, false},
       {"fs.azure.user.agent.prefix", false, false},
       {"fs.azure.use.upn", false, false},
+      {"fs.azure.write.enableappendwithflush", false, false},
       {"fs.azure.write.request.size", false, false},
       {"fs.azure.write.max.concurrent.requests", false, false},
       {"fs.azure.write.max.requests.to.queue", false, false},
