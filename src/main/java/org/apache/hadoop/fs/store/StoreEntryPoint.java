@@ -57,7 +57,10 @@ import org.apache.hadoop.util.Tool;
 import static org.apache.hadoop.fs.statistics.IOStatisticsLogging.ioStatisticsSourceToString;
 import static org.apache.hadoop.fs.statistics.IOStatisticsSupport.retrieveIOStatistics;
 */
+import static org.apache.hadoop.fs.store.CommonParameters.DEFINE;
 import static org.apache.hadoop.fs.store.CommonParameters.VERBOSE;
+import static org.apache.hadoop.fs.store.CommonParameters.XMLFILE;
+import static org.apache.hadoop.fs.store.StoreDiagConstants.IOSTATISTICS_LOGGING_LEVEL;
 import static org.apache.hadoop.fs.store.StoreUtils.split;
 
 /**
@@ -395,6 +398,28 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable {
     if (o instanceof Closeable) {
       IOUtils.closeStreams((Closeable) o);
     }
+  }
+
+  /**
+   * Set up the config with CLI config options.
+   * XML file, -D and, if -verbose, with abfs/s3a
+   * to log their IOStats at debug.
+   * @return a new config.
+   * @throws FileNotFoundException XML file was requested but not found.
+   * @throws MalformedURLException problems setting up default XML files.
+   */
+  protected Configuration createPreconfiguredConfig()
+      throws FileNotFoundException, MalformedURLException {
+    addAllDefaultXMLFiles();
+
+    final Configuration conf = new Configuration(getConf());
+
+    maybeAddXMLFileOption(conf, XMLFILE);
+    maybePatchDefined(conf, DEFINE);
+    if (isVerbose()) {
+      conf.set(IOSTATISTICS_LOGGING_LEVEL, "info");
+    }
+    return conf;
   }
 
   protected static final class LimitReachedException extends IOException {

@@ -63,10 +63,7 @@ public class CleanS3Guard extends StoreEntryPoint {
       return E_USAGE;
     }
 
-    addAllDefaultXMLFiles();
-    final Configuration conf = new Configuration();
-    maybeAddXMLFileOption(conf, XMLFILE);
-    maybePatchDefined(conf, DEFINE);
+    final Configuration conf = createPreconfiguredConfig();
 
     final Path path = new Path(paths.get(0));
     S3AFileSystem fs = (S3AFileSystem) path.getFileSystem(conf);

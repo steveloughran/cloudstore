@@ -81,10 +81,7 @@ public class ListObjects extends StoreEntryPoint {
       return E_USAGE;
     }
 
-    addAllDefaultXMLFiles();
-    final Configuration conf = new Configuration();
-    maybeAddXMLFileOption(conf, XMLFILE);
-    maybePatchDefined(conf, DEFINE);
+    final Configuration conf = createPreconfiguredConfig();
     int limit = getOptional(LIMIT).map(Integer::valueOf).orElse(0);
 
     boolean purge = hasOption(PURGE);

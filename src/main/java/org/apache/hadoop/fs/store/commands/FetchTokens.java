@@ -75,9 +75,7 @@ public class FetchTokens extends StoreEntryPoint {
       errorln(USAGE);
       return EXIT_USAGE;
     }
-    addAllDefaultXMLFiles();
-
-    final Configuration conf = new Configuration();
+    final Configuration conf = createPreconfiguredConfig();
     final UserGroupInformation self = UserGroupInformation.getLoginUser();
 
     final Path tokenfile = new Path(paths.get(0));

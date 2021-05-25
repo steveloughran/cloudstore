@@ -18,6 +18,8 @@
 
 package org.apache.hadoop.fs.store.diag;
 
+import static org.apache.hadoop.fs.store.StoreDiagConstants.IOSTATISTICS_LOGGING_LEVEL;
+
 public class OptionSets {
 
   /**
@@ -59,6 +61,7 @@ public class OptionSets {
       {"mapreduce.jobtracker.kerberos.principal", false, false},
       {"mapreduce.job.hdfs-servers.token-renewal.exclude", false, false},
       {"mapreduce.application.framework.path", false, false},
+      {IOSTATISTICS_LOGGING_LEVEL, false, false},
       {"", false, false},
   };
 

@@ -76,9 +76,7 @@ public class JobTokens extends StoreEntryPoint {
       errorln(USAGE);
       return EXIT_USAGE;
     }
-    addAllDefaultXMLFiles();
-
-    final Configuration conf = new Configuration();
+    final Configuration conf = createPreconfiguredConfig();
     final UserGroupInformation self = UserGroupInformation.getLoginUser();
 
     final Path tokenfile = new Path(paths.get(0));
@@ -86,8 +84,6 @@ public class JobTokens extends StoreEntryPoint {
     final List<String> urls = paths.subList(1, paths.size());
     final boolean required = hasOption(REQUIRED);
 
-    maybeAddXMLFileOption(conf, XMLFILE);
-    maybePatchDefined(conf, DEFINE);
     final String renewer = getRmPrincipal(conf);
     println("Yarn principal for Job Token renewal \"%s\"",
         renewer == null ? "": renewer);

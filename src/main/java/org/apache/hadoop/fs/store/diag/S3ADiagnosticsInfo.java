@@ -75,7 +75,6 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       /* Core Set */
       {"fs.s3a.acl.default", false, false},
       {"fs.s3a.attempts.maximum", false, false},
-      {"fs.s3a.audit.classname", false, false},
       {"fs.s3a.authoritative.path", false, false},
       {"fs.s3a.block.size", false, false},
       {"fs.s3a.buffer.dir", false, false},
@@ -117,6 +116,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.s3a.proxy.domain", false, false},
       {"fs.s3a.proxy.workstation", false, false},
       {"fs.s3a.readahead.range", false, false},
+      {"fs.s3a.region", false, false},
       {"fs.s3a.retry.limit", false, false},
       {"fs.s3a.retry.interval", false, false},
       {"fs.s3a.retry.throttle.limit", false, false},
@@ -173,11 +173,11 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.s3a.delegation.token.secondary.bindings", false, false},
 
       /* auditing */
-      {"fs.s3a.audit.service.classname", false, false},
-      {"fs.s3a.audit.request.handlers", false, false},
+      {"fs.s3a.audit.referrer.enabled", false, false},
+      {"fs.s3a.audit.referrer.filter", false, false},
       {"fs.s3a.audit.reject.out.of.span.operations", false, false},
-      {"fs.s3a.audit.add.referrer.header", false, false},
-      {"", false, false},
+      {"fs.s3a.audit.request.handlers", false, false},
+      {"fs.s3a.audit.service.classname", false, false},
       {"", false, false},
       {"", false, false},
       {"", false, false},

@@ -60,10 +60,7 @@ public class IamPolicy extends StoreEntryPoint {
       return E_USAGE;
     }
 
-    addAllDefaultXMLFiles();
-    final Configuration conf = new Configuration();
-    maybeAddXMLFileOption(conf, XMLFILE);
-    maybePatchDefined(conf, DEFINE);
+    final Configuration conf = createPreconfiguredConfig();
 
     final Path source = new Path(paths.get(0));
     S3AFileSystem fs = (S3AFileSystem) source.getFileSystem(conf);

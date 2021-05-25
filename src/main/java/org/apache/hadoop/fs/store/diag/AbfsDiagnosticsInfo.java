@@ -109,6 +109,10 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.azure.write.request.size", false, false},
       {"fs.azure.write.max.concurrent.requests", false, false},
       {"fs.azure.write.max.requests.to.queue", false, false},
+
+      /* committer */
+      {"mapreduce.outputcommitter.factory.scheme.s3a", false, false},
+      {"mapreduce.fileoutputcommitter.marksuccessfuljobs", false, false},
       {"", false, false},
       {"", false, false},
       {"", false, false},

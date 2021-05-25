@@ -86,10 +86,7 @@ public class SessionKeys extends StoreEntryPoint {
       return E_USAGE;
     }
 
-    addAllDefaultXMLFiles();
-    final Configuration conf = new Configuration();
-    maybeAddXMLFileOption(conf, XMLFILE);
-    maybePatchDefined(conf, DEFINE);
+    final Configuration conf = createPreconfiguredConfig();
 
     // get JSON or empty string
     String role = getOptional(ROLE).orElse("");

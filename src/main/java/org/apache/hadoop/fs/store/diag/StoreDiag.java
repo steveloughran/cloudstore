@@ -134,7 +134,6 @@ public class StoreDiag extends DiagnosticsEntryPoint {
   }
 
   public int run(String[] args, PrintStream stream) throws Exception {
-    addAllDefaultXMLFiles();
     setOut(stream);
     List<String> paths = parseArgs(args);
     if (paths.size() != 1) {
@@ -332,13 +331,9 @@ public class StoreDiag extends DiagnosticsEntryPoint {
     println("%s%n%s%n%s",
         store.getName(), store.getDescription(), store.getHomepage());
 
-    Configuration conf = getConf();
-    // load XML file
-    maybeAddXMLFileOption(conf, XMLFILE);
+    Configuration conf = createPreconfiguredConfig();
     setConf(store.patchConfigurationToInitalization(conf));
 
-    // now add any -D value
-    maybePatchDefined(conf, DEFINE);
     return store;
   }
 
@@ -573,7 +568,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
 
     try(StoreDurationInfo ignored = new StoreDurationInfo(
         LOG, "Creating filesystem %s", baseDir)) {
-      fs = baseDir.getFileSystem(conf);
+      fs = FileSystem.newInstance(baseDir.toUri(), conf);
     }
     URI fsUri = fs.getUri();
 
@@ -813,6 +808,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
       if (!baseDirFound) {
         deleteDir(fs, baseDir);
       }
+      fs.close();
     }
   }
 

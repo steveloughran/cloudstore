@@ -77,10 +77,7 @@ public class LocateFiles extends StoreEntryPoint {
 
     addAllDefaultXMLFiles();
     maybeAddTokens(TOKENFILE);
-    final Configuration conf = new Configuration();
-
-    maybeAddXMLFileOption(conf, XMLFILE);
-    maybePatchDefined(conf, DEFINE);
+    final Configuration conf = createPreconfiguredConfig();
 
     int threads = getOptional(THREADS).map(Integer::valueOf).orElse(
         DEFAULT_THREADS);

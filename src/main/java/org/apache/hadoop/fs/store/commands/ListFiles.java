@@ -78,12 +78,8 @@ public class ListFiles extends StoreEntryPoint {
       return E_USAGE;
     }
 
-    addAllDefaultXMLFiles();
     maybeAddTokens(TOKENFILE);
-    final Configuration conf = new Configuration();
-
-    maybeAddXMLFileOption(conf, XMLFILE);
-    maybePatchDefined(conf, DEFINE);
+    final Configuration conf = createPreconfiguredConfig();
 
     int limit = getOptional(LIMIT).map(Integer::valueOf).orElse(0);
 

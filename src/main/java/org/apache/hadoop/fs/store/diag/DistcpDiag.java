@@ -51,7 +51,7 @@ public class DistcpDiag extends DiagnosticsEntryPoint {
 
   public int run(String[] args, PrintStream stream) throws Exception {
     addAllDefaultXMLFiles();
-    // add the discp resources
+    // add the distcp resources
     addDefaultResources(
         "distcp-default.xml",
         "distcp-site");

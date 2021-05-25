@@ -75,12 +75,8 @@ public class PathCapability extends StoreEntryPoint {
       errorln(USAGE);
       return E_USAGE;
     }
-    addAllDefaultXMLFiles();
     maybeAddTokens(TOKENFILE);
-    final Configuration conf = getConf();
-
-    maybeAddXMLFileOption(conf, XMLFILE);
-    maybePatchDefined(conf, DEFINE);
+    final Configuration conf = createPreconfiguredConfig();
 
     // path on the CLI
     String capability = argList.get(0);

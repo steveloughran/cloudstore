@@ -68,12 +68,8 @@ public class PrintStatus extends StoreEntryPoint {
       return E_USAGE;
     }
 
-    addAllDefaultXMLFiles();
     maybeAddTokens(TOKENFILE);
-    final Configuration conf = new Configuration();
-
-    maybeAddXMLFileOption(conf, XMLFILE);
-    maybePatchDefined(conf, DEFINE);
+    final Configuration conf = createPreconfiguredConfig();
 
     final Path source = new Path(paths.get(0));
     FileSystem fs = null;

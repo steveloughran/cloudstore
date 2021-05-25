@@ -18,6 +18,8 @@
 
 package org.apache.hadoop.fs.store.commands;
 
+import java.io.FileNotFoundException;
+import java.net.MalformedURLException;
 import java.nio.file.AccessDeniedException;
 import java.util.List;
 
@@ -69,12 +71,8 @@ public class BucketState extends StoreEntryPoint {
       return E_USAGE;
     }
 
-    addAllDefaultXMLFiles();
     maybeAddTokens(TOKENFILE);
-    final Configuration conf = new Configuration();
-
-    maybeAddXMLFileOption(conf, XMLFILE);
-    maybePatchDefined(conf, DEFINE);
+    final Configuration conf = createPreconfiguredConfig();
 
     final Path source = new Path(paths.get(0));
     println("");
