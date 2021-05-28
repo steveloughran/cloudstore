@@ -561,8 +561,13 @@ public class StoreDiag extends DiagnosticsEntryPoint {
     final Configuration conf = getConf();
     heading("Test filesystem %s", baseDir);
 
-    println("This call tests a set of operations against the filesystem");
-    println("Starting with some read operations, then trying to write%n");
+    if (!attempWriteOperations) {
+      println("Trying some list and read operations");
+
+    } else {
+      println("Trying some operations against the filesystem");
+      println("Starting with some read operations, then trying to write");
+    }
 
     FileSystem fs;
 
@@ -715,10 +720,6 @@ public class StoreDiag extends DiagnosticsEntryPoint {
           fsUri);
     }
 
-    if (!attempWriteOperations) {
-      return;
-    }
-    heading("Filesystem Write Operations");
 
     // now create a directory
     Path dir = new Path(baseDir, "dir-" + UUID.randomUUID());
@@ -731,9 +732,14 @@ public class StoreDiag extends DiagnosticsEntryPoint {
     } catch (FileNotFoundException expected) {
       // expected this; ignore it.
     }
+    if (!attempWriteOperations) {
+      println("Tests ar read only");
+      return;
+    }
+    heading("Filesystem Write Operations");
 
     try (StoreDurationInfo ignored = new StoreDurationInfo(LOG,
-        "Creating a directory %s", dir)) {
+        "creating a directory %s", dir)) {
       fs.mkdirs(dir);
     } catch (AccessDeniedException e) {
       println("Unable to create directory %s", dir);
@@ -770,7 +776,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
       }
       FSDataInputStream in = null;
       try (StoreDurationInfo ignored = new StoreDurationInfo(LOG,
-          "Reading a file %s", file)) {
+          "Rreading a file %s", file)) {
         in = fs.open(file);
         String utf = in.readUTF();
         in.close();

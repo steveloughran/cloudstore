@@ -242,19 +242,21 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
 
       // Delegation Tokens
       "org.apache.hadoop.fs.s3a.auth.delegation.S3ADelegationTokens",
-      // secondary tokens
-      "org.apache.hadoop.fs.s3a.auth.delegation.SecondaryDelegationToken",
-      "org.apache.hadoop.fs.s3a.auth.delegation.providers.EncryptingTokenBinding",
+
 
       // S3 Select: HADOOP-15229
       "com.amazonaws.services.s3.model.SelectObjectContentRequest",
       "org.apache.hadoop.fs.s3a.select.SelectInputStream",
+
       // S3Guard rename extensions
       "org.apache.hadoop.fs.s3a.impl.RenameOperation",
       "org.apache.hadoop.fs.s3a.impl.NetworkBinding",
 
       // dir markers
       "org.apache.hadoop.fs.s3a.impl.DirectoryPolicy",
+
+      // Auditing
+      "org.apache.hadoop.fs.s3a.audit.AuditManagerS3A",
 
       // extra stuff from extension modules
       "org.apache.knox.gateway.cloud.idbroker.s3a.IDBDelegationTokenBinding",

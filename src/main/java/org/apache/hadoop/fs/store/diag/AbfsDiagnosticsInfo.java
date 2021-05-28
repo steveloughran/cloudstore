@@ -113,7 +113,11 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
       /* committer */
       {"mapreduce.outputcommitter.factory.scheme.s3a", false, false},
       {"mapreduce.fileoutputcommitter.marksuccessfuljobs", false, false},
-      {"", false, false},
+      {"mapreduce.fileoutputcommitter.algorithm.version.v1.experimental.mv.threads", false, false},
+      {"mapreduce.fileoutputcommitter.algorithm.version.v1.experimental.parallel.task.commit", false, false},
+      {"mapreduce.manifest.committer.cleanup.move.to.trash", false, false},
+      {"mapreduce.manifest.committer.io.thread.count", false, false},
+      {"mapreduce.manifest.committer.validate.output", false, false},
       {"", false, false},
       {"", false, false},
   };
@@ -129,6 +133,8 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
 
   public static final String[] optionalClassnames = {
       "com.google.common.base.Preconditions",
+      "org.apache.hadoop.thirdparty.com.google.common.base.Preconditions",
+      "org.apache.hadoop.mapreduce.lib.output.committer.manifest.ManifestCommitter"
   };
 
   public AbfsDiagnosticsInfo(final URI fsURI) {
