@@ -250,7 +250,7 @@
         </property>
       </activation>
       <properties>
-        <hadoop.version>3.3.0</hadoop.version>
+        <hadoop.version>3.3.1</hadoop.version>
       </properties>
     </profile>
 
@@ -311,7 +311,6 @@
     <!--
      This is a profile to enable the use of the ASF snapshot and staging repositories
      during a build. It is useful when testing against nightly or RC releases of dependencies.
-     It MUST NOT be used when building copies of Spark to use in production of for distribution,
      -->
     <profile>
       <id>snapshots-and-staging</id>

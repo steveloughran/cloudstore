@@ -70,6 +70,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.s3a.server-side-encryption.key", true, true},
       {"fs.s3a.aws.credentials.provider", false, false},
       {"fs.s3a.endpoint", false, false},
+      {"fs.s3a.endpoint.region", false, false},
       {"fs.s3a.signing-algorithm", false, false},
 
       /* Core Set */
@@ -116,7 +117,6 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.s3a.proxy.domain", false, false},
       {"fs.s3a.proxy.workstation", false, false},
       {"fs.s3a.readahead.range", false, false},
-      {"fs.s3a.region", false, false},
       {"fs.s3a.retry.limit", false, false},
       {"fs.s3a.retry.interval", false, false},
       {"fs.s3a.retry.throttle.limit", false, false},
@@ -188,15 +188,18 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
   };
 
   protected static final Object[][] ENV_VARS = {
-      {"AWS_ACCESS_KEY_ID", false},
+      {"AWS_ACCESS_KEY_ID", true},
       {"AWS_ACCESS_KEY", true},
       {"AWS_SECRET_KEY", true},
       {"AWS_SECRET_ACCESS_KEY", true},
       {"AWS_SESSION_TOKEN", true},
       {"AWS_REGION_ENV_VAR", false},
+      {"AWS_CBOR_DISABLE", false},
       {"AWS_CONTAINER_CREDENTIALS_RELATIVE_URI", false},
       {"AWS_CONTAINER_CREDENTIALS_FULL_URI", false},
       {"AWS_CONTAINER_AUTHORIZATION_TOKEN", true},
+      {"AWS_MAX_ATTEMPTS", false},
+      {"AWS_RETRY_MODE", false},
       {"", false},
   };
 

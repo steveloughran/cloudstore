@@ -26,6 +26,6 @@ public class jobtokens extends Command {
   }
 
   public static void help() {
-    printCommand("jobtokens\t", "fetch job tokens");
+    printCommand("jobtokens", "fetch job tokens");
   }
 }

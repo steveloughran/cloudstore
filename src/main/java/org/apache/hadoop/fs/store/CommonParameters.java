@@ -21,7 +21,7 @@ package org.apache.hadoop.fs.store;
 /**
  * Common parameters across entry points.
  */
-public class CommonParameters {
+public final class CommonParameters {
 
   public static final String TOKENFILE = "tokenfile";
 
@@ -37,4 +37,9 @@ public class CommonParameters {
   public static final String LOGFILE = "logfile";
 
   public static final String LIMIT = "limit";
+
+  public static final String THREADS = "threads";
+
+  private CommonParameters() {
+  }
 }

@@ -82,8 +82,12 @@ public class BucketState extends StoreEntryPoint {
       AmazonS3 s3Client = internals.getAmazonS3Client();
       Owner owner = s3Client.getS3AccountOwner(
           new GetS3AccountOwnerRequest());
-      println("Bucket owner is %s (ID=%s)", owner.getDisplayName(),
-          owner.getId());
+      String name = owner.getDisplayName();
+      if (name == null) {
+        name = "(unknown)";
+      }
+      println("Bucket owner is ID=%s; display name \"%s\"",
+          owner.getId(), name);
       String policyText;
       String bucket = fs.getBucket();
       try {

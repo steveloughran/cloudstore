@@ -45,6 +45,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.PathAccessDeniedException;
 import org.apache.hadoop.fs.PathFilter;
 import org.apache.hadoop.fs.RemoteIterator;
+import org.apache.hadoop.fs.store.CommonParameters;
 import org.apache.hadoop.fs.store.StoreDurationInfo;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
 import org.apache.hadoop.util.ToolRunner;
@@ -52,6 +53,7 @@ import org.apache.hadoop.util.ToolRunner;
 import static org.apache.commons.io.FileUtils.byteCountToDisplaySize;
 import static org.apache.hadoop.fs.store.CommonParameters.DEFINE;
 import static org.apache.hadoop.fs.store.CommonParameters.LIMIT;
+import static org.apache.hadoop.fs.store.CommonParameters.THREADS;
 import static org.apache.hadoop.fs.store.CommonParameters.TOKENFILE;
 import static org.apache.hadoop.fs.store.CommonParameters.VERBOSE;
 import static org.apache.hadoop.fs.store.CommonParameters.XMLFILE;
@@ -63,8 +65,6 @@ import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
 public class ExtendedDu extends StoreEntryPoint {
 
   private static final Logger LOG = LoggerFactory.getLogger(ExtendedDu.class);
-
-  public static final String THREADS = "threads";
 
   public static final String USAGE
       = "Usage: dux\n"

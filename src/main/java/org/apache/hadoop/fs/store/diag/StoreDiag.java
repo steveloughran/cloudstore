@@ -776,7 +776,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
       }
       FSDataInputStream in = null;
       try (StoreDurationInfo ignored = new StoreDurationInfo(LOG,
-          "Rreading a file %s", file)) {
+          "Reading a file %s", file)) {
         in = fs.open(file);
         String utf = in.readUTF();
         in.close();
