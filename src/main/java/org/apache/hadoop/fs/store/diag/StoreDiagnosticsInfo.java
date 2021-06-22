@@ -164,6 +164,16 @@ public class StoreDiagnosticsInfo {
   }
 
   /**
+   * List of system properties. Each entry must be a pair of
+   * (string, sensitive); sensitive strings don't have their values
+   * fully printed.
+   * @return option array
+   */
+  public Object[][] getSelectedSystemProperties() {
+      return EMPTY_OPTIONS;
+  }
+
+  /**
    * Take the raw config and patch as the FS will have during
    * initialization.
    * This handles stores like S3A which do some per-bucket config.

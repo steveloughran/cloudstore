@@ -53,6 +53,7 @@ public class help extends Command {
     printCommand("cleans3guard", "Clean all s3guard entries");
     printCommand("deleteobject", "Delete an S3 object, bypassing S3Guard");
     printCommand("iampolicy", "generate IAM policy");
+    printCommand("regions", "emulate region lookup of AWS SDK");
     printCommand("sessionkeys", "optional extra: generate session keys");
     println(
         "%nThese are only available on some builds and require a compatible hadoop release");

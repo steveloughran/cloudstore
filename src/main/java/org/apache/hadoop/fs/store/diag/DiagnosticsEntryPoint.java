@@ -33,6 +33,8 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.TreeSet;
 
+import com.google.common.base.Function;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
@@ -196,11 +198,38 @@ public class DiagnosticsEntryPoint extends StoreEntryPoint implements Printout {
    * @param vars variables.
    */
   public void printEnvVars(Object[][] vars) {
+    lookupAndPrintSanitizedValues(vars, "Environment Variables",
+        System::getenv);
+  }
+
+  /**
+   * Print the environment variables.
+   * This is an array of (name, obfuscate) entries.
+   * @param vars variables.
+   */
+  public void printSystemProperties(Object[][] vars) {
+    lookupAndPrintSanitizedValues(vars, "Selected System Properties",
+        System::getProperty);
+  }
+
+  /**
+   * Resolve and print values.
+   * This is an array of (name, obfuscate) entries.
+   * @param vars variables/properties.
+   * @param section section name
+   * @param lookup lookup function
+   */
+  private void lookupAndPrintSanitizedValues(Object[][] vars,
+      String section,
+      Function<String, String> lookup) {
     if (vars.length > 0) {
-      heading("Environment Variables");
+      heading(section);
       for (final Object[] option : vars) {
         String var = (String) option[0];
-        String value = System.getenv(var);
+        if (var == null || var.isEmpty()) {
+          continue;
+        }
+        String value = lookup.apply(var);
         if (value != null) {
           value = maybeSanitize(value, (Boolean) option[1]);
         } else {

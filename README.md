@@ -559,7 +559,7 @@ Patches welcome!
 
 You can also explore what directory tree structure is most efficient here.
 
-## Command: `pathcapabilities`
+## Command: `pathcapability`
 
 Probes a filesystem for offering a specific named capability on the given path.
 
@@ -576,6 +576,7 @@ Usage: pathcapability [options] <capability> <path>
 
 ```
 hadoop jar $CLOUDSTORE pathcapability fs.s3a.capability.select.sql s3a://landsat-pds/
+
 Using filesystem s3a://landsat-pds
 Path s3a://landsat-pds/ has capability fs.s3a.capability.select.sql
 ```
@@ -585,7 +586,74 @@ The exit code of the command is 0 if the capability is present, -1 if absent, an
  
 As it is in Hadoop 3.3, all APIs new to that release (including `openFile()`) can absolutely be probed for. Otherwise, the 55 response may mean "an API is implemented, just not the probe". 
 
+## Command: `regions`
 
+Invokes the AWS region provider chain to see if the client can automatically determine the region of AWS SDK calls.
+
+This is how all AWS service clients determine the region for sending/signing requests if
+not explicitly set.
+
+```
+hadoop jar $CLOUDSTORE regions
+
+Determining AWS region for SDK clients
+======================================
+
+
+Determining region using AwsEnvVarOverrideRegionProvider
+========================================================
+
+Use environment variable AWS_REGION
+2021-06-22 12:04:59,277 [main] INFO  extra.Regions (StoreDurationInfo.java:<init>(53)) - Starting: AwsEnvVarOverrideRegionProvider.getRegion()
+2021-06-22 12:04:59,284 [main] INFO  extra.Regions (StoreDurationInfo.java:close(100)) - AwsEnvVarOverrideRegionProvider.getRegion(): duration 0:00:010
+region is not known
+
+Determining region using AwsSystemPropertyRegionProvider
+========================================================
+
+System property aws.region
+2021-06-22 12:04:59,286 [main] INFO  extra.Regions (StoreDurationInfo.java:<init>(53)) - Starting: AwsSystemPropertyRegionProvider.getRegion()
+2021-06-22 12:04:59,287 [main] INFO  extra.Regions (StoreDurationInfo.java:close(100)) - AwsSystemPropertyRegionProvider.getRegion(): duration 0:00:000
+region is not known
+
+Determining region using AwsProfileRegionProvider
+=================================================
+
+Region info in ~/.aws/config
+2021-06-22 12:04:59,336 [main] INFO  extra.Regions (StoreDurationInfo.java:<init>(53)) - Starting: AwsProfileRegionProvider.getRegion()
+2021-06-22 12:04:59,359 [main] INFO  extra.Regions (StoreDurationInfo.java:close(100)) - AwsProfileRegionProvider.getRegion(): duration 0:00:023
+Region is determined as "eu-west-2"
+
+Determining region using InstanceMetadataRegionProvider
+=======================================================
+
+EC2 metadata; will only work in AWS infrastructure
+2021-06-22 12:04:59,361 [main] INFO  extra.Regions (StoreDurationInfo.java:<init>(53)) - Starting: InstanceMetadataRegionProvider.getRegion()
+2021-06-22 12:04:59,363 [main] INFO  extra.Regions (StoreDurationInfo.java:close(100)) - InstanceMetadataRegionProvider.getRegion(): duration 0:00:002
+WARNING: Provider raised an exception com.amazonaws.AmazonClientException:
+    AWS_EC2_METADATA_DISABLED is set to true, not loading region from EC2 Instance Metadata service
+region is not known
+
+Region found: "eu-west-2"
+=========================
+
+Region was determined by AwsProfileRegionProvider as  "eu-west-2"
+
+
+```
+
+This setup has set the environment variable `AWS_EC2_METADATA_DISABLED`; if this variable was unset
+and the command executed outside AWS infrastructure then after a 15 second delay a stack trace warning of
+a failure to connect to the instance metadata server.
+
+```
+2021-06-22 11:54:15,774 [main] WARN  util.EC2MetadataUtils (EC2MetadataUtils.java:getItems(410)) -
+ Unable to retrieve the requested metadata (/latest/dynamic/instance-identity/document).
+ Failed to connect to service endpoint: 
+    com.amazonaws.SdkClientException: Failed to connect to service endpoint:
+```
+
+This is to be expected, given that the service isn't there.
 
 ## Development and Future Work
 

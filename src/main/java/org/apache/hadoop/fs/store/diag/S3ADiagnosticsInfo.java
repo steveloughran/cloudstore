@@ -193,15 +193,42 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"AWS_SECRET_KEY", true},
       {"AWS_SECRET_ACCESS_KEY", true},
       {"AWS_SESSION_TOKEN", true},
-      {"AWS_REGION_ENV_VAR", false},
+      {"AWS_REGION", false},
+      {"AWS_S3_US_EAST_1_REGIONAL_ENDPOINT", false},
       {"AWS_CBOR_DISABLE", false},
       {"AWS_CONTAINER_CREDENTIALS_RELATIVE_URI", false},
       {"AWS_CONTAINER_CREDENTIALS_FULL_URI", false},
       {"AWS_CONTAINER_AUTHORIZATION_TOKEN", true},
+      {"AWS_EC2_METADATA_DISABLED", false},
+      {"AWS_EC2_METADATA_SERVICE_ENDPOINT", false},
       {"AWS_MAX_ATTEMPTS", false},
       {"AWS_RETRY_MODE", false},
       {"", false},
   };
+
+  /**
+   * AWS System properties lifted from com.amazonaws.SDKGlobalConfiguration.
+   */
+  protected static final Object[][] AWS_SYSPROPS = {
+      {"aws.accessKeyId", true},
+      {"aws.secretKey", true},
+      {"aws.sessionToken", true},
+      {"aws.region", false},
+      {"com.amazonaws.regions.RegionUtils.fileOverride", false},
+      {"com.amazonaws.regions.RegionUtils.disableRemote", false},
+      {"com.amazonaws.sdk.disableCertChecking", false},
+      {"com.amazonaws.sdk.ec2MetadataServiceEndpointOverride", false},
+      {"com.amazonaws.sdk.enableDefaultMetrics", false},
+      {"com.amazonaws.sdk.enableInRegionOptimizedMode", false},
+      {"com.amazonaws.sdk.enableThrottledRetry", false},
+      {"com.amazonaws.services.s3.disableImplicitGlobalClients", false},
+      {"com.amazonaws.services.s3.enableV4", false},
+      {"com.amazonaws.services.s3.enforceV4", false},
+      {"", false},
+      {"", false},
+  };
+
+
 
   /**
    * Mandatory classnames.
@@ -296,6 +323,11 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
   @Override
   public Object[][] getEnvVars() {
     return cat(ENV_VARS, STANDARD_ENV_VARS);
+  }
+
+  @Override
+  public Object[][] getSelectedSystemProperties() {
+    return AWS_SYSPROPS;
   }
 
   @Override

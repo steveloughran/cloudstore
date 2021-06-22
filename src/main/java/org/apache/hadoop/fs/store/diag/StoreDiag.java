@@ -171,6 +171,9 @@ public class StoreDiag extends DiagnosticsEntryPoint {
     printOSVersion();
     if (hasOption(SYSPROPS)) {
       printJVMOptions();
+    } else {
+      // only print selected ones
+      printSystemProperties(storeInfo.getSelectedSystemProperties());
     }
     if (hasOption(LOGDUMP)) {
       dumpLog4J();
