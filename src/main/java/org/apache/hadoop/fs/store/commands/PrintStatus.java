@@ -73,7 +73,8 @@ public class PrintStatus extends StoreEntryPoint {
 
     final Path source = new Path(paths.get(0));
     FileSystem fs = null;
-    StoreDurationInfo duration = new StoreDurationInfo(LOG, "get path status");
+    StoreDurationInfo duration = new StoreDurationInfo(LOG,
+        "get path status for %s", source);
     try {
       fs = source.getFileSystem(conf);
       for (String path : paths) {
@@ -81,7 +82,10 @@ public class PrintStatus extends StoreEntryPoint {
         println("%s\t%s\t[%s]", st.getPath(), st,
             FileUtils.byteCountToDisplaySize(st.getLen()));
         if (st.isDirectory() && st.getLen() > 0) {
-          LOG.warn("Entry is a directory but its length is {}", st.getLen());
+          LOG.warn("{} is a directory but its length is {}", path, st.getLen());
+        }
+        if (st.getLen() < 0) {
+          LOG.warn("{} has a negative length: {}", path, st.getLen());
         }
       }
     } finally {

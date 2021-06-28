@@ -279,6 +279,18 @@
     </profile>
 
     <profile>
+      <id>cdh6.3</id>
+      <activation>
+        <property>
+          <name>cdh6.3</name>
+        </property>
+      </activation>
+      <properties>
+        <hadoop.version>2.6.0-cdh5.14.0</hadoop.version>
+      </properties>
+    </profile>
+
+    <profile>
       <id>extra</id>
       <activation>
         <property>

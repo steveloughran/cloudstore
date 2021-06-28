@@ -32,7 +32,7 @@ import org.apache.hadoop.fs.store.StoreDurationInfo;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
 import org.apache.hadoop.util.ToolRunner;
 
-import static org.apache.hadoop.fs.store.CommonParameters.VERBOSE;
+import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
 
 public class Regions extends StoreEntryPoint {
 
@@ -45,19 +45,22 @@ public class Regions extends StoreEntryPoint {
   private String regionProvider = null;
 
   public Regions() {
-    createCommandFormat(1, 1,
-        VERBOSE);
+    createCommandFormat(0, 0);
   }
 
   @Override
   public int run(String[] args) throws Exception {
     List<String> paths = parseArgs(args);
-/*    if (paths.size() < 1) {
+    if (paths.size() != 0) {
       errorln(USAGE);
       return E_USAGE;
-    }*/
+    }
 
     heading("Determining AWS region for SDK clients");
+    println("This uses same region resolution chain and ordering as in the AWS client.");
+    println("See "
+        + "https://docs.aws.amazon.com/sdk-for-java/v1/developer-guide/java-dg-region-selection.html");
+
     printRegion("AwsEnvVarOverrideRegionProvider",
         new AwsEnvVarOverrideRegionProvider(),
         "Use environment variable AWS_REGION");

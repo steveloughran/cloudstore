@@ -128,10 +128,10 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
       "com.fasterxml.jackson.databind.ObjectReader",
       "org.apache.http.client.utils.URIBuilder",
       "org.apache.hadoop.fs.azurebfs.AzureBlobFileSystem",
-      "org.wildfly.openssl.OpenSSLProvider",
   };
 
   public static final String[] optionalClassnames = {
+      "org.wildfly.openssl.OpenSSLProvider",
       "com.google.common.base.Preconditions",
       "org.apache.hadoop.thirdparty.com.google.common.base.Preconditions",
       "org.apache.hadoop.mapreduce.lib.output.committer.manifest.ManifestCommitter"

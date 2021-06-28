@@ -288,7 +288,10 @@ public class StoreDiagnosticsInfo {
       final String domain,
       final String followupURL) {
     final String host = getFsURI().getHost();
-    if (!host.endsWith(domain)) {
+    if (host == null) {
+      printout.warn("The URL For this store doesn't have a valid host %s",
+          getFsURI());
+    } else if (!host.endsWith(domain)) {
       printout.warn("The URL for this store normally contains the domain %s," 
               + " but it is %s",
           domain, host);

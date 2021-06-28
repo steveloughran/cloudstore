@@ -575,7 +575,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
     FileSystem fs;
 
     try(StoreDurationInfo ignored = new StoreDurationInfo(
-        LOG, "Creating filesystem %s", baseDir)) {
+        LOG, "Creating filesystem for %s", baseDir)) {
       fs = FileSystem.newInstance(baseDir.toUri(), conf);
     }
     URI fsUri = fs.getUri();
@@ -736,7 +736,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
       // expected this; ignore it.
     }
     if (!attempWriteOperations) {
-      println("Tests ar read only");
+      println("Tests are read only");
       return;
     }
     heading("Filesystem Write Operations");

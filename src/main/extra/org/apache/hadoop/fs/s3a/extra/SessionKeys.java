@@ -20,6 +20,7 @@ package org.apache.hadoop.fs.s3a.extra;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -133,94 +134,90 @@ public class SessionKeys extends StoreEntryPoint {
       String sessionToken = sessionCreds.getSessionToken();
 
       String endpoint = fsconf.get("fs.s3a.endpoint");
+      String region = fsconf.get("fs.s3a.endpoint.region");
       String endpointkey = String.format("fs.s3a.bucket.%s.endpoint", bucket);
+      String regionkey = String.format("fs.s3a.bucket.%s.endpoint.region",
+          bucket);
 
+      List<EnvEntry> entries = new ArrayList<>();
+      entries.add(new EnvEntry(ACCESS_KEY, AWS_ACCESS_KEY_ID, keyId));
+      entries.add(new EnvEntry(SECRET_KEY, AWS_SECRET_ACCESS_KEY, secretKey));
+      entries.add(new EnvEntry(SESSION_TOKEN, AWS_SESSION_TOKEN, sessionToken));
+      entries.add(new EnvEntry(AWS_CREDENTIALS_PROVIDER, "",
+          TEMPORARY_AWSCREDENTIALS_PROVIDER));
+      if (endpoint != null) {
+        entries.add(new EnvEntry(endpointkey, "", endpoint));
+      }
+      if (region != null) {
+        entries.add(new EnvEntry(regionkey, "AWS_REGION", region));
+      }
+
+      // =================================================
       heading("XML settings");
 
       StringBuilder xml = new StringBuilder();
       xml.append("<configuration>\n\n");
 
-      xml.append(elt(ACCESS_KEY, keyId));
-      xml.append(elt(SECRET_KEY, secretKey));
-      xml.append(elt(SESSION_TOKEN, sessionToken));
-
-      xml.append(elt(AWS_CREDENTIALS_PROVIDER,
-          TEMPORARY_AWSCREDENTIALS_PROVIDER));
-      if (endpointkey != null) {
-        xml.append(elt(endpointkey, endpoint));
-      }
-      xml.append("\n</configuration>\n\n");
+      entries.forEach(e ->
+          xml.append(e.xml()));
+      xml.append("\n</configuration>\n");
 
       println(xml.toString());
 
+      // =================================================
       heading("Properties");
 
       StringBuilder props = new StringBuilder();
+      entries.forEach(e ->
+          props.append(e.property()));
 
-      props.append(property(ACCESS_KEY, keyId));
-      props.append(property(SECRET_KEY, secretKey));
-      props.append(property(AWS_CREDENTIALS_PROVIDER,
-          TEMPORARY_AWSCREDENTIALS_PROVIDER));
-      props.append(property(SESSION_TOKEN, sessionToken));
-      if (endpointkey != null) {
-        props.append(property(endpointkey, endpoint));
-      }
       println(props.toString());
 
+      // =================================================
+      heading("CLI Arguments");
+
+      StringBuilder cliprops = new StringBuilder();
+      entries.forEach(e ->
+          cliprops.append(e.cliProperty()));
+
+      println(cliprops.toString());
+
+      // =================================================
       heading("Spark");
       StringBuilder spark = new StringBuilder();
-      spark.append(spark(AWS_ACCESS_KEY_ID, keyId));
-      spark.append(spark(AWS_SECRET_ACCESS_KEY, secretKey));
-      spark.append(spark(AWS_SESSION_TOKEN, sessionToken));
-      spark.append(spark(AWS_CREDENTIALS_PROVIDER,
-          TEMPORARY_AWSCREDENTIALS_PROVIDER));
-      spark.append(spark(SESSION_TOKEN, sessionToken));
-      if (endpointkey != null) {
-        spark.append(spark(endpointkey, endpoint));
-      }      println(spark.toString());
+      entries.forEach(e ->
+          spark.append(e.spark()));
+      println(spark.toString());
 
+      // =================================================
       heading("Bash");
 
       StringBuilder bash = new StringBuilder();
-      bash.append(env(AWS_ACCESS_KEY_ID, keyId));
-      bash.append(env(AWS_SECRET_ACCESS_KEY, secretKey));
-      bash.append(env(AWS_SESSION_TOKEN, sessionToken));
+      entries.stream()
+          .filter(EnvEntry::hasEnvVar)
+          .forEach(e ->
+              bash.append(e.bash()));
       println(bash.toString());
 
+      // =================================================
       heading("Fish");
 
       StringBuilder fish = new StringBuilder();
-      fish.append(fishenv(AWS_ACCESS_KEY_ID, keyId));
-      fish.append(fishenv(AWS_SECRET_ACCESS_KEY, secretKey));
-      fish.append(fishenv(AWS_SESSION_TOKEN, sessionToken));
+      entries.stream()
+          .filter(EnvEntry::hasEnvVar)
+          .forEach(e ->
+              fish.append(e.fish()));
       println(fish.toString());
     } finally {
       if (credentials != null) {
-        credentials.close();;
+        credentials.close();
+        ;
       }
     }
 
     return 0;
   }
 
-  private String elt(String name, String text) {
-    return String.format("<%s>%n  %s%n</%s>%n", name, text, name);
-  }
-
-  private String env(String name, String text) {
-    return String.format("export %s=%s%n", name, text);
-  }
-
-  private String property(String name, String text) {
-    return String.format("%s=%s%n", name, text);
-  }
-
-  private String fishenv(String name, String text) {
-    return String.format("set -gx %s %s;%n", name, text);
-  }
-  private String spark(String name, String text) {
-    return String.format("spark.hadoop.%s %n", name, text);
-  }
 
   /**
    * Execute the command, return the result or throw an exception,
@@ -244,6 +241,5 @@ public class SessionKeys extends StoreEntryPoint {
       exitOnThrowable(e);
     }
   }
-
 
 }
