@@ -48,7 +48,7 @@ public class EnvEntry {
 
 
   public String spark() {
-    return String.format("spark.hadoop.\"%s\" %n", name, value);
+    return String.format("spark.hadoop.%s %s %n", name, value);
   }
 
   public String bash() {

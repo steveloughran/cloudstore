@@ -44,6 +44,8 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
   private static final Object[][] options = {
 
       {"abfs.external.authorization.class", false, false},
+      {"fs.abfs.impl", false, false},
+      {"fs.abfss.impl", false, false},
       {"fs.azure.abfs.endpoint", false, false},
       {"fs.azure.account.auth.type", false, false},
       {"fs.azure.account.hns.enabled", false, false},
@@ -118,7 +120,12 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
       {"mapreduce.manifest.committer.cleanup.move.to.trash", false, false},
       {"mapreduce.manifest.committer.io.thread.count", false, false},
       {"mapreduce.manifest.committer.validate.output", false, false},
-      {"", false, false},
+
+      /* Test setup. */
+      {"fs.azure.test.account.name", false, false},
+      {"fs.azure.test.namespace.enabled", false, false},
+      {"fs.azure.abfs.account.name", false, false},
+      {"fs.contract.test.fs.abfs", false, false},
       {"", false, false},
   };
 
