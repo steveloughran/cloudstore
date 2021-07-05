@@ -348,7 +348,7 @@ public class DiagnosticsEntryPoint extends StoreEntryPoint implements Printout {
     }
   }
 
-  public void probeRequiredClasses(final String...requiredClasses)
+  public void probeRequiredClasses(final String... requiredClasses)
       throws ClassNotFoundException {
     if (requiredClasses.length > 0) {
       heading("Required Classes");

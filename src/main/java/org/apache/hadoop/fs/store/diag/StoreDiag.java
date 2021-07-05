@@ -38,6 +38,7 @@ import java.net.URL;
 import java.net.UnknownHostException;
 import java.nio.charset.Charset;
 import java.nio.file.AccessDeniedException;
+import java.security.CodeSource;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Enumeration;
@@ -58,6 +59,7 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.LocatedFileStatus;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.RemoteIterator;
+import org.apache.hadoop.fs.UnsupportedFileSystemException;
 import org.apache.hadoop.fs.store.StoreDurationInfo;
 import org.apache.hadoop.io.IOUtils;
 import org.apache.hadoop.net.NetUtils;
@@ -89,6 +91,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
 
 
   public static final String LOGDUMP = "l";
+  public static final String OPTIONAL = "o";
   public static final String READONLY = "r";
   public static final String SYSPROPS = "s";
   public static final String DELEGATION = "t";
@@ -103,6 +106,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
           + optusage(READONLY, "Readonly filesystem: do not attempt writes")
           + optusage(MD5, "Print MD5 checksums of the jars listed (requires -j)")
           + optusage(LOGDUMP, "Dump the Log4J settings")
+          + optusage(OPTIONAL, "Downgrade all 'required' classes to optional")
           + optusage(DELEGATION, "Require delegation tokens to be issued")
           + optusage(SYSPROPS, "List the JVMs System Properties")
           + optusage(DEFINE, "key=value", "Define a property")
@@ -123,6 +127,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
         DELEGATION,
         READONLY,
         LOGDUMP,
+        OPTIONAL,
         MD5,
         SYSPROPS);
     addValueOptions(TOKENFILE, XMLFILE, DEFINE, REQUIRED, PRINCIPAL);
@@ -184,8 +189,9 @@ public class StoreDiag extends DiagnosticsEntryPoint {
     printEnvVars(storeInfo.getEnvVars());
     printSecurityState();
     printStoreConfiguration();
-    probeRequiredAndOptionalClasses();
+    probeRequiredAndOptionalClasses(hasOption(OPTIONAL));
     storeInfo.validateConfig(this, getConf());
+    probeForFileSystemClass(storeInfo.getScheme());
     probeAllEndpoints();
 
     // and the filesystem operations
@@ -470,10 +476,16 @@ public class StoreDiag extends DiagnosticsEntryPoint {
   /**
    * Probe all the required classes.
    * @throws ClassNotFoundException no class
+   * @param b
    */
-  public void probeRequiredAndOptionalClasses() throws ClassNotFoundException,
-      IOException {
-    probeRequiredClasses(storeInfo.getClassnames(getConf()));
+  public void probeRequiredAndOptionalClasses(boolean optional)
+      throws ClassNotFoundException, IOException {
+    String[] requiredClasses = storeInfo.getClassnames(getConf());
+    if (!optional) {
+      probeRequiredClasses(requiredClasses);
+    } else {
+      probeOptionalClasses(requiredClasses);
+    }
     probeOptionalClasses(storeInfo.getOptionalClassnames(getConf()));
     // load any .classes files
     String file = getOption(REQUIRED);
@@ -509,6 +521,35 @@ public class StoreDiag extends DiagnosticsEntryPoint {
       } else {
         probeRequiredClass(name);
       }
+    }
+  }
+
+  /**
+   * Look for the filesystem class.
+   * @param scheme fs scheme
+   * @throws UnsupportedFileSystemException fs wasn't registered.
+   * @throws IOException failure to load
+   */
+  private void probeForFileSystemClass(String scheme) throws IOException {
+    heading("Locating implementation class for Filesystem scheme %s://", scheme);
+    try {
+      Class<? extends FileSystem> clazz = FileSystem.getFileSystemClass(
+          scheme, getConf());
+      println("FileSystem for %s:// is: %s", scheme, clazz.getName());
+      CodeSource source = clazz.getProtectionDomain().getCodeSource();
+      if (source != null) {
+        println("Loaded from: %s", source.getLocation());
+      }
+    } catch (IOException e) {
+      if (e instanceof UnsupportedFileSystemException
+          || e.toString().contains("No FileSystem for scheme")) {
+
+        errorln("No binding for the FileSystem scheme %s", scheme);
+        errorln("Check core-default.xml, core-site.xml");
+        errorln("If the FS is self-registering, check for an entry in" +
+            " META-INF/services/org.apache.hadoop.fs.FileSystem");
+      }
+      throw e;
     }
   }
 

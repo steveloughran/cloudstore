@@ -122,7 +122,15 @@ public class StoreDiagnosticsInfo {
    * @return FS name
    */
   public String getName() {
-    return "Store for scheme " + fsURI.getScheme();
+    return "Store for scheme " + getScheme();
+  }
+
+  /**
+   * Get the FS Scheme.
+   * @return scheme
+   */
+  public String getScheme() {
+    return fsURI.getScheme();
   }
 
   /**
@@ -192,7 +200,7 @@ public class StoreDiagnosticsInfo {
    */
   public String[] getClassnames(final Configuration conf) {
     // look for an implementation
-    String impl = conf.get("fs." + fsURI.getScheme() + ".impl", "");
+    String impl = conf.get("fs." + getScheme() + ".impl", "");
     if (!impl.isEmpty()) {
       String[] r = new String[1];
       r[0] = impl;
