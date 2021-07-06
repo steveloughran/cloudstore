@@ -70,6 +70,9 @@ public class OptionSets {
   public static final String HADOOP_TOKEN_FILE_LOCATION
       = "HADOOP_TOKEN_FILE_LOCATION";
 
+  /**
+   * These are standard env vars which are good to look at.
+   */
   protected static final Object[][] STANDARD_ENV_VARS = {
       {"PATH", false},
       {"HADOOP_CONF_DIR", false},
@@ -85,13 +88,17 @@ public class OptionSets {
       {HADOOP_TOKEN_FILE_LOCATION, false},
       {"HADOOP_TOOLS_HOME", false},
       {"HADOOP_TOOLS_OPTIONS", false},
+      {"HADOOP_YARN_HOME", false},
       {"HDP_VERSION", false},
+      {"JAVA_HOME", false},
       {"LOCAL_DIRS", false},
+      {"OPENSSL_ROOT_DIR", false},
       {"PYSPARK_DRIVER_PYTHON", false},
       {"SPARK_HOME", false},
       {"SPARK_CONF_DIR", false},
       {"SPARK_SCALA_VERSION", false},
       {"YARN_CONF_DIR", false},
+      {"", false},
       // TODO: add the https proxy vars
   };
 }

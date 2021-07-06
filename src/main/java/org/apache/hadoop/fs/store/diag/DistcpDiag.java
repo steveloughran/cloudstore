@@ -44,6 +44,7 @@ public class DistcpDiag extends DiagnosticsEntryPoint {
       {"", false, false},
       {"", false, false},
   };
+
   @Override
   public final int run(String[] args) throws Exception {
     return run(args, System.out);

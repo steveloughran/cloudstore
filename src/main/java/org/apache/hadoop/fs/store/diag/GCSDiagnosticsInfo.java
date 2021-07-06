@@ -75,6 +75,7 @@ public class GCSDiagnosticsInfo extends StoreDiagnosticsInfo {
       {"google.cloud.auth.service.account.email", false, false},
       {"google.cloud.auth.service.account.keyfile", false, false},
       {"google.cloud.auth.service.account.json.keyfile", false, false},
+      {"fs.viewfs.overload.scheme.target.gs.impl", false, false},
       {"", false, false},
   };
 
