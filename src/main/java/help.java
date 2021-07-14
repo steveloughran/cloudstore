@@ -51,6 +51,7 @@ public class help extends Command {
     println("==============");
     println("");
     printCommand("cleans3guard", "Clean all s3guard entries");
+    printCommand("committerinfo", "Print committer information");
     printCommand("deleteobject", "Delete an S3 object, bypassing S3Guard");
     printCommand("iampolicy", "generate IAM policy");
     printCommand("regions", "emulate region lookup of AWS SDK");
