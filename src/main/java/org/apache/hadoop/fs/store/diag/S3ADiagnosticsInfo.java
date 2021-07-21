@@ -72,8 +72,6 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.s3a.endpoint", false, false},
       {"fs.s3a.endpoint.region", false, false},
       {"fs.s3a.signing-algorithm", false, false},
-      {"fs.s3a.cse.method", true, false},
-      {"fs.s3a.cse.kms.key-id", true, false},
 
       /* Core Set */
       {"fs.s3a.acl.default", false, false},
