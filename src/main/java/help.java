@@ -29,9 +29,12 @@ public class help extends Command {
    * @throws Exception
    */
   public static void main(String[] args) throws Exception {
+    println("Cloudstore");
+    println("==========");
+    println("");
+    bandwidth.help();
     bucketstate.help();
     cloudup.help();
-    committerinfo.help();
     distcpdiag.help();
     dux.help();
     fetchdt.help();
@@ -54,10 +57,12 @@ public class help extends Command {
     printCommand("committerinfo", "Print committer information");
     printCommand("deleteobject", "Delete an S3 object, bypassing S3Guard");
     printCommand("iampolicy", "generate IAM policy");
-    printCommand("regions", "emulate region lookup of AWS SDK");
+    printCommand("regions\t", "emulate region lookup of AWS SDK");
     printCommand("sessionkeys", "optional extra: generate session keys");
-    println(
-        "%nThese are only available on some builds and require a compatible hadoop release");
+    println("%nThese are only available on some builds and require a compatible hadoop release");
+
+    println("");
+    println("See https://github.com/steveloughran/cloudstore");
 
   }
 }

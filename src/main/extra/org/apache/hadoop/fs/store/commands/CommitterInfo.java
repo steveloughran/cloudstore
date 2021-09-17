@@ -82,13 +82,17 @@ public class CommitterInfo extends StoreEntryPoint {
       Configuration fsConf = fs.getConf();
       PathOutputCommitterFactory factory
           = PathOutputCommitterFactory.getCommitterFactory(source, fsConf);
-      println("Committer factory for path %s is %s (classname %s)",
+      println("Committer factory for path %s is \n" +
+              " %s\n" +
+              " (classname %s)",
           source, factory, factory.getClass().getCanonicalName());
       PathOutputCommitter committer = factory.createOutputCommitter(
           source,
           new TaskAttemptContextImpl(fsConf,
               new TaskAttemptID(new TaskID(), 1)));
-      println("Created committer of class %s: %s",
+      println("Created committer of class\n" +
+              " %s:\n" +
+              " %s",
           committer.getClass().getCanonicalName(), committer);
     }
     return 0;

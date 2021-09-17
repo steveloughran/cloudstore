@@ -110,21 +110,35 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable {
     this.out = out;
   }
 
+  public void println() {
+    out.println();
+    out.flush();
+  }
+
   /**
    * Print a formatted string followed by a newline to the output stream.
    * @param format format string
    * @param args optional arguments
    */
   public void println(String format, Object... args) {
-    if (args.length == 0) {
-      out.printf(format);
-      out.println();
-    } else {
-      out.printf(format, args);
-      out.println();
-    }
+    print(format, args);
+    out.println();
     out.flush();
   }
+
+  /**
+   * Print a formatted string without any newline
+   * @param format format string
+   * @param args optional arguments
+   */
+  protected void print(String format, Object... args) {
+    if (args.length == 0) {
+      out.print(format);
+    } else {
+      out.printf(format, args);
+    }
+  }
+
 
   public void warn(String format, Object... args) {
     println("WARNING: " + String.format(format, args));
@@ -420,6 +434,17 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable {
       conf.set(IOSTATISTICS_LOGGING_LEVEL, "info");
     }
     return conf;
+  }
+
+  protected void printFSInfoInVerbose(FileSystem fs) {
+    if (isVerbose()) {
+      println();
+
+      println("FileSystem %s", fs.getUri());
+      println();
+      println("%s", fs);
+      println();
+    }
   }
 
   protected static final class LimitReachedException extends IOException {

@@ -92,7 +92,6 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.azure.identity.transformer.skip.superuser.replacement", false, false},
       {"fs.azure.infinite-lease.directories", false, false},
       {"fs.azure.io.read.tolerate.concurrent.append", false, false},
-      {"fs.azure.io.read.tolerate.concurrent.append", false, false},
       {"fs.azure.io.retry.backoff.interval", false, false},
       {"fs.azure.io.retry.max.backoff.interval", false, false},
       {"fs.azure.io.retry.max.retries", false, false},
@@ -106,7 +105,6 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.azure.read.alwaysReadBufferSize", false, false},
       {"fs.azure.read.optimizefooterread", false, false},
       {"fs.azure.read.readahead.blocksize", false, false},
-      {"fs.azure.read.request.size", false, false},
       {"fs.azure.read.request.size", false, false},
       {"fs.azure.read.smallfilescompletely", false, false},
       {"fs.azure.readahead.range", false, false},
@@ -125,7 +123,7 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.azure.write.request.size", false, false},
 
       /* committer */
-      {"mapreduce.outputcommitter.factory.scheme.s3a", false, false},
+      {"mapreduce.outputcommitter.factory.scheme.abfs", false, false},
       {"mapreduce.fileoutputcommitter.marksuccessfuljobs", false, false},
       {"mapreduce.fileoutputcommitter.algorithm.version.v1.experimental.mv.threads", false, false},
       {"mapreduce.fileoutputcommitter.algorithm.version.v1.experimental.parallel.task.commit", false, false},

@@ -57,6 +57,16 @@ public class GCSDiagnosticsInfo extends StoreDiagnosticsInfo {
 
       {"fs.gs.client.id", true, false},
       {"fs.gs.client.secret", true, true},
+      {"fs.gs.auth.client.id", true, false},
+
+      {"fs.gs.auth.service.account.email", true, false},
+      {"fs.gs.auth.service.account.private.key.id", true, false},
+      {"fs.gs.auth.service.account.private.key", true, true},
+      {"fs.gs.auth.service.account.json.keyfile", true, false},
+      {"fs.gs.auth.service.account.enable", true, false},
+      {"fs.gs.auth.service.account.keyfile", true, false},
+      {"fs.gs.auth.impersonation.service.account", true, false},
+
 
       {"fs.gs.application.name.suffix", false, false},
       {"fs.gs.auth.access.token.provider.impl", false, false},

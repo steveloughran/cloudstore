@@ -45,7 +45,6 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.PathAccessDeniedException;
 import org.apache.hadoop.fs.PathFilter;
 import org.apache.hadoop.fs.RemoteIterator;
-import org.apache.hadoop.fs.store.CommonParameters;
 import org.apache.hadoop.fs.store.StoreDurationInfo;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
 import org.apache.hadoop.util.ToolRunner;
@@ -132,8 +131,6 @@ public class ExtendedDu extends StoreEntryPoint {
       try (StoreDurationInfo firstLoad = new StoreDurationInfo(LOG,
           "Initial list of path %s", source)) {
         dir = fs.listStatusIterator(source);
-      } finally {
-
       }
       while (dir.hasNext()) {
         final FileStatus st = dir.next();
@@ -143,9 +140,7 @@ public class ExtendedDu extends StoreEntryPoint {
         } else {
           // it's a dir
           submitted++;
-          completion.submit(() -> {
-            return scanOneDir(st.getPath());
-          });
+          completion.submit(() -> scanOneDir(st.getPath()));
         }
       }
 
@@ -158,6 +153,7 @@ public class ExtendedDu extends StoreEntryPoint {
       }
 
     } catch (LimitReachedException ex) {
+      // limit reached
 
     } finally {
       duration.close();

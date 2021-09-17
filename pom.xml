@@ -27,7 +27,7 @@
     <javac.version>1.8</javac.version>
     <enforced.java.version>${javac.version}</enforced.java.version>
 
-    <hadoop.version>3.1.4</hadoop.version>
+    <hadoop.version>3.3.1</hadoop.version>
 
     <test.build.dir>${project.build.directory}/test-dir</test.build.dir>
     <test.build.data>${test.build.dir}</test.build.data>
@@ -250,7 +250,6 @@
         </property>
       </activation>
       <properties>
-        <hadoop.version>3.3.1</hadoop.version>
       </properties>
     </profile>
 
@@ -286,7 +285,7 @@
         </property>
       </activation>
       <properties>
-        <hadoop.version>2.6.0-cdh5.14.0</hadoop.version>
+        <hadoop.version>6.3.0</hadoop.version>
       </properties>
     </profile>
 

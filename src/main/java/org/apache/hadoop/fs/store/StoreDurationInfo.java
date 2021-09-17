@@ -18,6 +18,8 @@
 
 package org.apache.hadoop.fs.store;
 
+import java.time.Duration;
+
 import org.slf4j.Logger;
 
 /**
@@ -50,7 +52,9 @@ public class StoreDurationInfo
     finished = started;
     this.text = String.format(format, args);
     this.log = log;
-    log.info("Starting: {}", text);
+    if (log != null) {
+      log.info("Starting: {}", text);
+    }
   }
 
  /**
@@ -84,10 +88,21 @@ public class StoreDurationInfo
     return String.format("%d:%02d:%03d", minutes, seconds % 60, time % 1000);
   }
 
+  /**
+   * The duration in seconds; only valid once finished/closed.
+   * @return time in milliseconds
+   */
   public long value() {
     return finished - started;
   }
 
+  /**
+   * Get as a java time duration; only valid once finished/closed.
+   * @return duration.
+   */
+  public Duration asDuration() {
+    return Duration.ofMillis(value());
+  }
   @Override
   public String toString() {
     return getDurationString();
@@ -97,7 +112,7 @@ public class StoreDurationInfo
   public void close() {
     finished();
     if (log != null) {
-      log.info(text + ": duration " + toString());
+      log.info(text + ": duration " + this);
     }
   }
 }

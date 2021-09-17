@@ -16,17 +16,16 @@
  * limitations under the License.
  */
 
+import org.apache.hadoop.fs.store.commands.Bandwidth;
 import org.apache.hadoop.fs.store.commands.Command;
-import org.apache.hadoop.fs.store.diag.DistcpDiag;
 
-public class distcpdiag extends Command {
+public class bandwidth extends Command {
 
   public static void main(String[] args) throws Exception {
-    DistcpDiag.main(args);
+    Bandwidth.main(args);
   }
 
   public static void help() {
-    printCommand("distcpdiag", "Print distcp diagnostics");
+    printCommand("bandwidth", "measure network bandwidth");
   }
-
 }
