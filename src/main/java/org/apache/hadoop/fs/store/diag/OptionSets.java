@@ -48,6 +48,7 @@ public class OptionSets {
   protected static final Object[][] CLUSTER_OPTIONS = {
       {"fs.defaultFS", false, false},
       {"fs.default.name", false, false},
+      {"fs.permissions.umask-mode", false, false},
       {"fs.trash.classname", false, false},
       {"fs.trash.interval", false, false},
       {"fs.trash.checkpoint.interval", false, false},
