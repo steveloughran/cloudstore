@@ -26,6 +26,6 @@ public class fetchdt extends Command {
   }
 
   public static void help() {
-    printCommand("fetchdt\t", "fetch delegation tokens");
+    printCommand("fetchdt", "fetch delegation tokens");
   }
 }

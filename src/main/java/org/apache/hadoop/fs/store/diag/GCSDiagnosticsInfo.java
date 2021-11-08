@@ -20,9 +20,6 @@ package org.apache.hadoop.fs.store.diag;
 
 import java.io.IOException;
 import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.ArrayList;
-import java.util.List;
 
 import org.apache.hadoop.conf.Configuration;
 
@@ -44,6 +41,7 @@ public class GCSDiagnosticsInfo extends StoreDiagnosticsInfo {
    */
   public static final String[] optionalClassnames = {
       "com.google.cloud.hadoop.repackaged.gcs.com.google.cloud.hadoop.gcsio.GoogleCloudStorage",
+      "com.google.api.client.http.HttpRequestInitializer"
   };
 
   /**
@@ -66,7 +64,6 @@ public class GCSDiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.gs.auth.service.account.enable", true, false},
       {"fs.gs.auth.service.account.keyfile", true, false},
       {"fs.gs.auth.impersonation.service.account", true, false},
-
 
       {"fs.gs.application.name.suffix", false, false},
       {"fs.gs.auth.access.token.provider.impl", false, false},

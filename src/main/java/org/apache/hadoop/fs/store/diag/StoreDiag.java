@@ -548,6 +548,8 @@ public class StoreDiag extends DiagnosticsEntryPoint {
         errorln("Check core-default.xml, core-site.xml");
         errorln("If the FS is self-registering, check for an entry in" +
             " META-INF/services/org.apache.hadoop.fs.FileSystem");
+        errorln("If there was a stack trace during the scan, it means an FS class failed to load");
+        errorln("if so: check its dependencies");
       }
       throw e;
     }

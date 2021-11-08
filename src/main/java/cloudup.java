@@ -27,6 +27,6 @@ public class cloudup extends Command {
   }
 
   public static void help() {
-    printCommand("cloudup\t","copies to/from cloud storage");
+    printCommand("cloudup","copies to/from cloud storage");
   }
 }
