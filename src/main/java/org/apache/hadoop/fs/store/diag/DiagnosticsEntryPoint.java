@@ -339,7 +339,8 @@ public class DiagnosticsEntryPoint extends StoreEntryPoint implements Printout {
         missing |= probeOptionalClass(classname);
       }
       if (missing) {
-        println("%nAt least one optional class was missing"
+        println();
+        println("At least one optional class was missing"
             + " -the filesystem client *may* still work");
       }
       return missing;

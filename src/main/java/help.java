@@ -43,6 +43,7 @@ public class help extends Command {
     list.help();
     listobjects.help();
     locatefiles.help();
+    localhost.help();
     mkdir.help();
     pathcapability.help();
     storediag.help();

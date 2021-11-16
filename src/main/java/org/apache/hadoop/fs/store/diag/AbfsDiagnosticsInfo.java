@@ -127,6 +127,7 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
       {"mapreduce.fileoutputcommitter.marksuccessfuljobs", false, false},
       {"mapreduce.fileoutputcommitter.algorithm.version.v1.experimental.mv.threads", false, false},
       {"mapreduce.fileoutputcommitter.algorithm.version.v1.experimental.parallel.task.commit", false, false},
+      {"mapreduce.fileoutputcommitter.algorithm.version.v1.experimental.parallel.rename.recovery", false, false},
       {"mapreduce.manifest.committer.cleanup.move.to.trash", false, false},
       {"mapreduce.manifest.committer.io.thread.count", false, false},
       {"mapreduce.manifest.committer.validate.output", false, false},
@@ -151,7 +152,9 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
       "org.wildfly.openssl.OpenSSLProvider",
       "com.google.common.base.Preconditions",
       "org.apache.hadoop.thirdparty.com.google.common.base.Preconditions",
-      "org.apache.hadoop.mapreduce.lib.output.committer.manifest.ManifestCommitter"
+      "org.apache.hadoop.mapreduce.lib.output.committer.manifest.ManifestCommitter",
+      "org.apache.hadoop.fs.EtagSource",
+      "org.apache.hadoop.mapreduce.lib.output.ResilientCommitByRenameHelper",
   };
 
   public AbfsDiagnosticsInfo(final URI fsURI) {
