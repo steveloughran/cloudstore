@@ -33,6 +33,8 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.store.StoreDurationInfo;
 
+import static org.apache.hadoop.fs.store.diag.CapabilityKeys.*;
+
 /**
  * Abfs diagnostics.
  */
@@ -157,6 +159,18 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
       "org.apache.hadoop.mapreduce.lib.output.ResilientCommitByRenameHelper",
   };
 
+  /**
+   * Path Capabilities different versions of the store may
+   * support.
+   */
+  public static final String[] optionalCapabilities = {
+      FS_PERMISSIONS,
+      FS_ACLS,
+      FS_APPEND,
+      ETAGS_AVAILABLE,
+      ETAGS_PRESERVED_IN_RENAME,
+  };
+
   public AbfsDiagnosticsInfo(final URI fsURI) {
     super(fsURI);
   }
@@ -267,6 +281,10 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
   @Override
   public String[] getOptionalClassnames(final Configuration conf) {
     return optionalClassnames;
+  }
+
+  public String[] getOptionalPathCapabilites() {
+    return optionalCapabilities;
   }
 
   @Override

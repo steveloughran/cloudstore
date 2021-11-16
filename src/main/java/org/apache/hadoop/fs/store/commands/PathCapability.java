@@ -18,9 +18,6 @@
 
 package org.apache.hadoop.fs.store.commands;
 
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -29,10 +26,9 @@ import org.slf4j.LoggerFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.store.CapabilityChecker;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
-import org.apache.hadoop.fs.store.StoreExitException;
 import org.apache.hadoop.util.ToolRunner;
-import org.apache.hadoop.util.VersionInfo;
 
 import static org.apache.hadoop.fs.store.CommonParameters.DEFINE;
 import static org.apache.hadoop.fs.store.CommonParameters.LOGFILE;
@@ -40,8 +36,6 @@ import static org.apache.hadoop.fs.store.CommonParameters.TOKENFILE;
 import static org.apache.hadoop.fs.store.CommonParameters.VERBOSE;
 import static org.apache.hadoop.fs.store.CommonParameters.XMLFILE;
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_ERROR;
-import static org.apache.hadoop.fs.store.StoreExitCodes.E_EXCEPTION_THROWN;
-import static org.apache.hadoop.fs.store.StoreExitCodes.E_UNSUPPORTED_VERSION;
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
 
 /**
@@ -52,7 +46,7 @@ public class PathCapability extends StoreEntryPoint {
   private static final Logger LOG = LoggerFactory.getLogger(PathCapability.class);
 
   public static final String USAGE1
-      = "Usage: pathcapability [" +LOGFILE + " <filename>]"
+      = "Usage: pathcapability [" + LOGFILE + " <filename>]"
       + " <capability> <path>";
 
   public static final String USAGE
@@ -61,7 +55,6 @@ public class PathCapability extends StoreEntryPoint {
       + optusage(TOKENFILE, "file", "Hadoop token file to load")
       + optusage(VERBOSE, "print verbose output")
       + optusage(XMLFILE, "file", "XML config file to load");
-
 
   public PathCapability() {
     createCommandFormat(2, 2);
@@ -86,7 +79,9 @@ public class PathCapability extends StoreEntryPoint {
     FileSystem fs = path.getFileSystem(conf);
     println("Using filesystem %s", fs.getUri());
     Path absPath = path.makeQualified(fs.getUri(), fs.getWorkingDirectory());
-    if (hasPathCapability(fs, absPath, capability)) {
+    if (new CapabilityChecker(fs).
+        hasPathCapability(absPath, capability)) {
+
       println("Path %s has capability %s",
           absPath, capability);
       return 0;
@@ -96,28 +91,6 @@ public class PathCapability extends StoreEntryPoint {
       return E_ERROR;
     }
   }
-
-  private boolean hasPathCapability(FileSystem fs, Path path, String capability)
-      throws IOException {
-    try {
-      Method hasPathCapability = FileSystem.class.getMethod("hasPathCapability",
-          Path.class, String.class);
-      return (Boolean) hasPathCapability.invoke(fs, path, capability);
-    } catch (NoSuchMethodException | IllegalAccessException e) {
-      throw new StoreExitException(E_UNSUPPORTED_VERSION,
-          "Hadoop version does not support PathCapabilities: "
-              + VersionInfo.getVersion());
-    } catch (InvocationTargetException e) {
-      Throwable ex = e.getTargetException();
-      if (ex instanceof IOException) {
-        throw (IOException) ex;
-      } else {
-        throw new StoreExitException(E_EXCEPTION_THROWN,
-            ex.toString(), ex);
-      }
-    }
-  }
-
 
   /**
    * Execute the command, return the result or throw an exception,

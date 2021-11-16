@@ -37,6 +37,12 @@ import org.apache.hadoop.fs.Path;
 
 import static org.apache.hadoop.fs.s3a.Constants.*;
 import static org.apache.hadoop.fs.store.StoreUtils.cat;
+import static org.apache.hadoop.fs.store.diag.CapabilityKeys.*;
+import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_DIRECTORY_MARKER_ACTION_DELETE;
+import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_DIRECTORY_MARKER_ACTION_KEEP;
+import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_DIRECTORY_MARKER_POLICY_AUTHORITATIVE;
+import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_DIRECTORY_MARKER_POLICY_DELETE;
+import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_DIRECTORY_MARKER_POLICY_KEEP;
 import static org.apache.hadoop.fs.store.diag.OptionSets.STANDARD_ENV_VARS;
 
 /**
@@ -297,6 +303,27 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       "",
 
   };
+  /**
+   * Path Capabilities different versions of the store may
+   * support.
+   */
+  public static final String[] optionalCapabilities = {
+      ETAGS_AVAILABLE,
+      ETAGS_PRESERVED_IN_RENAME,
+      FS_CHECKSUMS,
+      FS_MULTIPART_UPLOADER,
+      ABORTABLE_STREAM,
+
+      // s3 specific
+      STORE_CAPABILITY_MAGIC_COMMITTER,
+      S3_SELECT_CAPABILITY,
+      STORE_CAPABILITY_DIRECTORY_MARKER_AWARE,
+      STORE_CAPABILITY_DIRECTORY_MARKER_POLICY_KEEP,
+      STORE_CAPABILITY_DIRECTORY_MARKER_POLICY_DELETE,
+      STORE_CAPABILITY_DIRECTORY_MARKER_POLICY_AUTHORITATIVE,
+      STORE_CAPABILITY_DIRECTORY_MARKER_ACTION_KEEP,
+      STORE_CAPABILITY_DIRECTORY_MARKER_ACTION_DELETE,
+  };
 
   public S3ADiagnosticsInfo(final URI fsURI) {
     super(fsURI);
@@ -340,6 +367,11 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
   @Override
   public String[] getOptionalClassnames(final Configuration conf) {
     return optionalClassnames;
+  }
+
+  @Override
+  public String[] getOptionalPathCapabilites() {
+    return optionalCapabilities;
   }
 
   /**

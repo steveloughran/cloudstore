@@ -60,7 +60,9 @@ import org.apache.hadoop.fs.LocatedFileStatus;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.RemoteIterator;
 import org.apache.hadoop.fs.UnsupportedFileSystemException;
+import org.apache.hadoop.fs.store.CapabilityChecker;
 import org.apache.hadoop.fs.store.StoreDurationInfo;
+import org.apache.hadoop.fs.store.StoreExitException;
 import org.apache.hadoop.io.IOUtils;
 import org.apache.hadoop.net.NetUtils;
 import org.apache.hadoop.security.AccessControlException;
@@ -474,9 +476,11 @@ public class StoreDiag extends DiagnosticsEntryPoint {
 
 
   /**
-   * Probe all the required classes.
+   * Probe all the required classes from base settings,
+   * the FS diags, and any file passed in as -required.
    * @throws ClassNotFoundException no class
-   * @param b
+   * @param optional is this a probe for optional classes
+   * @throws IOException other faillure
    */
   public void probeRequiredAndOptionalClasses(boolean optional)
       throws ClassNotFoundException, IOException {
@@ -625,6 +629,27 @@ public class StoreDiag extends DiagnosticsEntryPoint {
 
     println("%s", fs);
     println("Implementation class %s", fs.getClass());
+
+    final String[] pathCapabilites = storeInfo.getOptionalPathCapabilites();
+    if (pathCapabilites.length > 0) {
+      final CapabilityChecker checker = new CapabilityChecker(fs);
+      if (checker.methodAvailable()) {
+        heading("Path Capabilities");
+        for (String s : pathCapabilites) {
+          try {
+            println("%s\t%s", s, checker.hasPathCapability(baseDir, s));
+          } catch (IOException | StoreExitException e) {
+
+            // problem
+            warn("%s",e.toString());
+            LOG.debug("checking path capabilities", e);
+            break;
+          }
+        }
+        println();
+      }
+
+    }
 
     storeInfo.validateFilesystem(this, baseDir, fs);
 

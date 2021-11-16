@@ -43,6 +43,7 @@ public class StoreDiagnosticsInfo {
   protected static final Object[][] EMPTY_OPTIONS = {};
 
   protected static final String[] EMPTY_CLASSNAMES = {};
+  protected static final String[] EMPTY_CAPABILITIES = {};
 
   protected static final List<URI> EMPTY_ENDPOINTS = new ArrayList<>(0);
 
@@ -244,6 +245,16 @@ public class StoreDiagnosticsInfo {
   }
 
   /**
+   * Get a list of optional capablities to look for.
+   * If any of these are not true.
+   * @param conf config to use in determining their location.
+   * @return a possibly empty list of path capabilites.
+   */
+  public String[] getOptionalPathCapabilites() {
+    return EMPTY_CAPABILITIES;
+  }
+
+  /**
    * Look up an option; if not empty add it as a URI.
    * @param uris URI list to add to
    * @param conf config
@@ -356,6 +367,7 @@ public class StoreDiagnosticsInfo {
     }
     return configMap;
   }
+
   /**
    * Perform any validation of the filesystem itself (is it the right type,
    * are there any options you can check for. This is
