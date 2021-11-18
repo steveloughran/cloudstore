@@ -179,10 +179,11 @@ public class DiagnosticsEntryPoint extends StoreEntryPoint implements Printout {
       }
       String text = String.format("%s\t%s (%s)", s, jars.get(s), size);
       if (md5) {
-        String hex;
+        String hex = "";
         if (isFile) {
           hex = hash(file);
-        } else {
+        }
+        if (hex.isEmpty()) {
           // 32 spaces
           hex = "                                ";
         }
@@ -467,7 +468,8 @@ public class DiagnosticsEntryPoint extends StoreEntryPoint implements Printout {
 
   private String hash(File file) throws IOException, NoSuchAlgorithmException {
     /*return toHex(Files.getDigest(file, MessageDigest.getInstance("MD5")));*/
-    return "guava broke this, sorry";
+    //return "guava broke this, sorry";
+    return "";
   }
 
   private String toHex(byte[] digest32) {
