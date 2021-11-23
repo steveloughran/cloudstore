@@ -25,10 +25,9 @@ public class help extends Command {
 
   /**
    * When adding new entries here, use alphabetical order.
-   * @param args
-   * @throws Exception
+   * @param args command line args
    */
-  public static void main(String[] args) throws Exception {
+  public static void main(String[] args){
     println("Cloudstore");
     println("==========");
     println("");
@@ -54,7 +53,6 @@ public class help extends Command {
     println("Extra Commands");
     println("==============");
     println("");
-    printCommand("cleans3guard", "Clean all s3guard entries");
     printCommand("committerinfo", "Print committer information");
     printCommand("deleteobject", "Delete an S3 object, bypassing S3Guard");
     printCommand("iampolicy", "generate IAM policy");

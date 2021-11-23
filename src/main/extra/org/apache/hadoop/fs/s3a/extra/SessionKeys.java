@@ -211,7 +211,6 @@ public class SessionKeys extends StoreEntryPoint {
     } finally {
       if (credentials != null) {
         credentials.close();
-        ;
       }
     }
 

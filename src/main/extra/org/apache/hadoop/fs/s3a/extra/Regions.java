@@ -51,7 +51,7 @@ public class Regions extends StoreEntryPoint {
   @Override
   public int run(String[] args) throws Exception {
     List<String> paths = parseArgs(args);
-    if (paths.size() != 0) {
+    if (!paths.isEmpty()) {
       errorln(USAGE);
       return E_USAGE;
     }

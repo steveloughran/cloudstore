@@ -111,6 +111,7 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.azure.read.smallfilescompletely", false, false},
       {"fs.azure.readahead.range", false, false},
       {"fs.azure.readaheadqueue.depth", false, false},
+      {"fs.azure.rename.raises.exceptions", false, false},
       {"fs.azure.sas.token.provider.type", false, false},
       {"fs.azure.sas.token.renew.period.for.streams", false, false},
       {"fs.azure.secure.mode", false, false},
