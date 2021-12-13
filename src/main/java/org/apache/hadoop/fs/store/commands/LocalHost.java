@@ -71,11 +71,13 @@ public class LocalHost extends StoreEntryPoint {
     println("getLocalInetAddress(): %s",
         getLocalInetAddress(localHost.getHostName()));
 
+    println("getLoopbackAddress(): %s",
+        InetAddress.getLoopbackAddress().getHostName());
+
     println("getCanonicalUri(): %s",
         getCanonicalUri(new URI("http",
             localHost.getCanonicalHostName(), ""),
             0));
-
     return 0;
   }
 
