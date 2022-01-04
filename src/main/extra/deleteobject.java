@@ -26,6 +26,6 @@ public class deleteobject extends Command {
   }
 
   public static void help() {
-    printCommand("deleteobject", "Delete an S3 object, bypassing S3Guard");
+    printCommand("deleteobject", "Delete an S3 object");
   }
 }

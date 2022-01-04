@@ -264,7 +264,6 @@ Created committer of class org.apache.hadoop.fs.s3a.commit.magic.MagicS3GuardCom
 2019-08-05 17:37:44,462 [main] INFO  commands.CommitterInfo (DurationInfo.java:close(100)) - Create committer: duration 0:01:849
 ```
 
-Note: unless this store has S3Guard enabled or is a third party object store with consistent directory listings, the magic committer is not iself safe to use.
 
 ## Command `dux`  "Du, extended"
 
