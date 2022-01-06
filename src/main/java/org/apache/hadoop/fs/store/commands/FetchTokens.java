@@ -52,9 +52,11 @@ public class FetchTokens extends StoreEntryPoint {
   private static final Logger LOG = LoggerFactory.getLogger(FetchTokens.class);
 
   public static final String USAGE =
-      "Usage: fetchdt <file> [-renewer <renewer>] [-r] [-v] [-xmlfile file] <url1> ... <url999>\n"
+      "Usage: fetchdt <file> [-renewer <renewer>] [-r]"
+          + optusage(XMLFILE, "file", "XML config file to load")
+          + optusage(VERBOSE, "verbose output")
           + "-r: require each filesystem to issue a token\n"
-          + "";
+          + " <url1> ... <url999>\n";
 
   private static final String RENEWER = "renewer";
 
@@ -98,12 +100,8 @@ public class FetchTokens extends StoreEntryPoint {
         plural(urls.size()),
         dest);
     Credentials retrieved = self.doAs(
-        new PrivilegedExceptionAction<Credentials>() {
-          @Override
-          public Credentials run() throws Exception {
-            return saveTokens(conf, dest, renewer, required, urls);
-          }
-        });
+        (PrivilegedExceptionAction<Credentials>) () ->
+            saveTokens(conf, dest, renewer, required, urls));
     int n = retrieved.numberOfTokens();
     if (n > 0) {
       println("Saved %d token%s to %s", n, plural(n), dest);
@@ -113,6 +111,17 @@ public class FetchTokens extends StoreEntryPoint {
     return 0;
   }
 
+  /**
+   * Fetch and save the tokens; print their details.
+   * in a verbose run, the filesystem statistics are also printed
+   * @param conf configuration
+   * @param dest dest path for token file
+   * @param renewer any renewer
+   * @param required are tokens required?
+   * @param urls list of filesystem URLs
+   * @return the credentials
+   * @throws IOException failure
+   */
   protected Credentials saveTokens(
       Configuration conf,
       Path dest,
@@ -136,8 +145,11 @@ public class FetchTokens extends StoreEntryPoint {
           for (Token<?> token : tokens) {
             println("Fetched token: %s", token);
           }
+          maybeDumpStorageStatistics(fs);
         } else {
           println("No token for %s", path);
+          maybeDumpStorageStatistics(fs);
+
           if (required) {
             throw new ExitUtil.ExitException(
                 LauncherExitCodes.EXIT_NOT_FOUND,
@@ -148,8 +160,8 @@ public class FetchTokens extends StoreEntryPoint {
     }
     // all the tokens are collected, so save
     try(StoreDurationInfo ignored =
-            new StoreDurationInfo(LOG, "Saving %d tokens to %s",
-                count, dest)) {
+            new StoreDurationInfo(LOG, "Saving %d token%s to %s",
+                count, plural(count), dest)) {
       cred.writeTokenStorageFile(dest, conf);
     }
     return cred;
