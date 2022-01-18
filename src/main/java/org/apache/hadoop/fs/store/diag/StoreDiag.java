@@ -366,8 +366,8 @@ public class StoreDiag extends DiagnosticsEntryPoint {
 
       println("to be configuration problem with address, proxy, etc%n");
 
-      println("If it is some authentication error, then don't worry so much%n"
-          + "-look for the results of the filesystem operations");
+      println("If it is some authentication error, then don't worry so much\n"
+          + "  -look for the results of the filesystem operations");
 
       for (URI endpoint : endpoints) {
         try {

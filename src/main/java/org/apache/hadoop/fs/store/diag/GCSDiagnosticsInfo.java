@@ -23,6 +23,9 @@ import java.net.URI;
 
 import org.apache.hadoop.conf.Configuration;
 
+import static org.apache.hadoop.fs.store.StoreUtils.cat;
+import static org.apache.hadoop.fs.store.diag.OptionSets.STANDARD_ENV_VARS;
+
 /**
  * This is just a template to use when creating diagnostics bindings.
  */
@@ -55,20 +58,22 @@ public class GCSDiagnosticsInfo extends StoreDiagnosticsInfo {
 
       {"fs.gs.client.id", true, false},
       {"fs.gs.client.secret", true, true},
+      {"fs.gs.application.name.suffix", false, false},
+
       {"fs.gs.auth.client.id", true, false},
 
+      {"fs.gs.auth.impersonation.service.account", true, false},
+      {"fs.gs.auth.access.token.provider.impl", false, false},
       {"fs.gs.auth.service.account.email", true, false},
       {"fs.gs.auth.service.account.private.key.id", true, false},
-      {"fs.gs.auth.service.account.private.key", true, true},
+      {"fs.gs.auth.service.account.private.key", true, false},
       {"fs.gs.auth.service.account.json.keyfile", true, false},
       {"fs.gs.auth.service.account.enable", true, false},
       {"fs.gs.auth.service.account.keyfile", true, false},
-      {"fs.gs.auth.impersonation.service.account", true, false},
-
-      {"fs.gs.application.name.suffix", false, false},
-      {"fs.gs.auth.access.token.provider.impl", false, false},
       {"fs.gs.authorization.handler.impl", false, false},
       {"fs.gs.authorization.handler.properties", false, false},
+
+
       {"fs.gs.batch.threads", false, false},
       {"fs.gs.block.size", false, false},
       {"fs.gs.bucket.delete.enable", false, false},
@@ -115,14 +120,13 @@ public class GCSDiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.gs.outputstream.upload.cache.size", false, false},
       {"fs.gs.outputstream.upload.chunk.size", false, false},
       {"fs.gs.project.id", false, false},
-      {"fs.gs.project.id", false, false},
       {"fs.gs.proxy.address", false, false},
       {"fs.gs.proxy.password", false, true},
       {"fs.gs.proxy.username", false, false},
       {"fs.gs.reported.permissions", false, false},
-      {"fs.gs.reported.permissions", false, false},
+      {"fs.gs.requester.pays.buckets", false, false},
       {"fs.gs.requester.pays.mode", false, false},
-      {"fs.gs.requester.pays.mode", false, false},
+      {"fs.gs.requester.pays.project.id", false, false},
       {"fs.gs.service.account.auth.email", false, false},
       {"fs.gs.service.account.auth.keyfile", false, false},
       {"fs.gs.status.parallel.enable", false, false},
@@ -140,7 +144,10 @@ public class GCSDiagnosticsInfo extends StoreDiagnosticsInfo {
       {"google.cloud.auth.service.account.json.keyfile", false, false},
       {"google.cloud.auth.service.account.keyfile", false, false},
   };
-
+  protected static final Object[][] ENV_VARS = {
+      {"GOOGLE_APPLICATION_CREDENTIALS", false},
+      {"", false},
+  };
   public GCSDiagnosticsInfo(final URI fsURI) {
     super(fsURI);
   }
@@ -173,6 +180,11 @@ public class GCSDiagnosticsInfo extends StoreDiagnosticsInfo {
   @Override
   public String[] getOptionalClassnames(final Configuration conf) {
     return optionalClassnames;
+  }
+
+  @Override
+  public Object[][] getEnvVars() {
+    return cat(ENV_VARS, STANDARD_ENV_VARS);
   }
 
  /* @Override

@@ -266,7 +266,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       "org.joda.time.Interval",
 
       // S3Guard
-      "org.apache.hadoop.fs.s3a.s3guard.S3Guard",
+      "org.apache.hadoop.fs.s3a.s3guard.DynamoDBMetadataStore",
 
       // Committers
       "org.apache.hadoop.fs.s3a.commit.staging.StagingCommitter",
@@ -296,20 +296,24 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       // Auditing
       "org.apache.hadoop.fs.s3a.audit.AuditManagerS3A",
 
+      // etags
+      "org.apache.hadoop.fs.EtagSource",
+
       // extra stuff from extension modules
       "org.apache.knox.gateway.cloud.idbroker.s3a.IDBDelegationTokenBinding",
       "org.wildfly.openssl.OpenSSLProvider",
 
       "",
+      "",
 
   };
+
   /**
    * Path Capabilities different versions of the store may
    * support.
    */
   public static final String[] optionalCapabilities = {
       ETAGS_AVAILABLE,
-      ETAGS_PRESERVED_IN_RENAME,
       FS_CHECKSUMS,
       FS_MULTIPART_UPLOADER,
       ABORTABLE_STREAM,

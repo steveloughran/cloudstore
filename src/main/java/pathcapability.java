@@ -17,7 +17,6 @@
  */
 
 import org.apache.hadoop.fs.store.commands.Command;
-import org.apache.hadoop.fs.store.commands.MkdirCommand;
 import org.apache.hadoop.fs.store.commands.PathCapability;
 
 public class pathcapability extends Command {
