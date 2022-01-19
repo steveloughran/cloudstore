@@ -54,6 +54,7 @@ public class help extends Command {
     println("");
     printCommand("committerinfo", "Print committer information");
     printCommand("deleteobject", "Delete an S3 object");
+    printCommand("gcscreds", "credential diagnostics for GCS. Warning: logs secrets");
     printCommand("iampolicy", "generate IAM policy");
     printCommand("regions\t", "emulate region lookup of AWS SDK");
     printCommand("sessionkeys", "optional extra: generate session keys");

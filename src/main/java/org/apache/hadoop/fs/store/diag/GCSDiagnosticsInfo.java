@@ -47,6 +47,9 @@ public class GCSDiagnosticsInfo extends StoreDiagnosticsInfo {
       "com.google.api.client.http.HttpRequestInitializer"
   };
 
+  public static final String SERVICE_ACCOUNT_PRIVATE_KEY
+      = "fs.gs.auth.service.account.private.key";
+
   /**
    * List of options for filesystems. 
    * Each entry must be a tuple of (string, password, sensitive).
@@ -66,7 +69,7 @@ public class GCSDiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.gs.auth.access.token.provider.impl", false, false},
       {"fs.gs.auth.service.account.email", true, false},
       {"fs.gs.auth.service.account.private.key.id", true, false},
-      {"fs.gs.auth.service.account.private.key", true, false},
+      {SERVICE_ACCOUNT_PRIVATE_KEY, true, false},
       {"fs.gs.auth.service.account.json.keyfile", true, false},
       {"fs.gs.auth.service.account.enable", true, false},
       {"fs.gs.auth.service.account.keyfile", true, false},

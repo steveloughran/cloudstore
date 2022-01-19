@@ -263,7 +263,7 @@
         </property>
       </activation>
       <properties>
-        <hadoop.version>3.3.1-SNAPSHOT</hadoop.version>
+        <hadoop.version>3.3.3-SNAPSHOT</hadoop.version>
       </properties>
     </profile>
 
