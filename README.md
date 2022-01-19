@@ -399,6 +399,26 @@ s3a://guarded-table/example	S3AFileStatus{path=s3a://guarded-table/example; isDi
 2019-07-31 21:48:37,182 [main] INFO  commands.PrintStatus (DurationInfo.java:close(100)) - get path status: duration 0:02:221
 ```
 
+## Command: `gcscreds`
+
+Help debug gcs credential bindings as set in `fs.gs.auth.service.account.private.key`
+
+it does ths with some better diagnostics of parsing problems.
+
+warning: at -verbose, this prints your private key
+
+```
+hadoop jar $CLOUDSTORE gcscreds gs://bucket/
+
+key uses \n for separator -gs connector must convert to line endings
+2022-01-19 17:55:51,016 [main] INFO  gs.PemReader (PemReader.java:readNextSection(86)) - title match  at line 1
+2022-01-19 17:55:51,020 [main] INFO  gs.PemReader (PemReader.java:readNextSection(88)) - scanning for end 
+Parsed private key -entry length 28 lines
+factory com.google.cloud.hadoop.repackaged.gcs.com.google.cloud.hadoop.util.CredentialFactory@d706f19
+```
+
+
+
 ## Command: `list`
 
 Do a recursive listing of a path. Uses `listFiles(path, recursive)`, so for any object store
