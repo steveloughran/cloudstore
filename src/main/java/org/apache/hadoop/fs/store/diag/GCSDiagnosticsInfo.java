@@ -36,7 +36,6 @@ public class GCSDiagnosticsInfo extends StoreDiagnosticsInfo {
    */
   public static final String[] classnames = {
       "com.google.cloud.hadoop.fs.gcs.GoogleHadoopFS",
-      "com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystemBase",
   };
 
   /**
