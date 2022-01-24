@@ -179,15 +179,14 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
 
       /* delegation */
       {"fs.s3a.delegation.token.binding", false, false},
-      {"fs.s3a.delegation.token.secondary.bindings", false, false},
 
       /* auditing */
+      {"fs.s3a.audit.enabled", false, false},
       {"fs.s3a.audit.referrer.enabled", false, false},
       {"fs.s3a.audit.referrer.filter", false, false},
       {"fs.s3a.audit.reject.out.of.span.operations", false, false},
       {"fs.s3a.audit.request.handlers", false, false},
       {"fs.s3a.audit.service.classname", false, false},
-      {"", false, false},
       {"", false, false},
 
 
