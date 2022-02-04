@@ -40,7 +40,6 @@ public class help extends Command {
     filestatus.help();
     jobtokens.help();
     list.help();
-    listobjects.help();
     locatefiles.help();
     localhost.help();
     pathcapability.help();
@@ -56,6 +55,7 @@ public class help extends Command {
     printCommand("deleteobject", "Delete an S3 object");
     printCommand("gcscreds", "credential diagnostics for GCS. Warning: logs secrets");
     printCommand("iampolicy", "generate IAM policy");
+    printCommand("listobjects", "list S3 objects and their translated statuses");
     printCommand("regions\t", "emulate region lookup of AWS SDK");
     printCommand("sessionkeys", "optional extra: generate session keys");
     println("%nThese are only available on some builds and require a compatible hadoop release");

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-import org.apache.hadoop.fs.s3a.ListObjects;
+import org.apache.hadoop.fs.s3a.extra.ListObjects;
 import org.apache.hadoop.fs.store.commands.Command;
 
 public class listobjects extends Command {

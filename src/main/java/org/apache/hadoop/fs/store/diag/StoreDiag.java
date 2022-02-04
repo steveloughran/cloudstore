@@ -95,6 +95,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
   public static final String LOGDUMP = "l";
   public static final String OPTIONAL = "o";
   public static final String READONLY = "r";
+  public static final String WRITE = "w";
   public static final String SYSPROPS = "s";
   public static final String DELEGATION = "t";
 
@@ -105,7 +106,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
   public static final String USAGE =
       "Usage: storediag\n"
           + optusage(JARS, "List the JARs on the classpath")
-          + optusage(READONLY, "Readonly filesystem: do not attempt writes")
+          + optusage(WRITE, "attempt write operations on the filesystem")
           + optusage(MD5, "Print MD5 checksums of the jars listed (requires -j)")
           + optusage(LOGDUMP, "Dump the Log4J settings")
           + optusage(OPTIONAL, "Downgrade all 'required' classes to optional")
@@ -128,6 +129,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
         JARS,
         DELEGATION,
         READONLY,
+        WRITE,
         LOGDUMP,
         OPTIONAL,
         MD5,
@@ -147,15 +149,6 @@ public class StoreDiag extends DiagnosticsEntryPoint {
       errorln(USAGE);
       return E_USAGE;
     }
-/*
-
-    if (paths.isEmpty()) {
-      String defaultFS = new Configuration().get(FS_DEFAULT_NAME_KEY,
-          FS_DEFAULT_NAME_DEFAULT);
-      println("Using default filesystem: %s", defaultFS);
-      paths.add(defaultFS);
-    }
-*/
 
     heading("Store Diagnostics for %s on %s",
       UserGroupInformation.getCurrentUser(),
@@ -197,7 +190,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
     probeAllEndpoints();
 
     // and the filesystem operations
-    executeFileSystemOperations(path, !hasOption(READONLY));
+    executeFileSystemOperations(path, hasOption(WRITE));
 
     // dump JVM status
     printJVMStats();

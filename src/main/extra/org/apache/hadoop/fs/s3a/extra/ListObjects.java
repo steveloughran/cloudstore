@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.hadoop.fs.s3a;
+package org.apache.hadoop.fs.s3a.extra;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -33,9 +33,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.RemoteIterator;
+import org.apache.hadoop.fs.s3a.S3AFileSystem;
 import org.apache.hadoop.fs.store.StoreDurationInfo;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
 import org.apache.hadoop.util.ToolRunner;
@@ -54,13 +54,17 @@ public class ListObjects extends StoreEntryPoint {
   private static final Logger LOG = LoggerFactory.getLogger(ListObjects.class);
 
   public static final String PURGE = "purge";
+  public static final String DELETE = "delete";
+  public static final String QUIET = "q";
 
 
   public static final String USAGE
       = "Usage: listobjects <path>\n"
+      + optusage(DELETE, "delete the objects")
       + optusage(DEFINE, "key=value", "Define a property")
       + optusage(LIMIT, "limit", "limit of files to list")
       + optusage(PURGE, "purge directory markers")
+      + optusage(QUIET, "quiet output")
       + optusage(TOKENFILE, "file", "Hadoop token file to load")
       + optusage(VERBOSE, "print verbose output")
       + optusage(XMLFILE, "file", "XML config file to load")
@@ -69,6 +73,8 @@ public class ListObjects extends StoreEntryPoint {
   public ListObjects() {
     createCommandFormat(1, 1,
         PURGE,
+        DELETE,
+        QUIET,
         VERBOSE);
     addValueOptions(TOKENFILE, XMLFILE, DEFINE, LIMIT);
   }
@@ -82,19 +88,27 @@ public class ListObjects extends StoreEntryPoint {
     }
 
     final Configuration conf = createPreconfiguredConfig();
+    // stop auditing rejecting client direct calls.
+    conf.setBoolean("fs.s3a.audit.reject.out.of.span.operations", false);
     int limit = getOptional(LIMIT).map(Integer::valueOf).orElse(0);
-
+    int deletePageSize = 500;
     boolean purge = hasOption(PURGE);
-    if (purge) {
+    boolean quiet = hasOption(QUIET);
+
+    boolean delete = hasOption(DELETE);
+    if (delete) {
+      println("objects will be deleted");
+      purge = false;
+    } else if (purge) {
       println("directory markers will be purged");
     }
 
     List<String> markers = new ArrayList<>();
     final Path source = new Path(paths.get(0));
     try (StoreDurationInfo duration = new StoreDurationInfo(LOG, "listobjects")) {
-      FileSystem fs = source.getFileSystem(conf);
+      S3AFileSystem fs = (S3AFileSystem) source.getFileSystem(conf);
       String bucket = ((S3AFileSystem) fs).getBucket();
-      final AmazonS3 s3 = AwsClientExtractor.createAwsClient(fs);
+      final AmazonS3 s3 = fs.getAmazonS3ClientForTesting("listobjects");
       String key = pathToKey(source);
       ListObjectsRequest request = createListObjectsRequest(
           source.toUri().getHost(), key, null);
@@ -104,6 +118,8 @@ public class ListObjects extends StoreEntryPoint {
       List<String> prefixes = new ArrayList<>();
       int objectCount = 0;
       long size = 0;
+      List<DeleteObjectsRequest.KeyVersion> objectsToDelete = new ArrayList<>(deletePageSize);
+
       heading("Listing objects under %s", source);
       while (objects.hasNext()) {
         final ObjectListing page = objects.next();
@@ -111,11 +127,22 @@ public class ListObjects extends StoreEntryPoint {
           objectCount++;
           size += summary.getSize();
           String k = summary.getKey();
-          println("object %s\t%s",
-              stringify(summary),
-              fs.getFileStatus(keyToPath(k)));
+
+          if (!quiet) {
+            println("object %s\t%s",
+                stringify(summary),
+                fs.getFileStatus(keyToPath(k)));
+          }
           if (objectRepresentsDirectory(summary)) {
             markers.add(k);
+          }
+          if (delete) {
+            objectsToDelete.add(new DeleteObjectsRequest.KeyVersion(k));
+            if (objectsToDelete.size() >= deletePageSize) {
+              final List<DeleteObjectsRequest.KeyVersion> keyVersions = objectsToDelete;
+              objectsToDelete = new ArrayList<>(deletePageSize);
+              delete(s3, bucket, keyVersions);
+            }
           }
         }
         for (String prefix : page.getCommonPrefixes()) {
@@ -126,8 +153,13 @@ public class ListObjects extends StoreEntryPoint {
         }
       }
 
+      if (delete && !objectsToDelete.isEmpty()) {
+        // final batch
+        delete(s3, bucket, objectsToDelete);
+      }
       println("");
-      println("Found %s objects with total size %d bytes", objectCount, size);
+      String action = delete ? "Deleted" : "Found";
+      println("%s %d objects with total size %d bytes", action, objectCount, size);
       if (!prefixes.isEmpty()) {
         println("");
         heading("%s prefixes", prefixes.size());
@@ -142,14 +174,14 @@ public class ListObjects extends StoreEntryPoint {
         if (purge) {
           println("Purging all directory markers");
         }
-        int page = 250;
+
         List<DeleteObjectsRequest.KeyVersion> kv = new ArrayList<>(
             markerCount);
         for (String marker : markers) {
           println(marker);
           if (purge) {
             kv.add(new DeleteObjectsRequest.KeyVersion(marker));
-            if (kv.size() >= page) {
+            if (kv.size() >= deletePageSize) {
               delete(s3, bucket, kv);
             }
           }

@@ -260,9 +260,6 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       "com.fasterxml.jackson.annotation.JacksonAnnotation",
       "com.fasterxml.jackson.core.JsonParseException",
       "com.fasterxml.jackson.databind.ObjectMapper",
-      /* And Joda-time. Not relevant on the shaded SDK,
-       *  but critical for older ones */
-      "org.joda.time.Interval",
 
       // S3Guard
       "org.apache.hadoop.fs.s3a.s3guard.DynamoDBMetadataStore",
@@ -274,18 +271,16 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
 
       // Assumed Role credential provider (Hadoop 3.1)
       "org.apache.hadoop.fs.s3a.auth.AssumedRoleCredentialProvider",
-      // session creds, just for completeness
-      "org.apache.hadoop.fs.s3a.TemporaryAWSCredentialsProvider",
+
 
       // Delegation Tokens
       "org.apache.hadoop.fs.s3a.auth.delegation.S3ADelegationTokens",
-
 
       // S3 Select: HADOOP-15229
       "com.amazonaws.services.s3.model.SelectObjectContentRequest",
       "org.apache.hadoop.fs.s3a.select.SelectInputStream",
 
-      // S3Guard rename extensions
+      // rename extensions
       "org.apache.hadoop.fs.s3a.impl.RenameOperation",
       "org.apache.hadoop.fs.s3a.impl.NetworkBinding",
 
@@ -294,6 +289,8 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
 
       // Auditing
       "org.apache.hadoop.fs.s3a.audit.AuditManagerS3A",
+      // including the bit where auditing doesn't leak
+      "org.apache.hadoop.util.WeakReferenceMap",
 
       // etags
       "org.apache.hadoop.fs.EtagSource",
