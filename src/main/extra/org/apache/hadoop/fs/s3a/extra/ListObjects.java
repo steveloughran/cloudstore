@@ -331,7 +331,7 @@ public class ListObjects extends StoreEntryPoint {
    *
    * Thread safety: none.
    */
-  class ObjectListingIterator implements RemoteIterator<ObjectListing> {
+  static class ObjectListingIterator implements RemoteIterator<ObjectListing> {
 
     /** The path listed. */
     private final Path listPath;
