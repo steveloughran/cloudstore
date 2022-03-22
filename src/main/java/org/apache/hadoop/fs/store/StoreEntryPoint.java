@@ -133,7 +133,7 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable {
    */
   protected void print(String format, Object... args) {
     if (args.length == 0) {
-      out.print(format);
+      out.printf(format);
     } else {
       out.printf(format, args);
     }
