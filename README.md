@@ -17,7 +17,7 @@ kept out right now for various reasons
    That said, we try to make the core storediag command work with older versions,
    even while some of the other commands fail. 
  
-*Author*: Steve Loughran, Hadoop Committer.
+*Author*: Steve Loughran, Hadoop Committer, plus anyone else who has debugging needs
  
 ## Features
 
