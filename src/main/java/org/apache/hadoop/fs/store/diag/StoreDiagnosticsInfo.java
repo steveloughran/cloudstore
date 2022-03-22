@@ -81,6 +81,7 @@ public class StoreDiagnosticsInfo {
     }
     switch (scheme) {
     case "hdfs":
+    case "webhdfs":
       store = new HDFSDiagnosticsInfo(fsURI);
       break;
     case "s3a":
@@ -180,6 +181,15 @@ public class StoreDiagnosticsInfo {
    */
   public Object[][] getSelectedSystemProperties() {
       return EMPTY_OPTIONS;
+  }
+
+  /**
+   * should HTTPS/TLS binding info be printed?
+   * default is true.
+   * @return true for it to be logged.
+   */
+  public boolean printTLSInfo() {
+    return true;
   }
 
   /**

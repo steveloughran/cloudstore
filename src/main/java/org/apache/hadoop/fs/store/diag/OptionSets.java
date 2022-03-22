@@ -103,4 +103,20 @@ public class OptionSets {
       {"", false},
       // TODO: add the https proxy vars
   };
+
+  /**
+   * TLS System properties.
+   */
+  protected static final Object[][] TLS_SYSPROPS = {
+      {"cert.provider.x509v1", false},
+      {"https.protocols", false},
+      {"javax.net.ssl.keyStore", false},
+      {"javax.net.ssl.keyStorePassword", true},
+      {"javax.net.ssl.trustStore", false},
+      {"jdk.certpath.disabledAlgorithms", false},
+      {"jdk.tls.client.cipherSuites", false},
+      {"jdk.tls.disabledAlgorithms", false},
+      {"", false},
+  };
+
 }

@@ -39,12 +39,16 @@ import java.net.UnknownHostException;
 import java.nio.charset.Charset;
 import java.nio.file.AccessDeniedException;
 import java.security.CodeSource;
+import java.security.NoSuchAlgorithmException;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLParameters;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.CharStreams;
@@ -83,6 +87,7 @@ import static org.apache.hadoop.fs.store.diag.OptionSets.CLUSTER_OPTIONS;
 import static org.apache.hadoop.fs.store.diag.OptionSets.HADOOP_TOKEN;
 import static org.apache.hadoop.fs.store.diag.OptionSets.HADOOP_TOKEN_FILE_LOCATION;
 import static org.apache.hadoop.fs.store.diag.OptionSets.SECURITY_OPTIONS;
+import static org.apache.hadoop.fs.store.diag.OptionSets.TLS_SYSPROPS;
 
 @SuppressWarnings({"UseOfSystemOutOrSystemErr", "CharsetObjectCanBeUsed"})
 public class StoreDiag extends DiagnosticsEntryPoint {
@@ -187,6 +192,9 @@ public class StoreDiag extends DiagnosticsEntryPoint {
     probeRequiredAndOptionalClasses(hasOption(OPTIONAL));
     storeInfo.validateConfig(this, getConf());
     probeForFileSystemClass(storeInfo.getScheme());
+    if (storeInfo.printTLSInfo()) {
+      tlsInfo();
+    }
     probeAllEndpoints();
 
     // and the filesystem operations
@@ -210,6 +218,28 @@ public class StoreDiag extends DiagnosticsEntryPoint {
       probeOptionalEndpoints(storeInfo.listOptionalEndpointsToProbe(getConf()));
     } catch (URISyntaxException e) {
       LOG.warn("Bad URI", e);
+    }
+  }
+
+  /**
+   * Print information about TLS.
+   */
+  public void tlsInfo() {
+
+    lookupAndPrintSanitizedValues(TLS_SYSPROPS,
+        "TLS System Properties",
+        System::getProperty);
+    println();
+    try {
+      final SSLContext sslContext = SSLContext.getDefault();
+      final SSLParameters sslParameters = sslContext.getSupportedSSLParameters();
+      final String[] protocols = sslParameters.getProtocols();
+      heading("HTTPS supported protocols");
+      for (String protocol : protocols) {
+        println("    %s", protocol);
+      }
+    } catch (NoSuchAlgorithmException e) {
+      LOG.warn("failed to create SSL context", e);
     }
   }
 

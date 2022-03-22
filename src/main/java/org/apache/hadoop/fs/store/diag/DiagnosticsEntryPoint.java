@@ -220,9 +220,11 @@ public class DiagnosticsEntryPoint extends StoreEntryPoint implements Printout {
    * @param section section name
    * @param lookup lookup function
    */
-  private void lookupAndPrintSanitizedValues(Object[][] vars,
+  public void lookupAndPrintSanitizedValues(Object[][] vars,
       String section,
       Function<String, String> lookup) {
+    int index = 0;
+
     if (vars.length > 0) {
       heading(section);
       for (final Object[] option : vars) {
@@ -236,7 +238,7 @@ public class DiagnosticsEntryPoint extends StoreEntryPoint implements Printout {
         } else {
           value = "(unset)";
         }
-        println("%s = %s", var, value);
+        println("[%03d]  %s = %s", ++index, var, value);
       }
     }
   }
@@ -252,10 +254,12 @@ public class DiagnosticsEntryPoint extends StoreEntryPoint implements Printout {
   public void printOptions(String title, Configuration conf,
       Object[][] options)
       throws IOException {
+    int index = 0;
     if (options.length > 0) {
       heading(title);
       for (final Object[] option : options) {
         printOption(conf,
+            ++index,
             (String) option[0],
             (Boolean) option[1],
             (Boolean) option[2]);
@@ -275,19 +279,9 @@ public class DiagnosticsEntryPoint extends StoreEntryPoint implements Printout {
         ("\"" + value + "\"");
   }
 
-  /**
-   * Retrieve and print an option.
-   * Secrets are looked for through Configuration.getPassword(),
-   * rather than the simpler get(option).
-   * They are also sanitized in printing, so as to keep the secrets out
-   * of bug reports.
-   * @param conf source configuration
-   * @param key key
-   * @param secret is it secret?
-   * @param obfuscate should it be obfuscated?
-   */
   @Override
   public void printOption(Configuration conf,
+      final int index,
       final String key,
       final boolean secret,
       final boolean obfuscate)
@@ -319,7 +313,7 @@ public class DiagnosticsEntryPoint extends StoreEntryPoint implements Printout {
       }
       full = option + " " + source;
     }
-    println("%s = %s", key, full);
+    println("[%03d]  %s = %s", index, key, full);
   }
 
   /**

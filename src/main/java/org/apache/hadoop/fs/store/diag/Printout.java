@@ -73,11 +73,13 @@ public interface Printout {
    * They are also sanitized in printing, so as to keep the secrets out
    * of bug reports.
    * @param conf source configuration
+   * @param index index for a prefix
    * @param key key
    * @param secret is it secret?
    * @param obfuscate should it be obfuscated?
    */
   void printOption(Configuration conf,
+      int index,
       String key,
       boolean secret,
       boolean obfuscate)
