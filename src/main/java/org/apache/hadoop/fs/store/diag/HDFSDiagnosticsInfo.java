@@ -30,6 +30,8 @@ import org.slf4j.LoggerFactory;
 
 import org.apache.hadoop.conf.Configuration;
 
+import static org.apache.hadoop.fs.store.diag.CapabilityKeys.*;
+
 /**
  * HDFS Diagnostics.
  * DO NOT IMPORT ANY HDFS CLASSES.
@@ -128,6 +130,26 @@ public class HDFSDiagnosticsInfo extends StoreDiagnosticsInfo {
     }
   }
 
+  /**
+   * Path Capabilities different versions of the store may
+   * support.
+   */
+  public static final String[] optionalCapabilities = {
+      FS_ACLS,
+      FS_APPEND,
+      FS_CHECKSUMS,
+      FS_CONCAT,
+      FS_EXPERIMENTAL_BATCH_LISTING,
+      FS_LIST_CORRUPT_FILE_BLOCKS,
+      FS_PATHHANDLES,
+      FS_PERMISSIONS,
+      FS_SNAPSHOTS,
+      FS_STORAGEPOLICY,
+      FS_SYMLINKS,
+      FS_TRUNCATE,
+      FS_XATTRS
+  };
+
   @Override
   public String getName() {
     return "HDFS";
@@ -166,4 +188,7 @@ public class HDFSDiagnosticsInfo extends StoreDiagnosticsInfo {
     return uris;
   }
 
+  public String[] getOptionalPathCapabilites() {
+    return optionalCapabilities;
+  }
 }

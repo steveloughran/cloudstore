@@ -27,7 +27,7 @@ import static org.apache.hadoop.fs.store.StoreUtils.cat;
 import static org.apache.hadoop.fs.store.diag.OptionSets.STANDARD_ENV_VARS;
 
 /**
- * This is just a template to use when creating diagnostics bindings.
+ * Google GCS probes.
  */
 public class GCSDiagnosticsInfo extends StoreDiagnosticsInfo {
 
@@ -36,6 +36,8 @@ public class GCSDiagnosticsInfo extends StoreDiagnosticsInfo {
    */
   public static final String[] classnames = {
       "com.google.cloud.hadoop.fs.gcs.GoogleHadoopFS",
+      "com.google.cloud.hadoop.util.HadoopConfigurationProperty",
+      "com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem"
   };
 
   /**
@@ -145,6 +147,18 @@ public class GCSDiagnosticsInfo extends StoreDiagnosticsInfo {
       {"google.cloud.auth.service.account.enable", false, false},
       {"google.cloud.auth.service.account.json.keyfile", false, false},
       {"google.cloud.auth.service.account.keyfile", false, false},
+
+      /* committer */
+      {"mapreduce.outputcommitter.factory.scheme.gs", false, false},
+      {"mapreduce.fileoutputcommitter.marksuccessfuljobs", false, false},
+
+      {"mapreduce.manifest.committer.cleanup.parallel.delete", false, false},
+      {"mapreduce.manifest.committer.io.thread.count", false, false},
+      {"mapreduce.manifest.committer.validate.output", false, false},
+      {"mapreduce.manifest.committer.delete.target.files", false, false},
+      {"mapreduce.manifest.committer.summary.report.directory", false, false},
+
+
   };
   protected static final Object[][] ENV_VARS = {
       {"GOOGLE_APPLICATION_CREDENTIALS", false},

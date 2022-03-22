@@ -93,6 +93,7 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.azure.identity.transformer.service.principal.substitution.list", false, false},
       {"fs.azure.identity.transformer.skip.superuser.replacement", false, false},
       {"fs.azure.infinite-lease.directories", false, false},
+      {"fs.azure.io.rate.limit", false, false},
       {"fs.azure.io.read.tolerate.concurrent.append", false, false},
       {"fs.azure.io.retry.backoff.interval", false, false},
       {"fs.azure.io.retry.max.backoff.interval", false, false},
@@ -128,12 +129,16 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
       /* committer */
       {"mapreduce.outputcommitter.factory.scheme.abfs", false, false},
       {"mapreduce.fileoutputcommitter.marksuccessfuljobs", false, false},
+
+      {"mapreduce.manifest.committer.cleanup.parallel.delete", false, false},
+      {"mapreduce.manifest.committer.io.thread.count", false, false},
+      {"mapreduce.manifest.committer.validate.output", false, false},
+      {"mapreduce.manifest.committer.delete.target.files", false, false},
+      {"mapreduce.manifest.committer.summary.report.directory", false, false},
+
       {"mapreduce.fileoutputcommitter.algorithm.version.v1.experimental.mv.threads", false, false},
       {"mapreduce.fileoutputcommitter.algorithm.version.v1.experimental.parallel.task.commit", false, false},
       {"mapreduce.fileoutputcommitter.algorithm.version.v1.experimental.parallel.rename.recovery", false, false},
-      {"mapreduce.manifest.committer.cleanup.move.to.trash", false, false},
-      {"mapreduce.manifest.committer.io.thread.count", false, false},
-      {"mapreduce.manifest.committer.validate.output", false, false},
 
       /* Test setup. */
       {"fs.azure.test.account.name", false, false},
@@ -170,6 +175,7 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
       FS_APPEND,
       ETAGS_AVAILABLE,
       ETAGS_PRESERVED_IN_RENAME,
+      FS_XATTRS
   };
 
   public AbfsDiagnosticsInfo(final URI fsURI) {

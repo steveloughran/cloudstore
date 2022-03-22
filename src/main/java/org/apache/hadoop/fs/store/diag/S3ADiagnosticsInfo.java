@@ -26,6 +26,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,14 +36,26 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.LocalDirAllocator;
 import org.apache.hadoop.fs.Path;
 
-import static org.apache.hadoop.fs.s3a.Constants.*;
+import static org.apache.hadoop.fs.s3a.Constants.BUFFER_DIR;
+import static org.apache.hadoop.fs.s3a.Constants.DEFAULT_SECURE_CONNECTIONS;
+import static org.apache.hadoop.fs.s3a.Constants.INPUT_FADVISE;
+import static org.apache.hadoop.fs.s3a.Constants.INPUT_FADV_NORMAL;
+import static org.apache.hadoop.fs.s3a.Constants.INPUT_FADV_RANDOM;
+import static org.apache.hadoop.fs.s3a.Constants.INPUT_FADV_SEQUENTIAL;
+import static org.apache.hadoop.fs.s3a.Constants.SECURE_CONNECTIONS;
+import static org.apache.hadoop.fs.s3a.Constants.STORE_CAPABILITY_DIRECTORY_MARKER_AWARE;
 import static org.apache.hadoop.fs.store.StoreUtils.cat;
-import static org.apache.hadoop.fs.store.diag.CapabilityKeys.*;
+import static org.apache.hadoop.fs.store.diag.CapabilityKeys.ABORTABLE_STREAM;
+import static org.apache.hadoop.fs.store.diag.CapabilityKeys.ETAGS_AVAILABLE;
+import static org.apache.hadoop.fs.store.diag.CapabilityKeys.FS_CHECKSUMS;
+import static org.apache.hadoop.fs.store.diag.CapabilityKeys.FS_MULTIPART_UPLOADER;
+import static org.apache.hadoop.fs.store.diag.CapabilityKeys.S3_SELECT_CAPABILITY;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_DIRECTORY_MARKER_ACTION_DELETE;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_DIRECTORY_MARKER_ACTION_KEEP;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_DIRECTORY_MARKER_POLICY_AUTHORITATIVE;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_DIRECTORY_MARKER_POLICY_DELETE;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_DIRECTORY_MARKER_POLICY_KEEP;
+import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_MAGIC_COMMITTER;
 import static org.apache.hadoop.fs.store.diag.OptionSets.STANDARD_ENV_VARS;
 
 /**
@@ -63,6 +76,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
   //use a custom endpoint?
   public static final String ENDPOINT = "fs.s3a.endpoint";
   public static final String DEFAULT_ENDPOINT = "";
+  public static final String REGION = "fs.s3a.endpoint.region";
 
   //Enable path style access? Overrides default virtual hosting
   public static final String PATH_STYLE_ACCESS = "fs.s3a.path.style.access";
@@ -77,8 +91,8 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.s3a.encryption-algorithm", true, false},
       {"fs.s3a.encryption.key", true, true},
       {"fs.s3a.aws.credentials.provider", false, false},
-      {"fs.s3a.endpoint", false, false},
-      {"fs.s3a.endpoint.region", false, false},
+      {ENDPOINT, false, false},
+      {REGION, false, false},
       {"fs.s3a.signing-algorithm", false, false},
 
       /* Core Set */
@@ -179,6 +193,8 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
 
       /* delegation */
       {"fs.s3a.delegation.token.binding", false, false},
+      /* this is from ranger, it should have been in .ext */
+      {"fs.s3a.signature.cache.max.size", false, false},
 
       /* auditing */
       {"fs.s3a.audit.enabled", false, false},
@@ -187,7 +203,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.s3a.audit.reject.out.of.span.operations", false, false},
       {"fs.s3a.audit.request.handlers", false, false},
       {"fs.s3a.audit.service.classname", false, false},
-      {"", false, false},
+
 
 
       {"", false, false},
@@ -231,7 +247,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"com.amazonaws.services.s3.disableImplicitGlobalClients", false},
       {"com.amazonaws.services.s3.enableV4", false},
       {"com.amazonaws.services.s3.enforceV4", false},
-      {"", false},
+      {"org.wildfly.openssl.path", false},
       {"", false},
   };
 
@@ -380,8 +396,8 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
    * @return patched config.
    */
   @Override
-  public Configuration patchConfigurationToInitalization(final Configuration conf)
-      {
+  public Configuration patchConfigurationToInitalization(
+      final Configuration conf) {
     try {
       Class<?> aClass = getClass().getClassLoader()
           .loadClass("org.apache.hadoop.fs.s3a.S3AUtils");
@@ -470,7 +486,8 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
         temp.getParentFile());
     temp.delete();
 
-    String encryption = conf.get("fs.s3a.server-side-encryption-algorithm", "").trim();
+    String encryption =
+        conf.get("fs.s3a.server-side-encryption-algorithm", "").trim();
     String key = conf.get("fs.s3a.server-side-encryption.key", "").trim();
     boolean hasKey = !key.isEmpty();
     switch (encryption) {
@@ -493,7 +510,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
             + "The current user MUST have permissions to use this");
       } else {
         if (!key.startsWith("arn:aws:kms:")) {
-          printout.warn("The SSE-KMS key does not contain a full key" 
+          printout.warn("The SSE-KMS key does not contain a full key"
               + " reference of arn:aws:kms:...");
         }
       }
@@ -505,6 +522,99 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
     default:
       printout.warn("Unknown encryption method: %s", encryption);
     }
+
+    // validate endpoint to make sure it is not a URL.
+    printout.heading("Endpoint validation");
+    String endpoint = conf.getTrimmed(ENDPOINT, "").toLowerCase(Locale.ROOT);
+    String region = conf.getTrimmed(REGION, "").toLowerCase(Locale.ROOT);
+
+    boolean secureConnections = conf.getBoolean(SECURE_CONNECTIONS,
+        DEFAULT_SECURE_CONNECTIONS);
+    boolean pathStyleAccess = conf.getBoolean(PATH_STYLE_ACCESS, false);
+    printout.println("Endpoint is set to %s", endpoint);
+    if (endpoint.startsWith("https:") || endpoint.startsWith("http:")) {
+      printout.warn("Value of %s looks like a URL: %s", ENDPOINT, endpoint);
+      printout.println("It SHOULD normally be a hostname or IP address");
+      printout.println("Unless you have a private store with a non-standard port");
+      if (!pathStyleAccess) {
+        printout.warn("You should probably set %s to true", PATH_STYLE_ACCESS);
+      }
+    }
+    if (endpoint.isEmpty()) {
+      printout.println("Central us-east endpoint will be used"
+          + " this is less efficient for buckets in other regions");
+    } else if (endpoint.endsWith("amazonaws.cn")) {
+      printout.println("AWS china is in use");
+    } else if (!endpoint.contains(".amazonaws.")) {
+      printout.println(
+          "This does not appear to be an amazon endpoint, unless it is a VPN addresss.");
+      if (region.isEmpty()) {
+        printout.println("If this is a vpn link to aws, the AWS region MUST be set in %s",
+            REGION);
+      }
+
+      printout.println(
+          "For third party endpoints, verify the network port and http protocol"
+              + " options are valid.");
+      if (pathStyleAccess) {
+        printout.println("Path style access is enabled;"
+            + " this is normally the correct setting for third party stores.");
+      } else {
+        printout.warn("Path style access is disabled"
+            + " this is not the normal setting for third party stores.");
+        printout.warn("It requires DNS to resolve all bucket hostnames");
+        if (secureConnections) {
+          printout.warn(
+              "As https is in use, the certificates must also be wildcarded");
+        }
+      }
+    } else {
+      printout.println("Endpoint is an AWS S3 store");
+
+    }
+    String bucket = getFsURI().getHost();
+    if (bucket.contains(".")) {
+      printout.warn("The bucket name %s contains dot '.'", bucket);
+      printout.warn("AWS do not allow this on new buckets as it has problems");
+      printout.warn("In the S3A connector, per bucket options no longer work");
+      if (!pathStyleAccess && secureConnections) {
+        printout.warn("HTTPS certificate validation is probably broken");
+      }
+    }
+
+
+    // look at seek policy and warn of risks
+    final String fadvise =
+        conf.getTrimmed(INPUT_FADVISE, INPUT_FADV_NORMAL);
+    printout.heading("Seek policy: %s", fadvise);
+    switch (fadvise) {
+    case INPUT_FADV_NORMAL:
+      printout.println("Policy starts 'sequential' and switches to 'random' on"
+          + " a backwards seek");
+      printout.println("This is adaptive and suitable for most workloads");
+      break;
+    case INPUT_FADV_RANDOM:
+      printout.println(
+          "Stream is optimized for random IO, especially ORC and Parquet files");
+      printout.println(
+          "This policy is very bad for sequential datasets (text, CSV, avro, .gzipped");
+      printout.println("And for whole file operations (distcp, fs shell)");
+      printout.println("Recommended for ORC, Parquet data");
+      break;
+    case INPUT_FADV_SEQUENTIAL:
+      printout.println("This is the initial state of the %s policy",
+          INPUT_FADV_NORMAL);
+      printout.println(
+          "This policy is very bad for ORC and Parquet files which seek around");
+      printout.println(
+          "As seeks will break the active HTTP request and force a renegotiaton");
+      printout.println(
+          "Recommend: switch to normal for better handling of random IO");
+      break;
+    default:
+      printout.warn("unknown seek policy");
+    }
+
 
     // now print everything fs.s3a.ext, assuming that
     // there are no secrets in it. Don't do that.

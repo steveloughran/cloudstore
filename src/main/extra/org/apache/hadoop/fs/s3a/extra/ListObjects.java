@@ -96,10 +96,13 @@ public class ListObjects extends StoreEntryPoint {
     boolean quiet = hasOption(QUIET);
 
     boolean delete = hasOption(DELETE);
+    String deleteType = "";
     if (delete) {
+      deleteType = "objects";
       println("objects will be deleted");
       purge = false;
     } else if (purge) {
+      deleteType = "markers";
       println("directory markers will be purged");
     }
 
@@ -183,14 +186,17 @@ public class ListObjects extends StoreEntryPoint {
             kv.add(new DeleteObjectsRequest.KeyVersion(marker));
             if (kv.size() >= deletePageSize) {
               delete(s3, bucket, kv);
+              kv.clear();
             }
           }
         }
         if (purge) {
           delete(s3, bucket, kv);
         } else {
-          println("\nTo delete these markers, rerun with the option -%s",
-              PURGE);
+          if (!delete) {
+            println("\nTo delete these markers, rerun with the option -%s",
+                PURGE);
+          }
         }
       } else if (purge) {
         heading("No markers found to purge");
@@ -213,7 +219,7 @@ public class ListObjects extends StoreEntryPoint {
     if (kv.isEmpty()) {
       return;
     }
-    StoreDurationInfo duration = new StoreDurationInfo(LOG, "deleting %s markers",
+    StoreDurationInfo duration = new StoreDurationInfo(LOG, "deleting %s objects",
         kv.size());
     try {
       DeleteObjectsRequest request = new DeleteObjectsRequest(bucket)

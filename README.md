@@ -79,7 +79,7 @@ them to pick up tokens (not S3A, potentially other stores).
 ### Options
 
 ```
--r    Readonly filesystem: do not attempt writes
+-w    Attempt writes to as well as reads from the filesystem
 -t    Require delegation tokens to be issued
 -j    List the JARs
 -5    Print MD5 checksums of the jars listed (requires -j)
@@ -207,17 +207,36 @@ If this command fails with a `ClassNotFoundException` it can mean that the versi
 run against doesn't have this new API. The committer is therefore explicitly the classic `FileOutputCommitter`.
 
 
-* Good: ABFS container with the classic `FileOutputCommitter`
+*Good*: ABFS container with the `ManifestCommitter`
 
 ```
-> bin/hadoop jar cloudstore.jar committerinfo abfs://container@storage.dfs.core.windows.net/
-  2019-08-05 17:39:48,623 [main] INFO  commands.CommitterInfo (DurationInfo.java:<init>(53)) - Starting: Create committer
-  Committer factory for path abfs://container@storage.dfs.core.windows.net/ is org.apache.hadoop.mapreduce.lib.output.FileOutputCommitterFactory@316bcf94 (classname org.apache.hadoop.mapreduce.lib.output.FileOutputCommitterFactory)
-  2019-08-05 17:39:49,233 [main] INFO  output.FileOutputCommitter (FileOutputCommitter.java:<init>(141)) - File Output Committer Algorithm version is 2
-  2019-08-05 17:39:49,233 [main] INFO  output.FileOutputCommitter (FileOutputCommitter.java:<init>(156)) - FileOutputCommitter skip cleanup _temporary folders under output directory:false, ignore cleanup failures: false
-  Created committer of class org.apache.hadoop.mapreduce.lib.output.FileOutputCommitter: FileOutputCommitter{PathOutputCommitter{context=TaskAttemptContextImpl{JobContextImpl{jobId=job__0000}; taskId=attempt__0000_r_000000_1, status=''}; org.apache.hadoop.mapreduce.lib.output.FileOutputCommitter@54a7079e}; outputPath=abfs://container@storage.dfs.core.windows.net/, workPath=abfs://container@storage.dfs.core.windows.net/_temporary/0/_temporary/attempt__0000_r_000000_1, algorithmVersion=2, skipCleanup=false, ignoreCleanupFailures=false}
-  2019-08-05 17:39:49,234 [main] INFO  commands.CommitterInfo (DurationInfo.java:close(100)) - Create committer: duration 0:00:613
+
+hadoop jar cloudstore-1.0.jar committerinfo abfs://testing@ukwest.dfs.core.windows.net/
+
+2021-09-16 19:42:59,731 [main] INFO commands.CommitterInfo (StoreDurationInfo.java:<init>(53)) - Starting: Create committer Committer factory for path abfs://testing@ukwest.dfs.core.windows.net/ is org.apache.hadoop.mapreduce.lib.output.committer.manifest.ManifestCommitterFactory@3315d2d7
+(classname org.apache.hadoop.mapreduce.lib.output.committer.manifest.ManifestCommitterFactory)
+2021-09-16 19:43:00,897 [main] INFO manifest.ManifestCommitter (ManifestCommitter.java:<init>(144)) - Created ManifestCommitter with JobID job__0000, Task Attempt attempt__0000_r_000000_1 and destination abfs://testing@ukwest.dfs.core.windows.net/ Created committer of class org.apache.hadoop.mapreduce.lib.output.committer.manifest.ManifestCommitter:
+ManifestCommitter{ManifestCommitterConfig{destinationDir=abfs://testing@ukwest.dfs.core.windows.net/, role='task committer', taskAttemptDir=abfs://testing@ukwest.dfs.core.windows.net/_temporary/manifest_job__0000/0/_temporary/attempt__0000_r_000000_1, createJobMarker=true, jobUniqueId='job__0000', jobUniqueIdSource='JobID', jobAttemptNumber=0, jobAttemptId='job__0000_0', taskId='task__0000_r_000000', taskAttemptId='attempt__0000_r_000000_1'}, iostatistics=counters=();
+
+gauges=();
+
+minimums=();
+
+maximums=();
+
+means=(); }
+
+
 ```
+
+This is the new committer optimised for performance on abfs and gcs, where
+directory listings are performed in task commit, and the lists of files to
+rename and directories to create saved in manifest files.
+Job commit consists of loading the manifests and renaming all the files,
+operations which can all be parallelized.
+ABFS adds extra integration, including rate limiting of rename operations
+and recovery from rename failures under load. If your hadoop release
+supports this committer, do try it.
 
 *Danger*: S3A Bucket with the classic `FileOutputCommitter`
 
@@ -247,7 +266,7 @@ run against doesn't have this new API. The committer is therefore explicitly the
   2019-08-05 17:42:55,435 [main] INFO  commands.CommitterInfo (DurationInfo.java:close(100)) - Create committer: duration 0:01:874
 ```
 
-The log entry about a FileOutputCommitter appears because the Staging Committers use the cluster filesystem (HDFS, etc) to safely pass information from the workers to the application master.
+The log entry about a `FileOutputCommitter` appears because the Staging Committers use the cluster filesystem (HDFS, etc) to safely pass information from the workers to the application master.
 
 The classic filesystem committer v1 is used because it works well here: the filesystem is consistent and operations are fast. Neither of those conditions are met with AWS S3.
 

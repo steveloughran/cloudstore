@@ -659,6 +659,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
     FileStatus firstFile = null;
     int limit = LIST_LIMIT;
     boolean baseDirFound;
+    boolean accessDenied = false;
     try (StoreDurationInfo ignored = new StoreDurationInfo(LOG,
         "First %d entries of listStatus(%s)", limit, baseDir)) {
       RemoteIterator<FileStatus> statuses = fs.listStatusIterator(baseDir);
@@ -698,6 +699,9 @@ public class StoreDiag extends DiagnosticsEntryPoint {
             c,
             (c > ' ') ? Character.toString((char) c) : "(n/a)");
         in.close();
+      } catch(AccessDeniedException ex) {
+        println("client lacks access to file %s: %s", firstFilePath, ex);
+        accessDenied = true;
       } finally {
         IOUtils.closeStream(in);
       }
@@ -796,7 +800,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
     } catch (FileNotFoundException expected) {
       // expected this; ignore it.
     }
-    if (!attempWriteOperations) {
+    if (accessDenied || !attempWriteOperations) {
       println("Tests are read only");
       return;
     }
@@ -808,7 +812,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
     } catch (AccessDeniedException e) {
       println("Unable to create directory %s", dir);
       println("If this is a read-only filesystem, this is normal%n");
-      println("Please supply a R/W filesystem or use the CLI option " + READONLY);
+      println("Please supply a R/W filesystem or a path in this store which is writable");
       throw e;
     }
 
