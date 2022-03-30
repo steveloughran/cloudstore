@@ -48,6 +48,7 @@ public class OptionSets {
   protected static final Object[][] CLUSTER_OPTIONS = {
       {"fs.defaultFS", false, false},
       {"fs.default.name", false, false},
+      {"fs.creation.parallel.count", false, false},
       {"fs.permissions.umask-mode", false, false},
       {"fs.trash.classname", false, false},
       {"fs.trash.interval", false, false},
@@ -63,6 +64,7 @@ public class OptionSets {
       {"mapreduce.job.hdfs-servers.token-renewal.exclude", false, false},
       {"mapreduce.application.framework.path", false, false},
       {IOSTATISTICS_LOGGING_LEVEL, false, false},
+
       {"", false, false},
   };
 
@@ -100,14 +102,25 @@ public class OptionSets {
       {"SPARK_CONF_DIR", false},
       {"SPARK_SCALA_VERSION", false},
       {"YARN_CONF_DIR", false},
+      {"LD_LIBRARY_PATH", false},
       {"", false},
       // TODO: add the https proxy vars
+  };
+
+
+  /**
+   * Standard System properties.
+   */
+  protected static final Object[][] STANDARD_SYSPROPS = {
+      {"java.version", false},
+      {"", false},
   };
 
   /**
    * TLS System properties.
    */
   protected static final Object[][] TLS_SYSPROPS = {
+      {"java.version", false},
       {"cert.provider.x509v1", false},
       {"https.protocols", false},
       {"javax.net.ssl.keyStore", false},
@@ -116,6 +129,7 @@ public class OptionSets {
       {"jdk.certpath.disabledAlgorithms", false},
       {"jdk.tls.client.cipherSuites", false},
       {"jdk.tls.disabledAlgorithms", false},
+      {"jdk.tls.client.protocol", false},
       {"", false},
   };
 

@@ -32,6 +32,7 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.store.StoreUtils;
 
+import static org.apache.hadoop.fs.store.diag.OptionSets.STANDARD_SYSPROPS;
 import static org.apache.hadoop.fs.store.diag.StoreDiag.sortKeys;
 
 /**
@@ -180,7 +181,7 @@ public class StoreDiagnosticsInfo {
    * @return option array
    */
   public Object[][] getSelectedSystemProperties() {
-      return EMPTY_OPTIONS;
+      return STANDARD_SYSPROPS;
   }
 
   /**

@@ -55,6 +55,10 @@ public class EnvEntry {
     return String.format("export %s=\"%s\"%n", envVar, value);
   }
 
+  public String env() {
+    return String.format("%s=\"%s\"%n", envVar, value);
+  }
+
   public String fish() {
     return String.format("set -gx %s \"%s\";%n", envVar, value);
   }

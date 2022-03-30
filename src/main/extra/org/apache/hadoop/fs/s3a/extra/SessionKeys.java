@@ -208,6 +208,18 @@ public class SessionKeys extends StoreEntryPoint {
           .forEach(e ->
               fish.append(e.fish()));
       println(fish.toString());
+
+      // =================================================
+      heading("env");
+
+      StringBuilder env = new StringBuilder();
+      entries.stream()
+          .filter(EnvEntry::hasEnvVar)
+          .forEach(e ->
+              env.append(e.env()));
+      println(env.toString());
+
+
     } finally {
       if (credentials != null) {
         credentials.close();

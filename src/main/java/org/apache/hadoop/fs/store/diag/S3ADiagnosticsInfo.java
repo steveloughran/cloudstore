@@ -57,6 +57,7 @@ import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_DI
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_DIRECTORY_MARKER_POLICY_KEEP;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_MAGIC_COMMITTER;
 import static org.apache.hadoop.fs.store.diag.OptionSets.STANDARD_ENV_VARS;
+import static org.apache.hadoop.fs.store.diag.OptionSets.STANDARD_SYSPROPS;
 
 /**
  * Reminder: do not cast to any S3A FS class or reference Constants so
@@ -372,7 +373,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
 
   @Override
   public Object[][] getSelectedSystemProperties() {
-    return AWS_SYSPROPS;
+    return cat(AWS_SYSPROPS, STANDARD_SYSPROPS);
   }
 
   @Override
