@@ -163,6 +163,8 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
       "org.apache.hadoop.mapreduce.lib.output.committer.manifest.ManifestCommitter",
       "org.apache.hadoop.fs.EtagSource",
       "org.apache.hadoop.mapreduce.lib.output.ResilientCommitByRenameHelper",
+      // extra stuff from extension modules
+      "org.apache.knox.gateway.cloud.idbroker.abfs.AbfsIDBTokenIdentifier",
   };
 
   /**

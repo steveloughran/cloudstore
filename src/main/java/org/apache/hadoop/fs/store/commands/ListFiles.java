@@ -18,7 +18,6 @@
 
 package org.apache.hadoop.fs.store.commands;
 
-import java.io.Closeable;
 import java.io.InterruptedIOException;
 import java.util.List;
 import java.util.concurrent.RejectedExecutionException;

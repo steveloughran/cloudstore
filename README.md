@@ -410,7 +410,7 @@ hadoop jar  cloudstore.jar \
             s3a://guarded-table/example
 
 2019-07-31 21:48:34,963 [main] INFO  commands.PrintStatus (DurationInfo.java:<init>(53)) - Starting: get path status
-s3a://guarded-table/example	S3AFileStatus{path=s3a://guarded-table/example; isDirectory=false; length=0; replication=1; 
+s3a://guarded-table/example S3AFileStatus{path=s3a://guarded-table/example; isDirectory=false; length=0; replication=1; 
   blocksize=33554432; modification_time=1564602680000;
   access_time=0; owner=stevel; group=stevel;
   permission=rw-rw-rw-; isSymlink=false; hasAcl=false; isEncrypted=true; isErasureCoded=false}
@@ -445,10 +445,11 @@ which can do this as a deep paginated scan, is much, much faster.
 
 ```
 Usage: list
-  -D <key=value>	Define a property
-  -tokenfile <file>	Hadoop token file to load
-  -xmlfile <file>	XML config file to load
-  -limit <limit>	limit of files to list
+  -D <key=value>    Define a property
+  -tokenfile <file> Hadoop token file to load
+  -limit <limit>    limit of files to list
+  -verbose          print verbose output
+  -xmlfile <file>   XML config file to load
 ```
 
 Example: list some of the AWS public landsat store.
@@ -460,16 +461,16 @@ Listing up to 10 files under s3a://landsat-pds/
 2019-04-05 21:32:14,523 [main] INFO  tools.ListFiles (StoreDurationInfo.java:<init>(53)) - Starting: Directory list
 2019-04-05 21:32:14,524 [main] INFO  tools.ListFiles (StoreDurationInfo.java:<init>(53)) - Starting: First listing
 2019-04-05 21:32:15,754 [main] INFO  tools.ListFiles (DurationInfo.java:close(100)) - First listing: duration 0:01:230
-[1]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B1.TIF	63,786,465	stevel	stevel	[encrypted]
-[2]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B1.TIF.ovr	8,475,353	stevel	stevel	[encrypted]
-[3]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B10.TIF	35,027,713	stevel	stevel	[encrypted]
-[4]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B10.TIF.ovr	6,029,012	stevel	stevel	[encrypted]
-[5]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B10_wrk.IMD	10,213	stevel	stevel	[encrypted]
-[6]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B11.TIF	34,131,348	stevel	stevel	[encrypted]
-[7]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B11.TIF.ovr	5,891,395	stevel	stevel	[encrypted]
-[8]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B11_wrk.IMD	10,213	stevel	stevel	[encrypted]
-[9]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B1_wrk.IMD	10,213	stevel	stevel	[encrypted]
-[10]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B2.TIF	64,369,211	stevel	stevel	[encrypted]
+[1] s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B1.TIF 63,786,465 stevel stevel [encrypted]
+[2] s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B1.TIF.ovr 8,475,353 stevel stevel [encrypted]
+[3] s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B10.TIF 35,027,713 stevel stevel [encrypted]
+[4] s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B10.TIF.ovr 6,029,012 stevel stevel [encrypted]
+[5] s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B10_wrk.IMD 10,213 stevel stevel [encrypted]
+[6] s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B11.TIF 34,131,348 stevel stevel [encrypted]
+[7] s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B11.TIF.ovr 5,891,395 stevel stevel [encrypted]
+[8] s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B11_wrk.IMD 10,213 stevel stevel [encrypted]
+[9] s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B1_wrk.IMD 10,213 stevel stevel [encrypted]
+[10] s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B2.TIF 64,369,211 stevel stevel [encrypted]
 2019-04-05 21:32:15,757 [main] INFO  tools.ListFiles (DurationInfo.java:close(100)) - Directory list: duration 0:01:235
 
 Found 10 files, 124 milliseconds per file
@@ -485,12 +486,12 @@ The `-purge` option will remove all directory markers.
 
 ```
 Usage: listobjects <path>
-    -D <key=value>	Define a property
-    -limit <limit>	limit of files to list
-    -purge	purge directory markers
-    -tokenfile <file>	Hadoop token file to load
-    -verbose	print verbose output
-    -xmlfile <file>	XML config file to load
+    -D <key=value> Define a property
+    -limit <limit> limit of files to list
+    -purge         purge directory markers
+    -tokenfile <file> Hadoop token file to load
+    -verbose print verbose output
+    -xmlfile <file> XML config file to load
 ```
 
 ## Command `locatefiles`
@@ -507,11 +508,11 @@ Usage:
 ```
 hadoop jar cloudstore.jar locatefiles
 Usage: locatefiles
-  -D <key=value>	Define a property
-  -tokenfile <file>	Hadoop token file to load
-  -xmlfile <file>	XML config file to load
-  -threads <threads>	number of threads
-  -verbose	print verbose output
+  -D <key=value>    Define a property
+  -tokenfile <file> Hadoop token file to load
+  -xmlfile <file>   XML config file to load
+  -threads <threads> number of threads
+  -verbose          print verbose output
 [<path>|<pattern>]```
 ```
 
@@ -529,14 +530,14 @@ Locating files under s3a://landsat-pds/L8/001/002/LC80010022016230LGN00 with thr
 2019-07-29 16:48:19,844 [main] INFO  tools.LocateFiles (DurationInfo.java:<init>(53)) - Starting: List located files
 2019-07-29 16:48:19,847 [main] INFO  tools.LocateFiles (DurationInfo.java:<init>(53)) - Starting: LocateFileStatus execution
 2019-07-29 16:48:24,645 [main] INFO  tools.LocateFiles (DurationInfo.java:close(100)) - LocateFileStatus execution: duration 0:04:798
-[0001]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B1.TIF	63,786,465	stevel	stevel	[encrypted]
-[0002]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B1.TIF.ovr	8,475,353	stevel	stevel	[encrypted]
-[0003]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B10.TIF	35,027,713	stevel	stevel	[encrypted]
-[0004]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B10.TIF.ovr	6,029,012	stevel	stevel	[encrypted]
+[0001] s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B1.TIF 63,786,465 stevel stevel [encrypted]
+[0002] s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B1.TIF.ovr 8,475,353 stevel stevel [encrypted]
+[0003] s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B10.TIF 35,027,713 stevel stevel [encrypted]
+[0004] s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B10.TIF.ovr 6,029,012 stevel stevel [encrypted]
 ...
-[0039]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_thumb_large.jpg	270,427	stevel	stevel	[encrypted]
-[0040]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_thumb_small.jpg	12,873	stevel	stevel	[encrypted]
-[0041]	s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/index.html	3,780	stevel	stevel	[encrypted]
+[0039] s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_thumb_large.jpg 270,427 stevel stevel [encrypted]
+[0040] s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_thumb_small.jpg 12,873 stevel stevel [encrypted]
+[0041] s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/index.html 3,780 stevel stevel [encrypted]
 2019-07-29 16:48:24,652 [main] INFO  tools.LocateFiles (DurationInfo.java:close(100)) - List located files: duration 0:04:810
 
 Found 41 files, 117 milliseconds per file
@@ -545,48 +546,48 @@ Data size 923,518,099 bytes, 22,524,831 bytes per file
 Storage Statistics
 ==================
 
-directories_created	0
-directories_deleted	0
-files_copied	0
-files_copied_bytes	0
-files_created	0
-files_deleted	0
-files_delete_rejected	0
-fake_directories_created	0
-fake_directories_deleted	0
-ignored_errors	0
-op_copy_from_local_file	0
-op_create	0
-op_create_non_recursive	0
-op_delete	0
-op_exists	0
-op_get_delegation_token	0
-op_get_file_checksum	0
-op_get_file_status	2
-op_glob_status	1
-op_is_directory	0
-op_is_file	0
-op_list_files	0
-op_list_located_status	1
-op_list_status	0
-op_mkdirs	0
-op_open	0
-op_rename	0
-object_copy_requests	0
-object_delete_requests	0
-object_list_requests	3
-object_continue_list_requests	0
-object_metadata_requests	4
-object_multipart_initiated	0
-object_multipart_aborted	0
-object_put_requests	0
-object_put_requests_completed	0
-object_put_requests_active	0
-object_put_bytes	0
-object_put_bytes_pending	0
-object_select_requests	0
+directories_created 0
+directories_deleted 0
+files_copied 0
+files_copied_bytes 0
+files_created 0
+files_deleted 0
+files_delete_rejected 0
+fake_directories_created 0
+fake_directories_deleted 0
+ignored_errors 0
+op_copy_from_local_file 0
+op_create 0
+op_create_non_recursive 0
+op_delete 0
+op_exists 0
+op_get_delegation_token 0
+op_get_file_checksum 0
+op_get_file_status 2
+op_glob_status 1
+op_is_directory 0
+op_is_file 0
+op_list_files 0
+op_list_located_status 1
+op_list_status 0
+op_mkdirs 0
+op_open 0
+op_rename 0
+object_copy_requests 0
+object_delete_requests 0
+object_list_requests 3
+object_continue_list_requests 0
+object_metadata_requests 4
+object_multipart_initiated 0
+object_multipart_aborted 0
+object_put_requests 0
+object_put_requests_completed 0
+object_put_requests_active 0
+object_put_bytes 0
+object_put_bytes_pending 0
+object_select_requests 0
 ...
-store_io_throttled	0
+store_io_throttled 0
 ```
 
 You get the metrics with the `-verbose` option;
@@ -606,10 +607,10 @@ Requires a version of Hadoop with the `PathCapabilities` interface, which includ
 ```
 bin/hadoop jar $CLOUDSTORE pathcapability
 Usage: pathcapability [options] <capability> <path>
-    -D <key=value>	Define a property
-    -tokenfile <file>	Hadoop token file to load
-    -verbose	print verbose output
-    -xmlfile <file>	XML config file to load
+    -D <key=value> Define a property
+    -tokenfile <file> Hadoop token file to load
+    -verbose print verbose output
+    -xmlfile <file> XML config file to load
 ```
 
 ```
