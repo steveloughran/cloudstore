@@ -89,14 +89,23 @@ public class HDFSDiagnosticsInfo extends StoreDiagnosticsInfo {
       {"", false, false},
   };
 
-  public static final String[] classnames = {
+  public static final String[] CLASSNAMES = {
       "org.apache.hadoop.hdfs.HdfsConfiguration",
       "org.apache.hadoop.ipc.RPC",
       "org.apache.hadoop.security.UserGroupInformation",
       "org.apache.hadoop.hdfs.protocolPB.ClientNamenodeProtocolTranslatorPB",
       "org.apache.hadoop.hdfs.protocol.proto.ClientNamenodeProtocolProtos",
-      "com.google.protobuf.Message",
+  };
+
+  /**
+   * As protobuf is shaded on recent versions, different classnames
+   * may be required.
+   */
+  public static final String[] OPTIONAL_CLASSES = {
       "com.google.protobuf.ExtensionRegistry",
+      "org.apache.hadoop.shaded.com.google.protobuf.ExtensionRegistry",
+      "org.apache.hadoop.thirdparty.protobuf.ExtensionRegistry",
+      "",
   };
 
   public HDFSDiagnosticsInfo(final URI fsURI) {
@@ -172,7 +181,12 @@ public class HDFSDiagnosticsInfo extends StoreDiagnosticsInfo {
 
   @Override
   public String[] getClassnames(final Configuration conf) {
-    return classnames;
+    return CLASSNAMES;
+  }
+
+  @Override
+  public String[] getOptionalClassnames(final Configuration conf) {
+    return OPTIONAL_CLASSES;
   }
 
   @Override
