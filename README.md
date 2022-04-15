@@ -12,10 +12,8 @@ kept out right now for various reasons
 1. Faster release cycle, so the diagnostics can evolve to track features going
    into Hadoop-trunk.
 2. Fewer test requirements. This is naughty, but...
-3. Ability to compile against older versions. We've currently switched to Hadoop 3.x+
+3. Ability to compile against older versions. We've currently switched to Hadoop 3.3+
    due to the need to make API calls and operations not in older versions.
-   That said, we try to make the core storediag command work with older versions,
-   even while some of the other commands fail. 
  
 *Author*: Steve Loughran, Hadoop Committer, plus anyone else who has debugging needs
  
@@ -44,8 +42,7 @@ The main hadoop `hadoop fs` commands are written assuming a filesystem, where
 the output: we do not dare change the behaviour or output for this reason.
 * And the shell removes stack traces on failures, making it of "limited value"
 when things don't work. And object stores are fairly fussy to get working, 
-primarily due to authentication. (Note: HDFS needs Keberos Auth, which has its
-own issues &mdash; which is why I wrote KDiag).
+primarily due to authentication, classpath and network settings
 
 ## Command `storediag`
 
@@ -63,10 +60,10 @@ Finally, if things do fail, the printed configuration excludes the login secrets
 for safer reporting of issues in bug reports.
 
 ```bash
-hadoop jar cloudstore.jar storediag -r -j -5 s3a://landsat-pds/
-hadoop jar cloudstore.jar storediag --tokenfile mytokens.bin s3a://my-readwrite-bucket/
-hadoop jar cloudstore.jar storediag wasb://container@user/subdir
-hadoop jar cloudstore.jar storediag abfs://container@user/
+hadoop jar cloudstore-1.0.jar storediag -j -5 s3a://landsat-pds/
+hadoop jar cloudstore-1.0.jar storediag --tokenfile mytokens.bin s3a://my-readwrite-bucket/
+hadoop jar cloudstore-1.0.jar storediag wasb://container@user/subdir
+hadoop jar cloudstore-1.0.jar storediag abfs://container@user/
 ```
  
 The remote store is required to grant full R/W access to the caller, otherwise
@@ -93,7 +90,7 @@ a #-prefixed comment, a blank line, a classname, a resource (with "/" in).
 These are all loaded
 
 ```bash
-hadoop jar cloudstore.jar storediag -j -5 -required required.txt s3a://something/
+hadoop jar cloudstore-1.0.jar storediag -j -5 -required required.txt s3a://something/
 ```
 
 and with a `required.txt` listing things you require
@@ -123,7 +120,7 @@ Prints some of the low level diagnostics information about an S3 bucket which
 can be obtained via the AWS APIs.
 
 ```
-bin/hadoop jar cloudstore.jar \
+bin/hadoop jar cloudstore-1.0.jar \
             bucketstate \
             s3a://mybucket/
 
@@ -137,7 +134,7 @@ NONE
 If you don't have the permissions to read the bucket policy, you get a stack trace.
 
 ```
-hadoop jar cloudstore.jar \
+hadoop jar cloudstore-1.0.jar \
             bucketstate \
             s3a://mybucket/
 
@@ -183,7 +180,7 @@ mix of large and small files to download or uplaod.
 
 
 ```
-bin/hadoop jar cloudstore.jar cloudup \
+bin/hadoop jar cloudstore-1.0.jar cloudup \
  -s s3a://bucket/qelogs/ \
  -d localqelogs \
  -t 32 -o
@@ -192,7 +189,7 @@ bin/hadoop jar cloudstore.jar cloudup \
 and the other way
 
 ```
-bin/hadoop jar cloudstore.jar cloudup \
+bin/hadoop jar cloudstore-1.0.jar cloudup \
  -d localqelogs \
  -s s3a://bucket/qelogs/ \
  -t 32 -o  -l 4
@@ -241,7 +238,7 @@ supports this committer, do try it.
 *Danger*: S3A Bucket with the classic `FileOutputCommitter`
 
 ```
-> hadoop jar cloudstore.jar committerinfo s3a://landsat-pds/
+> hadoop jar cloudstore-1.0.jar committerinfo s3a://landsat-pds/
   2019-08-05 17:38:38,213 [main] INFO  commands.CommitterInfo (DurationInfo.java:<init>(53)) - Starting: Create committer
   2019-08-05 17:38:40,968 [main] WARN  commit.AbstractS3ACommitterFactory (S3ACommitterFactory.java:createTaskCommitter(90)) - Using standard FileOutputCommitter to commit work. This is slow and potentially unsafe.
   2019-08-05 17:38:40,968 [main] INFO  output.FileOutputCommitter (FileOutputCommitter.java:<init>(141)) - File Output Committer Algorithm version is 2
@@ -255,7 +252,7 @@ supports this committer, do try it.
 *Good* : S3A bucket with a staging committer:
 
 ```
->  hadoop jar  cloudstore.jar committerinfo s3a://hwdev-steve-ireland-new/
+>  hadoop jar  cloudstore-1.0.jar committerinfo s3a://hwdev-steve-ireland-new/
   2019-08-05 17:42:53,563 [main] INFO  commands.CommitterInfo (DurationInfo.java:<init>(53)) - Starting: Create committer
   Committer factory for path s3a://hwdev-steve-ireland-new/ is org.apache.hadoop.fs.s3a.commit.S3ACommitterFactory@3088660d (classname org.apache.hadoop.fs.s3a.commit.S3ACommitterFactory)
   2019-08-05 17:42:55,433 [main] INFO  output.FileOutputCommitter (FileOutputCommitter.java:<init>(141)) - File Output Committer Algorithm version is 1
@@ -274,7 +271,7 @@ The classic filesystem committer v1 is used because it works well here: the file
 *Good* : S3A bucket with a magic committer:
 
 ```
-> hadoop jar cloudstore.jar committerinfo s3a://hwdev-steve-ireland-new/
+> hadoop jar cloudstore-1.0.jar committerinfo s3a://hwdev-steve-ireland-new/
 
 2019-08-05 17:37:42,615 [main] INFO  commands.CommitterInfo (DurationInfo.java:<init>(53)) - Starting: Create committer
 2019-08-05 17:37:44,462 [main] INFO  commit.AbstractS3ACommitterFactory (S3ACommitterFactory.java:createTaskCommitter(83)) - Using committer magic to output data to s3a://hwdev-steve-ireland-new/
@@ -345,7 +342,7 @@ Usage: fetchdt <file> [-renewer <renewer>] [-r] [-p] <url1> ... <url999>
 Successful query of an S3A session delegation token.
 
 ```bash
-> bin/hadoop jar cloudstore.jar fetchdt -p -r file:/tmp/secrets.bin s3a://landsat-pds/
+> bin/hadoop jar cloudstore-1.0.jar fetchdt -p -r file:/tmp/secrets.bin s3a://landsat-pds/
   Collecting tokens for 1 filesystem to to file:/tmp/secrets.bin
   2018-12-05 17:50:44,276 INFO fs.FetchTokens: Starting: Fetching token for s3a://landsat-pds/
   2018-12-05 17:50:44,399 INFO impl.MetricsConfig: Loaded properties from hadoop-metrics2.properties
@@ -372,7 +369,7 @@ Successful query of an S3A session delegation token.
 Failure to get anything from fs, with `-r` option to require them
 
 ```bash
-> hadoop jar cloudstore.jar fetchdt -p -r file:/tmm/secrets.bin file:///
+> hadoop jar cloudstore-1.0.jar fetchdt -p -r file:/tmm/secrets.bin file:///
 
 Collecting tokens for 1 filesystem to to file:/tmm/secrets.bin
 2018-12-05 17:47:00,970 INFO fs.FetchTokens: Starting: Fetching token for file:/
@@ -384,7 +381,7 @@ No token for file:/
 Same command, without the -r. 
 
 ```bash
-> hadoop jar cloudstore.jar fetchdt -p file:/tmm/secrets.bin file:///
+> hadoop jar cloudstore-1.0.jar fetchdt -p file:/tmm/secrets.bin file:///
 Collecting tokens for 1 filesystem to to file:/tmp/secrets.bin
 2018-12-05 17:54:26,776 INFO fs.FetchTokens: Starting: Fetching token for file:/tmp
 No token for file:/tmp
@@ -405,7 +402,7 @@ Also prints the time to execute each operation (including instantiating the stor
 and with the `-verbose` option, the store statistics.
 
 ```
-hadoop jar  cloudstore.jar \
+hadoop jar  cloudstore-1.0.jar \
             filestatus  \
             s3a://guarded-table/example
 
@@ -427,7 +424,7 @@ it does ths with some better diagnostics of parsing problems.
 warning: at -verbose, this prints your private key
 
 ```
-hadoop jar $CLOUDSTORE gcscreds gs://bucket/
+hadoop jar cloudstore-1.0.jar gcscreds gs://bucket/
 
 key uses \n for separator -gs connector must convert to line endings
 2022-01-19 17:55:51,016 [main] INFO  gs.PemReader (PemReader.java:readNextSection(86)) - title match  at line 1
@@ -455,7 +452,7 @@ Usage: list
 Example: list some of the AWS public landsat store.
 
 ```bash
-> bin/hadoop jar cloudstore.jar list -limit 10 s3a://landsat-pds/
+> bin/hadoop jar cloudstore-1.0.jar list -limit 10 s3a://landsat-pds/
 
 Listing up to 10 files under s3a://landsat-pds/
 2019-04-05 21:32:14,523 [main] INFO  tools.ListFiles (StoreDurationInfo.java:<init>(53)) - Starting: Directory list
@@ -506,7 +503,7 @@ tree with the actual performance you are likely to see during query planning.
 Usage:
 
 ```
-hadoop jar cloudstore.jar locatefiles
+hadoop jar cloudstore-1.0.jar locatefiles
 Usage: locatefiles
   -D <key=value>    Define a property
   -tokenfile <file> Hadoop token file to load
@@ -519,7 +516,7 @@ Usage: locatefiles
 Example
 
 ```
-> hadoop jar cloudstore.jar locatefiles \
+> hadoop jar cloudstore-1.0.jar locatefiles \
  -threads 8 -verbose \
  s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/
 
@@ -605,7 +602,7 @@ Probes a filesystem for offering a specific named capability on the given path.
 Requires a version of Hadoop with the `PathCapabilities` interface, which includes Hadoop 3.3 onwards.
 
 ```
-bin/hadoop jar $CLOUDSTORE pathcapability
+bin/hadoop jar cloudstore-1.0.jar pathcapability
 Usage: pathcapability [options] <capability> <path>
     -D <key=value> Define a property
     -tokenfile <file> Hadoop token file to load
@@ -613,8 +610,8 @@ Usage: pathcapability [options] <capability> <path>
     -xmlfile <file> XML config file to load
 ```
 
-```
-hadoop jar $CLOUDSTORE pathcapability fs.s3a.capability.select.sql s3a://landsat-pds/
+```bash
+hadoop jar cloudstore-1.0.jar pathcapability fs.s3a.capability.select.sql s3a://landsat-pds/
 
 Using filesystem s3a://landsat-pds
 Path s3a://landsat-pds/ has capability fs.s3a.capability.select.sql
@@ -632,8 +629,8 @@ Invokes the AWS region provider chain to see if the client can automatically det
 This is how all AWS service clients determine the region for sending/signing requests if
 not explicitly set.
 
-```
-hadoop jar $CLOUDSTORE regions
+```bash
+hadoop jar cloudstore-1.0.jar regions
 
 Determining AWS region for SDK clients
 ======================================
@@ -727,7 +724,7 @@ There is no formal support for this. Sorry.
 ## Building
 
 To build against the latest hadoop 3.3
-```
+```bash
 mvn clean install -Phadoop-3.3 -Pextra
 ```
 
@@ -736,7 +733,7 @@ The `extra` profile pulls in extra source which calls some S3A FS API calls not 
 
 To build against Hadoop 3.2
 
-```
+```bash
 mvn clean install -Phadoop-3.2
 ```
 
