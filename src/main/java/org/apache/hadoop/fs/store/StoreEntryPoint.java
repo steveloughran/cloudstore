@@ -416,7 +416,7 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable {
 
   /**
    * Set up the config with CLI config options.
-   * XML file, -D and, if -verbose, with abfs/s3a
+   * XML file, -D and abfs/s3a
    * to log their IOStats at debug.
    * @return a new config.
    * @throws FileNotFoundException XML file was requested but not found.
@@ -430,9 +430,8 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable {
 
     maybeAddXMLFileOption(conf, XMLFILE);
     maybePatchDefined(conf, DEFINE);
-    if (isVerbose()) {
-      conf.set(IOSTATISTICS_LOGGING_LEVEL, "info");
-    }
+    conf.set(IOSTATISTICS_LOGGING_LEVEL, "info");
+
     return conf;
   }
 

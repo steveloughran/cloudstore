@@ -398,4 +398,59 @@ public class StoreDiagnosticsInfo {
       final FileSystem filesystem) throws IOException {
     
   }
+
+  protected void performanceHints(
+      Printout printout,
+      Configuration conf) {
+
+  }
+
+  /**
+   * Provide a hint.
+   * @param printout destination
+   * @param condition condition to trigger the hint
+   * @param text string to format
+   * @param args varargs
+   * @return true if the hint was displayed
+   */
+  protected boolean hint(
+      final Printout printout,
+      boolean condition,
+      String text,
+      Object... args) {
+    if (condition) {
+      printout.println(text, args);
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Hint when the size is too low/unset.
+   * @param printout destination
+   * @param conf config to probe
+   * @param option option to resolve
+   * @param recommend recommended value
+   * @return true if a hint was made
+   */
+  protected boolean sizeHint(
+      final Printout printout,
+      final Configuration conf,
+      String option,
+      long recommend) {
+
+    // print a message if unset
+    if (hint(printout,
+        conf.get(option) != null,
+        "Option %s is unset. Recommend a value of at least %d",
+        option, recommend)) {
+      return true;
+    }
+    // if set, check the value
+    long val = conf.getLong(option, 0);
+    return hint(printout,
+        val < recommend,
+        "Option %s has value %d. Recommend a value of at least %d",
+        option, val, recommend);
+  }
 }

@@ -82,6 +82,9 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
   //Enable path style access? Overrides default virtual hosting
   public static final String PATH_STYLE_ACCESS = "fs.s3a.path.style.access";
 
+  public static final String DIRECTORY_MARKER_RETENTION =
+      "fs.s3a.directory.marker.retention";
+
   private static final Object[][] options = {
       /* Core auth */
       {"fs.s3a.access.key", true, true},
@@ -115,7 +118,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.s3a.connection.request.timeout", false, false},
       {"fs.s3a.connection.timeout", false, false},
       {"fs.s3a.custom.signers", false, false},
-      {"fs.s3a.directory.marker.retention", false, false},
+      {DIRECTORY_MARKER_RETENTION, false, false},
       {"fs.s3a.downgrade.syncable.exceptions", false, false},
       {"fs.s3a.etag.checksum.enabled", false, false},
       {"fs.s3a.experimental.input.fadvise", false, false},
@@ -634,4 +637,31 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
           filesystem.getClass());
     }
   }
+
+
+  @Override
+  protected void performanceHints(
+      final Printout printout,
+      final Configuration conf) {
+
+    printout.heading("Performance Hints");
+    int threads = 512;
+    sizeHint(printout, conf,
+        "fs.s3a.threads.max", threads);
+    sizeHint(printout, conf,
+        "fs.s3a.connection.maximum", threads * 2);
+    sizeHint(printout, conf,
+        "fs.s3a.committer.threads", 256);
+
+    hint(printout,
+        !"keep".equals(conf.get(DIRECTORY_MARKER_RETENTION,"")),
+        "If backwards compatibility is not an issue, set %s to keep",
+        DIRECTORY_MARKER_RETENTION);
+    hint(printout,
+        "org.apache.hadoop.fs.s3a.s3guard.DynamoDBMetadataStore"
+            .equals(conf.get("fs.s3a.metadatastore.impl","")),
+        "S3Guard is no longer needed -decommission it");
+
+  }
+
 }

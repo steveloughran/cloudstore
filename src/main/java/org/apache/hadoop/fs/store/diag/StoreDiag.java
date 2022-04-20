@@ -191,6 +191,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
     printStoreConfiguration();
     probeRequiredAndOptionalClasses(hasOption(OPTIONAL));
     storeInfo.validateConfig(this, getConf());
+    printPerformanceHints();
     probeForFileSystemClass(storeInfo.getScheme());
     if (storeInfo.printTLSInfo()) {
       tlsInfo();
@@ -253,6 +254,13 @@ public class StoreDiag extends DiagnosticsEntryPoint {
     printOptions("Security Options", conf, SECURITY_OPTIONS);
     printOptions("Selected Configuration Options",
         conf, storeInfo.getFilesystemOptions());
+  }
+
+  /**
+   * print any performance hints.
+   */
+  private void printPerformanceHints() {
+    storeInfo.performanceHints(this, getConf());
   }
 
   public boolean printOSVersion() throws IOException {
