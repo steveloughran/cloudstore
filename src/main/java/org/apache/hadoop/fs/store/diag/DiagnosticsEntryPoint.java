@@ -345,7 +345,7 @@ public class DiagnosticsEntryPoint extends StoreEntryPoint implements Printout {
   }
 
   public void probeRequiredClasses(final String... requiredClasses)
-      throws ClassNotFoundException {
+      throws ClassNotFoundException, FileNotFoundException {
     if (requiredClasses.length > 0) {
       heading("Required Classes");
       println("All these classes must be on the classpath");
@@ -400,17 +400,24 @@ public class DiagnosticsEntryPoint extends StoreEntryPoint implements Printout {
    * @throws ClassNotFoundException if the class was not found.
    */
   public void probeRequiredClass(final String classname)
-      throws ClassNotFoundException {
+      throws ClassNotFoundException, FileNotFoundException {
     String name = classname.trim();
     if (name.isEmpty()) {
       return;
     }
     println("class: %s", name);
+    probeClassResource(name, true);
     Class<?> clazz = this.getClass().getClassLoader().loadClass(name);
     CodeSource source = clazz.getProtectionDomain().getCodeSource();
     if (source != null) {
       println("       %s", source.getLocation());
     }
+  }
+
+  private void probeClassResource(final String classname,
+      final boolean required) throws FileNotFoundException {
+    String resource = classname.replace('.','/') + ".class";
+    probeResource(resource, required);
   }
 
   /**
@@ -422,7 +429,7 @@ public class DiagnosticsEntryPoint extends StoreEntryPoint implements Printout {
     try {
       probeRequiredClass(classname);
       return true;
-    } catch (ClassNotFoundException e) {
+    } catch (Exception e) {
       println("       Not found on classpath: %s", classname);
       return false;
     }

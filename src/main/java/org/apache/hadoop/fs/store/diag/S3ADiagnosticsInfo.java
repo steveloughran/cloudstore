@@ -318,8 +318,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       // extra stuff from extension modules
       "org.apache.knox.gateway.cloud.idbroker.s3a.IDBDelegationTokenBinding",
       "org.wildfly.openssl.OpenSSLProvider",
-
-      "",
+      "org.apache.ranger.raz.hook.s3.RazS3ADelegationTokenIdentifier",
       "",
 
   };
@@ -654,7 +653,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
         "fs.s3a.committer.threads", 256);
 
     hint(printout,
-        !"keep".equals(conf.get(DIRECTORY_MARKER_RETENTION,"")),
+        !"keep".equals(conf.get(DIRECTORY_MARKER_RETENTION, "")),
         "If backwards compatibility is not an issue, set %s to keep",
         DIRECTORY_MARKER_RETENTION);
     hint(printout,

@@ -96,13 +96,8 @@ public class JobTokens extends StoreEntryPoint {
         urls.size(),
         plural(urls.size()),
         dest);
-    Credentials retrieved = self.doAs(
-        new PrivilegedExceptionAction<Credentials>() {
-          @Override
-          public Credentials run() throws Exception {
-            return saveTokens(conf, dest, renewer, required, urls);
-          }
-        });
+    Credentials retrieved = self.doAs((PrivilegedExceptionAction<Credentials>) () ->
+            saveTokens(conf, dest, renewer, required, urls));
     int n = retrieved.numberOfTokens();
     if (n > 0) {
       println("Saved %d token%s to %s", n, plural(n), dest);
@@ -135,11 +130,8 @@ public class JobTokens extends StoreEntryPoint {
              new StoreDurationInfo(LOG, "Fetching tokens for %s", hosts)) {
 
       TokenCache.obtainTokensForNamenodes(cred, paths, conf);
-      final Collection<Token<? extends TokenIdentifier>> tokens
-          = cred.getAllTokens();
-      for (Token<?> token : tokens) {
-        println("Fetched token: %s", token);
-      }
+      final Collection<Token<? extends TokenIdentifier>>
+          tokens = dumpTokens(cred);
 
       if (tokens.isEmpty()) {
         println("No tokens collected");
@@ -159,9 +151,6 @@ public class JobTokens extends StoreEntryPoint {
     return cred;
   }
 
-  private String plural(int n) {
-    return n == 1 ? "" : "s";
-  }
 
   @Override
   public final int run(String[] args) throws Exception {

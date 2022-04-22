@@ -45,6 +45,7 @@ import org.apache.hadoop.fs.shell.CommandFormat;
 import org.apache.hadoop.fs.statistics.IOStatistics;
 import org.apache.hadoop.fs.statistics.IOStatisticsSource;
 */
+import org.apache.hadoop.fs.store.commands.JobTokens;
 import org.apache.hadoop.io.IOUtils;
 import org.apache.hadoop.security.Credentials;
 import org.apache.hadoop.security.UserGroupInformation;
@@ -90,6 +91,29 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable {
 
   public static String optusage(String opt, String second, String text) {
     return String.format("\t-%s <%s>\t%s%n", opt, second, text);
+  }
+
+  /**
+   * Dump token info from the credentials, with resilience to failure
+   * @param cred credentials
+   * @return the tokens
+   */
+  protected Collection<Token<? extends TokenIdentifier>> dumpTokens(final Credentials cred) {
+    final Collection<Token<? extends TokenIdentifier>> tokens
+        = cred.getAllTokens();
+    for (Token<?> token : tokens) {
+      try {
+        println("Fetched token: %s", token);
+      } catch (Exception e) {
+        warn("Failed to unmarshall token %s", e);
+        LOG.warn("exception", e);
+      }
+    }
+    return tokens;
+  }
+
+  protected String plural(int n) {
+    return n == 1 ? "" : "s";
   }
 
   @Override
