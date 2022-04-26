@@ -114,13 +114,21 @@ Missing file or resource will result in an error and the command failing.
 The comments are printed too! This means you can use them in the reports.
 
 
+## Command `bandwidth`
+
+Measure upload/download bandwidth.
+
+```bash
+hadoop jar cloudstore-1.0.jar  bandwidth 1m s3a://stevel-london/something
+```
+
 ## Command `bucketstate`
 
 Prints some of the low level diagnostics information about an S3 bucket which
 can be obtained via the AWS APIs.
 
 ```
-bin/hadoop jar cloudstore-1.0.jar \
+hadoop jar cloudstore-1.0.jar \
             bucketstate \
             s3a://mybucket/
 
@@ -173,7 +181,7 @@ Algorithm
 1. the program waits for everything to complete.
 1. Source and dest FS stats are printed.
 
-This is not discp run across a cluster; it's a single process with some threads. 
+This is not `distcp` run across a cluster; it's a single process with some threads. 
 Works best for reading lots of small files from an object store or when you have a 
 mix of large and small files to download or uplaod.
 
