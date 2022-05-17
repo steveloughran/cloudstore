@@ -508,6 +508,10 @@ It can also be used in comparison with the `list` command to compare the
 difference between the maximum performance of scanning the directory
 tree with the actual performance you are likely to see during query planning.
 
+To control the number of threads used to scan directories in production
+jobs, set the value in the configuration option
+`mapreduce.input.fileinputformat.list-status.num-threads` 
+
 Usage:
 
 ```

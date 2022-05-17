@@ -96,7 +96,6 @@ public class StoreDiag extends DiagnosticsEntryPoint {
 
   private static final String HELLO = "Hello";
 
-
   public static final String LOGDUMP = "l";
   public static final String OPTIONAL = "o";
   public static final String READONLY = "r";

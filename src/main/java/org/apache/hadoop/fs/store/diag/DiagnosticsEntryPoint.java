@@ -72,7 +72,7 @@ public class DiagnosticsEntryPoint extends StoreEntryPoint implements Printout {
    * @return new set of sorted keys
    */
   public static Set<String> sortKeys(final Iterable<?> keys) {
-    TreeSet<String> sorted = new TreeSet<>();
+    Set<String> sorted = new TreeSet<>();
     for (Object k : keys) {
       sorted.add(k.toString());
     }

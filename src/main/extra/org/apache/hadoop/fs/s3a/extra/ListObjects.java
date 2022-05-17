@@ -107,9 +107,11 @@ public class ListObjects extends StoreEntryPoint {
     }
 
     List<String> markers = new ArrayList<>();
+    S3AFileSystem fs = null;
     final Path source = new Path(paths.get(0));
-    try (StoreDurationInfo duration = new StoreDurationInfo(LOG, "listobjects")) {
-      S3AFileSystem fs = (S3AFileSystem) source.getFileSystem(conf);
+    try (StoreDurationInfo duration = new StoreDurationInfo(LOG,
+        "listobjects")) {
+      fs = (S3AFileSystem) source.getFileSystem(conf);
       String bucket = ((S3AFileSystem) fs).getBucket();
       final AmazonS3 s3 = fs.getAmazonS3ClientForTesting("listobjects");
       String key = pathToKey(source);
@@ -121,7 +123,8 @@ public class ListObjects extends StoreEntryPoint {
       List<String> prefixes = new ArrayList<>();
       int objectCount = 0;
       long size = 0;
-      List<DeleteObjectsRequest.KeyVersion> objectsToDelete = new ArrayList<>(deletePageSize);
+      List<DeleteObjectsRequest.KeyVersion> objectsToDelete =
+          new ArrayList<>(deletePageSize);
 
       heading("Listing objects under %s", source);
       while (objects.hasNext()) {
@@ -142,7 +145,8 @@ public class ListObjects extends StoreEntryPoint {
           if (delete) {
             objectsToDelete.add(new DeleteObjectsRequest.KeyVersion(k));
             if (objectsToDelete.size() >= deletePageSize) {
-              final List<DeleteObjectsRequest.KeyVersion> keyVersions = objectsToDelete;
+              final List<DeleteObjectsRequest.KeyVersion> keyVersions =
+                  objectsToDelete;
               objectsToDelete = new ArrayList<>(deletePageSize);
               delete(s3, bucket, keyVersions);
             }
@@ -162,7 +166,8 @@ public class ListObjects extends StoreEntryPoint {
       }
       println("");
       String action = delete ? "Deleted" : "Found";
-      println("%s %d objects with total size %d bytes", action, objectCount, size);
+      println("%s %d objects with total size %d bytes", action, objectCount,
+          size);
       if (!prefixes.isEmpty()) {
         println("");
         heading("%s prefixes", prefixes.size());
@@ -201,7 +206,9 @@ public class ListObjects extends StoreEntryPoint {
       } else if (purge) {
         heading("No markers found to purge");
       }
+    } finally {
       maybeDumpStorageStatistics(fs);
+
     }
 
     return 0;

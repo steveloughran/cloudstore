@@ -208,7 +208,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.s3a.audit.request.handlers", false, false},
       {"fs.s3a.audit.service.classname", false, false},
 
-
+      {"fs.s3a.accesspoint.arn", false, false},
 
       {"", false, false},
 
@@ -229,7 +229,13 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"AWS_EC2_METADATA_DISABLED", false},
       {"AWS_EC2_METADATA_SERVICE_ENDPOINT", false},
       {"AWS_MAX_ATTEMPTS", false},
+      {"AWS_METADATA_SERVICE_TIMEOUT", false},
       {"AWS_RETRY_MODE", false},
+      {"AWS_CONFIG_FILE", false},
+      {"", false},
+      {"", false},
+      {"", false},
+      {"", false},
       {"", false},
   };
 
@@ -248,10 +254,16 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"com.amazonaws.sdk.enableDefaultMetrics", false},
       {"com.amazonaws.sdk.enableInRegionOptimizedMode", false},
       {"com.amazonaws.sdk.enableThrottledRetry", false},
+      {"com.amazonaws.sdk.enableRuntimeProfiling", false},
+      {"com.amazonaws.sdk.disableEc2Metadata", false},
+      {"com.amazonaws.sdk.maxAttempts", false},
+      {"com.amazonaws.sdk.retryMode", false},
+      {"com.amazonaws.sdk.s3.defaultStreamBufferSize", false},
       {"com.amazonaws.services.s3.disableImplicitGlobalClients", false},
       {"com.amazonaws.services.s3.enableV4", false},
       {"com.amazonaws.services.s3.enforceV4", false},
       {"org.wildfly.openssl.path", false},
+      {"", false},
       {"", false},
   };
 
