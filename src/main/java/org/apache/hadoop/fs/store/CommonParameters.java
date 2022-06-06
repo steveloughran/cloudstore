@@ -23,12 +23,22 @@ package org.apache.hadoop.fs.store;
  */
 public final class CommonParameters {
 
+  /** {@value}. */
   public static final String TOKENFILE = "tokenfile";
 
+  /** {@value}. */
   public static final String XMLFILE = "xmlfile";
 
+  /** file for system properties {@value}. */
+  public static final String SYSPROPFILE = "syspropfile";
+
+  /** Single system property {@value}. */
+  public static final String SYSPROP = "sysprop";
+
+  /** {@value}. */
   public static final String DEFINE = "D";
 
+  /** {@value}. */
   public static final String VERBOSE = "verbose";
 
   /**
@@ -36,8 +46,10 @@ public final class CommonParameters {
    */
   public static final String LOGFILE = "logfile";
 
+  /** {@value}. */
   public static final String LIMIT = "limit";
 
+  /** {@value}. */
   public static final String THREADS = "threads";
 
   private CommonParameters() {

@@ -50,16 +50,21 @@ public class StoreDiagnosticsInfo {
 
   private final URI fsURI;
 
-  public StoreDiagnosticsInfo(final URI fsURI) {
+  private final Printout output;
+
+  public StoreDiagnosticsInfo(final URI fsURI, final Printout output) {
     this.fsURI = fsURI;
+    this.output = output;
   }
 
   /**
    * Bind the diagnostics to a store.
    * @param fsURI filesystem URI
+   * @param output
    * @return the diagnostics info provider.
    */
-  public static StoreDiagnosticsInfo bindToStore(URI fsURI)
+  public static StoreDiagnosticsInfo bindToStore(URI fsURI,
+      final Printout output)
       throws IOException {
     StoreDiagnosticsInfo store;
     StoreUtils.checkArgument(fsURI != null, "Null fsURI argument");
@@ -83,26 +88,26 @@ public class StoreDiagnosticsInfo {
     switch (scheme) {
     case "hdfs":
     case "webhdfs":
-      store = new HDFSDiagnosticsInfo(fsURI);
+      store = new HDFSDiagnosticsInfo(fsURI, output);
       break;
     case "s3a":
-      store = new S3ADiagnosticsInfo(fsURI);
+      store = new S3ADiagnosticsInfo(fsURI, output);
       break;
     case "adl":
     case "adls":
-      store = new ADLDiagnosticsInfo(fsURI);
+      store = new ADLDiagnosticsInfo(fsURI, output);
       break;
     case "wasb":
     case "wasbs":
-      store = new WasbDiagnosticsInfo(fsURI);
+      store = new WasbDiagnosticsInfo(fsURI, output);
       break;
     case "abfs":
     case "abfss":
-      store = new AbfsDiagnosticsInfo(fsURI);
+      store = new AbfsDiagnosticsInfo(fsURI, output);
       break;
     case "gs":
     case "gcs":
-      store = new GCSDiagnosticsInfo(fsURI);
+      store = new GCSDiagnosticsInfo(fsURI, output);
       break;
 
     case "s3":
@@ -115,9 +120,13 @@ public class StoreDiagnosticsInfo {
       throw new IllegalArgumentException("Store URI unsuppported: " + scheme);
     default:
       // any other FS: create the generic one
-      store = new StoreDiagnosticsInfo(fsURI);
+      store = new StoreDiagnosticsInfo(fsURI, output);
     }
     return store;
+  }
+
+  public Printout getOutput() {
+    return output;
   }
 
   /**

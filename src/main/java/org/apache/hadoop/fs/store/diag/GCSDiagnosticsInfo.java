@@ -164,8 +164,8 @@ public class GCSDiagnosticsInfo extends StoreDiagnosticsInfo {
       {"GOOGLE_APPLICATION_CREDENTIALS", false},
       {"", false},
   };
-  public GCSDiagnosticsInfo(final URI fsURI) {
-    super(fsURI);
+  public GCSDiagnosticsInfo(final URI fsURI, final Printout output) {
+    super(fsURI, output);
   }
 
   @Override

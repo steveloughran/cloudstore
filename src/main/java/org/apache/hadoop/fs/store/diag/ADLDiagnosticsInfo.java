@@ -47,8 +47,8 @@ public class ADLDiagnosticsInfo extends StoreDiagnosticsInfo {
       "com.microsoft.azure.datalake.store.ADLStoreClient",
   };
 
-  public ADLDiagnosticsInfo(final URI fsURI) {
-    super(fsURI);
+  public ADLDiagnosticsInfo(final URI fsURI, final Printout output) {
+    super(fsURI, output);
   }
 
   @Override

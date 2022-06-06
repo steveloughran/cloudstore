@@ -35,6 +35,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.LocalDirAllocator;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.store.StoreExitException;
 
 import static org.apache.hadoop.fs.s3a.Constants.BUFFER_DIR;
 import static org.apache.hadoop.fs.s3a.Constants.DEFAULT_SECURE_CONNECTIONS;
@@ -43,7 +44,6 @@ import static org.apache.hadoop.fs.s3a.Constants.INPUT_FADV_NORMAL;
 import static org.apache.hadoop.fs.s3a.Constants.INPUT_FADV_RANDOM;
 import static org.apache.hadoop.fs.s3a.Constants.INPUT_FADV_SEQUENTIAL;
 import static org.apache.hadoop.fs.s3a.Constants.SECURE_CONNECTIONS;
-import static org.apache.hadoop.fs.s3a.Constants.STORE_CAPABILITY_DIRECTORY_MARKER_AWARE;
 import static org.apache.hadoop.fs.store.StoreUtils.cat;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.ABORTABLE_STREAM;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.ETAGS_AVAILABLE;
@@ -52,6 +52,7 @@ import static org.apache.hadoop.fs.store.diag.CapabilityKeys.FS_MULTIPART_UPLOAD
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.S3_SELECT_CAPABILITY;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_DIRECTORY_MARKER_ACTION_DELETE;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_DIRECTORY_MARKER_ACTION_KEEP;
+import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_DIRECTORY_MARKER_AWARE;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_DIRECTORY_MARKER_POLICY_AUTHORITATIVE;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_DIRECTORY_MARKER_POLICY_DELETE;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_DIRECTORY_MARKER_POLICY_KEEP;
@@ -287,6 +288,11 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
        "com.amazonaws.services.dynamodbv2.AmazonDynamoDB",
       // STS
       "com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClient",
+      // region support
+      "com.amazonaws.regions.AwsRegionProvider",
+      "com.amazonaws.regions.AwsEnvVarOverrideRegionProvider",
+      "com.amazonaws.regions.AwsSystemPropertyRegionProvider",
+      "com.amazonaws.regions.InstanceMetadataRegionProvider",
 
       /* Jackson stuff */
       "com.fasterxml.jackson.annotation.JacksonAnnotation",
@@ -356,8 +362,8 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       STORE_CAPABILITY_DIRECTORY_MARKER_ACTION_DELETE,
   };
 
-  public S3ADiagnosticsInfo(final URI fsURI) {
-    super(fsURI);
+  public S3ADiagnosticsInfo(final URI fsURI, final Printout output) {
+    super(fsURI, output);
   }
 
   @Override
@@ -455,11 +461,25 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
     final boolean pathStyleAccess = conf.getBoolean(PATH_STYLE_ACCESS, false);
     boolean secureConnections =
         conf.getBoolean("fs.s3a.connection.ssl.enabled", true);
+    final boolean endpointIsUrl =
+        endpoint.startsWith("http:") || endpoint.startsWith("https:");
     String scheme = secureConnections ? "https" : "http";
     if (pathStyleAccess) {
-      LOG.info("Enabling path style access");
-      bucketURI = String.format("%s://%s/%s", scheme, endpoint, bucket);
+      getOutput().println("Enabling path style access");
+      if (endpointIsUrl) {
+        bucketURI = String.format("%s/%s", endpoint, bucket);
+      } else {
+        bucketURI = String.format("%s://%s/%s", scheme, endpoint, bucket);
+      }
     } else {
+      if (endpointIsUrl) {
+        getOutput().warn(
+            "Endpoint %s is a URL; using path style access isn't going to work"
+                + "\nset %s to true",
+            endpoint, PATH_STYLE_ACCESS);
+        throw new StoreExitException(-1,
+            "inconsisent endoint and path access settings");
+      }
       bucketURI = String.format("%s://%s/", scheme, fqdn);
     }
     List<URI> uris = new ArrayList<>(3);

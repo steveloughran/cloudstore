@@ -19,8 +19,6 @@
 package org.apache.hadoop.fs.store.diag;
 
 import org.apache.hadoop.classification.InterfaceStability;
-import org.apache.hadoop.fs.Abortable;
-import org.apache.hadoop.fs.BatchListingOperations;
 
 /**
  * Common path capabilities.
@@ -129,7 +127,7 @@ public final class CapabilityKeys {
   public static final String FS_XATTRS = "fs.capability.paths.xattrs";
 
   /**
-   * Probe for support for {@link BatchListingOperations}.
+   * Probe for support for BatchListingOperations.
    */
   @InterfaceStability.Unstable
   public static final String FS_EXPERIMENTAL_BATCH_LISTING =
@@ -144,7 +142,7 @@ public final class CapabilityKeys {
 
 
   /**
-   * Stream abort() capability implemented by {@link Abortable#abort()}.
+   * Stream abort() capability implemented by Abortable.abort()}.
    * Value: {@value}.
    */
   public static final String ABORTABLE_STREAM =
@@ -186,6 +184,14 @@ public final class CapabilityKeys {
    * Value: {@value}.
    */
   public static final String S3_SELECT_CAPABILITY = "fs.s3a.capability.select.sql";
+
+  /**
+   * {@code PathCapabilities} probe to indicate that the filesystem
+   * keeps directory markers.
+   * Value: {@value}.
+   */
+  public static final String STORE_CAPABILITY_DIRECTORY_MARKER_AWARE
+      = "fs.s3a.capability.directory.marker.aware";
 
   /**
    * {@code PathCapabilities} probe to indicate that the filesystem

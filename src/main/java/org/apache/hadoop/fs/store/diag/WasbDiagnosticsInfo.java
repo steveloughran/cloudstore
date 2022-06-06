@@ -62,8 +62,8 @@ public class WasbDiagnosticsInfo extends StoreDiagnosticsInfo {
       "org.apache.commons.lang.StringUtils",
       "org.apache.commons.lang3.StringUtils"
   };
-  public WasbDiagnosticsInfo(final URI fsURI) {
-    super(fsURI);
+  public WasbDiagnosticsInfo(final URI fsURI, final Printout output) {
+    super(fsURI, output);
   }
 
   @Override

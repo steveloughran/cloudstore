@@ -78,6 +78,7 @@ import org.apache.hadoop.util.StringUtils;
 import org.apache.hadoop.util.ToolRunner;
 
 import static org.apache.hadoop.fs.store.CommonParameters.DEFINE;
+import static org.apache.hadoop.fs.store.CommonParameters.SYSPROP;
 import static org.apache.hadoop.fs.store.CommonParameters.TOKENFILE;
 import static org.apache.hadoop.fs.store.CommonParameters.VERBOSE;
 import static org.apache.hadoop.fs.store.CommonParameters.XMLFILE;
@@ -94,19 +95,34 @@ public class StoreDiag extends DiagnosticsEntryPoint {
 
   private static final Logger LOG = LoggerFactory.getLogger(StoreDiag.class);
 
+  /** {@value}. */
   private static final String HELLO = "Hello";
 
+  /** {@value}. */
   public static final String LOGDUMP = "l";
+
+  /** {@value}. */
   public static final String OPTIONAL = "o";
+
+  /** {@value}. */
   public static final String READONLY = "r";
+
+  /** {@value}. */
   public static final String WRITE = "w";
+
+  /** {@value}. */
   public static final String SYSPROPS = "s";
+
+  /** {@value}. */
   public static final String DELEGATION = "t";
 
+  /** {@value}. */
   public static final String LOG_4_PROPERTIES = "log4.properties";
 
+  /** {@value}. */
   public static final int LIST_LIMIT = 25;
 
+  /** {@value}. */
   public static final String USAGE =
       "Usage: storediag\n"
           + optusage(JARS, "List the JARs on the classpath")
@@ -138,7 +154,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
         OPTIONAL,
         MD5,
         SYSPROPS);
-    addValueOptions(TOKENFILE, XMLFILE, DEFINE, REQUIRED, PRINCIPAL);
+    addValueOptions(TOKENFILE, XMLFILE, DEFINE, REQUIRED, PRINCIPAL, SYSPROP);
   }
 
   @Override
@@ -367,7 +383,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
       throws IOException {
     heading("Diagnostics for filesystem %s", fsURI);
 
-    StoreDiagnosticsInfo store = StoreDiagnosticsInfo.bindToStore(fsURI);
+    StoreDiagnosticsInfo store = StoreDiagnosticsInfo.bindToStore(fsURI, this);
 
     println("%s%n%s%n%s",
         store.getName(), store.getDescription(), store.getHomepage());
@@ -736,8 +752,10 @@ public class StoreDiag extends DiagnosticsEntryPoint {
             c,
             (c > ' ') ? Character.toString((char) c) : "(n/a)");
         in.close();
+      } catch(FileNotFoundException ex) {
+        warn("file %s: not found/readable %s", firstFilePath, ex);
       } catch(AccessDeniedException ex) {
-        println("client lacks access to file %s: %s", firstFilePath, ex);
+        warn("client lacks access to file %s: %s", firstFilePath, ex);
         accessDenied = true;
       } finally {
         IOUtils.closeStream(in);

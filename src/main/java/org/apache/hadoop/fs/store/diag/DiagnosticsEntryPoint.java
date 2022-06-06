@@ -49,21 +49,28 @@ import static org.apache.hadoop.util.VersionInfo.getVersion;
 
 public class DiagnosticsEntryPoint extends StoreEntryPoint implements Printout {
 
+  /** {@value}. */
   public static final String CLASSPATH = "java.class.path";
 
+  /** {@value}. */
   public static final String PRINCIPAL = "principal";
 
+  /** {@value}. */
   public static final String REQUIRED = "required";
 
+  /** {@value}. */
   public static final String MD5 = "5";
 
+  /** {@value}. */
   public static final String JARS = "j";
 
-
+  /** {@value}. */
   protected static final int HIDE_PREFIX = 2;
 
+  /** {@value}. */
   protected static final int HIDE_SUFFIX = 4;
 
+  /** {@value}. */
   protected static final int HIDE_THRESHOLD = HIDE_PREFIX + HIDE_SUFFIX;
 
   /**

@@ -54,8 +54,8 @@ public class TemplateDiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.FS.secret", true, true},
   };
 
-  public TemplateDiagnosticsInfo(final URI fsURI) {
-    super(fsURI);
+  public TemplateDiagnosticsInfo(final URI fsURI, final Printout output) {
+    super(fsURI, output);
   }
 
   @Override

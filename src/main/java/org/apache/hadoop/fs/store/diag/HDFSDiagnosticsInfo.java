@@ -108,8 +108,8 @@ public class HDFSDiagnosticsInfo extends StoreDiagnosticsInfo {
       "",
   };
 
-  public HDFSDiagnosticsInfo(final URI fsURI) {
-    super(fsURI);
+  public HDFSDiagnosticsInfo(final URI fsURI, final Printout output) {
+    super(fsURI, output);
   }
 
   /**

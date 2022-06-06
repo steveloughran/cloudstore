@@ -368,7 +368,6 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable {
         });
   }
 
-
   protected void printStatus(final int index, final FileStatus status) {
     println("[%04d]\t%s\t%,d\t(%s)\t%s\t%s\t%s%s",
         index,

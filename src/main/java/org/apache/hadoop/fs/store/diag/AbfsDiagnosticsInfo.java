@@ -180,8 +180,8 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
       FS_XATTRS
   };
 
-  public AbfsDiagnosticsInfo(final URI fsURI) {
-    super(fsURI);
+  public AbfsDiagnosticsInfo(final URI fsURI, final Printout output) {
+    super(fsURI, output);
   }
 
   @Override
