@@ -40,7 +40,8 @@ public class DistcpDiag extends DiagnosticsEntryPoint {
       {"distcp.exclude-file-regex", false, false},
       {"distcp.copy.buffer.size", false, false},
       {"distcp.blocks.per.chunk", false, false},
-      {"", false, false},
+      {"mapreduce.map.java.opts", false, false},
+      {"mapreduce.reduce.java.opts", false, false},
       {"", false, false},
       {"", false, false},
   };

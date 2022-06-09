@@ -127,17 +127,31 @@ public class ListObjects extends StoreEntryPoint {
           new ArrayList<>(deletePageSize);
 
       heading("Listing objects under %s", source);
-      while (objects.hasNext()) {
+      boolean finished = false;
+      while (!finished && objects.hasNext()) {
         final ObjectListing page = objects.next();
         for (S3ObjectSummary summary : page.getObjectSummaries()) {
           objectCount++;
+          if (limit > 0 && objectCount >= limit) {
+            finished = true;
+            break;
+           }
           size += summary.getSize();
           String k = summary.getKey();
 
           if (!quiet) {
-            println("object %s\t%s",
+
+            // print the output, if verbose call getFileStatus for the s3a view.
+            String extra;
+            if (isVerbose()) {
+              extra = "\t" + fs.getFileStatus(keyToPath(k));
+            } else {
+              extra = "";
+            }
+            println("[%05d] %s%s",
+                objectCount,
                 stringify(summary),
-                fs.getFileStatus(keyToPath(k)));
+                extra);
           }
           if (objectRepresentsDirectory(summary)) {
             markers.add(k);
@@ -151,12 +165,10 @@ public class ListObjects extends StoreEntryPoint {
               delete(s3, bucket, keyVersions);
             }
           }
+
         }
         for (String prefix : page.getCommonPrefixes()) {
           prefixes.add(prefix);
-        }
-        if (limit > 0 && objectCount >= limit) {
-          break;
         }
       }
 
