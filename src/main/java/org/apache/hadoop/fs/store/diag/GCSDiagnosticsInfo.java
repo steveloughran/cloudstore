@@ -24,6 +24,7 @@ import java.net.URI;
 import org.apache.hadoop.conf.Configuration;
 
 import static org.apache.hadoop.fs.store.StoreUtils.cat;
+import static org.apache.hadoop.fs.store.diag.OptionSets.HTTP_CLIENT_RESOURCES;
 import static org.apache.hadoop.fs.store.diag.OptionSets.STANDARD_ENV_VARS;
 
 /**
@@ -196,6 +197,11 @@ public class GCSDiagnosticsInfo extends StoreDiagnosticsInfo {
   @Override
   public String[] getOptionalClassnames(final Configuration conf) {
     return optionalClassnames;
+  }
+
+  @Override
+  public String[] getRequiredResources(final Configuration conf) {
+    return HTTP_CLIENT_RESOURCES;
   }
 
   @Override

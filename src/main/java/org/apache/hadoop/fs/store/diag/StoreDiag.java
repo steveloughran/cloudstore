@@ -21,7 +21,6 @@ package org.apache.hadoop.fs.store.diag;
 import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -38,6 +37,7 @@ import java.net.URL;
 import java.net.UnknownHostException;
 import java.nio.charset.Charset;
 import java.nio.file.AccessDeniedException;
+import java.nio.file.Files;
 import java.security.CodeSource;
 import java.security.NoSuchAlgorithmException;
 import java.util.Collection;
@@ -46,7 +46,6 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLParameters;
 
@@ -205,6 +204,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
     printSecurityState();
     printStoreConfiguration();
     probeRequiredAndOptionalClasses(hasOption(OPTIONAL));
+    probeRequiredAndOptionalResources();
     storeInfo.validateConfig(this, getConf());
     printPerformanceHints();
     probeForFileSystemClass(storeInfo.getScheme());
@@ -278,6 +278,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
     storeInfo.performanceHints(this, getConf());
   }
 
+  @SuppressWarnings("NestedAssignment")
   public boolean printOSVersion() throws IOException {
     heading("Determining OS version");
     try {
@@ -547,7 +548,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
       heading("Probing required classes listed in %s", f);
       probeRequiredClassesOrResources(
           org.apache.commons.io.IOUtils.readLines(
-              new FileInputStream(f),
+              Files.newInputStream(f.toPath()),
               Charset.forName("UTF-8")));
     }
   }
@@ -572,6 +573,32 @@ public class StoreDiag extends DiagnosticsEntryPoint {
         probeRequiredClass(name);
       }
     }
+  }
+
+
+  /**
+   * Probe all the required resources from base settings,
+   * the FS diags,
+   * @throws FileNotFoundException no resource
+   * @throws IOException other failure
+   */
+  public void probeRequiredAndOptionalResources()
+      throws ClassNotFoundException, IOException {
+
+    heading("Required Resources");
+    for (String resource : storeInfo.getRequiredResources(getConf())) {
+      if (!resource.isEmpty()) {
+        probeResource(resource, true);
+      }
+    }
+
+    heading("Optional Resources");
+    for (String resource : storeInfo.getOptionaldResources(getConf())) {
+      if (!resource.isEmpty()) {
+        probeResource(resource, false);
+      }
+    }
+
   }
 
   /**

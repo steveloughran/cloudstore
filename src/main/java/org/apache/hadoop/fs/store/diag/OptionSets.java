@@ -133,4 +133,10 @@ public class OptionSets {
       {"", false},
   };
 
+  public static final String MOZILLA_PUBLIC_SUFFIX_LIST =
+      "mozilla/public-suffix-list.txt";
+
+  public static final String[] HTTP_CLIENT_RESOURCES = {
+      MOZILLA_PUBLIC_SUFFIX_LIST
+  };
 }

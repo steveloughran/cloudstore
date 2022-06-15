@@ -46,6 +46,12 @@ public class StoreDiagnosticsInfo {
   protected static final String[] EMPTY_CLASSNAMES = {};
   protected static final String[] EMPTY_CAPABILITIES = {};
 
+  protected static final String[] EMPTY_RESOURCES = {};
+
+  protected static final String[] DEFAULT_OPTIONAL_RESOURCES = {
+      "log4j.properties"
+  };
+
   protected static final List<URI> EMPTY_ENDPOINTS = new ArrayList<>(0);
 
   private final URI fsURI;
@@ -239,6 +245,26 @@ public class StoreDiagnosticsInfo {
    */
   public String[] getOptionalClassnames(final Configuration conf) {
     return EMPTY_CLASSNAMES;
+  }
+
+  /**
+   * Get a list of resources to look for.
+   * If any of these are not found, it is an error.
+   * @param conf config to use in determining their location.
+   * @return a possibly empty list of resources.
+   */
+  public String[] getRequiredResources(final Configuration conf) {
+    return EMPTY_RESOURCES;
+  }
+
+  /**
+   * Get a list of optional resources to look for.
+   * If any of these are not found, it is not an error.
+   * @param conf config to use in determining their location.
+   * @return a possibly empty list of optional resources.
+   */
+  public String[] getOptionaldResources(final Configuration conf) {
+    return DEFAULT_OPTIONAL_RESOURCES;
   }
 
   /**

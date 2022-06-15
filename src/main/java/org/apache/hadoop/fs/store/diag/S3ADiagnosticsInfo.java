@@ -49,6 +49,8 @@ import static org.apache.hadoop.fs.store.diag.CapabilityKeys.ABORTABLE_STREAM;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.ETAGS_AVAILABLE;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.FS_CHECKSUMS;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.FS_MULTIPART_UPLOADER;
+import static org.apache.hadoop.fs.store.diag.CapabilityKeys.FS_S3A_CREATE_HEADER;
+import static org.apache.hadoop.fs.store.diag.CapabilityKeys.FS_S3A_CREATE_PERFORMANCE;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.S3_SELECT_CAPABILITY;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_DIRECTORY_MARKER_ACTION_DELETE;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_DIRECTORY_MARKER_ACTION_KEEP;
@@ -57,6 +59,7 @@ import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_DI
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_DIRECTORY_MARKER_POLICY_DELETE;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_DIRECTORY_MARKER_POLICY_KEEP;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_MAGIC_COMMITTER;
+import static org.apache.hadoop.fs.store.diag.OptionSets.HTTP_CLIENT_RESOURCES;
 import static org.apache.hadoop.fs.store.diag.OptionSets.STANDARD_ENV_VARS;
 import static org.apache.hadoop.fs.store.diag.OptionSets.STANDARD_SYSPROPS;
 
@@ -333,6 +336,9 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       // etags
       "org.apache.hadoop.fs.EtagSource",
 
+      "org.apache.hadoop.fs.s3a.ArnResource",
+      "",
+
       // extra stuff from extension modules
       "org.apache.knox.gateway.cloud.idbroker.s3a.IDBDelegationTokenBinding",
       "org.wildfly.openssl.OpenSSLProvider",
@@ -360,6 +366,8 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       STORE_CAPABILITY_DIRECTORY_MARKER_POLICY_AUTHORITATIVE,
       STORE_CAPABILITY_DIRECTORY_MARKER_ACTION_KEEP,
       STORE_CAPABILITY_DIRECTORY_MARKER_ACTION_DELETE,
+      FS_S3A_CREATE_PERFORMANCE,
+      FS_S3A_CREATE_HEADER
   };
 
   public S3ADiagnosticsInfo(final URI fsURI, final Printout output) {
@@ -404,6 +412,11 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
   @Override
   public String[] getOptionalClassnames(final Configuration conf) {
     return optionalClassnames;
+  }
+
+  @Override
+  public String[] getRequiredResources(final Configuration conf) {
+    return HTTP_CLIENT_RESOURCES;
   }
 
   @Override

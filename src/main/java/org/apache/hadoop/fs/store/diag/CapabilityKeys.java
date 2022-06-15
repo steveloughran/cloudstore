@@ -234,4 +234,22 @@ public final class CapabilityKeys {
   public static final String STORE_CAPABILITY_DIRECTORY_MARKER_ACTION_DELETE
       = "fs.s3a.capability.directory.marker.action.delete";
 
+
+  /**
+   * Flag for create performance.
+   * This is *not* a configuration option; it is for use in the
+   * {code createFile()} builder.
+   * Value {@value}.
+   */
+  public static final String FS_S3A_CREATE_PERFORMANCE = "fs.s3a.create.performance";
+
+  /**
+   * Prefix for adding a header to the object when created.
+   * The actual value must have a "." suffix and then the actual header.
+   * This is *not* a configuration option; it is only for use in the
+   * {code createFile()} builder.
+   * Value {@value}.
+   */
+  public static final String FS_S3A_CREATE_HEADER = "fs.s3a.create.header";
+
 }
