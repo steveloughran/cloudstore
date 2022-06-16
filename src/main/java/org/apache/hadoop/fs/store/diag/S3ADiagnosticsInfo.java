@@ -276,7 +276,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
   /**
    * Mandatory classnames.
    */
-  public static final String[] classnames = {
+  public static final String[] CLASSNAMES = {
       "org.apache.hadoop.fs.s3a.S3AFileSystem",
       "com.amazonaws.services.s3.AmazonS3",
       "com.amazonaws.ClientConfiguration",
@@ -286,7 +286,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
   /**
    * Optional classes.
    */
-  public static final String[] optionalClassnames = {
+  public static final String[] OPTIONAL_CLASSNAMES = {
       // AWS features outwith the aws-s3-sdk JAR and needed for later releases.
        "com.amazonaws.services.dynamodbv2.AmazonDynamoDB",
       // STS
@@ -351,7 +351,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
    * Path Capabilities different versions of the store may
    * support.
    */
-  public static final String[] optionalCapabilities = {
+  public static final String[] OPTIONAL_CAPABILITIES = {
       ETAGS_AVAILABLE,
       FS_CHECKSUMS,
       FS_MULTIPART_UPLOADER,
@@ -368,6 +368,13 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       STORE_CAPABILITY_DIRECTORY_MARKER_ACTION_DELETE,
       FS_S3A_CREATE_PERFORMANCE,
       FS_S3A_CREATE_HEADER
+  };
+
+  public static final String[] OPTIONAL_RESOURCES = {
+      "log4j.properties",
+      "/com/amazonaws/internal/config/awssdk_config_default.json",
+      "awssdk_config_override.json",
+      "/com/amazonaws/endpointdiscovery/endpoint-discovery.json"
   };
 
   public S3ADiagnosticsInfo(final URI fsURI, final Printout output) {
@@ -406,12 +413,12 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
 
   @Override
   public String[] getClassnames(final Configuration conf) {
-    return classnames;
+    return CLASSNAMES;
   }
 
   @Override
   public String[] getOptionalClassnames(final Configuration conf) {
-    return optionalClassnames;
+    return OPTIONAL_CLASSNAMES;
   }
 
   @Override
@@ -420,8 +427,13 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
   }
 
   @Override
+  public String[] getOptionaldResources(final Configuration conf) {
+    return super.getOptionaldResources(conf);
+  }
+
+  @Override
   public String[] getOptionalPathCapabilites() {
-    return optionalCapabilities;
+    return OPTIONAL_CAPABILITIES;
   }
 
   /**
