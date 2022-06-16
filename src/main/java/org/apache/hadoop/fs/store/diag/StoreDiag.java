@@ -593,7 +593,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
     }
 
     heading("Optional Resources");
-    for (String resource : storeInfo.getOptionaldResources(getConf())) {
+    for (String resource : storeInfo.getOptionalResources(getConf())) {
       if (!resource.isEmpty()) {
         probeResource(resource, false);
       }

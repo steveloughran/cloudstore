@@ -372,9 +372,9 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
 
   public static final String[] OPTIONAL_RESOURCES = {
       "log4j.properties",
-      "/com/amazonaws/internal/config/awssdk_config_default.json",
+      "com/amazonaws/internal/config/awssdk_config_default.json",
       "awssdk_config_override.json",
-      "/com/amazonaws/endpointdiscovery/endpoint-discovery.json"
+      "com/amazonaws/endpointdiscovery/endpoint-discovery.json"
   };
 
   public S3ADiagnosticsInfo(final URI fsURI, final Printout output) {
@@ -427,8 +427,8 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
   }
 
   @Override
-  public String[] getOptionaldResources(final Configuration conf) {
-    return super.getOptionaldResources(conf);
+  public String[] getOptionalResources(final Configuration conf) {
+    return OPTIONAL_RESOURCES;
   }
 
   @Override

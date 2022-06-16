@@ -263,7 +263,7 @@ public class StoreDiagnosticsInfo {
    * @param conf config to use in determining their location.
    * @return a possibly empty list of optional resources.
    */
-  public String[] getOptionaldResources(final Configuration conf) {
+  public String[] getOptionalResources(final Configuration conf) {
     return DEFAULT_OPTIONAL_RESOURCES;
   }
 
