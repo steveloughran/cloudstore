@@ -831,6 +831,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
           fsUri,
           securityEnabled ? "" : " (at least while security is disabled)");
     } else {
+      //
       Credentials cred = new Credentials();
       try (StoreDurationInfo ignored = new StoreDurationInfo(LOG,
           "collecting delegation tokens")) {
@@ -841,7 +842,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
             renewer = principal;
           }
           fs.addDelegationTokens(renewer, cred);
-        } catch (IOException e) {
+        } catch (Throwable e) {
           if (requireToken) {
             throw e;
           } else {
