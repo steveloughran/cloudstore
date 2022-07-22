@@ -125,7 +125,6 @@ Usage: bandwidth [options] size <path>
         -tokenfile <file>       Hadoop token file to load
         -verbose        print verbose output
         -xmlfile <file> XML config file to load
-        -block <size>   Block size in MB for upload/download
 ```
 ```bash
 ~/P/R/hadoop-3.3.4 time bin/hadoop jar cloudstore-1.0.jar bandwidth 64M s3a://stevel-london/bw
