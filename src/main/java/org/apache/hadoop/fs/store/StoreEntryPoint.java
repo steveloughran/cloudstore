@@ -59,6 +59,7 @@ import static org.apache.hadoop.fs.statistics.IOStatisticsLogging.ioStatisticsSo
 import static org.apache.hadoop.fs.statistics.IOStatisticsSupport.retrieveIOStatistics;
 */
 import static org.apache.hadoop.fs.store.CommonParameters.DEFINE;
+import static org.apache.hadoop.fs.store.CommonParameters.LIMIT;
 import static org.apache.hadoop.fs.store.CommonParameters.VERBOSE;
 import static org.apache.hadoop.fs.store.CommonParameters.XMLFILE;
 import static org.apache.hadoop.fs.store.StoreDiagConstants.IOSTATISTICS_LOGGING_LEVEL;
@@ -276,6 +277,17 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable {
   protected Optional<String> getOptional(String opt) {
     return Optional.ofNullable(getCommandFormat().getOptValue(opt));
   }
+
+  /**
+   * get an integer option.
+   * @param opt option
+   * @param defval default value
+   * @return the value to use
+   */
+  protected int getIntOption(String opt, int defval) {
+    return getOptional(opt).map(Integer::valueOf).orElse(defval);
+  }
+
   /**
    * Add all the various configuration files.
    */

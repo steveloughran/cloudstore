@@ -137,7 +137,6 @@ public class Bandwidth extends StoreEntryPoint {
       // now do the upload
       // println placement is so that progress . entries are on their own line
       for (int i = 0; i < numberOfBuffersToUpload; i++) {
-        println();
         upload.write(dataBuffer);
         println("%,d ", i);
       }
@@ -162,6 +161,8 @@ public class Bandwidth extends StoreEntryPoint {
     StoreDurationInfo downloadDurationTracker = new StoreDurationInfo(null, "upload");
     FSDataInputStream download;
     try (StoreDurationInfo d = new StoreDurationInfo(LOG, "open %s", path)) {
+      // TODO: once we drop CDH6 support, we can move to openFile and set
+      // length and read policy
       download = fs.open(path);
     }
     try {
@@ -199,7 +200,7 @@ public class Bandwidth extends StoreEntryPoint {
     println("%s duration %s", operation, tracker.getDurationString());
     println();
     final long durationMillis = tracker.value();
-    // now calculated it in Mbits/GBits
+    // now calculated it in MBits/GBits
     double uploadSeconds = durationMillis / 1000.0;
     if (uploadSeconds < 1) {
       uploadSeconds = 1;
@@ -208,7 +209,7 @@ public class Bandwidth extends StoreEntryPoint {
     double megabitsPerSecond = bitsPerSecond / MB_1;
     double megabytesPerSecond = megabitsPerSecond / 8;
 
-    println("%s bandwidth in Megabits/second %,.3f Mb/s", operation, megabitsPerSecond);
+    println("%s bandwidth in Megabits/second %,.3f Mbit/s", operation, megabitsPerSecond);
     println();
     println("%s bandwidth in Megabytes/second %,.3f MB/s", operation, megabytesPerSecond);
     println();
