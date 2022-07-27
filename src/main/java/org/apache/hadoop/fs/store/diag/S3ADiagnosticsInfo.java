@@ -96,7 +96,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.s3a.session.token", true, true},
       {"fs.s3a.server-side-encryption-algorithm", true, false},
       {"fs.s3a.server-side-encryption.key", true, true},
-      {"fs.s3a.encryption-algorithm", true, false},
+      {"fs.s3a.encryption.algorithm", true, false},
       {"fs.s3a.encryption.key", true, true},
       {"fs.s3a.aws.credentials.provider", false, false},
       {ENDPOINT, false, false},
@@ -121,6 +121,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.s3a.connection.establish.timeout", false, false},
       {"fs.s3a.connection.request.timeout", false, false},
       {"fs.s3a.connection.timeout", false, false},
+      {"fs.s3a.create.storage.class", false, false},
       {"fs.s3a.custom.signers", false, false},
       {DIRECTORY_MARKER_RETENTION, false, false},
       {"fs.s3a.downgrade.syncable.exceptions", false, false},
@@ -595,7 +596,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
     if (endpoint.startsWith("https:") || endpoint.startsWith("http:")) {
       printout.warn("Value of %s looks like a URL: %s", ENDPOINT, endpoint);
       printout.println("It SHOULD normally be a hostname or IP address");
-      printout.println("Unless you have a private store with a non-standard port");
+      printout.println("Unless you have a private store with a non-standard port or are using AWS S3 PrivateLink");
       if (!pathStyleAccess) {
         printout.warn("You should probably set %s to true", PATH_STYLE_ACCESS);
       }
