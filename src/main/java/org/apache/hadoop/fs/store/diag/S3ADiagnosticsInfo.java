@@ -121,6 +121,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.s3a.connection.establish.timeout", false, false},
       {"fs.s3a.connection.request.timeout", false, false},
       {"fs.s3a.connection.timeout", false, false},
+      {"fs.s3a.create.performance", false, false},
       {"fs.s3a.create.storage.class", false, false},
       {"fs.s3a.custom.signers", false, false},
       {DIRECTORY_MARKER_RETENTION, false, false},
@@ -140,6 +141,9 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.s3a.multipart.purge", false, false},
       {"fs.s3a.multipart.purge.age", false, false},
       {"fs.s3a.paging.maximum", false, false},
+      {"fs.s3a.prefetch.enabled", false, false},
+      {"fs.s3a.prefetch.block.count", false, false},
+      {"fs.s3a.prefetch.block.size", false, false},
       {PATH_STYLE_ACCESS, false, false},
       {"fs.s3a.proxy.host", false, false},
       {"fs.s3a.proxy.port", false, false},
@@ -158,6 +162,8 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.s3a.threads.max", false, false},
       {"fs.s3a.threads.keepalivetime", false, false},
       {"fs.s3a.user.agent.prefix", false, false},
+      {"fs.s3a.vectored.read.min.seek.size", false, false},
+      {"fs.s3a.vectored.read.max.merged.size", false, false},
 
 
       /* Assumed Role */
@@ -214,6 +220,8 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.s3a.audit.service.classname", false, false},
 
       {"fs.s3a.accesspoint.arn", false, false},
+      {"fs.s3a.accesspoint.required", false, false},
+
 
       {"", false, false},
 
