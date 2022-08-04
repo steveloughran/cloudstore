@@ -837,16 +837,21 @@ public class StoreDiag extends DiagnosticsEntryPoint {
           "collecting delegation tokens")) {
         try {
           String renewer = "yarn@EXAMPLE";
+          if (securityEnabled) {
+            // set the renewer to the current user
+            renewer = UserGroupInformation.getCurrentUser().getUserName();
+          }
           String principal = getOption(PRINCIPAL);
           if (principal != null) {
             renewer = principal;
           }
+          println("Token Renewer: %s", renewer);
           fs.addDelegationTokens(renewer, cred);
         } catch (Throwable e) {
           if (requireToken) {
             throw e;
           } else {
-            LOG.warn("Failed to fetch DT", e);
+            LOG.warn("Failed to fetch token", e);
             outcome = "failed to";
             error = ": " + e;
           }
