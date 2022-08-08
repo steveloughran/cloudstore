@@ -32,7 +32,6 @@ public class help extends Command {
     println("==========");
     println("");
     bandwidth.help();
-    bucketstate.help();
     cloudup.help();
     distcpdiag.help();
     dux.help();
@@ -51,6 +50,7 @@ public class help extends Command {
     println("Extra Commands");
     println("==============");
     println("");
+    printCommand("bucketstate","prints the AWS bucket state");
     printCommand("committerinfo", "Print committer information");
     printCommand("deleteobject", "Delete an S3 object");
     printCommand("gcscreds", "credential diagnostics for GCS. Warning: logs secrets");

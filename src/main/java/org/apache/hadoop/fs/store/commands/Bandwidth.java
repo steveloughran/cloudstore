@@ -92,11 +92,20 @@ public class Bandwidth extends StoreEntryPoint {
     FileSystem fs = path.getFileSystem(conf);
     println("Using filesystem %s", fs.getUri());
 
-    // parse the size values via Configuration
-    final Configuration sizeConf = new Configuration(false);
-    //conf.set("size", size);
-    // upload in MB.
-    final double uploadSize = sizeConf.getStorageSize("size", size, StorageUnit.MB);
+    double uploadSize;
+
+    try {
+      // look for a long value,
+      uploadSize = Long.parseLong(size);
+    } catch (NumberFormatException e) {
+      // parse the size values via Configuration
+      // this is only possible on hadoop 3.1+.
+      final Configuration sizeConf = new Configuration(false);
+
+      // upload in MB.
+      uploadSize = sizeConf.getStorageSize("size", size, StorageUnit.MB);
+    }
+
     long sizeMB = Math.round(uploadSize);
     if (sizeMB <= 0) {
       warn("minimum size is 1M");
