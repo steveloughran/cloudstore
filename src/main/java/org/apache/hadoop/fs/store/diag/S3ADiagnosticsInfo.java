@@ -305,6 +305,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       "com.amazonaws.regions.AwsEnvVarOverrideRegionProvider",
       "com.amazonaws.regions.AwsSystemPropertyRegionProvider",
       "com.amazonaws.regions.InstanceMetadataRegionProvider",
+      "com.amazonaws.internal.TokenBucket",
 
       /* Jackson stuff */
       "com.fasterxml.jackson.annotation.JacksonAnnotation",
@@ -600,7 +601,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
     boolean secureConnections = conf.getBoolean(SECURE_CONNECTIONS,
         DEFAULT_SECURE_CONNECTIONS);
     boolean pathStyleAccess = conf.getBoolean(PATH_STYLE_ACCESS, false);
-    printout.println("Endpoint is set to %s", endpoint);
+    printout.println("Endpoint is set to \"%s\"", endpoint);
     if (endpoint.startsWith("https:") || endpoint.startsWith("http:")) {
       printout.warn("Value of %s looks like a URL: %s", ENDPOINT, endpoint);
       printout.println("It SHOULD normally be a hostname or IP address");
@@ -610,8 +611,8 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       }
     }
     if (endpoint.isEmpty()) {
-      printout.println("Central us-east endpoint will be used"
-          + " this is less efficient for buckets in other regions");
+      printout.println("Central us-east endpoint will be used."
+          + "When not executing within EC2, this is less efficient for buckets in other regions");
     } else if (endpoint.endsWith("amazonaws.cn")) {
       printout.println("AWS china is in use");
     } else if (!endpoint.contains(".amazonaws.")) {
