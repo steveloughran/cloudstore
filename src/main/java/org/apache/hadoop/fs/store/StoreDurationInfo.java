@@ -112,7 +112,7 @@ public class StoreDurationInfo
   public void close() {
     finished();
     if (log != null) {
-      log.info(text + ": duration " + this);
+      log.info("Duration of {}: {}", text, this);
     }
   }
 }

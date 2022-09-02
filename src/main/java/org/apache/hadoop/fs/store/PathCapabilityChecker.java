@@ -22,23 +22,22 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.util.VersionInfo;
 
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_EXCEPTION_THROWN;
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_UNSUPPORTED_VERSION;
 
-public class CapabilityChecker {
+public class PathCapabilityChecker {
 
   private final Method hasPathCapability;
-  private final FileSystem fileSystem;
+  private final Object source;
 
-  public CapabilityChecker(FileSystem fileSystem) {
-    this.fileSystem = fileSystem;
+  public PathCapabilityChecker(Object source) {
+    this.source = source;
     Method method;
     try {
-      method = FileSystem.class.getMethod("hasPathCapability",
+      method = source.getClass().getMethod("hasPathCapability",
           Path.class, String.class);
     } catch (NoSuchMethodException e) {
       method = null;
@@ -51,7 +50,7 @@ public class CapabilityChecker {
   }
 
   /**
-   * Does a filesystem have a capability?
+   * Does an object have a capability?
    * uses reflection so the jar can compile/run against
    * older hadoop releases.
    * throws StoreExitException(E_UNSUPPORTED_VERSION) if the api isn't found.
@@ -69,7 +68,7 @@ public class CapabilityChecker {
               + VersionInfo.getVersion());
     }
     try {
-      return (Boolean) hasPathCapability.invoke(fileSystem, path, capability);
+      return (Boolean) hasPathCapability.invoke(source, path, capability);
     } catch (IllegalAccessException e) {
       throw new StoreExitException(E_UNSUPPORTED_VERSION,
           "Hadoop version does not support PathCapabilities: "

@@ -26,7 +26,7 @@ import org.slf4j.LoggerFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.fs.store.CapabilityChecker;
+import org.apache.hadoop.fs.store.PathCapabilityChecker;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
 import org.apache.hadoop.util.ToolRunner;
 
@@ -79,7 +79,7 @@ public class PathCapability extends StoreEntryPoint {
     FileSystem fs = path.getFileSystem(conf);
     println("Using filesystem %s", fs.getUri());
     Path absPath = path.makeQualified(fs.getUri(), fs.getWorkingDirectory());
-    if (new CapabilityChecker(fs).
+    if (new PathCapabilityChecker(fs).
         hasPathCapability(absPath, capability)) {
 
       println("Path %s has capability %s",

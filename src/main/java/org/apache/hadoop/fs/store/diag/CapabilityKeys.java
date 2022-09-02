@@ -18,7 +18,7 @@
 
 package org.apache.hadoop.fs.store.diag;
 
-import org.apache.hadoop.classification.InterfaceStability;
+
 
 /**
  * Common path capabilities.
@@ -129,7 +129,6 @@ public final class CapabilityKeys {
   /**
    * Probe for support for BatchListingOperations.
    */
-  @InterfaceStability.Unstable
   public static final String FS_EXPERIMENTAL_BATCH_LISTING =
       "fs.capability.batch.listing";
 
@@ -179,11 +178,13 @@ public final class CapabilityKeys {
    */
   public static final String STORE_CAPABILITY_MAGIC_COMMITTER
       = "fs.s3a.capability.magic.committer";
+
   /**
    * Does the FS Support S3 Select?
    * Value: {@value}.
    */
-  public static final String S3_SELECT_CAPABILITY = "fs.s3a.capability.select.sql";
+  public static final String S3_SELECT_CAPABILITY =
+      "fs.s3a.capability.select.sql";
 
   /**
    * {@code PathCapabilities} probe to indicate that the filesystem
@@ -241,7 +242,8 @@ public final class CapabilityKeys {
    * {code createFile()} builder.
    * Value {@value}.
    */
-  public static final String FS_S3A_CREATE_PERFORMANCE = "fs.s3a.create.performance";
+  public static final String FS_S3A_CREATE_PERFORMANCE =
+      "fs.s3a.create.performance";
 
   /**
    * Prefix for adding a header to the object when created.
@@ -252,4 +254,91 @@ public final class CapabilityKeys {
    */
   public static final String FS_S3A_CREATE_HEADER = "fs.s3a.create.header";
 
+
+  /**
+   * Streams that support IOStatistics context and capture thread-level
+   * IOStatistics.
+   */
+  public static String IOSTATISTICS_CONTEXT = "fs.capability.iocontext.supported";
+
+
+  /**
+   * IOStatisticsSource API.
+   */
+  public static String IOSTATISTICS = "iostatistics";
+
+  /**
+   * Support for vectored IO api.
+   * See {@code PositionedReadable#readVectored(List, IntFunction)}.
+   */
+  public static String VECTOREDIO = "readvectored";
+
+
+  /**
+   * Stream setReadahead capability implemented by
+   * {@code CanSetReadahead#setReadahead(Long)}.
+   */
+  public static String READAHEAD = "in:readahead";
+
+  /**
+   * Stream setDropBehind capability implemented by
+   * {@code CanSetDropBehind#setDropBehind(Boolean)}.
+   */
+  public static String DROPBEHIND = "dropbehind";
+
+  /**
+   * Stream unbuffer capability implemented by {@code CanUnbuffer#unbuffer()}.
+   */
+  public static String UNBUFFER = "in:unbuffer";
+
+  /**
+   * Stream read(ByteBuffer) capability implemented by
+   * {@code ByteBufferReadable#read(java.nio.ByteBuffer)}.
+   */
+  public static String READBYTEBUFFER = "in:readbytebuffer";
+
+  /**
+   * Stream read(long, ByteBuffer) capability implemented by
+   * {@code ByteBufferPositionedReadable#read(long, java.nio.ByteBuffer)}.
+   */
+  public static String PREADBYTEBUFFER = "in:preadbytebuffer";
+
+  /**
+   * Stream hflush capability implemented by {@code Syncable#hflush()}.
+   *
+   * Use the {@code #HSYNC} probe to check for the support of Syncable;
+   * it's that presence of {@code hsync()} which matters.
+   */
+  @Deprecated
+  public static String HFLUSH = "hflush";
+
+  /**
+   * Stream hsync capability implemented by {@code Syncable#hsync()}.
+   */
+  public static String HSYNC = "hsync";
+  
+  
+  /**
+   * Set of input/output stream capabilities to scan for.
+   */
+  public static String[] INPUTSTREAM_CAPABILITIES = {
+      DROPBEHIND,
+      IOSTATISTICS,
+      IOSTATISTICS_CONTEXT,
+      PREADBYTEBUFFER,
+      READAHEAD,
+      READBYTEBUFFER,
+      UNBUFFER,
+      VECTOREDIO,
+  };
+  /**
+   * Set of input/output stream capabilities to scan for.
+   */
+  public static String[] OUTPUTSTREAM_CAPABILITIES = {
+      ABORTABLE_STREAM,
+      HFLUSH,
+      HSYNC,
+      IOSTATISTICS,
+      IOSTATISTICS_CONTEXT,
+  };
 }

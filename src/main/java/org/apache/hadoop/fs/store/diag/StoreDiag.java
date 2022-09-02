@@ -62,8 +62,9 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.LocatedFileStatus;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.RemoteIterator;
+import org.apache.hadoop.fs.StreamCapabilities;
 import org.apache.hadoop.fs.UnsupportedFileSystemException;
-import org.apache.hadoop.fs.store.CapabilityChecker;
+import org.apache.hadoop.fs.store.PathCapabilityChecker;
 import org.apache.hadoop.fs.store.StoreDurationInfo;
 import org.apache.hadoop.fs.store.StoreExitException;
 import org.apache.hadoop.io.IOUtils;
@@ -705,7 +706,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
 
     final String[] pathCapabilites = storeInfo.getOptionalPathCapabilites();
     if (pathCapabilites.length > 0) {
-      final CapabilityChecker checker = new CapabilityChecker(fs);
+      final PathCapabilityChecker checker = new PathCapabilityChecker(fs);
       if (checker.methodAvailable()) {
         heading("Path Capabilities");
         for (String s : pathCapabilites) {
@@ -763,31 +764,16 @@ public class StoreDiag extends DiagnosticsEntryPoint {
       println("Directory %s does not exist", baseDir);
       baseDirFound = false;
     }
+    heading("Attempt to read a file");
 
     if (firstFile != null) {
       // found a file to read
-      Path firstFilePath = firstFile.getPath();
-      heading("reading file %s", firstFilePath);
-      FSDataInputStream in = null;
-      try (StoreDurationInfo ignored = new StoreDurationInfo(LOG,
-          "Reading file %s", firstFilePath)) {
-        in = fs.open(firstFilePath);
-        // read the first char or -1
-        int c = in.read();
-        println("First character of file %s is 0x%02x: '%s'",
-            firstFilePath,
-            c,
-            (c > ' ') ? Character.toString((char) c) : "(n/a)");
-        in.close();
-      } catch(FileNotFoundException ex) {
-        warn("file %s: not found/readable %s", firstFilePath, ex);
-      } catch(AccessDeniedException ex) {
-        warn("client lacks access to file %s: %s", firstFilePath, ex);
-        accessDenied = true;
-      } finally {
-        IOUtils.closeStream(in);
-      }
+      accessDenied = readFile(fs, firstFile.getPath());
+    } else {
+      println("no file found to attempt to read");
     }
+
+    heading("listfiles(%s, true)", baseDir);
 
     // now work with the full path
     limit = LIST_LIMIT;
@@ -920,9 +906,11 @@ public class StoreDiag extends DiagnosticsEntryPoint {
       verifyPathNotFound(fs, file);
 
       try (StoreDurationInfo ignored = new StoreDurationInfo(LOG,
-          "creating a file %s", file)) {
+          "Creating file %s", file)) {
         FSDataOutputStream data = fs.create(file, true);
         data.writeUTF(HELLO);
+        printStreamCapabilities(data, CapabilityKeys.OUTPUTSTREAM_CAPABILITIES);
+
         data.close();
         println("Output stream summary: %s", data);
       }
@@ -932,8 +920,10 @@ public class StoreDiag extends DiagnosticsEntryPoint {
       }
       FSDataInputStream in = null;
       try (StoreDurationInfo ignored = new StoreDurationInfo(LOG,
-          "Reading a file %s", file)) {
+          "Reading file %s", file)) {
         in = fs.open(file);
+        printStreamCapabilities(in, CapabilityKeys.INPUTSTREAM_CAPABILITIES);
+
         String utf = in.readUTF();
         in.close();
         println("input stream summary: %s", in);
@@ -971,6 +961,42 @@ public class StoreDiag extends DiagnosticsEntryPoint {
         deleteDir(fs, baseDir);
       }
       fs.close();
+    }
+  }
+
+  /**
+   * Read a file.
+   */
+  private boolean readFile(final FileSystem fs,
+      final Path path) throws IOException {
+    boolean accessWasDenied = false;
+    try (StoreDurationInfo ignored = new StoreDurationInfo(LOG,
+        "Reading file %s", path);
+         FSDataInputStream in = fs.open(path)) {
+      // read the first char or -1
+      int c = in.read();
+      println("First character of file %s is 0x%02x: '%s'",
+          path,
+          c,
+          (c > ' ') ? Character.toString((char) c) : "(n/a)");
+      printStreamCapabilities(in, CapabilityKeys.INPUTSTREAM_CAPABILITIES);
+      println("Stream summary: %s", in);
+    } catch(FileNotFoundException ex) {
+      warn("file %s: not found/readable %s", path, ex);
+    } catch(AccessDeniedException ex) {
+      warn("client lacks access to file %s: %s", path, ex);
+      accessWasDenied = true;
+    }
+    return accessWasDenied;
+  }
+
+  private void printStreamCapabilities(final StreamCapabilities in,
+      final String[] capabilities) {
+    println("Capabilities:");
+    for (String s : capabilities) {
+      if (in.hasCapability(s)) {
+        println("    %s", s);
+      }
     }
   }
 
