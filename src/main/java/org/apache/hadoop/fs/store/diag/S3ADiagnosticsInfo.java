@@ -59,6 +59,7 @@ import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_DI
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_DIRECTORY_MARKER_POLICY_DELETE;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_DIRECTORY_MARKER_POLICY_KEEP;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_MAGIC_COMMITTER;
+import static org.apache.hadoop.fs.store.diag.HBossConstants.CAPABILITY_HBOSS;
 import static org.apache.hadoop.fs.store.diag.OptionSets.HTTP_CLIENT_RESOURCES;
 import static org.apache.hadoop.fs.store.diag.OptionSets.STANDARD_ENV_VARS;
 import static org.apache.hadoop.fs.store.diag.OptionSets.STANDARD_SYSPROPS;
@@ -219,9 +220,17 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.s3a.audit.request.handlers", false, false},
       {"fs.s3a.audit.service.classname", false, false},
 
+      /* access points. */
       {"fs.s3a.accesspoint.arn", false, false},
       {"fs.s3a.accesspoint.required", false, false},
 
+      /* hboss */
+      {HBossConstants.DATA_URI, false, false},
+      {HBossConstants.SYNC_IMPL, false, false},
+      {HBossConstants.WAIT_INTERVAL_WARN, false, false},
+      {HBossConstants.ZK_CONN_STRING, false, false},
+      {HBossConstants.ZK_BASE_SLEEP_MS, false, false},
+      {HBossConstants.ZK_MAX_RETRIES, false, false},
 
       {"", false, false},
 
@@ -279,8 +288,6 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"", false},
       {"", false},
   };
-
-
 
   /**
    * Mandatory classnames.
@@ -353,6 +360,9 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       "org.apache.knox.gateway.cloud.idbroker.s3a.IDBDelegationTokenBinding",
       "org.wildfly.openssl.OpenSSLProvider",
       "org.apache.ranger.raz.hook.s3.RazS3ADelegationTokenIdentifier",
+
+      // HBase HBoss
+      "org.apache.hadoop.hbase.oss.HBaseObjectStoreSemantics",
       "",
 
   };
@@ -377,7 +387,10 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       STORE_CAPABILITY_DIRECTORY_MARKER_ACTION_KEEP,
       STORE_CAPABILITY_DIRECTORY_MARKER_ACTION_DELETE,
       FS_S3A_CREATE_PERFORMANCE,
-      FS_S3A_CREATE_HEADER
+      FS_S3A_CREATE_HEADER,
+
+      // hboss if wrapped by it
+      CAPABILITY_HBOSS
   };
 
   public static final String[] OPTIONAL_RESOURCES = {
@@ -652,18 +665,20 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       }
     }
 
-
     // look at seek policy and warn of risks
     final String fadvise =
         conf.getTrimmed(INPUT_FADVISE, INPUT_FADV_NORMAL);
     printout.heading("Seek policy: %s", fadvise);
     switch (fadvise) {
     case INPUT_FADV_NORMAL:
+    case OptionSets.EnhancedOpenFileOptions.FS_OPTION_OPENFILE_READ_POLICY_ADAPTIVE:
+    case OptionSets.EnhancedOpenFileOptions.FS_OPTION_OPENFILE_READ_POLICY_DEFAULT:
       printout.println("Policy starts 'sequential' and switches to 'random' on"
           + " a backwards seek");
       printout.println("This is adaptive and suitable for most workloads");
       break;
     case INPUT_FADV_RANDOM:
+    case OptionSets.EnhancedOpenFileOptions.FS_OPTION_OPENFILE_READ_POLICY_VECTOR:
       printout.println(
           "Stream is optimized for random IO, especially ORC and Parquet files");
       printout.println(
@@ -672,6 +687,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       printout.println("Recommended for ORC, Parquet data");
       break;
     case INPUT_FADV_SEQUENTIAL:
+    case OptionSets.EnhancedOpenFileOptions.FS_OPTION_OPENFILE_READ_POLICY_WHOLE_FILE:
       printout.println("This is the initial state of the %s policy",
           INPUT_FADV_NORMAL);
       printout.println(

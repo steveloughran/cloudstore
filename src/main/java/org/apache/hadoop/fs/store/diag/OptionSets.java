@@ -18,6 +18,14 @@
 
 package org.apache.hadoop.fs.store.diag;
 
+import java.util.Collections;
+import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import org.apache.hadoop.classification.InterfaceAudience;
+import org.apache.hadoop.classification.InterfaceStability;
+
 import static org.apache.hadoop.fs.store.StoreDiagConstants.IOSTATISTICS_LOGGING_LEVEL;
 
 public class OptionSets {
@@ -90,6 +98,7 @@ public class OptionSets {
       {"HADOOP_SHELL_SCRIPT_DEBUG", false},
       {HADOOP_TOKEN, false},
       {HADOOP_TOKEN_FILE_LOCATION, false},
+      {"HADOOP_KEYSTORE_PASSWORD", true},
       {"HADOOP_TOOLS_HOME", false},
       {"HADOOP_TOOLS_OPTIONS", false},
       {"HADOOP_YARN_HOME", false},
@@ -139,4 +148,120 @@ public class OptionSets {
   public static final String[] HTTP_CLIENT_RESOURCES = {
       MOZILLA_PUBLIC_SUFFIX_LIST
   };
+
+
+  /**
+   * The enhanced {@code openFile()} options.
+   */
+  @InterfaceAudience.Public
+  @InterfaceStability.Evolving
+  public static final class EnhancedOpenFileOptions {
+
+    private EnhancedOpenFileOptions() {
+    }
+
+    /**
+     * Prefix for all standard filesystem options: {@value}.
+     */
+    private static final String FILESYSTEM_OPTION = "fs.option.";
+
+    /**
+     * Prefix for all openFile options: {@value}.
+     */
+    public static final String FS_OPTION_OPENFILE =
+        FILESYSTEM_OPTION + "openfile.";
+
+    /**
+     * OpenFile option for file length: {@value}.
+     */
+    public static final String FS_OPTION_OPENFILE_LENGTH =
+        FS_OPTION_OPENFILE + "length";
+
+    /**
+     * OpenFile option for split start: {@value}.
+     */
+    public static final String FS_OPTION_OPENFILE_SPLIT_START =
+        FS_OPTION_OPENFILE + "split.start";
+
+    /**
+     * OpenFile option for split end: {@value}.
+     */
+    public static final String FS_OPTION_OPENFILE_SPLIT_END =
+        FS_OPTION_OPENFILE + "split.end";
+
+    /**
+     * OpenFile option for buffer size: {@value}.
+     */
+    public static final String FS_OPTION_OPENFILE_BUFFER_SIZE =
+        FS_OPTION_OPENFILE + "buffer.size";
+
+    /**
+     * OpenFile option for read policies: {@value}.
+     */
+    public static final String FS_OPTION_OPENFILE_READ_POLICY =
+        FS_OPTION_OPENFILE + "read.policy";
+
+    /**
+     * Set of standard options which openFile implementations
+     * MUST recognize, even if they ignore the actual values.
+     */
+    public static final Set<String> FS_OPTION_OPENFILE_STANDARD_OPTIONS =
+        Collections.unmodifiableSet(Stream.of(
+                FS_OPTION_OPENFILE_BUFFER_SIZE,
+                FS_OPTION_OPENFILE_READ_POLICY,
+                FS_OPTION_OPENFILE_LENGTH,
+                FS_OPTION_OPENFILE_SPLIT_START,
+                FS_OPTION_OPENFILE_SPLIT_END)
+            .collect(Collectors.toSet()));
+
+    /**
+     * Read policy for adaptive IO: {@value}.
+     */
+    public static final String FS_OPTION_OPENFILE_READ_POLICY_ADAPTIVE =
+        "adaptive";
+
+    /**
+     * Read policy {@value} -whateve the implementation does by default.
+     */
+    public static final String FS_OPTION_OPENFILE_READ_POLICY_DEFAULT =
+        "default";
+
+    /**
+     * Read policy for random IO: {@value}.
+     */
+    public static final String FS_OPTION_OPENFILE_READ_POLICY_RANDOM =
+        "random";
+
+    /**
+     * Read policy for sequential IO: {@value}.
+     */
+    public static final String FS_OPTION_OPENFILE_READ_POLICY_SEQUENTIAL =
+        "sequential";
+
+    /**
+     * Vectored IO API to be used: {@value}.
+     */
+    public static final String FS_OPTION_OPENFILE_READ_POLICY_VECTOR =
+        "vector";
+
+    /**
+     * Whole file to be read, end-to-end: {@value}.
+     */
+    public static final String FS_OPTION_OPENFILE_READ_POLICY_WHOLE_FILE =
+        "whole-file";
+
+    /**
+     * All the current read policies as a set.
+     */
+    public static final Set<String> FS_OPTION_OPENFILE_READ_POLICIES =
+        Collections.unmodifiableSet(Stream.of(
+                FS_OPTION_OPENFILE_READ_POLICY_ADAPTIVE,
+                FS_OPTION_OPENFILE_READ_POLICY_DEFAULT,
+                FS_OPTION_OPENFILE_READ_POLICY_RANDOM,
+                FS_OPTION_OPENFILE_READ_POLICY_SEQUENTIAL,
+                FS_OPTION_OPENFILE_READ_POLICY_VECTOR,
+                FS_OPTION_OPENFILE_READ_POLICY_WHOLE_FILE)
+            .collect(Collectors.toSet()));
+
+  }
 }

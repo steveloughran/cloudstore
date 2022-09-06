@@ -316,8 +316,7 @@ public final class CapabilityKeys {
    * Stream hsync capability implemented by {@code Syncable#hsync()}.
    */
   public static String HSYNC = "hsync";
-  
-  
+
   /**
    * Set of input/output stream capabilities to scan for.
    */
