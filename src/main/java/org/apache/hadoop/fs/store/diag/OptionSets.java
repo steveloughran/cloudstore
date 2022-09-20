@@ -72,6 +72,7 @@ public class OptionSets {
       {"mapreduce.job.hdfs-servers.token-renewal.exclude", false, false},
       {"mapreduce.application.framework.path", false, false},
       {IOSTATISTICS_LOGGING_LEVEL, false, false},
+      {"fs.iostatistics.thread.level.enabled", false, false},
 
       {"", false, false},
   };

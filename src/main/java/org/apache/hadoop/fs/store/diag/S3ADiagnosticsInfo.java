@@ -90,6 +90,22 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
   public static final String DIRECTORY_MARKER_RETENTION =
       "fs.s3a.directory.marker.retention";
 
+  public static final String FS_S3A_THREADS_MAX = "fs.s3a.threads.max";
+
+  public static final String FS_S3A_CONNECTION_MAXIMUM =
+      "fs.s3a.connection.maximum";
+
+  public static final String FS_S3A_COMMITTER_THREADS =
+      "fs.s3a.committer.threads";
+
+  public static final String FS_S3A_MULTIPART_SIZE = "fs.s3a.multipart.size";
+
+  public static final String FS_S3A_FAST_UPLOAD_BUFFER =
+      "fs.s3a.fast.upload.buffer";
+
+  public static final String FS_S3A_FAST_UPLOAD_ACTIVE_BLOCKS =
+      "fs.s3a.fast.upload.active.blocks";
+
   private static final Object[][] options = {
       /* Core auth */
       {"fs.s3a.access.key", true, true},
@@ -118,7 +134,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.s3a.change.detection.version.required", false, false},
 
       {"fs.s3a.connection.ssl.enabled", false, false},
-      {"fs.s3a.connection.maximum", false, false},
+      {FS_S3A_CONNECTION_MAXIMUM, false, false},
       {"fs.s3a.connection.establish.timeout", false, false},
       {"fs.s3a.connection.request.timeout", false, false},
       {"fs.s3a.connection.timeout", false, false},
@@ -128,16 +144,16 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {DIRECTORY_MARKER_RETENTION, false, false},
       {"fs.s3a.downgrade.syncable.exceptions", false, false},
       {"fs.s3a.etag.checksum.enabled", false, false},
-      {"fs.s3a.experimental.input.fadvise", false, false},
+      {INPUT_FADVISE, false, false},
       {"fs.s3a.experimental.aws.s3.throttling", false, false},
       {"fs.s3a.experimental.optimized.directory.operations", false, false},
       {"fs.s3a.fast.buffer.size", false, false},
-      {"fs.s3a.fast.upload.buffer", false, false},
-      {"fs.s3a.fast.upload.active.blocks", false, false},
+      {FS_S3A_FAST_UPLOAD_BUFFER, false, false},
+      {FS_S3A_FAST_UPLOAD_ACTIVE_BLOCKS, false, false},
       {"fs.s3a.impl.disable.cache", false, false},
       {"fs.s3a.list.version", false, false},
       {"fs.s3a.max.total.tasks", false, false},
-      {"fs.s3a.multipart.size", false, false},
+      {FS_S3A_MULTIPART_SIZE, false, false},
       {"fs.s3a.multiobjectdelete.enable", false, false},
       {"fs.s3a.multipart.purge", false, false},
       {"fs.s3a.multipart.purge.age", false, false},
@@ -160,7 +176,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.s3a.retry.throttle.interval", false, false},
       {"fs.s3a.ssl.channel.mode", false, false},
       {"fs.s3a.s3.client.factory.impl", false, false},
-      {"fs.s3a.threads.max", false, false},
+      {FS_S3A_THREADS_MAX, false, false},
       {"fs.s3a.threads.keepalivetime", false, false},
       {"fs.s3a.user.agent.prefix", false, false},
       {"fs.s3a.vectored.read.min.seek.size", false, false},
@@ -201,7 +217,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.s3a.committer.staging.abort.pending.uploads", false, false},
       {"fs.s3a.committer.staging.conflict-mode", false, false},
       {"fs.s3a.committer.staging.tmp.path", false, false},
-      {"fs.s3a.committer.threads", false, false},
+      {FS_S3A_COMMITTER_THREADS, false, false},
       {"fs.s3a.committer.staging.unique-filenames", false, false},
       {"mapreduce.outputcommitter.factory.scheme.s3a", false, false},
       {"mapreduce.fileoutputcommitter.marksuccessfuljobs", false, false},
@@ -289,11 +305,14 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"", false},
   };
 
+  public static final String S3AFS_CLASSNAME =
+      "org.apache.hadoop.fs.s3a.S3AFileSystem";
+
   /**
    * Mandatory classnames.
    */
   public static final String[] CLASSNAMES = {
-      "org.apache.hadoop.fs.s3a.S3AFileSystem",
+      S3AFS_CLASSNAME,
       "com.amazonaws.services.s3.AmazonS3",
       "com.amazonaws.ClientConfiguration",
       "java.lang.System",
@@ -665,6 +684,60 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       }
     }
 
+
+    // now print everything fs.s3a.ext, assuming that
+    // there are no secrets in it. Don't do that.
+    printPrefixedOptions(printout, conf, "fs.s3a.ext.");
+  }
+
+  @Override
+  public void validateFilesystem(final Printout printout,
+      final Path path,
+      final FileSystem filesystem) throws IOException {
+    super.validateFilesystem(printout, path, filesystem);
+
+    if (!S3AFS_CLASSNAME.equals(
+        filesystem.getClass().getCanonicalName())) {
+      printout.warn("The filesystem class %s is not the S3AFileSystem",
+          filesystem.getClass());
+    }
+  }
+
+
+  @Override
+  protected void performanceHints(
+      final Printout printout,
+      final Configuration conf) {
+
+    printout.heading("Performance Hints");
+    int threads = 512;
+    sizeHint(printout, conf,
+        FS_S3A_THREADS_MAX, threads);
+    sizeHint(printout, conf,
+        FS_S3A_CONNECTION_MAXIMUM, threads * 2);
+    sizeHint(printout, conf,
+        FS_S3A_COMMITTER_THREADS, 256);
+
+    hint(printout,
+        !"keep".equals(conf.get(DIRECTORY_MARKER_RETENTION, "")),
+        "If backwards compatibility is not an issue, set %s to keep",
+        DIRECTORY_MARKER_RETENTION);
+    hint(printout,
+        "org.apache.hadoop.fs.s3a.s3guard.DynamoDBMetadataStore"
+            .equals(conf.get("fs.s3a.metadatastore.impl","")),
+        "S3Guard is no longer needed -decommission it");
+
+    reviewReadPolicy(printout, conf);
+
+
+    // look at output buffer options
+  }
+
+  /**
+   * Review the read policy.
+   */
+  private void reviewReadPolicy(final Printout printout,
+      final Configuration conf) {
     // look at seek policy and warn of risks
     final String fadvise =
         conf.getTrimmed(INPUT_FADVISE, INPUT_FADV_NORMAL);
@@ -700,50 +773,6 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
     default:
       printout.warn("unknown seek policy");
     }
-
-
-    // now print everything fs.s3a.ext, assuming that
-    // there are no secrets in it. Don't do that.
-    printPrefixedOptions(printout, conf, "fs.s3a.ext.");
-  }
-
-  @Override
-  public void validateFilesystem(final Printout printout,
-      final Path path,
-      final FileSystem filesystem) throws IOException {
-    super.validateFilesystem(printout, path, filesystem);
-
-    if (!"org.apache.hadoop.fs.s3a.S3AFileSystem".equals(
-        filesystem.getClass().getCanonicalName())) {
-      printout.warn("The filesystem class %s is not the S3AFileSystem",
-          filesystem.getClass());
-    }
-  }
-
-
-  @Override
-  protected void performanceHints(
-      final Printout printout,
-      final Configuration conf) {
-
-    printout.heading("Performance Hints");
-    int threads = 512;
-    sizeHint(printout, conf,
-        "fs.s3a.threads.max", threads);
-    sizeHint(printout, conf,
-        "fs.s3a.connection.maximum", threads * 2);
-    sizeHint(printout, conf,
-        "fs.s3a.committer.threads", 256);
-
-    hint(printout,
-        !"keep".equals(conf.get(DIRECTORY_MARKER_RETENTION, "")),
-        "If backwards compatibility is not an issue, set %s to keep",
-        DIRECTORY_MARKER_RETENTION);
-    hint(printout,
-        "org.apache.hadoop.fs.s3a.s3guard.DynamoDBMetadataStore"
-            .equals(conf.get("fs.s3a.metadatastore.impl","")),
-        "S3Guard is no longer needed -decommission it");
-
   }
 
 }
