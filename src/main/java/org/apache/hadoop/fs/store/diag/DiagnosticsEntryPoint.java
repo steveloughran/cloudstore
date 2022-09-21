@@ -151,7 +151,7 @@ public class DiagnosticsEntryPoint extends StoreEntryPoint implements Printout {
   /**
    * Print all JVM options.
    */
-  protected void printJVMOptions() {
+  protected final void printJVMOptions() {
     heading("System Properties");
     Properties sysProps = System.getProperties();
     for (String s : DiagnosticsEntryPoint.sortKeys(sysProps.keySet())) {
@@ -167,7 +167,7 @@ public class DiagnosticsEntryPoint extends StoreEntryPoint implements Printout {
    * sort the list.
    * @param md5 create MD5 checksums
    */
-  protected void printJARS(final boolean md5)
+  protected final void printJARS(final boolean md5)
       throws IOException, NoSuchAlgorithmException {
     heading("JAR listing");
     final Map<String, String> jars = jarsOnClasspath();
@@ -205,7 +205,7 @@ public class DiagnosticsEntryPoint extends StoreEntryPoint implements Printout {
    * This is an array of (name, obfuscate) entries.
    * @param vars variables.
    */
-  public void printEnvVars(Object[][] vars) {
+  public final void printEnvVars(Object[][] vars) {
     lookupAndPrintSanitizedValues(vars, "Environment Variables",
         System::getenv);
   }
@@ -215,7 +215,7 @@ public class DiagnosticsEntryPoint extends StoreEntryPoint implements Printout {
    * This is an array of (name, obfuscate) entries.
    * @param vars variables.
    */
-  public void printSystemProperties(Object[][] vars) {
+  public final void printSystemProperties(Object[][] vars) {
     lookupAndPrintSanitizedValues(vars, "Selected System Properties",
         System::getProperty);
   }
@@ -227,7 +227,7 @@ public class DiagnosticsEntryPoint extends StoreEntryPoint implements Printout {
    * @param section section name
    * @param lookup lookup function
    */
-  public void lookupAndPrintSanitizedValues(Object[][] vars,
+  public final void lookupAndPrintSanitizedValues(Object[][] vars,
       String section,
       Function<String, String> lookup) {
     int index = 0;
@@ -258,7 +258,7 @@ public class DiagnosticsEntryPoint extends StoreEntryPoint implements Printout {
    * @param options map of options
    */
   @Override
-  public void printOptions(String title, Configuration conf,
+  public final void printOptions(String title, Configuration conf,
       Object[][] options)
       throws IOException {
     int index = 0;

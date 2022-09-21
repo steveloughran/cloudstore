@@ -28,13 +28,16 @@ import org.apache.hadoop.classification.InterfaceStability;
 
 import static org.apache.hadoop.fs.store.StoreDiagConstants.IOSTATISTICS_LOGGING_LEVEL;
 
+/**
+ * standard env vars, JVM options etc.
+ */
 public class OptionSets {
 
   /**
    * Not all of these are in CommonConfigurationKeysPublic of older
    * Hadoop versions, so they are inlined.
    */
-  protected static final Object[][] SECURITY_OPTIONS = {
+  public static final Object[][] SECURITY_OPTIONS = {
       {"dfs.data.transfer.protection", false, false},
       {"hadoop.http.authentication.simple.anonymous.allowed", false, false},
       {"hadoop.http.authentication.type", false, false},
@@ -53,7 +56,7 @@ public class OptionSets {
       {"", false, false},
   };
 
-  protected static final Object[][] CLUSTER_OPTIONS = {
+  public static final Object[][] CLUSTER_OPTIONS = {
       {"fs.defaultFS", false, false},
       {"fs.default.name", false, false},
       {"fs.creation.parallel.count", false, false},
@@ -85,7 +88,7 @@ public class OptionSets {
   /**
    * These are standard env vars which are good to look at.
    */
-  protected static final Object[][] STANDARD_ENV_VARS = {
+  public static final Object[][] STANDARD_ENV_VARS = {
       {"PATH", false},
       {"HADOOP_CONF_DIR", false},
       {"HADOOP_CLASSPATH", false},
@@ -105,6 +108,7 @@ public class OptionSets {
       {"HADOOP_YARN_HOME", false},
       {"HDP_VERSION", false},
       {"JAVA_HOME", false},
+      {"LD_LIBRARY_PATH", false},
       {"LOCAL_DIRS", false},
       {"OPENSSL_ROOT_DIR", false},
       {"PYSPARK_DRIVER_PYTHON", false},
@@ -112,7 +116,6 @@ public class OptionSets {
       {"SPARK_CONF_DIR", false},
       {"SPARK_SCALA_VERSION", false},
       {"YARN_CONF_DIR", false},
-      {"LD_LIBRARY_PATH", false},
       {"", false},
       // TODO: add the https proxy vars
   };
@@ -121,7 +124,7 @@ public class OptionSets {
   /**
    * Standard System properties.
    */
-  protected static final Object[][] STANDARD_SYSPROPS = {
+  public static final Object[][] STANDARD_SYSPROPS = {
       {"java.version", false},
       {"", false},
   };
@@ -129,17 +132,19 @@ public class OptionSets {
   /**
    * TLS System properties.
    */
-  protected static final Object[][] TLS_SYSPROPS = {
+  public static final Object[][] TLS_SYSPROPS = {
       {"java.version", false},
-      {"cert.provider.x509v1", false},
+      {"java.version", false},
+      {"java.library.path", false},
       {"https.protocols", false},
       {"javax.net.ssl.keyStore", false},
       {"javax.net.ssl.keyStorePassword", true},
       {"javax.net.ssl.trustStore", false},
       {"jdk.certpath.disabledAlgorithms", false},
       {"jdk.tls.client.cipherSuites", false},
+      {"jdk.tls.client.protocols", false},
       {"jdk.tls.disabledAlgorithms", false},
-      {"jdk.tls.client.protocol", false},
+      {"jdk.tls.legacyAlgorithms", false},
       {"", false},
   };
 

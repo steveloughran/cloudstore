@@ -45,7 +45,6 @@ import org.apache.hadoop.fs.shell.CommandFormat;
 import org.apache.hadoop.fs.statistics.IOStatistics;
 import org.apache.hadoop.fs.statistics.IOStatisticsSource;
 */
-import org.apache.hadoop.fs.store.commands.JobTokens;
 import org.apache.hadoop.io.IOUtils;
 import org.apache.hadoop.security.Credentials;
 import org.apache.hadoop.security.UserGroupInformation;
@@ -59,7 +58,6 @@ import static org.apache.hadoop.fs.statistics.IOStatisticsLogging.ioStatisticsSo
 import static org.apache.hadoop.fs.statistics.IOStatisticsSupport.retrieveIOStatistics;
 */
 import static org.apache.hadoop.fs.store.CommonParameters.DEFINE;
-import static org.apache.hadoop.fs.store.CommonParameters.LIMIT;
 import static org.apache.hadoop.fs.store.CommonParameters.VERBOSE;
 import static org.apache.hadoop.fs.store.CommonParameters.XMLFILE;
 import static org.apache.hadoop.fs.store.StoreDiagConstants.IOSTATISTICS_LOGGING_LEVEL;
@@ -113,7 +111,7 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable {
     return tokens;
   }
 
-  protected String plural(int n) {
+  protected final String plural(int n) {
     return n == 1 ? "" : "s";
   }
 
@@ -127,15 +125,15 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable {
 
   }
 
-  public PrintStream getOut() {
+  public final PrintStream getOut() {
     return out;
   }
 
-  public void setOut(PrintStream out) {
+  public final void setOut(PrintStream out) {
     this.out = out;
   }
 
-  public void println() {
+  public final void println() {
     out.println();
     out.flush();
   }
@@ -156,7 +154,7 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable {
    * @param format format string
    * @param args optional arguments
    */
-  protected void print(String format, Object... args) {
+  protected final void print(String format, Object... args) {
     if (args.length == 0) {
       out.printf(format);
     } else {
@@ -165,7 +163,7 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable {
   }
 
 
-  public void warn(String format, Object... args) {
+  public final void warn(String format, Object... args) {
     println("WARNING: " + String.format(format, args));
   }
 
@@ -190,7 +188,7 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable {
    * @param format format string
    * @param args arguments.
    */
-  public void debug(String format, Object... args) {
+  public final void debug(String format, Object... args) {
     LOG.debug(format, args);
 /*
     if (LOG.isDebugEnabled()) {
@@ -206,11 +204,11 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable {
     ExitUtil.terminate(ex.getExitCode(), ex.getMessage());
   }
 
-  public CommandFormat getCommandFormat() {
+  public final CommandFormat getCommandFormat() {
     return commandFormat;
   }
 
-  public void setCommandFormat(CommandFormat commandFormat) {
+  public final void setCommandFormat(CommandFormat commandFormat) {
     this.commandFormat = commandFormat;
   }
 
@@ -256,7 +254,7 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable {
    * @param opt option.
    * @return the value or null
    */
-  protected String getOption(String opt) {
+  protected final String getOption(String opt) {
     return getCommandFormat().getOptValue(opt);
   }
 
@@ -265,7 +263,7 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable {
    * @param opt option.
    * @return true iff it was set.
    */
-  protected boolean hasOption(String opt) {
+  protected final boolean hasOption(String opt) {
     return getCommandFormat().getOpt(opt);
   }
 
@@ -274,7 +272,7 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable {
    * @param opt option.
    * @return the value or null
    */
-  protected Optional<String> getOptional(String opt) {
+  protected final Optional<String> getOptional(String opt) {
     return Optional.ofNullable(getCommandFormat().getOptValue(opt));
   }
 
@@ -284,14 +282,14 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable {
    * @param defval default value
    * @return the value to use
    */
-  protected int getIntOption(String opt, int defval) {
+  protected final int getIntOption(String opt, int defval) {
     return getOptional(opt).map(Integer::valueOf).orElse(defval);
   }
 
   /**
    * Add all the various configuration files.
    */
-  protected void addAllDefaultXMLFiles() {
+  protected final void addAllDefaultXMLFiles() {
     addDefaultResources("hdfs-default.xml",
       "hdfs-site.xml",
       // this order is what JobConf does via
@@ -306,7 +304,7 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable {
       "hbase-site.xml");
   }
 
-  protected void addDefaultResources(String... resources) {
+  protected final void addDefaultResources(String... resources) {
     for (String resource : resources) {
       Configuration.addDefaultResource(resource);
     }

@@ -506,6 +506,10 @@ Usage: listobjects <path>
     -xmlfile <file> XML config file to load
 ```
 
+## Command `localhost`
+
+Print out localhost information from java APIs and then the hadoop network APIs.
+
 ## Command `locatefiles`
 
 Use the mapreduce `LocatedFileStatusFetcher` to scan for all non-hidden
@@ -709,6 +713,12 @@ a failure to connect to the instance metadata server.
 ```
 
 This is to be expected, given that the service isn't there.
+
+## Command `tlsinfo`
+
+Print out tls information. The `storediag` command prints the same information;
+this command purely looks at the JVM settings.
+
 
 ## Development and Future Work
 

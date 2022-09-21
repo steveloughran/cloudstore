@@ -43,6 +43,7 @@ public class help extends Command {
     localhost.help();
     pathcapability.help();
     storediag.help();
+    tlsinfo.help();
 
     // extras must not refer to the optional classes.
     println("");
