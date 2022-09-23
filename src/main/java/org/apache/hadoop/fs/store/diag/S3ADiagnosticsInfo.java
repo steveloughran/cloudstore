@@ -144,6 +144,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {DIRECTORY_MARKER_RETENTION, false, false},
       {"fs.s3a.downgrade.syncable.exceptions", false, false},
       {"fs.s3a.etag.checksum.enabled", false, false},
+      {"fs.s3a.executor.capacity", false, false},
       {INPUT_FADVISE, false, false},
       {"fs.s3a.experimental.aws.s3.throttling", false, false},
       {"fs.s3a.experimental.optimized.directory.operations", false, false},
@@ -181,6 +182,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.s3a.user.agent.prefix", false, false},
       {"fs.s3a.vectored.read.min.seek.size", false, false},
       {"fs.s3a.vectored.read.max.merged.size", false, false},
+      {"fs.s3a.vectored.active.ranged.reads", false, false},
 
 
       /* Assumed Role */

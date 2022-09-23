@@ -271,7 +271,7 @@ public final class CapabilityKeys {
    * Support for vectored IO api.
    * See {@code PositionedReadable#readVectored(List, IntFunction)}.
    */
-  public static String VECTOREDIO = "readvectored";
+  public static String VECTOREDIO = "in:readvectored";
 
 
   /**
