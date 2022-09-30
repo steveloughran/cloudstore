@@ -373,9 +373,13 @@ public class DiagnosticsEntryPoint extends StoreEntryPoint implements Printout {
 
   public void printHadoopXMLSources() throws FileNotFoundException {
     heading("Hadoop XML Configurations");
-    probeResource("core-site.xml", true);
+    probeResource("core-default.xml", true);
+    probeResource("core-site.xml", false);
+    probeResource("hdfs-default.xml", false);
     probeResource("hdfs-site.xml", false);
+    probeResource("mapred-default.xml", false);
     probeResource("mapred-site.xml", false);
+    probeResource("yarn-default.xml", false);
     probeResource("yarn-site.xml", false);
   }
 

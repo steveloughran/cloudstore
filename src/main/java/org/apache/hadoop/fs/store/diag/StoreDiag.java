@@ -45,6 +45,7 @@ import java.util.Date;
 import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.UUID;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLParameters;
@@ -99,10 +100,13 @@ public class StoreDiag extends DiagnosticsEntryPoint {
   private static final String HELLO = "Hello";
 
   /** {@value}. */
-  public static final String LOGDUMP = "l";
+  public static final String ENVARS = "e";
 
   /** {@value}. */
   public static final String OPTIONAL = "o";
+
+  /** {@value}. */
+  public static final String LOGDUMP = "l";
 
   /** {@value}. */
   public static final String READONLY = "r";
@@ -125,13 +129,14 @@ public class StoreDiag extends DiagnosticsEntryPoint {
   /** {@value}. */
   public static final String USAGE =
       "Usage: storediag\n"
-          + optusage(JARS, "List the JARs on the classpath")
-          + optusage(WRITE, "attempt write operations on the filesystem")
-          + optusage(MD5, "Print MD5 checksums of the jars listed (requires -j)")
-          + optusage(LOGDUMP, "Dump the Log4J settings")
-          + optusage(OPTIONAL, "Downgrade all 'required' classes to optional")
           + optusage(DELEGATION, "Require delegation tokens to be issued")
+          + optusage(JARS, "List the JARs on the classpath")
+          + optusage(ENVARS, "List the environmment variables. *danger: does not redact secrets*")
+          + optusage(LOGDUMP, "Dump the Log4J settings")
+          + optusage(MD5, "Print MD5 checksums of the jars listed (requires -j)")
+          + optusage(OPTIONAL, "Downgrade all 'required' classes to optional")
           + optusage(SYSPROPS, "List the JVMs System Properties")
+          + optusage(WRITE, "attempt write operations on the filesystem")
           + optusage(DEFINE, "key=value", "Define a property")
           + optusage(TOKENFILE, "file", "Hadoop token file to load")
           + optusage(XMLFILE, "file", "XML config file to load")
@@ -145,15 +150,17 @@ public class StoreDiag extends DiagnosticsEntryPoint {
 
   public StoreDiag() {
     createCommandFormat(1, 1,
-        VERBOSE,
-        JARS,
         DELEGATION,
-        READONLY,
-        WRITE,
+        ENVARS,
+        JARS,
         LOGDUMP,
-        OPTIONAL,
         MD5,
-        SYSPROPS);
+        OPTIONAL,
+        READONLY,
+        SYSPROPS,
+        WRITE,
+        VERBOSE
+        );
     addValueOptions(TOKENFILE, XMLFILE, DEFINE, REQUIRED, PRINCIPAL, SYSPROP);
   }
 
@@ -195,6 +202,9 @@ public class StoreDiag extends DiagnosticsEntryPoint {
       // only print selected ones
       printSystemProperties(storeInfo.getSelectedSystemProperties());
     }
+    if (hasOption(ENVARS)) {
+      dumpEnvVars();
+    }
     if (hasOption(LOGDUMP)) {
       dumpLog4J();
     }
@@ -202,6 +212,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
       printJARS(hasOption(MD5));
     }
     printEnvVars(storeInfo.getEnvVars());
+    printHadoopXMLSources();
     printSecurityState();
     printStoreConfiguration();
     probeRequiredAndOptionalClasses(hasOption(OPTIONAL));
@@ -630,6 +641,21 @@ public class StoreDiag extends DiagnosticsEntryPoint {
         errorln("if so: check its dependencies");
       }
       throw e;
+    }
+  }
+
+  /**
+   * Dump env vars. all AWS entries are obfuscated.
+   */
+  public void dumpEnvVars() throws IOException {
+    heading("All Environment Variables");
+    Map<String, String> vars = new TreeMap<>(System.getenv());
+    int i = 1;
+    for (Map.Entry<String, String> entry : vars.entrySet()) {
+      String key = entry.getKey();
+      String value = maybeSanitize(entry.getValue(),
+      key.startsWith("AWS_"));
+      println("[%03d] %s=\"%s\"", i, key, value);
     }
   }
 

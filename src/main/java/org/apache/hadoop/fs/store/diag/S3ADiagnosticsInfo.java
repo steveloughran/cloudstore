@@ -106,6 +106,12 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
   public static final String FS_S3A_FAST_UPLOAD_ACTIVE_BLOCKS =
       "fs.s3a.fast.upload.active.blocks";
 
+  public static final String DELEGATION_TOKEN_BINDING =
+      "fs.s3a.delegation.token.binding";
+
+  public static final String AWS_CREDENTIALS_PROVIDER =
+      "fs.s3a.aws.credentials.provider";
+
   private static final Object[][] options = {
       /* Core auth */
       {"fs.s3a.access.key", true, true},
@@ -115,7 +121,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.s3a.server-side-encryption.key", true, true},
       {"fs.s3a.encryption.algorithm", true, false},
       {"fs.s3a.encryption.key", true, true},
-      {"fs.s3a.aws.credentials.provider", false, false},
+      {AWS_CREDENTIALS_PROVIDER, false, false},
       {ENDPOINT, false, false},
       {REGION, false, false},
       {"fs.s3a.signing-algorithm", false, false},
@@ -226,7 +232,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
 
 
       /* delegation */
-      {"fs.s3a.delegation.token.binding", false, false},
+      {DELEGATION_TOKEN_BINDING, false, false},
       /* this is from ranger, it should have been in .ext */
       {"fs.s3a.signature.cache.max.size", false, false},
 
@@ -645,7 +651,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       }
     }
     if (endpoint.isEmpty()) {
-      printout.println("Central us-east endpoint will be used."
+      printout.println("Central us-east endpoint will be used. "
           + "When not executing within EC2, this is less efficient for buckets in other regions");
     } else if (endpoint.endsWith("amazonaws.cn")) {
       printout.println("AWS china is in use");
@@ -684,6 +690,16 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       if (!pathStyleAccess && secureConnections) {
         printout.warn("HTTPS certificate validation is probably broken");
       }
+    }
+    printout.heading("Authentication");
+    String dtbinding = conf.getTrimmed(DELEGATION_TOKEN_BINDING, "");
+    String[] auth = conf.getStrings(AWS_CREDENTIALS_PROVIDER, "");
+
+    if (!dtbinding.isEmpty()) {
+      printout.println("Delegation token binding %s is active", dtbinding);
+      printout.println("This will take over authentication from the settings in %s", AWS_CREDENTIALS_PROVIDER);
+    } else {
+      // TODO: analyse default values.
     }
 
 
