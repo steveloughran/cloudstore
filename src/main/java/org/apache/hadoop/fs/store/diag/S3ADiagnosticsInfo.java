@@ -112,11 +112,17 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
   public static final String AWS_CREDENTIALS_PROVIDER =
       "fs.s3a.aws.credentials.provider";
 
+  public static final String ACCESS_KEY = "fs.s3a.access.key";
+
+  public static final String SECRET_KEY = "fs.s3a.secret.key";
+
+  public static final String SESSION_TOKEN = "fs.s3a.session.token";
+
   private static final Object[][] options = {
       /* Core auth */
-      {"fs.s3a.access.key", true, true},
-      {"fs.s3a.secret.key", true, true},
-      {"fs.s3a.session.token", true, true},
+      {ACCESS_KEY, true, true},
+      {SECRET_KEY, true, true},
+      {SESSION_TOKEN, true, true},
       {"fs.s3a.server-side-encryption-algorithm", true, false},
       {"fs.s3a.server-side-encryption.key", true, true},
       {"fs.s3a.encryption.algorithm", true, false},

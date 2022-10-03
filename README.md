@@ -720,6 +720,12 @@ Print out tls information. The `storediag` command prints the same information;
 this command purely looks at the JVM settings.
 
 
+## S3A Diagnostics Credential Provider
+
+[DiagnosticsAWSCredentialsProvider](src/main/site/diagnosticsawscredentialsprovider.md)
+is an AWS credential provider which logs the fs.s3a login secrets (obfuscated and md5).
+
+
 ## Development and Future Work
 
 _Roadmap_: Whatever we need to debug things.

@@ -122,6 +122,7 @@ public class DiagnosticsEntryPoint extends StoreEntryPoint implements Printout {
     return String.format("\"%s\" [%d]", safe, len);
   }
 
+
   /**
    * Create a URI, raise an IOE on parsing.
    * @param origin origin for error text
@@ -358,7 +359,7 @@ public class DiagnosticsEntryPoint extends StoreEntryPoint implements Printout {
       println("All these classes must be on the classpath");
       println("");
       for (String classname : requiredClasses) {
-        probeRequiredClass(classname);
+        probeRequiredClass(classname, false);
       }
     }
   }
@@ -408,9 +409,10 @@ public class DiagnosticsEntryPoint extends StoreEntryPoint implements Printout {
   /**
    * Look for a class; print its origin.
    * @param classname classname
+   * @param verbose verbose output
    * @throws ClassNotFoundException if the class was not found.
    */
-  public void probeRequiredClass(final String classname)
+  public void probeRequiredClass(final String classname, boolean verbose)
       throws ClassNotFoundException, FileNotFoundException {
     String name = classname.trim();
     if (name.isEmpty()) {
@@ -423,6 +425,11 @@ public class DiagnosticsEntryPoint extends StoreEntryPoint implements Printout {
     if (source != null) {
       println("       %s", source.getLocation());
     }
+    if (verbose) {
+      println("       %s", clazz.getClassLoader());
+
+    }
+
   }
 
   private void probeClassResource(final String classname,
@@ -438,7 +445,7 @@ public class DiagnosticsEntryPoint extends StoreEntryPoint implements Printout {
    */
   public boolean probeOptionalClass(final String classname) {
     try {
-      probeRequiredClass(classname);
+      probeRequiredClass(classname, false);
       return true;
     } catch (Exception e) {
       println("       Not found on classpath: %s", classname);

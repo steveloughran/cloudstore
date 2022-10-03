@@ -582,7 +582,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
       if (name.contains("/")) {
         probeResource(name, true);
       } else {
-        probeRequiredClass(name);
+        probeRequiredClass(name, true);
       }
     }
   }
@@ -627,7 +627,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
       println("FileSystem for %s:// is: %s", scheme, clazz.getName());
       CodeSource source = clazz.getProtectionDomain().getCodeSource();
       if (source != null) {
-        println("Loaded from: %s", source.getLocation());
+        println("Loaded from: %s via %s", source.getLocation(), clazz.getClassLoader());
       }
     } catch (IOException e) {
       if (e instanceof UnsupportedFileSystemException
