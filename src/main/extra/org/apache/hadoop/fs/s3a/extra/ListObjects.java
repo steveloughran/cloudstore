@@ -19,6 +19,8 @@
 package org.apache.hadoop.fs.s3a.extra;
 
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -325,14 +327,17 @@ public class ListObjects extends StoreEntryPoint {
     return objectRepresentsDirectory(name, size);
   }
 
+  private final DateFormat df = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+
   /**
    * String information about a summary entry.
    * @param summary summary object
    * @return string value
    */
-  public static String stringify(S3ObjectSummary summary) {
-    return String.format("\"%s\"\tsize: [%d]\ttag: %s", summary.getKey(),
+  public String stringify(S3ObjectSummary summary) {
+    return String.format("\"%s\"\tsize: [%d]\t%s\ttag: %s", summary.getKey(),
         summary.getSize(),
+        df.format(summary.getLastModified()),
         summary.getETag());
   }
 
