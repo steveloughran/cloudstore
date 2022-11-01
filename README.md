@@ -430,7 +430,7 @@ s3a://guarded-table/example S3AFileStatus{path=s3a://guarded-table/example; isDi
 2019-07-31 21:48:37,182 [main] INFO  commands.PrintStatus (DurationInfo.java:close(100)) - get path status: duration 0:02:221
 ```
 
-## Command: `gcscreds`
+## Command `gcscreds`
 
 Help debug gcs credential bindings as set in `fs.gs.auth.service.account.private.key`
 
@@ -450,7 +450,7 @@ factory com.google.cloud.hadoop.repackaged.gcs.com.google.cloud.hadoop.util.Cred
 
 
 
-## Command: `list`
+## Command `list`
 
 Do a recursive listing of a path. Uses `listFiles(path, recursive)`, so for any object store
 which can do this as a deep paginated scan, is much, much faster.
@@ -488,7 +488,7 @@ Listing up to 10 files under s3a://landsat-pds/
 Found 10 files, 124 milliseconds per file
 Data size 217,741,136 bytes, 21,774,113 bytes per file
 ```
-## Command: `listobjects`
+## Command `listobjects`
 
 List all objects and a path through the low-level S3 APIs.
 This bypasses the filesystem metaphor and gives the real view
@@ -618,7 +618,21 @@ Patches welcome!
 
 You can also explore what directory tree structure is most efficient here.
 
-## Command: `pathcapability`
+## Command `mkcsv`
+
+Creates a CSV file (technically a TSV file,...) with a given path; useful
+for scale testing CSV processing through Hive and Spark.
+
+```
+hadoop jar cloudstore-1.0.jar mkcsv -verbose 10000 s3a://bucket/file.csv
+```
+
+The CSV has column 1 == row ID; column2 is a subset of a 1K string;
+the length of the subset increases with every row then wraps around.
+This is to give the file variable length rows, complicate split calculation
+etc.
+
+
 
 Probes a filesystem for offering a specific named capability on the given path.
 
@@ -645,7 +659,7 @@ The exit code of the command is 0 if the capability is present, -1 if absent, an
  
 As it is in Hadoop 3.3, all APIs new to that release (including `openFile()`) can absolutely be probed for. Otherwise, the 55 response may mean "an API is implemented, just not the probe". 
 
-## Command: `regions`
+## Command `regions`
 
 Invokes the AWS region provider chain to see if the client can automatically determine the region of AWS SDK calls.
 

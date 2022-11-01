@@ -16,20 +16,18 @@
  * limitations under the License.
  */
 
-package org.apache.hadoop.fs.store.commands;
+package org.apache.hadoop.fs.tools.csv;
 
 import java.util.List;
 import java.util.Locale;
-import java.util.Random;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.conf.StorageUnit;
-import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
+import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.store.StoreDurationInfo;
@@ -43,30 +41,39 @@ import static org.apache.hadoop.fs.store.CommonParameters.VERBOSE;
 import static org.apache.hadoop.fs.store.CommonParameters.XMLFILE;
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
 
-/**
- * Bandwidth test of upload/download capacity.
- */
-public class Bandwidth extends StoreEntryPoint {
+public class MkCSV extends StoreEntryPoint {
 
-  private static final Logger LOG = LoggerFactory.getLogger(Bandwidth.class);
+  private static final Logger LOG = LoggerFactory.getLogger(MkCSV.class);
 
   public static final String USAGE
-      = "Usage: bandwidth [options] size <path>\n"
+      = "Usage: mkcsv\n"
       + optusage(DEFINE, "key=value", "Define a property")
       + optusage(TOKENFILE, "file", "Hadoop token file to load")
+      + optusage(XMLFILE, "file", "XML config file to load")
       + optusage(VERBOSE, "print verbose output")
-      + optusage(XMLFILE, "file", "XML config file to load");
+      + "\t<records> <path>";
 
   private static final int BUFFER_SIZE = 32 * 1024;
 
+  private static final int MB_1 = (1024 * 1024);
+
+  private static final int KB_1 = 1024;
+
   public static final int UPLOAD_BUFFER_SIZE = MB_1;
 
-  private byte[] dataBuffer;
+  /**
+   * number of numeric elements in column 2.
+   * Width of the column will be at most ELEMENTS * 5;
+   */
+  private static final int ELEMENTS = 1000;
 
-  public Bandwidth() {
+  private static final String EOL = "\r\n";
+
+  private static final String SEPARATOR = "\t";
+
+  public MkCSV() {
     createCommandFormat(2, 2, VERBOSE);
     addValueOptions(TOKENFILE, XMLFILE, DEFINE);
-
   }
 
   @Override
@@ -76,47 +83,30 @@ public class Bandwidth extends StoreEntryPoint {
       errorln(USAGE);
       return E_USAGE;
     }
+
     maybeAddTokens(TOKENFILE);
     final Configuration conf = createPreconfiguredConfig();
-
     // path on the CLI
     String size = argList.get(0).toLowerCase(Locale.ENGLISH);
     String pathString = argList.get(1);
     Path path = new Path(pathString);
-    println("Bandwidth test against %s with data size %s", path, size);
-
-    if (size.endsWith("p") || size.endsWith("t") || size.endsWith("e")) {
-      warn("That's going to take a while");
+    long rows = Long.parseLong(size);
+    if (rows < 0) {
+      errorln("Invalid row count %s", size);
+      errorln(USAGE);
+      return E_USAGE;
     }
-    FileSystem fs = path.getFileSystem(conf);
-    println("Using filesystem %s", fs.getUri());
-
-    double uploadSize;
-
-    try {
-      // look for a long value,
-      uploadSize = Long.parseLong(size);
-    } catch (NumberFormatException e) {
-      // parse the size values via Configuration
-      // this is only possible on hadoop 3.1+.
-      final Configuration sizeConf = new Configuration(false);
-
-      // upload in MB.
-      uploadSize = sizeConf.getStorageSize("size", size, StorageUnit.MB);
+    println("Writing CSV file to %s with row count %s", path, rows);
+    // create the block data column
+    int elements = ELEMENTS;
+    StringBuilder sb = new StringBuilder(elements * 5);
+    for (int i = 1; i <= elements; i++) {
+      sb.append(String.format("%04x-", i));
     }
+    // and a final end of block char
+    sb.append("!");
 
-    long sizeMB = Math.round(uploadSize);
-    if (sizeMB <= 0) {
-      warn("minimum size is 1M");
-      sizeMB = 1;
-    }
-    println("Upload size in Megabytes %,d MB", sizeMB);
-    long sizeBytes = sizeMB * MB_1;
-
-    // buffer of randomness
-    dataBuffer = new byte[UPLOAD_BUFFER_SIZE];
-    new Random().nextBytes(dataBuffer);
-    int numberOfBuffersToUpload = (int) sizeMB;
+    String block = sb.toString();
 
     // progress callback counts #of invocations, and optionally prints a .
     AtomicLong progressCount = new AtomicLong();
@@ -127,13 +117,17 @@ public class Bandwidth extends StoreEntryPoint {
         print(".");
       }
     };
+    FileSystem fs = path.getFileSystem(conf);
+    println("Using filesystem %s", fs.getUri());
 
     // total duration tracker.
-    final StoreDurationInfo uploadDurationTracker = new StoreDurationInfo(null, "upload");
+    final StoreDurationInfo
+        uploadDurationTracker = new StoreDurationInfo(null, "upload");
 
     // open the file. track duration
     FSDataOutputStream upload;
-    try (StoreDurationInfo d = new StoreDurationInfo(LOG, "Opening %s for upload", path)) {
+    try (StoreDurationInfo d = new StoreDurationInfo(LOG,
+        "Opening %s for upload", path)) {
       upload = fs.createFile(path)
           .progress(progress)
           .recursive()
@@ -142,61 +136,40 @@ public class Bandwidth extends StoreEntryPoint {
           .build();
     }
     try {
-      // now do the upload
-      // println placement is so that progress . entries are on their own line
-      for (int i = 0; i < numberOfBuffersToUpload; i++) {
-        upload.write(dataBuffer);
-        println("%,d ", i);
-      }
-      println();
-      // write all remaining data
+      StoreCsvWriter writer = new StoreCsvWriter(upload, SEPARATOR, EOL);
 
-      try (StoreDurationInfo d = new StoreDurationInfo(LOG, "upload stream close()")) {
-        upload.close();
+      for (int r = 1; r <= rows; r++) {
+        writer.quote(r);
+        // now collect a subset of the value
+        int count = r % elements;
+        int last = count * 5 + 1;
+        writer.column(block.substring(0, last));
+        writer.newline();
       }
+      // now close the file
+      try (StoreDurationInfo d = new StoreDurationInfo(LOG,
+          "upload stream close()")) {
+        writer.flush();
+        writer.close();
+      }
+
     } finally {
       printIfVerbose("Upload Stream: %s", upload);
     }
+
+    println();
+
+
+
     // upload is done, print some statistics
     uploadDurationTracker.finished();
+    FileStatus status = fs.getFileStatus(path);
 
     // end of upload
     printFSInfoInVerbose(fs);
 
-    // now download
-    heading("Download");
-
-    StoreDurationInfo downloadDurationTracker = new StoreDurationInfo(null, "upload");
-    FSDataInputStream download;
-    try (StoreDurationInfo d = new StoreDurationInfo(LOG, "open %s", path)) {
-      // TODO: once we drop CDH6 support, we can move to openFile and set
-      // length and read policy
-      download = fs.open(path);
-    }
-    try {
-      long pos = 0;
-      // now do the download
-      for (int i = 0; i < numberOfBuffersToUpload; i++) {
-        println("%,d ", i);
-        download.readFully(pos, dataBuffer);
-        pos += UPLOAD_BUFFER_SIZE;
-      }
-      println();
-      try (StoreDurationInfo d = new StoreDurationInfo(LOG, "download stream close()")) {
-        download.close();
-      }
-    } finally {
-      printIfVerbose("Download Stream: %s", download);
-    }
-    downloadDurationTracker.finished();
-
-    try (StoreDurationInfo d = new StoreDurationInfo(LOG, "delete file %s", path)) {
-      fs.delete(path, false);
-    }
-
-    // now print both summaries
+    long sizeBytes = status.getLen();
     summarize("Upload", uploadDurationTracker, sizeBytes);
-    summarize("Download", downloadDurationTracker, sizeBytes);
 
     return 0;
 
@@ -210,7 +183,7 @@ public class Bandwidth extends StoreEntryPoint {
    * @throws Exception failure
    */
   public static int exec(String... args) throws Exception {
-    return ToolRunner.run(new Bandwidth(), args);
+    return ToolRunner.run(new MkCSV(), args);
   }
 
   /**
@@ -224,5 +197,4 @@ public class Bandwidth extends StoreEntryPoint {
       exitOnThrowable(e);
     }
   }
-
 }

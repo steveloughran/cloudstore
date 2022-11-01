@@ -41,6 +41,7 @@ public class help extends Command {
     list.help();
     locatefiles.help();
     localhost.help();
+    mkcsv.help();
     pathcapability.help();
     storediag.help();
     tlsinfo.help();

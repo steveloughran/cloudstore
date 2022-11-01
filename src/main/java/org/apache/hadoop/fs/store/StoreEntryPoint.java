@@ -69,7 +69,11 @@ import static org.apache.hadoop.fs.store.StoreUtils.split;
 @SuppressWarnings("UseOfSystemOutOrSystemErr")
 public class StoreEntryPoint extends Configured implements Tool, Closeable {
 
+  protected static final int MB_1 = (1024 * 1024);
+
   private static final Logger LOG = LoggerFactory.getLogger(StoreEntryPoint.class);
+
+  private static final int KB_1 = 1024;
 
   /**
    * Exit code when a usage message was printed: {@value}.
@@ -477,6 +481,29 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable {
       println("%s", fs);
       println();
     }
+  }
+
+  protected void summarize(String operation,
+      StoreDurationInfo tracker, long sizeBytes) {
+    heading("%s Summary", operation);
+    println("Data size %,d bytes", sizeBytes);
+    println("%s duration %s", operation, tracker.getDurationString());
+    println();
+    final long durationMillis = tracker.value();
+    // now calculated it in MBits/GBits
+    double seconds = durationMillis / 1000.0;
+    if (seconds < 1) {
+      seconds = 1;
+    }
+    double bitsPerSecond = sizeBytes * 8.0 / seconds;
+    double megabitsPerSecond = bitsPerSecond / MB_1;
+    double megabytesPerSecond = megabitsPerSecond / 8;
+
+    println("%s bandwidth in Megabits/second %,.3f Mbit/s", operation, megabitsPerSecond);
+    println();
+    println("%s bandwidth in Megabytes/second %,.3f MB/s", operation, megabytesPerSecond);
+    println();
+
   }
 
   protected static final class LimitReachedException extends IOException {
