@@ -19,7 +19,6 @@
 package org.apache.hadoop.fs.tools.cloudup;
 
 import javax.annotation.Nonnull;
-import java.io.IOException;
 import java.io.Serializable;
 import java.util.Comparator;
 import java.util.Objects;
@@ -123,6 +122,10 @@ final class UploadEntry implements Serializable, Comparable<UploadEntry> {
     return size;
   }
 
+  public String sizeStr() {
+    return Cloudup.commas(size);
+  }
+
   public long getStartTime() {
     return startTime;
   }
@@ -186,12 +189,12 @@ final class UploadEntry implements Serializable, Comparable<UploadEntry> {
     sb.append("state=").append(state);
     sb.append(", source=").append(source);
     sb.append(", dest=").append(dest);
-    sb.append(", size=").append(size);
+    sb.append(", size=").append(sizeStr());
     sb.append('}');
     return sb.toString();
   }
 
-  static class SizeComparator implements Comparator<UploadEntry> {
+  static final class SizeComparator implements Comparator<UploadEntry> {
 
     @Override
     public int compare(UploadEntry o1, UploadEntry o2) {

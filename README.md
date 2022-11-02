@@ -632,7 +632,7 @@ the length of the subset increases with every row then wraps around.
 This is to give the file variable length rows, complicate split calculation
 etc.
 
-
+## Command `pathcapability`
 
 Probes a filesystem for offering a specific named capability on the given path.
 

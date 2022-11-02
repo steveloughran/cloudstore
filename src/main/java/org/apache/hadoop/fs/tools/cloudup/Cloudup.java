@@ -28,6 +28,7 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletionService;
@@ -38,6 +39,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,7 +55,6 @@ import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.LocalFileSystem;
 import org.apache.hadoop.fs.LocatedFileStatus;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.RemoteIterator;
@@ -61,9 +62,13 @@ import org.apache.hadoop.fs.StorageStatistics;
 import org.apache.hadoop.fs.store.StoreDurationInfo;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
 import org.apache.hadoop.fs.store.StoreUtils;
-import org.apache.hadoop.io.IOUtils;
+import org.apache.hadoop.util.Progressable;
 import org.apache.hadoop.util.ToolRunner;
 
+import static org.apache.hadoop.fs.store.CommonParameters.DEFINE;
+import static org.apache.hadoop.fs.store.CommonParameters.TOKENFILE;
+import static org.apache.hadoop.fs.store.CommonParameters.VERBOSE;
+import static org.apache.hadoop.fs.store.CommonParameters.XMLFILE;
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
 
 /**
@@ -76,10 +81,14 @@ public class Cloudup extends StoreEntryPoint {
   private static final Logger LOG = LoggerFactory.getLogger(Cloudup.class);
 
   public static final String USAGE
-      = "Usage: cloudup -s source -d dest [-o] [-i] [-l <largest>] [-t threads] ";
+      =
+      "Usage: cloudup -s source -d dest [-o] [-i] [-l <largest>] [-t threads] ";
 
   private static final int DEFAULT_LARGEST = 4;
+
   private static final int DEFAULT_THREADS = 16;
+
+  public static final int BUFFER_SIZE = 4_000_000;
 
   private ExecutorService workers;
 
@@ -96,16 +105,31 @@ public class Cloudup extends StoreEntryPoint {
   private boolean overwrite = true;
 
   private boolean ignoreFailures = true;
+
   // single element exception with sync access.
   private final Exception[] firstException = new Exception[1];
+
   private CompletionService<Outcome> completion;
 
   private FileStatus sourcePathStatus;
 
   private FileStatus destPathStatus;
 
+  private boolean verbose;
+
 
   public Cloudup() {
+    createCommandFormat(0, 0, VERBOSE);
+    addValueOptions(TOKENFILE, XMLFILE, DEFINE);
+  }
+
+  /**
+   * convert a long to a string with commas inserted.
+   * @param l long
+   * @return string value
+   */
+  static String commas(long l) {
+    return String.format("%,d", l);
   }
 
   private long now() {
@@ -150,6 +174,7 @@ public class Cloudup extends StoreEntryPoint {
     sourcePath = sourceFS.makeQualified(src);
     destPath = new Path(OptionSwitch.DEST.required(command));
     destFS = destPath.getFileSystem(conf);
+    verbose = OptionSwitch.VERBOSE.hasOption(command);
 
     LOG.info("Uploading from {} to {};"
             + " threads={}; large files={}"
@@ -225,7 +250,8 @@ public class Cloudup extends StoreEntryPoint {
     for (int i = 0; i < sortUploadCount; i++) {
       UploadEntry upload = uploadList.get(i);
       LOG.info("Large file {}: size = {}: {}",
-          i + 1, upload.getSize(),
+          i + 1,
+          upload.sizeStr(),
           upload.getSource());
       long submitSize = submit(upload);
       if (submitSize >= 0) {
@@ -234,7 +260,8 @@ public class Cloudup extends StoreEntryPoint {
       }
     }
     LOG.info("Largest {} uploads commenced, total size = {}",
-        uploadCount, sortUploadSize);
+        uploadCount,
+        commas(sortUploadSize));
 
 
     // shuffle and submit remainder
@@ -283,7 +310,9 @@ public class Cloudup extends StoreEntryPoint {
     }
 
     LOG.info("\n\nUploads attempted: {}, size {}, StoreDurationInfo:  {}",
-        uploadCount, uploadSize, uploadDuration);
+        uploadCount,
+        commas(uploadSize),
+        uploadDuration);
     LOG.info("Bandwidth {} MB/s",
         uploadTimer.bandwidthDescription(uploadSize));
     LOG.info(String.format("Seconds per file %.3fs",
@@ -302,7 +331,7 @@ public class Cloudup extends StoreEntryPoint {
         finalUploadedSize += result.getBytesUploaded();
       } catch (InterruptedException ignored) {
         // ignored
-    } catch (Exception e) {
+      } catch (Exception e) {
         errors++;
         if (exception == null) {
           exception = e;
@@ -313,7 +342,8 @@ public class Cloudup extends StoreEntryPoint {
     if (exception != null) {
       LOG.warn("Upload failed due to an error");
       LOG.warn("Number of errors: {} actual bytes uploaded = {}",
-          errors, finalUploadedSize);
+          errors,
+          commas(finalUploadedSize));
       if (!ignoreFailures) {
         throw exception;
       }
@@ -332,7 +362,6 @@ public class Cloudup extends StoreEntryPoint {
   }
 
   /**
-   *
    * Submit an upload; does nothing if the upload is already queued.
    * @param upload upload to submit
    * @return size to upload; -1 for no upload
@@ -419,12 +448,12 @@ public class Cloudup extends StoreEntryPoint {
     final Path source = upload.getSource();
     final Path dest = destFS.makeQualified(upload.getDest());
     try {
-      LOG.info("Uploading {} to {} (size: {}",
-          source, dest, upload.getSize());
-      uploadOneFile(source, dest);
+      LOG.info("Uploading {} to {} (size: {})",
+          source, dest, upload.sizeStr());
+      uploadOneFile(upload, dest);
       upload.setState(UploadEntry.State.succeeded);
       upload.setEndTime(now());
-      LOG.info("Successful upload of {} tpo {} in {} s",
+      LOG.info("Successful upload of {} to {} in {} s",
           source,
           dest,
           StoreDurationInfo.humanTime(upload.getDuration()));
@@ -433,27 +462,67 @@ public class Cloudup extends StoreEntryPoint {
       upload.setState(UploadEntry.State.failed);
       upload.setException(e);
       upload.setEndTime(now());
-      LOG.warn("Failed to  upload {} : {}", source, e.toString());
+      LOG.warn("Failed to upload {} : {}", source, e.toString());
       LOG.debug("Upload to {} failed", dest, e);
       noteException(e);
       return Outcome.failed(upload, e);
     }
   }
 
-  private void uploadOneFile(final Path source, final Path dest)
+  /**
+   * Upload one file; uses readFully, fails if the stream
+   * is shorter than expected, and logs close time.
+   * @param upload upload entry
+   * @param dest test path
+   * @throws IOException failure
+   */
+  private void uploadOneFile(final UploadEntry upload, final Path dest)
       throws IOException {
-    if (sourceFS instanceof LocalFileSystem) {
-      // source is local, use the local operation
-      destFS.copyFromLocalFile(false, overwrite, source, dest);
-    } else {
-      try(FSDataInputStream in = sourceFS.open(source);
-          FSDataOutputStream out = destFS.create(dest, overwrite)) {
-        IOUtils.copyBytes(in, out, getConf(), true);
-        LOG.info("In: {}", in);
-        LOG.info("Out: {}", out);
+    final Path source = upload.getSource();
+    long remaining = upload.getSize();
+
+    int bufferSize = (int) Math.min(BUFFER_SIZE, remaining);
+    try (FSDataInputStream in = sourceFS.open(source);
+         FSDataOutputStream out = destFS.createFile(dest)
+             .overwrite(overwrite)
+             .progress(progress)
+             .recursive()
+             .bufferSize(bufferSize)
+             .build()) {
+      byte[] buffer = new byte[bufferSize];
+      while (remaining > 0) {
+        int blockSize = (int) Math.min(bufferSize, remaining);
+        in.readFully(buffer,0, blockSize);
+        out.write(buffer,0, blockSize);
+
+        remaining -= blockSize;
+        if (verbose) {
+          print(".");
+        }
       }
+
+      in.close();
+
+      try (StoreDurationInfo d = new StoreDurationInfo(LOG,
+          "close(%s)", dest)) {
+        out.flush();
+        out.close();
+      }
+      LOG.info("In: {}", in);
+      LOG.info("Out: {}", out);
     }
+
   }
+
+  final AtomicLong progressCount = new AtomicLong();
+
+  final Progressable progress = () -> {
+    progressCount.incrementAndGet();
+    if (verbose) {
+      print("^");
+    }
+  };
+
 
   /**
    * Note the exception.
@@ -502,8 +571,8 @@ public class Cloudup extends StoreEntryPoint {
    * @param fs filesystem.
    */
   private void dumpStats(FileSystem fs, String header) {
-   // Not supported on Hadoop 2.7
-    LOG.info("\n" + header +": " + fs.getUri());
+    // Not supported on Hadoop 2.7
+    LOG.info("\n" + header + ": " + fs.getUri());
 
     // hope to see FS IOStats
     LOG.info("Filesystem {}", fs);
@@ -511,7 +580,8 @@ public class Cloudup extends StoreEntryPoint {
     Iterator<StorageStatistics.LongStatistic> iterator
         = fs.getStorageStatistics().getLongStatistics();
     // convert to a (sorted) treemap
-    TreeMap<String, Long> results = new TreeMap<>();
+    SortedMap<String, Long> results = new TreeMap<>();
+
     while (iterator.hasNext()) {
       StorageStatistics.LongStatistic stat = iterator.next();
       results.put(stat.getName(), stat.getValue());
@@ -527,9 +597,11 @@ public class Cloudup extends StoreEntryPoint {
    * Outcome of an upload: A count of uploaded data, outcome and error.
    */
   private static final class Outcome {
+
     private final boolean executed;
 
     private final UploadEntry upload;
+
     private final long bytesUploaded;
 
     private final Exception exception;
@@ -545,16 +617,16 @@ public class Cloudup extends StoreEntryPoint {
       this.exception = exception;
     }
 
-    private static Outcome notExecuted(final UploadEntry upload)  {
+    private static Outcome notExecuted(final UploadEntry upload) {
       return new Outcome(false, upload, 0, null);
     }
 
-    private static Outcome succeeded(final UploadEntry upload)  {
+    private static Outcome succeeded(final UploadEntry upload) {
       return new Outcome(true, upload, upload.getSize(), null);
     }
 
     private static Outcome failed(final UploadEntry upload,
-        final Exception exception)  {
+        final Exception exception) {
       return new Outcome(true, upload, 0, exception);
     }
 
@@ -589,7 +661,7 @@ public class Cloudup extends StoreEntryPoint {
    * @throws Exception failure
    */
   public static int exec(String... args) throws Exception {
-    try(final Cloudup tool = new Cloudup()) {
+    try (final Cloudup tool = new Cloudup()) {
       return ToolRunner.run(tool, args);
     }
   }

@@ -51,11 +51,13 @@ public enum OptionSwitch {
    * Overwrite target-files unconditionally.
    */
   OVERWRITE(new Option("o", "overwrite", false,
-          "Overwrite target files even if they exist.")),
+      "Overwrite target files even if they exist.")),
 
   SOURCE(new Option("s", "source", true, "source path")),
 
-  DEST(new Option("d", "dest", true, "destination path"));
+  DEST(new Option("d", "dest", true, "destination path")),
+
+  VERBOSE(new Option("v", "verbose", false, "verbose"));
 
   private final Option option;
 
@@ -86,7 +88,7 @@ public enum OptionSwitch {
 
   @Override
   public String toString() {
-    return  super.name() + " {" +
+    return super.name() + " {" +
         "option=" + option + '}';
   }
 
@@ -107,7 +109,7 @@ public enum OptionSwitch {
    */
   public String required(CommandLine command) {
     String r = eval(command, null);
-    checkArgument(r != null  && !r.isEmpty(),
+    checkArgument(r != null && !r.isEmpty(),
         "Unset option: " + getOptionName());
     return r;
   }
@@ -128,7 +130,7 @@ public enum OptionSwitch {
   }
 
   public int eval(CommandLine command, int defVal) {
-    return Integer.valueOf(eval(command, Integer.toString(defVal)));
+    return Integer.parseInt(eval(command, Integer.toString(defVal)));
   }
 
   /**
