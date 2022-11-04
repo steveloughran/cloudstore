@@ -84,6 +84,7 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.azure.enable.delegation.token", false, false},
       {"fs.azure.enable.flush", false, false},
       {"fs.azure.enable.mkdir.overwrite", false, false},
+      {"fs.azure.enable.readahead", false, false},
       {"fs.azure.identity.transformer.class", false, false},
       {"fs.azure.identity.transformer.domain.name", false, false},
       {"fs.azure.identity.transformer.enable.short.name", false, false},

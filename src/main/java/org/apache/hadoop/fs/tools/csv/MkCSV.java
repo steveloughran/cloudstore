@@ -18,9 +18,12 @@
 
 package org.apache.hadoop.fs.tools.csv;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Locale;
+import java.util.Random;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.zip.CRC32;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,6 +38,7 @@ import org.apache.hadoop.fs.store.StoreEntryPoint;
 import org.apache.hadoop.util.Progressable;
 import org.apache.hadoop.util.ToolRunner;
 
+import static java.lang.Math.max;
 import static org.apache.hadoop.fs.store.CommonParameters.DEFINE;
 import static org.apache.hadoop.fs.store.CommonParameters.TOKENFILE;
 import static org.apache.hadoop.fs.store.CommonParameters.VERBOSE;
@@ -45,12 +49,17 @@ public class MkCSV extends StoreEntryPoint {
 
   private static final Logger LOG = LoggerFactory.getLogger(MkCSV.class);
 
+  public static final String HEADER = "header";
+  public static final String QUOTE = "quote";
+
   public static final String USAGE
       = "Usage: mkcsv\n"
       + optusage(DEFINE, "key=value", "Define a property")
       + optusage(TOKENFILE, "file", "Hadoop token file to load")
       + optusage(XMLFILE, "file", "XML config file to load")
       + optusage(VERBOSE, "print verbose output")
+      + optusage(HEADER, "print a header row")
+      + optusage(QUOTE, "quote column text")
       + "\t<records> <path>";
 
   private static final int BUFFER_SIZE = 32 * 1024;
@@ -65,14 +74,15 @@ public class MkCSV extends StoreEntryPoint {
    * number of numeric elements in column 2.
    * Width of the column will be at most ELEMENTS * 5;
    */
-  private static final int ELEMENTS = 1000;
+  private static final int ELEMENTS = 100;
 
   private static final String EOL = "\r\n";
 
-  private static final String SEPARATOR = "\t";
+  private static final String SEPARATOR = ",";
+
 
   public MkCSV() {
-    createCommandFormat(2, 2, VERBOSE);
+    createCommandFormat(2, 2, VERBOSE, HEADER, QUOTE);
     addValueOptions(TOKENFILE, XMLFILE, DEFINE);
   }
 
@@ -96,6 +106,10 @@ public class MkCSV extends StoreEntryPoint {
       errorln(USAGE);
       return E_USAGE;
     }
+    boolean header = hasOption(HEADER);
+    boolean quote = hasOption(QUOTE);
+    final boolean verbose = isVerbose();
+
     println("Writing CSV file to %s with row count %s", path, rows);
     // create the block data column
     int elements = ELEMENTS;
@@ -110,7 +124,6 @@ public class MkCSV extends StoreEntryPoint {
 
     // progress callback counts #of invocations, and optionally prints a .
     AtomicLong progressCount = new AtomicLong();
-    final boolean verbose = isVerbose();
     Progressable progress = () -> {
       progressCount.incrementAndGet();
       if (verbose) {
@@ -136,14 +149,34 @@ public class MkCSV extends StoreEntryPoint {
           .build();
     }
     try {
-      StoreCsvWriter writer = new StoreCsvWriter(upload, SEPARATOR, EOL);
+      StoreCsvWriter writer = new StoreCsvWriter(upload, SEPARATOR, EOL, quote);
+      if (header) {
+        writer
+            .columns("rowId", "dataCrc", "data", "rowId2", "rowCrc")
+            .newline();
+      }
 
+      Random rand = new Random();
       for (int r = 1; r <= rows; r++) {
-        writer.quote(r);
+
+        String rowId = Long.toString(r);
+        writer.column(rowId);
         // now collect a subset of the value
-        int count = r % elements;
-        int last = count * 5 + 1;
-        writer.column(block.substring(0, last));
+        int firstElt = rand.nextInt(elements-1);
+        int lastElt = firstElt + 1 + rand.nextInt(elements - firstElt - 1);
+        int first = firstElt * 5;
+        // always 1 elt higher than first
+        int last = lastElt * 5 - 1;
+        String data = block.substring(first, last);
+        // data CRC
+        CRC32 crc = new CRC32();
+        crc.update(data.getBytes(StandardCharsets.UTF_8));
+        writer.column(crc.getValue());
+        writer.column(data);
+        // repeat the row ID
+        writer.column(r);
+        // full row checksum
+        writer.column(writer.getRowCrc());
         writer.newline();
       }
       // now close the file
@@ -158,7 +191,6 @@ public class MkCSV extends StoreEntryPoint {
     }
 
     println();
-
 
 
     // upload is done, print some statistics

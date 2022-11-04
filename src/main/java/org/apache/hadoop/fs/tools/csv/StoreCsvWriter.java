@@ -23,6 +23,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.io.Writer;
+import java.nio.charset.StandardCharsets;
+import java.util.zip.CRC32;
 
 import static java.util.Objects.requireNonNull;
 
@@ -40,21 +42,28 @@ public final class StoreCsvWriter implements Closeable {
 
   private final String eol;
 
+  private final boolean quote;
+
   private boolean isStartOfLine = true;
+
+  private CRC32 rowCrc = new CRC32();
 
   /**
    * Instantiate.
    * @param out output writer.
    * @param separator field separator.
    * @param eol end of line sequence
+   * @param quote quote columns?
    */
   public StoreCsvWriter(
       final Writer out,
       final String separator,
-      final String eol) {
+      final String eol,
+      final boolean quote) {
     this.out = requireNonNull(out);
     this.separator = requireNonNull(separator);
     this.eol = requireNonNull(eol);
+    this.quote = quote;
   }
 
   /**
@@ -62,12 +71,14 @@ public final class StoreCsvWriter implements Closeable {
    * @param out output stream.
    * @param separator field separator.
    * @param eol end of line sequence
+   * @param quote quote columns?
    */
   public StoreCsvWriter(
       final OutputStream out,
       final String separator,
-      final String eol) {
-    this(new PrintWriter(out), separator, eol);
+      final String eol,
+      final boolean quote) {
+    this(new PrintWriter(out), separator, eol, quote);
   }
 
   /**
@@ -88,10 +99,18 @@ public final class StoreCsvWriter implements Closeable {
   public StoreCsvWriter column(Object o) throws IOException {
     if (isStartOfLine) {
       isStartOfLine = false;
+      rowCrc = new CRC32();
     } else {
-      out.write(separator);
+      write(separator);
     }
-    out.write(o.toString());
+    return quote
+        ? quote(o)
+        : write(o.toString());
+  }
+
+  private StoreCsvWriter write(String val) throws IOException {
+    out.write(val);
+    rowCrc.update(val.getBytes(StandardCharsets.UTF_8));
     return this;
   }
 
@@ -102,16 +121,17 @@ public final class StoreCsvWriter implements Closeable {
    * @throws IOException IO failure.
    */
   public StoreCsvWriter quote(Object o) throws IOException {
-    return column(String.format("\"%s\"", o));
+    return write(String.format("\"%s\"", o));
   }
 
   /**
-   * Write a newline.
+   * Write a newline. This does not update the CRC.
    * @return this instance
    * @throws IOException IO failure.
    */
   public StoreCsvWriter newline() throws IOException {
     out.write(eol);
+    rowCrc.update(eol.getBytes(StandardCharsets.UTF_8));
     isStartOfLine = true;
     return this;
   }
@@ -135,6 +155,13 @@ public final class StoreCsvWriter implements Closeable {
    */
   public void flush() throws IOException {
     out.flush();
+  }
 
+  /**
+   * get the row CRC.
+   * @return the row crc
+   */
+  public long getRowCrc() {
+    return rowCrc.getValue();
   }
 }
