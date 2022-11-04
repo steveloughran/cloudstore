@@ -16,7 +16,6 @@
  * limitations under the License.
  */
 
-import org.apache.hadoop.fs.store.commands.BucketState;
 import org.apache.hadoop.fs.store.commands.Command;
 import org.apache.hadoop.fs.tools.cloudup.Cloudup;
 

@@ -620,17 +620,9 @@ You can also explore what directory tree structure is most efficient here.
 
 ## Command `mkcsv`
 
-Creates a CSV file (technically a TSV file,...) with a given path; useful
-for scale testing CSV processing through Hive and Spark.
+Creates a CSV file.
 
-```
-hadoop jar cloudstore-1.0.jar mkcsv -verbose 10000 s3a://bucket/file.csv
-```
-
-The CSV has column 1 == row ID; column2 is a subset of a 1K string;
-the length of the subset increases with every row then wraps around.
-This is to give the file variable length rows, complicate split calculation
-etc.
+See [mkcsv](src/main/site/mkcsv.md)
 
 ## Command `pathcapability`
 
