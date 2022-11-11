@@ -27,13 +27,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.conf.StorageUnit;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.store.StoreDurationInfo;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
+import org.apache.hadoop.fs.store.StoreUtils;
 import org.apache.hadoop.util.Progressable;
 import org.apache.hadoop.util.ToolRunner;
 
@@ -91,19 +91,7 @@ public class Bandwidth extends StoreEntryPoint {
     FileSystem fs = path.getFileSystem(conf);
     println("Using filesystem %s", fs.getUri());
 
-    double uploadSize;
-
-    try {
-      // look for a long value,
-      uploadSize = Long.parseLong(size);
-    } catch (NumberFormatException e) {
-      // parse the size values via Configuration
-      // this is only possible on hadoop 3.1+.
-      final Configuration sizeConf = new Configuration(false);
-
-      // upload in MB.
-      uploadSize = sizeConf.getStorageSize("size", size, StorageUnit.MB);
-    }
+    double uploadSize = StoreUtils.getDataSize(size);
 
     long sizeMB = Math.round(uploadSize);
     if (sizeMB <= 0) {

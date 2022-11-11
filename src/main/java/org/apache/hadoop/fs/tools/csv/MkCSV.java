@@ -19,6 +19,7 @@
 package org.apache.hadoop.fs.tools.csv;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Random;
@@ -38,18 +39,22 @@ import org.apache.hadoop.fs.store.StoreEntryPoint;
 import org.apache.hadoop.util.Progressable;
 import org.apache.hadoop.util.ToolRunner;
 
-import static java.lang.Math.max;
 import static org.apache.hadoop.fs.store.CommonParameters.DEFINE;
 import static org.apache.hadoop.fs.store.CommonParameters.TOKENFILE;
 import static org.apache.hadoop.fs.store.CommonParameters.VERBOSE;
 import static org.apache.hadoop.fs.store.CommonParameters.XMLFILE;
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
+import static org.apache.hadoop.fs.store.StoreUtils.getDataSize;
 
+/**
+ * Create a large CSV file for validation.
+ */
 public class MkCSV extends StoreEntryPoint {
 
   private static final Logger LOG = LoggerFactory.getLogger(MkCSV.class);
 
   public static final String HEADER = "header";
+
   public static final String QUOTE = "quote";
 
   public static final String USAGE
@@ -80,6 +85,10 @@ public class MkCSV extends StoreEntryPoint {
 
   private static final String SEPARATOR = ",";
 
+  public static final String START = "start";
+
+  public static final String END = "end";
+
 
   public MkCSV() {
     createCommandFormat(2, 2, VERBOSE, HEADER, QUOTE);
@@ -100,7 +109,7 @@ public class MkCSV extends StoreEntryPoint {
     String size = argList.get(0).toLowerCase(Locale.ENGLISH);
     String pathString = argList.get(1);
     Path path = new Path(pathString);
-    long rows = Long.parseLong(size);
+    long rows = (long) getDataSize(size);
     if (rows < 0) {
       errorln("Invalid row count %s", size);
       errorln(USAGE);
@@ -122,6 +131,13 @@ public class MkCSV extends StoreEntryPoint {
 
     String block = sb.toString();
 
+    final List<String> blockData = new ArrayList<>();
+    blockRows(blockData, 'a', 'z', elements);
+    blockRows(blockData, 'A', 'Z', elements);
+    blockRows(blockData, '0', '9', elements);
+    final int blockCount = blockData.size();
+
+
     // progress callback counts #of invocations, and optionally prints a .
     AtomicLong progressCount = new AtomicLong();
     Progressable progress = () -> {
@@ -140,7 +156,7 @@ public class MkCSV extends StoreEntryPoint {
     // open the file. track duration
     FSDataOutputStream upload;
     try (StoreDurationInfo d = new StoreDurationInfo(LOG,
-        "Opening %s for upload", path)) {
+        "Opening %s for writing", path)) {
       upload = fs.createFile(path)
           .progress(progress)
           .recursive()
@@ -152,31 +168,33 @@ public class MkCSV extends StoreEntryPoint {
       StoreCsvWriter writer = new StoreCsvWriter(upload, SEPARATOR, EOL, quote);
       if (header) {
         writer
-            .columns("rowId", "dataCrc", "data", "rowId2", "rowCrc")
+            .columns(START, "rowId", "length", "dataCrc", "data", "rowId2", "rowCrc", END)
             .newline();
       }
 
       Random rand = new Random();
       for (int r = 1; r <= rows; r++) {
 
+        writer.column(START);
         String rowId = Long.toString(r);
         writer.column(rowId);
         // now collect a subset of the value
-        int firstElt = rand.nextInt(elements-1);
-        int lastElt = firstElt + 1 + rand.nextInt(elements - firstElt - 1);
-        int first = firstElt * 5;
-        // always 1 elt higher than first
-        int last = lastElt * 5 - 1;
-        String data = block.substring(first, last);
+        int lastElt = 2 + rand.nextInt(elements);
+        String dataRow = blockData.get(r % blockCount);
+        int length = Math.min(lastElt, elements);
+        String data = dataRow.substring(length);
+        writer.column(data.length());
         // data CRC
         CRC32 crc = new CRC32();
         crc.update(data.getBytes(StandardCharsets.UTF_8));
         writer.column(crc.getValue());
         writer.column(data);
         // repeat the row ID
-        writer.column(r);
+        writer.column(rowId);
         // full row checksum
         writer.column(writer.getRowCrc());
+        // end of row
+        writer.column(END);
         writer.newline();
       }
       // now close the file
@@ -187,7 +205,7 @@ public class MkCSV extends StoreEntryPoint {
       }
 
     } finally {
-      printIfVerbose("Upload Stream: %s", upload);
+      printIfVerbose("Write Stream: %s", upload);
     }
 
     println();
@@ -201,10 +219,30 @@ public class MkCSV extends StoreEntryPoint {
     printFSInfoInVerbose(fs);
 
     long sizeBytes = status.getLen();
-    summarize("Upload", uploadDurationTracker, sizeBytes);
+    summarize("CSV Generation", uploadDurationTracker, sizeBytes);
 
     return 0;
 
+  }
+
+  /**
+   * Generate a row from a string
+   * @param s string to use
+   * @param elements number of elements
+   * @return string of s repeated elements times.
+   */
+  private String blockRow(String s, int elements) {
+    StringBuilder sb = new StringBuilder(elements);
+    for (int i = 1; i <= elements; i++) {
+      sb.append(s);
+    }
+    return sb.toString();
+  }
+
+  private void blockRows(List<String> rows, char start, char end, int elements) {
+    for (char i = start; i <= end; i++) {
+      rows.add(blockRow(Character.toString(i), elements));
+    }
   }
 
   /**

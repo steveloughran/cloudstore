@@ -20,9 +20,13 @@ package org.apache.hadoop.fs.store;
 
 import java.io.IOException;
 import java.lang.reflect.Array;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.conf.StorageUnit;
 
 public class StoreUtils {
 
@@ -117,6 +121,33 @@ public class StoreUtils {
     System.arraycopy(right, 0, dest, aLen, bLen);
 
     return dest;
+  }
+
+  /**
+   * get the storage size from a string, uses M, G, T etc
+   * @param size data size
+   * @return size as a double.
+   */
+  public static double getDataSize(final String size) {
+    double uploadSize;
+
+    String s = size.trim().toUpperCase(Locale.ROOT);
+    try {
+      // look for a long value,
+      uploadSize = Long.parseLong(s);
+    } catch (NumberFormatException e) {
+      // parse the size values via Configuration
+      // this is only possible on hadoop 3.1+.
+      if (!s.endsWith("B")) {
+        s = s + "B";
+      }
+      final Configuration sizeConf = new Configuration(false);
+
+
+      // upload in MB.
+      uploadSize = sizeConf.getStorageSize("size", s, StorageUnit.MB);
+    }
+    return uploadSize;
   }
 
   public static class StringPair implements Map.Entry<String, String>{
