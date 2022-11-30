@@ -64,6 +64,7 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.azure.account.oauth2.refresh.token.endpoint", true, true},
       {"fs.azure.account.oauth2.user.name", false, false},
       {"fs.azure.account.oauth2.user.password", true, true},
+      {"fs.azure.account.throttling.enabled", false, false},
       {"fs.azure.always.use.https", false, false},
       {"fs.azure.appendblob.directories", false, false},
       {"fs.azure.atomic.rename.key", false, false},
