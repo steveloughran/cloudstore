@@ -118,6 +118,8 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
 
   public static final String SESSION_TOKEN = "fs.s3a.session.token";
 
+  public static final String DISABLE_CACHE = "fs.s3a.impl.disable.cache";
+
   private static final Object[][] options = {
       /* Core auth */
       {ACCESS_KEY, true, true},
@@ -163,7 +165,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.s3a.fast.buffer.size", false, false},
       {FS_S3A_FAST_UPLOAD_BUFFER, false, false},
       {FS_S3A_FAST_UPLOAD_ACTIVE_BLOCKS, false, false},
-      {"fs.s3a.impl.disable.cache", false, false},
+      {DISABLE_CACHE, false, false},
       {"fs.s3a.list.version", false, false},
       {"fs.s3a.max.total.tasks", false, false},
       {FS_S3A_MULTIPART_SIZE, false, false},
@@ -337,7 +339,6 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
    */
   public static final String[] OPTIONAL_CLASSNAMES = {
       // AWS features outwith the aws-s3-sdk JAR and needed for later releases.
-       "com.amazonaws.services.dynamodbv2.AmazonDynamoDB",
       // STS
       "com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClient",
       // region support
@@ -351,9 +352,6 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       "com.fasterxml.jackson.annotation.JacksonAnnotation",
       "com.fasterxml.jackson.core.JsonParseException",
       "com.fasterxml.jackson.databind.ObjectMapper",
-
-      // S3Guard
-      "org.apache.hadoop.fs.s3a.s3guard.DynamoDBMetadataStore",
 
       // Committers
       "org.apache.hadoop.fs.s3a.commit.staging.StagingCommitter",
@@ -734,6 +732,12 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       final Configuration conf) {
 
     printout.heading("Performance Hints");
+
+
+    hint(printout, conf.getBoolean(DISABLE_CACHE, false),
+        "The option " + DISABLE_CACHE + " is true. "
+            + "This may result in the creation of many S3A clients, and use up memory and other resources");
+
     int threads = 512;
     sizeHint(printout, conf,
         FS_S3A_THREADS_MAX, threads);
@@ -751,10 +755,12 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
             .equals(conf.get("fs.s3a.metadatastore.impl","")),
         "S3Guard is no longer needed -decommission it");
 
+
     reviewReadPolicy(printout, conf);
 
 
-    // look at output buffer options
+
+    // TODO look at output buffer options
   }
 
   /**
