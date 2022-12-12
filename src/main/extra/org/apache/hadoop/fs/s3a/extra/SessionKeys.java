@@ -37,6 +37,7 @@ import org.apache.hadoop.fs.s3a.S3AFileSystem;
 import org.apache.hadoop.fs.s3a.S3ARetryPolicy;
 import org.apache.hadoop.fs.store.StoreDurationInfo;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
+import org.apache.hadoop.fs.store.commands.EnvEntry;
 import org.apache.hadoop.util.ToolRunner;
 
 import static org.apache.hadoop.fs.s3a.Constants.ACCESS_KEY;

@@ -43,6 +43,10 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
   private static final Logger LOG = LoggerFactory.getLogger(
       AbfsDiagnosticsInfo.class);
 
+  public static final String FS_AZURE_ENABLE_READAHEAD = "fs.azure.enable.readahead";
+
+  public static final String FS_AZURE_READAHEADQUEUE_DEPTH = "fs.azure.readaheadqueue.depth";
+
   private static final Object[][] options = {
 
       {"abfs.external.authorization.class", false, false},
@@ -85,7 +89,7 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.azure.enable.delegation.token", false, false},
       {"fs.azure.enable.flush", false, false},
       {"fs.azure.enable.mkdir.overwrite", false, false},
-      {"fs.azure.enable.readahead", false, false},
+      {FS_AZURE_ENABLE_READAHEAD, false, false},
       {"fs.azure.identity.transformer.class", false, false},
       {"fs.azure.identity.transformer.domain.name", false, false},
       {"fs.azure.identity.transformer.enable.short.name", false, false},
@@ -113,7 +117,7 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.azure.read.request.size", false, false},
       {"fs.azure.read.smallfilescompletely", false, false},
       {"fs.azure.readahead.range", false, false},
-      {"fs.azure.readaheadqueue.depth", false, false},
+      {FS_AZURE_READAHEADQUEUE_DEPTH, false, false},
       {"fs.azure.rename.raises.exceptions", false, false},
       {"fs.azure.sas.token.provider.type", false, false},
       {"fs.azure.sas.token.renew.period.for.streams", false, false},

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.hadoop.fs.s3a.extra;
+package org.apache.hadoop.fs.store.commands;
 
 /**
  * Environment/property entry, with
@@ -65,5 +65,17 @@ public class EnvEntry {
 
   public boolean hasEnvVar() {
     return !envVar.isEmpty();
+  }
+
+  public String getName() {
+    return name;
+  }
+
+  public String getEnvVar() {
+    return envVar;
+  }
+
+  public String getValue() {
+    return value;
   }
 }

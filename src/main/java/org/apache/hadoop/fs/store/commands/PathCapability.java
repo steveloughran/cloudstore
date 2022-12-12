@@ -45,10 +45,6 @@ public class PathCapability extends StoreEntryPoint {
 
   private static final Logger LOG = LoggerFactory.getLogger(PathCapability.class);
 
-  public static final String USAGE1
-      = "Usage: pathcapability [" + LOGFILE + " <filename>]"
-      + " <capability> <path>";
-
   public static final String USAGE
       = "Usage: pathcapability [options] <capability> <path>\n"
       + optusage(DEFINE, "key=value", "Define a property")
