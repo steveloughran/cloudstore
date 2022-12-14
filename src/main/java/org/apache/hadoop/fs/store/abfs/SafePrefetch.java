@@ -76,8 +76,6 @@ public class SafePrefetch extends StoreEntryPoint {
     // path on the CLI
     Path path = new Path(argList.get(0));
     println("Probing %s for prefetch safety %s", path);
-    final String scheme = path.toUri().getScheme();
-
 
     FileSystem fs = path.getFileSystem(conf);
     if (!(fs instanceof AzureBlobFileSystem)) {
