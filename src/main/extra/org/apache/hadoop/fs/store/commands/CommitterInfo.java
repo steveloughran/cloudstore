@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.StreamCapabilities;
 import org.apache.hadoop.fs.store.StoreDurationInfo;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
 import org.apache.hadoop.mapreduce.TaskAttemptID;
@@ -47,6 +48,7 @@ import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
  *
  * Prints some performance numbers at the end.
  */
+@SuppressWarnings("InstanceofIncompatibleInterface")
 public class CommitterInfo extends StoreEntryPoint {
 
   private static final Logger LOG = LoggerFactory.getLogger(CommitterInfo.class);
@@ -94,6 +96,11 @@ public class CommitterInfo extends StoreEntryPoint {
               " %s:\n" +
               " %s",
           committer.getClass().getCanonicalName(), committer);
+      if (committer instanceof StreamCapabilities
+        && ((StreamCapabilities) committer).hasCapability(
+                    "mapreduce.job.committer.dynamic.partitioning")) {
+          println("Committer declares support for spark dynamic partitioning");
+      }
     }
     return 0;
   }

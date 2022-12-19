@@ -620,7 +620,8 @@ You can also explore what directory tree structure is most efficient here.
 
 ## Command `mkcsv`
 
-Creates a CSV file.
+Creates a large CSV file designed to trigger/validate the ABFS prefetching bug which
+came in HADOOP-17156/
 
 See [mkcsv](src/main/site/mkcsv.md)
 
@@ -719,6 +720,14 @@ a failure to connect to the instance metadata server.
 ```
 
 This is to be expected, given that the service isn't there.
+
+## Command `safeprefetch`
+
+Probes an abfs store for being vulnerable to
+prefetch data corruption, providing the configuration
+information to disable it if so.
+
+See [safeprefetch](src/main/site/safeprefetch.md)
 
 ## Command `tlsinfo`
 

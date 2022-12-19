@@ -75,7 +75,7 @@ public class SafePrefetch extends StoreEntryPoint {
 
     // path on the CLI
     Path path = new Path(argList.get(0));
-    println("Probing %s for prefetch safety %s", path);
+    println("\nProbing %s for prefetch safety", path);
 
     FileSystem fs = path.getFileSystem(conf);
     if (!(fs instanceof AzureBlobFileSystem)) {
@@ -84,7 +84,7 @@ public class SafePrefetch extends StoreEntryPoint {
       return 0;
     }
     String etag_capability = "fs.capability.etags.available";
-    String hadoop_18546 = "hadoop-18546";
+    String readahead_safe = "fs.azure.capability.readahead.safe";
 
     println("Using filesystem %s", fs.getUri());
     Path abfsPath = path.makeQualified(fs.getUri(), fs.getWorkingDirectory());
@@ -98,13 +98,13 @@ public class SafePrefetch extends StoreEntryPoint {
           etag_capability);
       return 0;
     }
-    if (checker.hasPathCapability(abfsPath, hadoop_18546)) {
+    if (checker.hasPathCapability(abfsPath, readahead_safe)) {
 
-      println("Filesystem has prefetch issue fixed (has path capability %s)",
-          abfsPath, hadoop_18546);
+      println("Filesystem %s has prefetch issue fixed (has path capability %s)",
+          abfsPath, readahead_safe);
       return 0;
     }
-    println("Store is vulnerable to inconsistent prefetching. This MUST be disabled");
+    println("Store is vulnerable to inconsistent prefetching. This MUST be disabled\n");
     final Configuration fsConf = fs.getConf();
     List<EnvEntry> entries = new ArrayList<>();
     entries.add(new EnvEntry(FS_AZURE_READAHEADQUEUE_DEPTH, "", "0"));
@@ -130,16 +130,12 @@ public class SafePrefetch extends StoreEntryPoint {
       // no disable option; don't confuse the user by mentioning it.
 
     }
-    EnvEntry property = new EnvEntry(FS_AZURE_READAHEADQUEUE_DEPTH, "", "0");
-    println("To disable prefetching, set %s to %s", property.getName(), property.getValue());
-    println("\n%s\n", property.xml());
-    println("\n%s\n", property.spark());
 
     warn("Filesystem is vulnerable until prefetching is disabled");
     StringBuilder xml = new StringBuilder();
-    xml.append("<configuration>\n\n");
+    xml.append("<configuration>\n");
     entries.forEach(e -> xml.append(e.xml()));
-    xml.append("\n</configuration>\n");
+    xml.append("</configuration>\n");
 
     println("hadoop XML: %n%s%n", xml);
 
