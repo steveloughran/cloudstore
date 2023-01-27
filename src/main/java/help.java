@@ -44,6 +44,7 @@ public class help extends Command {
     mkcsv.help();
     pathcapability.help();
     storediag.help();
+    tarhardened.help();
     tlsinfo.help();
 
     // extras must not refer to the optional classes.

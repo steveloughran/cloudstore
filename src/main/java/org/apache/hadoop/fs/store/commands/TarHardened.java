@@ -18,14 +18,13 @@
 
 package org.apache.hadoop.fs.store.commands;
 
-import java.security.NoSuchAlgorithmException;
+import java.io.File;
 import java.util.List;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLParameters;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.apache.hadoop.fs.FileUtil;
 import org.apache.hadoop.fs.store.diag.DiagnosticsEntryPoint;
 import org.apache.hadoop.util.ToolRunner;
 
@@ -33,60 +32,49 @@ import static org.apache.hadoop.fs.store.CommonParameters.DEFINE;
 import static org.apache.hadoop.fs.store.CommonParameters.VERBOSE;
 import static org.apache.hadoop.fs.store.CommonParameters.XMLFILE;
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
-import static org.apache.hadoop.fs.store.diag.OptionSets.TLS_SYSPROPS;
 
 /**
- * Print TLS info.
+ * Checks to see if the tar command is hardened by taking a command line param and trying
+ * to untar it.
  */
-public class TLSInfo extends DiagnosticsEntryPoint {
+public class TarHardened extends DiagnosticsEntryPoint {
 
-  private static final Logger LOG = LoggerFactory.getLogger(TLSInfo.class);
+  private static final Logger LOG = LoggerFactory.getLogger(TarHardened.class);
 
   public static final String USAGE
-      = "Usage: tlsinfo\n"
+      = "Usage: tarhardened [filename]\n"
       + optusage(DEFINE, "key=value", "Define a property")
       + optusage(XMLFILE, "file", "XML config file to load")
       + optusage(VERBOSE, "verbose output");
 
-  public TLSInfo() {
-    createCommandFormat(1, 999, VERBOSE);
+  public TarHardened() {
+    createCommandFormat(1, 1, VERBOSE);
     addValueOptions(XMLFILE, DEFINE);
-  }
-
-  /**
-   * Print information about TLS.
-   */
-  public void tlsInfo() {
-
-    lookupAndPrintSanitizedValues(TLS_SYSPROPS,
-        "TLS System Properties",
-        System::getProperty);
-    println();
-    try {
-      final SSLContext sslContext = SSLContext.getDefault();
-      final SSLParameters sslParameters =
-          sslContext.getSupportedSSLParameters();
-      final String[] protocols = sslParameters.getProtocols();
-      heading("HTTPS supported protocols");
-      for (String protocol : protocols) {
-        println("    %s", protocol);
-      }
-    } catch (NoSuchAlgorithmException e) {
-      LOG.warn("failed to create SSL context", e);
-    }
-    println();
-    println("See https://www.java.com/en/configure_crypto.html");
-    println();
   }
 
   @Override
   public int run(String[] args) throws Exception {
     List<String> paths = parseArgs(args);
-    if (!paths.isEmpty()) {
+    if (paths.size() > 1) {
+      // too many entries
       errorln(USAGE);
       return E_USAGE;
     }
-    tlsInfo();
+    String filename;
+    if (paths.isEmpty()) {
+      File tar = File.createTempFile("tarhardened", ".tgz");
+      tar.delete();
+      filename = tar.getAbsolutePath() + "; true";
+    } else {
+      filename = paths.get(0);
+    }
+    File tmpdir = File.createTempFile("tarhardened-dir", "");
+    tmpdir.delete();
+    final File source = new File(filename);
+    println("Attempting to untar file with name \"%s\"", source);
+    FileUtil.unTar(source, tmpdir);
+    println("untar operation reported success");
+    println();
     return 0;
   }
 
@@ -98,7 +86,7 @@ public class TLSInfo extends DiagnosticsEntryPoint {
    * @throws Exception failure
    */
   public static int exec(String... args) throws Exception {
-    return ToolRunner.run(new TLSInfo(), args);
+    return ToolRunner.run(new TarHardened(), args);
   }
 
   /**
