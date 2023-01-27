@@ -729,6 +729,36 @@ information to disable it if so.
 
 See [safeprefetch](src/main/site/safeprefetch.md)
 
+## Command `tarhardened`
+
+Verify the hadoop release has had its untar command hardened and will
+not evaluate commands passed in as filenames.
+
+```bash
+bin/hadoop jar $CLOUDSTORE tarhardened "file.tar; true"
+```
+
+*Bad*
+
+```
+Attempting to untar file with name "file.tar; true"
+untar operation reported success
+
+2023-01-27 16:42:35,931 [main] INFO  util.ExitUtil (ExitUtil.java:terminate(124)) - Exiting with status 0
+```
+
+Although the file doesn't exist, the bash "true" command was executed after the untar, so
+the operation was reported as a success.
+
+*Good*
+
+```
+2023-01-27 16:48:44,461 [main] INFO  util.ExitUtil (ExitUtil.java:terminate(210)) - Exiting with status -1: ExitCodeException exitCode=1: tar: Error opening archive: Failed to open 'file.tar; true'
+
+```
+
+The file `file.tar; true` was attempted to be opened; as it is not present the operation failed.
+Expect a stack trace in the report
 ## Command `tlsinfo`
 
 Print out tls information. The `storediag` command prints the same information;

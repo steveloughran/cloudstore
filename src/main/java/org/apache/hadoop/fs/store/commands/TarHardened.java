@@ -28,9 +28,6 @@ import org.apache.hadoop.fs.FileUtil;
 import org.apache.hadoop.fs.store.diag.DiagnosticsEntryPoint;
 import org.apache.hadoop.util.ToolRunner;
 
-import static org.apache.hadoop.fs.store.CommonParameters.DEFINE;
-import static org.apache.hadoop.fs.store.CommonParameters.VERBOSE;
-import static org.apache.hadoop.fs.store.CommonParameters.XMLFILE;
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
 
 /**
@@ -42,14 +39,10 @@ public class TarHardened extends DiagnosticsEntryPoint {
   private static final Logger LOG = LoggerFactory.getLogger(TarHardened.class);
 
   public static final String USAGE
-      = "Usage: tarhardened [filename]\n"
-      + optusage(DEFINE, "key=value", "Define a property")
-      + optusage(XMLFILE, "file", "XML config file to load")
-      + optusage(VERBOSE, "verbose output");
+      = "Usage: tarhardened [filename]";
 
   public TarHardened() {
-    createCommandFormat(1, 1, VERBOSE);
-    addValueOptions(XMLFILE, DEFINE);
+    createCommandFormat(0, 1);
   }
 
   @Override
