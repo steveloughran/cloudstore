@@ -941,6 +941,12 @@ public class StoreDiag extends DiagnosticsEntryPoint {
         data.writeUTF(HELLO);
         printStreamCapabilities(data, CapabilityKeys.OUTPUTSTREAM_CAPABILITIES);
 
+        try {
+          data.hsync();
+          println("Stream does not reject hsync() calls");
+        } catch (Exception e) {
+          println("Stream rejects hsync() calls: %s", e);
+        }
         closeTime = System.currentTimeMillis();
         data.close();
         completionTime = System.currentTimeMillis();
