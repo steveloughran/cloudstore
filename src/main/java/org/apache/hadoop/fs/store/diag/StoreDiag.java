@@ -931,6 +931,8 @@ public class StoreDiag extends DiagnosticsEntryPoint {
       Path file = new Path(dir, "file");
       verifyPathNotFound(fs, file);
 
+      // creation timestamp
+      long creation = System.currentTimeMillis();
       try (StoreDurationInfo ignored = new StoreDurationInfo(LOG,
           "Creating file %s", file)) {
         FSDataOutputStream data = fs.create(file, true);
@@ -961,6 +963,21 @@ public class StoreDiag extends DiagnosticsEntryPoint {
       } finally {
         IOUtils.closeStream(in);
       }
+      final FileStatus status = fs.getFileStatus(file);
+      final String userName = UserGroupInformation.getCurrentUser().getShortUserName();
+      if (!userName.equals(status.getOwner())) {
+        warn("Expected file owner to be %s but was reported as %s in %s",
+            userName, status.getOwner(), status);
+      }
+      final long offsetFromCreation = status.getModificationTime() - creation;
+      if (offsetFromCreation < 0) {
+        warn("Timestamp of created file is %,d milliseconds before the local clock",
+            offsetFromCreation);
+      } else {
+        println("Timestamp of created file is %,d milliseconds after the local clock",
+            offsetFromCreation);
+      }
+
 
       // move the file into a subdir
       Path subdir = new Path(dir, "subdir");
