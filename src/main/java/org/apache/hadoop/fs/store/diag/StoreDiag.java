@@ -932,16 +932,21 @@ public class StoreDiag extends DiagnosticsEntryPoint {
       verifyPathNotFound(fs, file);
 
       // creation timestamp
-      long creation = System.currentTimeMillis();
+      long creationTime = System.currentTimeMillis();
+      long closeTime;
+      long completionTime;
       try (StoreDurationInfo ignored = new StoreDurationInfo(LOG,
           "Creating file %s", file)) {
         FSDataOutputStream data = fs.create(file, true);
         data.writeUTF(HELLO);
         printStreamCapabilities(data, CapabilityKeys.OUTPUTSTREAM_CAPABILITIES);
 
+        closeTime = System.currentTimeMillis();
         data.close();
+        completionTime = System.currentTimeMillis();
         println("Output stream summary: %s", data);
       }
+
       try (StoreDurationInfo ignored = new StoreDurationInfo(LOG,
           "Listing  %s", dir)) {
         fs.listFiles(dir, false);
@@ -969,13 +974,28 @@ public class StoreDiag extends DiagnosticsEntryPoint {
         warn("Expected file owner to be %s but was reported as %s in %s",
             userName, status.getOwner(), status);
       }
-      final long offsetFromCreation = status.getModificationTime() - creation;
+      final long modtime = status.getModificationTime();
+      final long offsetFromCreation = modtime - creationTime;
+      final long offsetFromClose = modtime - closeTime;
+      final long offsetFromCompletion = modtime - completionTime;
+      boolean closerToCompletion = offsetFromCompletion < offsetFromCreation;
+      println("File modtime after creation = %,d millis,"
+              + "\n\tafter close invoked = %,d millis"
+              + "\n\tafter close completed = %,d millis",
+          offsetFromCreation,
+          offsetFromClose,
+          offsetFromCompletion);
       if (offsetFromCreation < 0) {
         warn("Timestamp of created file is %,d milliseconds before the local clock",
             offsetFromCreation);
       } else {
         println("Timestamp of created file is %,d milliseconds after the local clock",
             offsetFromCreation);
+        if (closerToCompletion) {
+          println("The file timestamp is closer to the write completion time.");
+          println("If the store is an object store, the object is\n"
+              + "likely to have been created at the end of the write");
+        }
       }
 
 
