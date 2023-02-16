@@ -88,9 +88,9 @@ public class ADLDiagnosticsInfo extends StoreDiagnosticsInfo {
 
   @Override
   protected void validateConfig(final Printout printout,
-      final Configuration conf)
+      final Configuration conf, final boolean writeOperations)
       throws IOException {
-    super.validateConfig(printout, conf);
+    super.validateConfig(printout, conf, writeOperations);
     warnOnInvalidDomain(printout, ".azuredatalakestore.net",
         "https://docs.hortonworks.com/HDPDocuments/HDP2/HDP-2.6.5/bk_cloud-data-access/content/adls-uri.html");
   }

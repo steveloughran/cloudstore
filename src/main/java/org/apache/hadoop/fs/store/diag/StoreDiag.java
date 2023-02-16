@@ -194,6 +194,8 @@ public class StoreDiag extends DiagnosticsEntryPoint {
 
     // and its FS URI
     storeInfo = bindToStore(path.toUri());
+    final boolean writeOperations = hasOption(WRITE);
+
     printHadoopVersionInfo();
     printOSVersion();
     if (hasOption(SYSPROPS)) {
@@ -217,7 +219,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
     printStoreConfiguration();
     probeRequiredAndOptionalClasses(hasOption(OPTIONAL));
     probeRequiredAndOptionalResources();
-    storeInfo.validateConfig(this, getConf());
+    storeInfo.validateConfig(this, getConf(), writeOperations);
     printPerformanceHints();
     probeForFileSystemClass(storeInfo.getScheme());
     if (storeInfo.printTLSInfo()) {
@@ -226,7 +228,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
     probeAllEndpoints();
 
     // and the filesystem operations
-    executeFileSystemOperations(path, hasOption(WRITE));
+    executeFileSystemOperations(path, writeOperations);
 
     // dump JVM status
     printJVMStats();

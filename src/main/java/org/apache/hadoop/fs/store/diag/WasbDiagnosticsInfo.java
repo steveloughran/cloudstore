@@ -98,9 +98,9 @@ public class WasbDiagnosticsInfo extends StoreDiagnosticsInfo {
 
   @Override
   protected void validateConfig(final Printout printout,
-      final Configuration conf)
+      final Configuration conf, final boolean writeOperations)
       throws IOException {
-    super.validateConfig(printout, conf);
+    super.validateConfig(printout, conf, writeOperations);
     warnOnInvalidDomain(printout, ".blob.core.windows.net", 
         "https://docs.microsoft.com/en-us/azure/storage/blobs/storage-custom-domain-name");
   }

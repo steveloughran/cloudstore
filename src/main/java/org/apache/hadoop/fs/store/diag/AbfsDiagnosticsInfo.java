@@ -31,9 +31,11 @@ import org.slf4j.LoggerFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.azurebfs.constants.FileSystemConfigurations;
 import org.apache.hadoop.fs.store.StoreDurationInfo;
 
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.*;
+import static org.apache.hadoop.fs.store.diag.OptionSets.HADOOP_TMP_DIR;
 
 /**
  * Abfs diagnostics.
@@ -46,6 +48,43 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
   public static final String FS_AZURE_ENABLE_READAHEAD = "fs.azure.enable.readahead";
 
   public static final String FS_AZURE_READAHEADQUEUE_DEPTH = "fs.azure.readaheadqueue.depth";
+
+
+  /**
+   * Buffer directory path for uploading AbfsOutputStream data blocks.
+   * Value: {@value}
+   */
+  public static final String FS_AZURE_BLOCK_UPLOAD_BUFFER_DIR =
+      "fs.azure.buffer.dir";
+
+  /**
+   * What data block buffer to use.
+   * <br>
+   * Options include: "disk"(Default), "array", and "bytebuffer".
+   * <br>
+   * Default is {@link FileSystemConfigurations#DATA_BLOCKS_BUFFER_DEFAULT}.
+   * Value: {@value}
+   */
+  public static final String DATA_BLOCKS_BUFFER =
+      "fs.azure.data.blocks.buffer";
+
+  /**
+   * Maximum Number of blocks a single output stream can have
+   * active (uploading, or queued to the central FileSystem
+   * instance's pool of queued operations.
+   * This stops a single stream overloading the shared thread pool.
+   * {@value}
+   * <p>
+   * Default is {@link FileSystemConfigurations#BLOCK_UPLOAD_ACTIVE_BLOCKS_DEFAULT}
+   */
+  public static final String FS_AZURE_BLOCK_UPLOAD_ACTIVE_BLOCKS =
+      "fs.azure.block.upload.active.blocks";
+
+  /**
+   * Limit of queued block upload operations before writes
+   * block for an OutputStream. Value: {@value}
+   */
+  public static final int BLOCK_UPLOAD_ACTIVE_BLOCKS_DEFAULT = 20;
 
   private static final Object[][] options = {
 
@@ -81,6 +120,9 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.azure.createRemoteFileSystemDuringInitialization", false, false},
       {"fs.azure.custom.token.fetch.retry.count", false, false},
       {"fs.azure.delegation.token.provider.type", false, false},
+      {DATA_BLOCKS_BUFFER, false, false},
+      {FS_AZURE_BLOCK_UPLOAD_BUFFER_DIR, false, false},
+      {FS_AZURE_BLOCK_UPLOAD_ACTIVE_BLOCKS, false, false},
       {"fs.azure.disable.outputstream.flush", false, false},
       {"fs.azure.enable.abfslistiterator", false, false},
       {"fs.azure.enable.autothrottling", false, false},
@@ -287,7 +329,7 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
       add(list, key + "." + getFsURI().getHost(), secret, sensitive);
     }
   }
-  
+
   @Override
   public String[] getClassnames(final Configuration conf) {
     return classnames;
@@ -304,11 +346,24 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
 
   @Override
   protected void validateConfig(final Printout printout,
-      final Configuration conf)
+      final Configuration conf,
+      final boolean writeOperations)
       throws IOException {
-    super.validateConfig(printout, conf);
+    super.validateConfig(printout, conf, writeOperations);
     warnOnInvalidDomain(printout, ".dfs.core.windows.net",
         "https://docs.microsoft.com/en-us/azure/storage/data-lake-storage/introduction-abfs-uri");
+
+    // look at block buffering
+    printout.heading("Output Buffering");
+    final String buffering = conf.getTrimmed(DATA_BLOCKS_BUFFER, "disk");
+    int activeBlocks = conf.getInt(FS_AZURE_BLOCK_UPLOAD_ACTIVE_BLOCKS,
+        BLOCK_UPLOAD_ACTIVE_BLOCKS_DEFAULT);
+    printout.println("Written data is buffered to %s with up to %d blocks queued per stream",
+        buffering, activeBlocks);
+    if ("disk".equals(buffering)) {
+      validateBufferDir(printout, conf, FS_AZURE_BLOCK_UPLOAD_BUFFER_DIR, HADOOP_TMP_DIR,
+          writeOperations);
+    }
   }
 
   @Override

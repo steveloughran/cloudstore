@@ -220,9 +220,9 @@ public class GCSDiagnosticsInfo extends StoreDiagnosticsInfo {
 
   @Override
   protected void validateConfig(final Printout printout,
-      final Configuration conf)
+      final Configuration conf, final boolean writeOperations)
       throws IOException {
-    super.validateConfig(printout, conf);
+    super.validateConfig(printout, conf, writeOperations);
 
     // now print everything fs.s3a.ext, assuming that
     // there are no secrets in it. Don't do that.

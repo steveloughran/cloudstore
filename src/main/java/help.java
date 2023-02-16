@@ -57,10 +57,10 @@ public class help extends Command {
     printCommand("committerinfo", "Print committer information");
     printCommand("deleteobject", "Delete an S3 object");
     printCommand("gcscreds", "credential diagnostics for GCS. Warning: logs secrets");
-    printCommand("iampolicy", "generate IAM policy");
+    printCommand("iampolicy", "generate AWS IAM policy");
     printCommand("listobjects", "list S3 objects and their translated statuses");
     printCommand("regions\t", "emulate region lookup of AWS SDK");
-    printCommand("sessionkeys", "optional extra: generate session keys");
+    printCommand("sessionkeys", "generate AWS session keys from a long-lived login");
     println("%nThese are only available on some builds and require a compatible hadoop release");
 
     println("");

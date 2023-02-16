@@ -26,6 +26,6 @@ public class tarhardened extends Command {
   }
 
   public static void help() {
-    printCommand("tarhardened\t", "Validate tar hardening");
+    printCommand("tarhardened", "Validate tar hardening");
   }
 }

@@ -18,7 +18,6 @@
 
 package org.apache.hadoop.fs.store.diag;
 
-import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -33,7 +32,6 @@ import org.slf4j.LoggerFactory;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
-import org.apache.hadoop.fs.LocalDirAllocator;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.store.StoreExitException;
 
@@ -77,11 +75,11 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
   public static final String ASSUMED_ROLE_STS_ENDPOINT
       = "fs.s3a.assumed.role.sts.endpoint";
 
-  public static final String HADOOP_TMP_DIR = "hadoop.tmp.dir";
-
   //use a custom endpoint?
   public static final String ENDPOINT = "fs.s3a.endpoint";
+
   public static final String DEFAULT_ENDPOINT = "";
+
   public static final String REGION = "fs.s3a.endpoint.region";
 
   //Enable path style access? Overrides default virtual hosting
@@ -504,13 +502,13 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       Method m = aClass.getMethod("propagateBucketOptions",
           Configuration.class,
           String.class);
-      return (Configuration)m.invoke(null, conf, getFsURI().getHost());
+      return (Configuration) m.invoke(null, conf, getFsURI().getHost());
     } catch (ClassNotFoundException e) {
       LOG.error("S3AUtils not found: hadoop-aws is not on the classpath", e);
       // this will carry on elsewhere
     } catch (NoSuchMethodException
-        | IllegalAccessException
-        | InvocationTargetException e) {
+             | IllegalAccessException
+             | InvocationTargetException e) {
       LOG.info("S3AUtils.propagateBucketOptions() not found; assume old Hadoop version");
     }
     return conf;
@@ -583,22 +581,15 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
 
   @Override
   protected void validateConfig(final Printout printout,
-      final Configuration conf) throws IOException {
-    String bufferOption = conf.get(BUFFER_DIR) != null
-        ? BUFFER_DIR : HADOOP_TMP_DIR;
+      final Configuration conf,
+      final boolean writeOperations) throws IOException {
     printout.heading("S3A Config validation");
 
-    printout.println("Buffer configuration option %s = %s",
-        bufferOption, conf.get(bufferOption));
+    printout.heading("Output Buffering");
+    validateBufferDir(printout, conf, BUFFER_DIR, OptionSets.HADOOP_TMP_DIR,
+        writeOperations);
 
-    final LocalDirAllocator directoryAllocator = new LocalDirAllocator(
-        bufferOption);
-
-    File temp = directoryAllocator.createTmpFileForWrite("temp", 1, conf);
-
-    printout.println("Temporary files created in %s",
-        temp.getParentFile());
-    temp.delete();
+    printout.heading("Encryption");
 
     String encryption =
         conf.get("fs.s3a.server-side-encryption-algorithm", "").trim();
@@ -649,7 +640,8 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
     if (endpoint.startsWith("https:") || endpoint.startsWith("http:")) {
       printout.warn("Value of %s looks like a URL: %s", ENDPOINT, endpoint);
       printout.println("It SHOULD normally be a hostname or IP address");
-      printout.println("Unless you have a private store with a non-standard port or are using AWS S3 PrivateLink");
+      printout.println("Unless you have a private store with a non-standard port or"
+              + " are using AWS S3 PrivateLink");
       if (!pathStyleAccess) {
         printout.warn("You should probably set %s to true", PATH_STYLE_ACCESS);
       }
@@ -701,7 +693,8 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
 
     if (!dtbinding.isEmpty()) {
       printout.println("Delegation token binding %s is active", dtbinding);
-      printout.println("This will take over authentication from the settings in %s", AWS_CREDENTIALS_PROVIDER);
+      printout.println("This will take over authentication from the settings in %s",
+          AWS_CREDENTIALS_PROVIDER);
     } else {
       // TODO: analyse default values.
     }
@@ -752,12 +745,11 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
         DIRECTORY_MARKER_RETENTION);
     hint(printout,
         "org.apache.hadoop.fs.s3a.s3guard.DynamoDBMetadataStore"
-            .equals(conf.get("fs.s3a.metadatastore.impl","")),
+            .equals(conf.get("fs.s3a.metadatastore.impl", "")),
         "S3Guard is no longer needed -decommission it");
 
 
     reviewReadPolicy(printout, conf);
-
 
 
     // TODO look at output buffer options

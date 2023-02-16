@@ -155,6 +155,8 @@ public class OptionSets {
       MOZILLA_PUBLIC_SUFFIX_LIST
   };
 
+  public static final String HADOOP_TMP_DIR = "hadoop.tmp.dir";
+
 
   /**
    * The enhanced {@code openFile()} options.

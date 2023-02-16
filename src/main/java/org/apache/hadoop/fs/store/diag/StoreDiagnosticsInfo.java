@@ -18,17 +18,22 @@
 
 package org.apache.hadoop.fs.store.diag;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.LocalDirAllocator;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.store.StoreUtils;
 
@@ -330,10 +335,11 @@ public class StoreDiagnosticsInfo {
    * Override point: any store-specific config validation.
    * @param printout printer
    * @param conf
+   * @param writeOperations
    * @throws IOException failure
    */
   protected void validateConfig(Printout printout,
-      final Configuration conf) throws IOException {
+      final Configuration conf, final boolean writeOperations) throws IOException {
 
   }
 
@@ -414,6 +420,90 @@ public class StoreDiagnosticsInfo {
     return configMap;
   }
 
+
+  protected static void validateBufferDir(final Printout printout,
+      final Configuration conf,
+      final String bufferDirKey,
+      final String fallbackDirKey,
+      final boolean createTempFile) throws IOException {
+    String bufferOption = conf.get(bufferDirKey) != null
+        ? bufferDirKey : fallbackDirKey;
+
+    printout.println("Buffer configuration option %s = %s",
+        bufferOption, conf.get(bufferOption));
+    final Collection<String> directories = conf.getTrimmedStringCollection(bufferOption);
+    printout.println("Number of buffer directories: %d", directories.size());
+    boolean failureLikely = false;
+    int dirsToCreate = 0;
+    Queue<String> dirQueue = new LinkedList<>(directories);
+    while (!dirQueue.isEmpty()) {
+      String directory = dirQueue.poll();
+      final File dir = new File(directory);
+      if (!dir.isAbsolute()) {
+        printout.warn("Directory option %s is not absolute", dir);
+        failureLikely = true;
+        continue;
+      }
+      final File absDir = dir.getAbsoluteFile();
+      printout.println("Buffer path %s:", absDir);
+      if (!absDir.exists()) {
+        printout.println("\t* does not exist: expect it to be created");
+        dirsToCreate++;
+        // scan the parent now too
+        final File parentFile = absDir.getParentFile();
+        if (parentFile != null && !parentFile.getCanonicalPath().equals("/")) {
+          dirQueue.add(parentFile.getAbsolutePath());
+        }
+        continue;
+      }
+      if (!absDir.isDirectory()) {
+        printout.warn("\t* is a file");
+        failureLikely = true;
+        continue;
+      }
+      if (!absDir.canWrite()) {
+          printout.warn("\t* is not writable by the current user");
+          failureLikely = true;
+          continue;
+      }
+      // at this point the dir is good
+      printout.println("\t* exists and is writable");
+      // how much data is in it?
+      long count = 0;
+      long size = 0;
+      for (File file : absDir.listFiles()) {
+        if (file.isFile()) {
+          count++;
+          size += file.length();
+        }
+      }
+      printout.println("\t* contains %d file(s) with total size %,d bytes", count, size);
+    }
+
+    if (failureLikely) {
+      printout.warn("\nOutput buffer issues identified; data uploads may fail");
+    }
+
+
+    if (dirsToCreate > 0) {
+      printout.println("Directories to be created: %d", dirsToCreate);
+    }
+
+    if (createTempFile) {
+      printout.println("\nAttempting to create a temporary file");
+      final LocalDirAllocator directoryAllocator = new LocalDirAllocator(
+          bufferOption);
+
+      File temp = directoryAllocator.createTmpFileForWrite("temp", 1, conf);
+
+      printout.println("\nTemporary file successfully created in %s",
+          temp.getParentFile());
+      temp.delete();
+    } else {
+      printout.println("\nInvoke with -w to trigger creation of a temporary file");
+    }
+  }
+
   /**
    * Perform any validation of the filesystem itself (is it the right type,
    * are there any options you can check for. This is
@@ -431,7 +521,7 @@ public class StoreDiagnosticsInfo {
   public void validateFilesystem(final Printout printout,
       final Path path,
       final FileSystem filesystem) throws IOException {
-    
+
   }
 
   protected void performanceHints(
