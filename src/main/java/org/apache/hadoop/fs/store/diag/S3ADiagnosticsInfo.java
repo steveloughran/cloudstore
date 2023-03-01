@@ -104,11 +104,15 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
   public static final String FS_S3A_FAST_UPLOAD_ACTIVE_BLOCKS =
       "fs.s3a.fast.upload.active.blocks";
 
+
   public static final String DELEGATION_TOKEN_BINDING =
       "fs.s3a.delegation.token.binding";
 
   public static final String AWS_CREDENTIALS_PROVIDER =
       "fs.s3a.aws.credentials.provider";
+
+  public static final String FS_S3A_AUDIT_REJECT_OUT_OF_SPAN_OPERATIONS =
+      "fs.s3a.audit.reject.out.of.span.operations";
 
   public static final String ACCESS_KEY = "fs.s3a.access.key";
 
@@ -246,7 +250,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.s3a.audit.enabled", false, false},
       {"fs.s3a.audit.referrer.enabled", false, false},
       {"fs.s3a.audit.referrer.filter", false, false},
-      {"fs.s3a.audit.reject.out.of.span.operations", false, false},
+      {FS_S3A_AUDIT_REJECT_OUT_OF_SPAN_OPERATIONS, false, false},
       {"fs.s3a.audit.request.handlers", false, false},
       {"fs.s3a.audit.service.classname", false, false},
 

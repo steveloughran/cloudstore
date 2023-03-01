@@ -165,16 +165,16 @@ public class MkCSV extends StoreEntryPoint {
           .build();
     }
     try {
-      StoreCsvWriter writer = new StoreCsvWriter(upload, SEPARATOR, EOL, quote);
+      CsvWriterWithCRC writer = new CsvWriterWithCRC(upload, SEPARATOR, EOL, quote);
       if (header) {
         writer
-            .columns(START, "rowId", "length", "dataCrc", "data", "rowId2", "rowCrc", END)
-            .newline();
+            .columns(START, "rowId", "length", "dataCrc", "data", "rowId2", "rowCrc", END);
+        writer.newline();
       }
 
       Random rand = new Random();
       for (int r = 1; r <= rows; r++) {
-
+        writer.resetRowCrc();
         writer.column(START);
         String rowId = Long.toString(r);
         writer.column(rowId);

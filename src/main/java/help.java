@@ -59,6 +59,7 @@ public class help extends Command {
     printCommand("gcscreds", "credential diagnostics for GCS. Warning: logs secrets");
     printCommand("iampolicy", "generate AWS IAM policy");
     printCommand("listobjects", "list S3 objects and their translated statuses");
+    printCommand("listversions", "list all versions of S3 objects under a path");
     printCommand("regions\t", "emulate region lookup of AWS SDK");
     printCommand("sessionkeys", "generate AWS session keys from a long-lived login");
     println("%nThese are only available on some builds and require a compatible hadoop release");

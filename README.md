@@ -448,6 +448,37 @@ Parsed private key -entry length 28 lines
 factory com.google.cloud.hadoop.repackaged.gcs.com.google.cloud.hadoop.util.CredentialFactory@d706f19
 ```
 
+## Command `iampolicy`
+
+Generate AWS IAM policy for a given bucket
+```
+hadoop jar cloudstore-1.0.jar iampolicy s3a://example-bucket/
+
+{
+  "Version" : "2012-10-17",
+  "Statement" : [ {
+    "Sid" : "7",
+    "Effect" : "Allow",
+    "Action" : [ "s3:GetBucketLocation", "s3:ListBucket*" ],
+    "Resource" : "arn:aws:s3:::example-bucket"
+  }, {
+    "Sid" : "8",
+    "Effect" : "Allow",
+    "Action" : [ "s3:Get*", "s3:PutObject", "s3:PutObjectAcl", "s3:DeleteObject", "s3:AbortMultipartUpload" ],
+    "Resource" : "arn:aws:s3:::example-bucket/*"
+  }, {
+    "Sid" : "1",
+    "Effect" : "Allow",
+    "Action" : "kms:*",
+    "Resource" : "*"
+  } ]
+}
+
+```
+Notes:
+* KMS policy is always added in case data is encrypted/decrypted with S3-KMS; it is not need if this is not the case.
+* Read and Write access up the tree is needed. Maybe if you enable directory marker retention writing from root becomes optional.
+* "s3:GetBucketLocation" is used by the bucket existence v2 check. If the probe is at 0, it is never called.
 
 
 ## Command `list`
