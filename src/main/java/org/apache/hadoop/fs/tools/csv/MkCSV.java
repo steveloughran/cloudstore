@@ -183,16 +183,16 @@ public class MkCSV extends StoreEntryPoint {
         String dataRow = blockData.get(r % blockCount);
         int length = Math.min(lastElt, elements);
         String data = dataRow.substring(length);
-        writer.column(data.length());
+        writer.columnL(data.length());
         // data CRC
         CRC32 crc = new CRC32();
         crc.update(data.getBytes(StandardCharsets.UTF_8));
-        writer.column(crc.getValue());
+        writer.columnL(crc.getValue());
         writer.column(data);
         // repeat the row ID
         writer.column(rowId);
         // full row checksum
-        writer.column(writer.getRowCrc());
+        writer.columnL(writer.getRowCrc());
         // end of row
         writer.column(END);
         writer.newline();

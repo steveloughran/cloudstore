@@ -42,10 +42,9 @@ import org.apache.hadoop.fs.s3a.S3AFileSystem;
 import org.apache.hadoop.fs.store.StoreDurationInfo;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
 import org.apache.hadoop.fs.tools.csv.SimpleCsvWriter;
+import org.apache.hadoop.io.IOUtils;
 import org.apache.hadoop.util.ToolRunner;
 
-import static org.apache.hadoop.fs.s3a.Invoker.once;
-import static org.apache.hadoop.fs.s3a.extra.S3ListingSupport.keyToPath;
 import static org.apache.hadoop.fs.store.CommonParameters.DEFINE;
 import static org.apache.hadoop.fs.store.CommonParameters.LIMIT;
 import static org.apache.hadoop.fs.store.CommonParameters.TOKENFILE;
@@ -64,23 +63,28 @@ public class ListVersions extends StoreEntryPoint {
 
   public static final String QUIET = "q";
 
+  public static final String SEPARATOR = "separator";
+
 
   public static final String USAGE
-      = "Usage: listobjects <path>\n"
+      = "Usage: listversions <path>\n"
       + optusage(DEFINE, "key=value", "Define a property")
       + optusage(LIMIT, "limit", "limit of files to list")
       + optusage(OUTPUT, "file", "output file")
       + optusage(QUIET, "quiet output")
+      + optusage(SEPARATOR, "string", "Separator if not <tab>")
       + optusage(TOKENFILE, "file", "Hadoop token file to load")
       + optusage(VERBOSE, "print verbose output")
       + optusage(XMLFILE, "file", "XML config file to load");
+
+  public static final String NAME = "listversions";
 
   public ListVersions() {
     createCommandFormat(1, 1,
         DELETE,
         QUIET,
         VERBOSE);
-    addValueOptions(TOKENFILE, XMLFILE, DEFINE, LIMIT, OUTPUT);
+    addValueOptions(TOKENFILE, XMLFILE, DEFINE, LIMIT, OUTPUT,SEPARATOR);
   }
 
   @Override
@@ -101,10 +105,10 @@ public class ListVersions extends StoreEntryPoint {
     S3AFileSystem fs = null;
     final Path source = new Path(paths.get(0));
     try (StoreDurationInfo duration = new StoreDurationInfo(LOG,
-        "listobjects")) {
+        NAME)) {
       fs = (S3AFileSystem) source.getFileSystem(conf);
 
-      final AmazonS3 s3 = fs.getAmazonS3ClientForTesting("listobjects");
+      final AmazonS3 s3 = fs.getAmazonS3ClientForTesting(NAME);
       String key = S3ListingSupport.pathToKey(source);
       ListVersionsRequest request = S3ListingSupport.createListVersionsRequest(
           source.toUri().getHost(), key, null);
@@ -113,45 +117,91 @@ public class ListVersions extends StoreEntryPoint {
           = new ListVersionsIterator(s3, source, request);
 
       int objectCount = 0;
-      long size = 0;
+      long totalSize = 0;
       heading("Listing %s", source);
+      SummaryWriter writer;
 
-      final String output = getOption(OUTPUT);
-      PrintStream dest;
-      boolean closeOutput;
-      if (output != null) {
-        // writing to a dir
-        final Path destPath = new Path(output);
-        final FileSystem destFS = destPath.getFileSystem(conf);
-        final FSDataOutputStream dataOutputStream = destFS.createFile(destPath)
-            .overwrite(true)
-            .recursive()
-            .build();
-        dest = new PrintStream(dataOutputStream);
-        closeOutput = true;
-        println("Saving output to %s", destPath);
+
+      if (!quiet) {
+        final String output = getOption(OUTPUT);
+        PrintStream dest;
+        boolean closeOutput;
+        if (output != null) {
+          // writing to a dir
+          final Path destPath = new Path(output);
+          final FileSystem destFS = destPath.getFileSystem(conf);
+          final FSDataOutputStream dataOutputStream = destFS.createFile(destPath)
+              .overwrite(true)
+              .recursive()
+              .build();
+          dest = new PrintStream(dataOutputStream);
+          closeOutput = true;
+          println("Saving output to %s", destPath);
+        } else {
+          dest = getOut();
+          closeOutput = false;
+        }
+        final String separator = getOptional(SEPARATOR).orElse("\t");
+        writer = new CsvVersionWriter(dest, closeOutput, separator);
       } else {
-        dest = getOut();
-        closeOutput = false;
+        writer = new SummaryWriter();
       }
-      try (CsvVersionWriter writer = new CsvVersionWriter(dest, closeOutput)) {
+      long tombstones = 0;
+      long fileTombstones = 0;
+      long hidden = 0;
+      long hiddenData = 0;
+      long hiddenZeroByteFiles = 0;
+      long dirMarkers = 0;
+      long hiddenDirMarkers = 0;
+      try {
 
         boolean finished = false;
         while (!finished && objects.hasNext()) {
           final VersionListing page = objects.next();
           for (S3VersionSummary summary : page.getVersionSummaries()) {
             objectCount++;
-            if (limit > 0 && objectCount >= limit) {
+            if (limit > 0 && objectCount > limit) {
               finished = true;
               break;
+            } else {
+              final long size = summary.getSize();
+              totalSize += size;
+              writer.write(summary,
+                  fs.keyToQualifiedPath(summary.getKey()));
+              final boolean isDirMarker = isDirMarker(summary);
+              dirMarkers += result(isDirMarker);
+              if (summary.isDeleteMarker()) {
+                tombstones++;
+                fileTombstones += result(!isDirMarker);
+
+              } else {
+                if (!summary.isLatest()) {
+                  if (!isDirMarker) {
+                    hidden++;
+                    hiddenData += size;
+                    hiddenZeroByteFiles += result(size == 0);
+                  } else {
+                    hiddenDirMarkers++;
+                  }
+                }
+              }
             }
-            size += summary.getSize();
-            writer.write(summary);
           }
         }
-      }
-      println("found %d objects with total size %d bytes", objectCount, size);
+      } finally {
+        writer.close();
 
+      }
+
+      println();
+      println("Found %,d objects under %s with total size %,d bytes", objectCount, source, totalSize);
+      println("Hidden file count %,d with hidden data size %,d bytes",
+          hidden, hiddenData);
+      println("Hidden zero-byte file count %,d", hiddenZeroByteFiles);
+      println("Hidden directory markers %,d", hiddenDirMarkers);
+      println("Tombstone entries %,d comprising %,d files and %,d dir markers",
+          tombstones, fileTombstones, tombstones - fileTombstones);
+      println();
 
     } finally {
       maybeDumpStorageStatistics(fs);
@@ -160,16 +210,37 @@ public class ListVersions extends StoreEntryPoint {
     return 0;
   }
 
+  private int result(boolean b) {
+    return b ? 1 : 0;
+  }
+
+  private static class SummaryWriter implements Closeable {
+
+    void write(S3VersionSummary summary, Path path) throws IOException {
+
+    }
+    @Override
+    public void close() throws IOException {
+
+    }
+  }
+
+
   /**
    * write to csv; pulled out to make writing to avro etc easier in future.
    */
-  private static final class CsvVersionWriter implements Closeable {
+  private static final class CsvVersionWriter extends SummaryWriter {
+
     private final SimpleCsvWriter csv;
+
     private final DateFormat df = new SimpleDateFormat("yyyy-MM-ddZhh:mm:ss");
 
-    private CsvVersionWriter(final OutputStream out, final boolean closeOutput) throws IOException {
-      csv = new SimpleCsvWriter(out, "\t", "\n", true, closeOutput);
+    long index = 0;
+
+    private CsvVersionWriter(final OutputStream out, final boolean closeOutput, String separator) throws IOException {
+      csv = new SimpleCsvWriter(out, separator, "\n", true, closeOutput);
       csv.columns(
+          "index",
           "key",
           "path",
           "restore",
@@ -190,25 +261,34 @@ public class ListVersions extends StoreEntryPoint {
       csv.close();
     }
 
-    void write(S3VersionSummary summary) throws IOException {
-      String k = summary.getKey();
-      csv.column(k);
-      csv.column(keyToPath(k));
-      csv.column(false);
-      csv.column(summary.isLatest());
-      csv.column(summary.getSize());
-      csv.column(summary.isDeleteMarker());
-      csv.column(S3ListingSupport.objectRepresentsDirectory(k, summary.getSize()));
+    void write(S3VersionSummary summary, Path path) throws IOException {
+      final boolean deleteMarker = summary.isDeleteMarker();
+      final boolean dirMarker = isDirMarker(summary);
+      csv.columnL(++index);
+      csv.column(summary.getKey());
+      csv.column(path);
+      csv.columnB(!deleteMarker && !dirMarker);
+      csv.columnB(summary.isLatest());
+      csv.columnL(summary.getSize());
+      csv.columnB(deleteMarker);
+      csv.columnB(dirMarker);
       final Date lastModified = summary.getLastModified();
       csv.column(df.format(lastModified));
-      csv.column(lastModified.getTime());
-      csv.column(summary.getVersionId());
+      csv.columnL(lastModified.getTime());
+      final String versionId = summary.getVersionId();
+      csv.column("null".equals(versionId) ? "" : versionId);
       csv.column(summary.getETag());
       csv.newline();
     }
 
+    private long getIndex() {
+      return index;
+    }
   }
 
+  private static boolean isDirMarker(final S3VersionSummary summary) {
+    return S3ListingSupport.objectRepresentsDirectory(summary.getKey(), summary.getSize());
+  }
 
 
   /**

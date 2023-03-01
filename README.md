@@ -537,6 +537,10 @@ Usage: listobjects <path>
     -xmlfile <file> XML config file to load
 ```
 
+## Command `listversions`
+
+See [listversions](./src/main/site/listversions.md).
+
 ## Command `localhost`
 
 Print out localhost information from java APIs and then the hadoop network APIs.

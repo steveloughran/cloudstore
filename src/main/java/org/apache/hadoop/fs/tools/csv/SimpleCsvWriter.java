@@ -26,6 +26,10 @@ import java.io.Writer;
 
 import static java.util.Objects.requireNonNull;
 
+/**
+ * Write CSV files with quoting of strings, booleans mapped to
+ * 1/0.
+ */
 public class SimpleCsvWriter implements Closeable {
 
   private final Writer out;
@@ -40,6 +44,14 @@ public class SimpleCsvWriter implements Closeable {
 
   private boolean isStartOfLine = true;
 
+  /**
+   * construct
+   * @param out output writer
+   * @param separator separator string
+   * @param eol end of line string
+   * @param quote should strings be quoted?
+   * @param closeOutput should the output be closed in close(), or just flushed?
+   */
   public SimpleCsvWriter(
       final Writer out,
       final String separator,
@@ -54,18 +66,19 @@ public class SimpleCsvWriter implements Closeable {
 
   /**
    * Instantiate.
-   * @param out output stream.
-   * @param separator field separator.
-   * @param eol end of line sequence
-   * @param quote quote columns?
-   * @param closeOutput
+   * @param out output stream
+   * @param separator separator string
+   * @param eol end of line string
+   * @param quote should strings be quoted?
+   * @param closeOutput should the output be closed in close(), or just flushed?
    */
   public SimpleCsvWriter(
       final OutputStream out,
       final String separator,
       final String eol,
-      final boolean quote, final boolean closeOutput) {
-    this(new PrintWriter(out), separator, eol, quote, true);
+      final boolean quote,
+      final boolean closeOutput) {
+    this(new PrintWriter(out), separator, eol, quote, closeOutput);
   }
 
   public Writer getOut() {
@@ -101,40 +114,61 @@ public class SimpleCsvWriter implements Closeable {
 
   /**
    * Write a single object's string value.
-   * @param o object to write.
+   * @param o object to write; null is mapped to the empty string.
    * @throws IOException IO failure.
    */
   public void column(Object o) throws IOException {
+    col(o, quote);
+  }
+
+  private void col(final Object o, final boolean quoteColumn) throws IOException {
     if (isStartOfLine) {
       isStartOfLine = false;
     } else {
       write(separator);
     }
-    if (quote) {
-      quote(o);
+    final String s = toString(o);
+    if (quoteColumn) {
+      quote(s);
     } else {
-      write(o.toString());
+      write(s);
     }
   }
 
+  private static String toString(final Object o) {
+    return o != null
+        ? o.toString()
+        : "";
+  }
+
   /**
-   * Write a bool, mapping true to 1.
+   * Write a bool, mapping true to 1 and
+   * false to 0.
    * That makes counting the number of matched
    * rows straightforward.
    * @param b boolean
    * @throws IOException io failure
    */
-  public void column(boolean b) throws IOException {
-    column(b ? "1" : "0");
+  public void columnB(boolean b) throws IOException {
+    columnL(b ? 1 : 0);
   }
+
+  /**
+   * Write a long, unquoted, always.
+   * @param i value
+   * @throws IOException io failure
+   */
+  public void columnL(long i) throws IOException {
+    col(Long.toString(i), false);
+  }
+
 
   public void write(String val) throws IOException {
     out.write(val);
   }
 
-
   public void quote(Object o) throws IOException {
-    write(String.format("\"%s\"", o));
+    write(String.format("\"%s\"", toString(o)));
   }
 
   public void newline() throws IOException {
