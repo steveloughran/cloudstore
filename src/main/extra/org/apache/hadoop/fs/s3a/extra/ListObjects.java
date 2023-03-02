@@ -110,7 +110,7 @@ public class ListObjects extends StoreEntryPoint {
     try (StoreDurationInfo duration = new StoreDurationInfo(LOG,
         "listobjects")) {
       fs = (S3AFileSystem) source.getFileSystem(conf);
-      String bucket = ((S3AFileSystem) fs).getBucket();
+      String bucket = fs.getBucket();
       final AmazonS3 s3 = fs.getAmazonS3ClientForTesting("listobjects");
       String key = S3ListingSupport.pathToKey(source);
       ListObjectsRequest request = S3ListingSupport.createListObjectsRequest(

@@ -18,6 +18,7 @@
 
 package org.apache.hadoop.fs.store;
 
+import java.io.PrintStream;
 import java.time.Duration;
 
 import org.slf4j.Logger;
@@ -41,6 +42,8 @@ public class StoreDurationInfo
 
   private final Logger log;
 
+  private final PrintStream out;
+
   /**
    * Create the duration text from a {@code String.format()} code call.
    * @param log log to write to
@@ -52,8 +55,26 @@ public class StoreDurationInfo
     finished = started;
     this.text = String.format(format, args);
     this.log = log;
+    out = null;
     if (log != null) {
       log.info("Starting: {}", text);
+    }
+  }
+
+  /**
+   * Create the duration text from a {@code String.format()} code call.
+   * @param out log to write to
+   * @param format format string
+   * @param args list of arguments
+   */
+  public StoreDurationInfo(PrintStream out, String format, Object... args) {
+    started = time();
+    finished = started;
+    this.text = String.format(format, args);
+    this.out = out;
+    this.log = null;
+    if (out != null) {
+      out.printf("Starting: %s%n", text);
     }
   }
 
@@ -68,6 +89,7 @@ public class StoreDurationInfo
     finished = started;
     this.text = "";
     this.log = null;
+    this.out = null;
   }
 
   private long time() {
@@ -113,6 +135,9 @@ public class StoreDurationInfo
     finished();
     if (log != null) {
       log.info("Duration of {}: {}", text, this);
+    }
+    if (out != null) {
+      out.printf("Duration of %s: %s%n", text, this);
     }
   }
 }

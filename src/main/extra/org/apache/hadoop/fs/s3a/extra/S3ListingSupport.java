@@ -84,6 +84,7 @@ public class S3ListingSupport {
     }
     return request;
   }
+
   /**
    * Create a {@code ListObjectsRequest} request against this bucket.
    * @param bucket bucket to listJitendra
@@ -91,7 +92,8 @@ public class S3ListingSupport {
    * @param delimiter any delimiter
    * @return the request
    */
-  public static ListVersionsRequest createListVersionsRequest(final String bucket,
+  public static ListVersionsRequest createListVersionsRequest(
+      final String bucket,
       String key,
       String delimiter) {
     ListVersionsRequest request = new ListVersionsRequest();

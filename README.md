@@ -756,6 +756,12 @@ a failure to connect to the instance metadata server.
 
 This is to be expected, given that the service isn't there.
 
+## Command `restore`
+
+Restores a versioned S3 Object to a path within the same bucket.
+
+See [listversions](./src/main/site/listversions.md).
+
 ## Command `safeprefetch`
 
 Probes an abfs store for being vulnerable to

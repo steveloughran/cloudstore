@@ -42,7 +42,6 @@ import org.apache.hadoop.fs.s3a.S3AFileSystem;
 import org.apache.hadoop.fs.store.StoreDurationInfo;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
 import org.apache.hadoop.fs.tools.csv.SimpleCsvWriter;
-import org.apache.hadoop.io.IOUtils;
 import org.apache.hadoop.util.ToolRunner;
 
 import static org.apache.hadoop.fs.store.CommonParameters.DEFINE;
@@ -59,7 +58,9 @@ public class ListVersions extends StoreEntryPoint {
 
   public static final String OUTPUT = "out";
 
-  public static final String DELETE = "delete";
+  public static final String DELETED = "deleted";
+
+  public static final String DIRS = "dirs";
 
   public static final String QUIET = "q";
 
@@ -69,6 +70,8 @@ public class ListVersions extends StoreEntryPoint {
   public static final String USAGE
       = "Usage: listversions <path>\n"
       + optusage(DEFINE, "key=value", "Define a property")
+      + optusage(DELETED, "include delete markers")
+      + optusage(DIRS, "include directory markers")
       + optusage(LIMIT, "limit", "limit of files to list")
       + optusage(OUTPUT, "file", "output file")
       + optusage(QUIET, "quiet output")
@@ -81,7 +84,8 @@ public class ListVersions extends StoreEntryPoint {
 
   public ListVersions() {
     createCommandFormat(1, 1,
-        DELETE,
+        DELETED,
+        DIRS,
         QUIET,
         VERBOSE);
     addValueOptions(TOKENFILE, XMLFILE, DEFINE, LIMIT, OUTPUT,SEPARATOR);
@@ -100,6 +104,8 @@ public class ListVersions extends StoreEntryPoint {
     conf.setBoolean(FS_S3A_AUDIT_REJECT_OUT_OF_SPAN_OPERATIONS, false);
     int limit = getOptional(LIMIT).map(Integer::valueOf).orElse(0);
     boolean quiet = hasOption(QUIET);
+    boolean logDeleted = hasOption(DELETED);
+    boolean logDirs = hasOption(DIRS);
 
 
     S3AFileSystem fs = null;
@@ -166,14 +172,14 @@ public class ListVersions extends StoreEntryPoint {
             } else {
               final long size = summary.getSize();
               totalSize += size;
-              writer.write(summary,
-                  fs.keyToQualifiedPath(summary.getKey()));
+
               final boolean isDirMarker = isDirMarker(summary);
+              boolean write = logDirs || !isDirMarker;
               dirMarkers += result(isDirMarker);
               if (summary.isDeleteMarker()) {
                 tombstones++;
                 fileTombstones += result(!isDirMarker);
-
+                write &= logDeleted;
               } else {
                 if (!summary.isLatest()) {
                   if (!isDirMarker) {
@@ -184,6 +190,9 @@ public class ListVersions extends StoreEntryPoint {
                     hiddenDirMarkers++;
                   }
                 }
+              }
+              if (write) {
+                writer.write(summary, fs.keyToQualifiedPath(summary.getKey()));
               }
             }
           }
@@ -276,7 +285,7 @@ public class ListVersions extends StoreEntryPoint {
       csv.column(df.format(lastModified));
       csv.columnL(lastModified.getTime());
       final String versionId = summary.getVersionId();
-      csv.column("null".equals(versionId) ? "" : versionId);
+      csv.column(versionId);
       csv.column(summary.getETag());
       csv.newline();
     }

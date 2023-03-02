@@ -22,6 +22,8 @@ Lists all versions of files under a path.
 hadoop jar cloudstore-1.0.jar listversions
 Usage: listversions <path>
         -D <key=value>  Define a property
+        -deleted        include delete markers
+        -dirs   include directory markers        
         -limit <limit>  limit of files to list
         -out <file>     output file
         -q      quiet output
@@ -105,7 +107,23 @@ a test run.
   Disable this by setting `fs.s3a.directory.marker.retention` to `keep`.
   This option is faster to write files on an unversioned bucket and significantly improves listing performance
   on versioned buckets.
-  
-## Restoring from the list
 
-WiP: taking a TSV file and restoring all those files with restore=1 to a different location.
+## Restoring a whole list
+
+Taking a TSV file and restoring all those files with restore=1 to a different location is yet to be implemented.
+
+
+## `restore` command
+
+A single file can be restored using the `restore` command, which will take a file and version
+and create a new copy in a different location in the same bucket.
+
+```
+hadoop jar cloudstore-1.0.jar restore s3a://stevel-london/FileSystemContractBaseTest "zn8c734o2CaH2ZfsS.I7_mpDl6kgh63O" /restored.txt
+
+restoring s3a://stevel-london/FileSystemContractBaseTest @ zn8c734o2CaH2ZfsS.I7_mpDl6kgh63O to s3a://stevel-london/restored.txt
+Starting: restore
+Duration of restore: 0:00:715
+Restored object of size 2,048 bytes to s3a://stevel-london/restored.txt
+
+```

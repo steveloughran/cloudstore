@@ -61,6 +61,7 @@ public class help extends Command {
     printCommand("listobjects", "list S3 objects and their translated statuses");
     printCommand("listversions", "list all versions of S3 objects under a path");
     printCommand("regions\t", "emulate region lookup of AWS SDK");
+    printCommand("restore", "Restore a versioned S3 object");
     printCommand("sessionkeys", "generate AWS session keys from a long-lived login");
     println("%nThese are only available on some builds and require a compatible hadoop release");
 
