@@ -26,8 +26,11 @@ package org.apache.hadoop.fs.store.diag;
  */
 public final class CapabilityKeys {
 
-  private CapabilityKeys() {
-  }
+  public static final String FS_CAPABILITY_ETAGS_AVAILABLE = "fs.capability.etags.available";
+
+  public static final String FS_AZURE_CAPABILITY_READAHEAD_SAFE =
+      "fs.azure.capability.readahead.safe";
+
 
   /**
    * Does the store support
@@ -254,7 +257,6 @@ public final class CapabilityKeys {
    */
   public static final String FS_S3A_CREATE_HEADER = "fs.s3a.create.header";
 
-
   /**
    * Streams that support IOStatistics context and capture thread-level
    * IOStatistics.
@@ -329,7 +331,9 @@ public final class CapabilityKeys {
       READBYTEBUFFER,
       UNBUFFER,
       VECTOREDIO,
+      FS_AZURE_CAPABILITY_READAHEAD_SAFE
   };
+
   /**
    * Set of input/output stream capabilities to scan for.
    */
@@ -339,5 +343,10 @@ public final class CapabilityKeys {
       HSYNC,
       IOSTATISTICS,
       IOSTATISTICS_CONTEXT,
+      STREAM_CAPABILITY_MAGIC_OUTPUT,
   };
+
+
+  private CapabilityKeys() {
+  }
 }

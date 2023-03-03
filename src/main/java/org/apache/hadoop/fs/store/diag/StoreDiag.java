@@ -160,7 +160,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
         SYSPROPS,
         WRITE,
         VERBOSE
-        );
+    );
     addValueOptions(TOKENFILE, XMLFILE, DEFINE, REQUIRED, PRINCIPAL, SYSPROP);
   }
 
@@ -178,8 +178,8 @@ public class StoreDiag extends DiagnosticsEntryPoint {
     }
 
     heading("Store Diagnostics for %s on %s",
-      UserGroupInformation.getCurrentUser(),
-      NetUtils.getHostname());
+        UserGroupInformation.getCurrentUser(),
+        NetUtils.getHostname());
 
     // process the options
     maybeAddTokens(TOKENFILE);
@@ -240,7 +240,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
    * Probe all the endpoints.
    * @throws IOException IO Failure
    */
-  public void probeAllEndpoints() throws IOException  {
+  public void probeAllEndpoints() throws IOException {
     heading("Endpoints");
 
     try {
@@ -299,9 +299,9 @@ public class StoreDiag extends DiagnosticsEntryPoint {
       String[] commands = {"uname", "-a"};
       Process proc = Runtime.getRuntime().exec(commands);
       try (BufferedReader stdin = new BufferedReader(new
-              InputStreamReader(proc.getInputStream()));
-          BufferedReader stderr = new BufferedReader(new
-              InputStreamReader(proc.getErrorStream()))) {
+          InputStreamReader(proc.getInputStream()));
+           BufferedReader stderr = new BufferedReader(new
+               InputStreamReader(proc.getErrorStream()))) {
         String s;
         while ((s = stdin.readLine()) != null) {
           println(s);
@@ -317,7 +317,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
       LOG.debug("Failed to determine OS Version", e);
       return false;
     } catch (InterruptedException e) {
-      throw (IOException)new InterruptedIOException(e.toString())
+      throw (IOException) new InterruptedIOException(e.toString())
           .initCause(e);
     }
   }
@@ -386,7 +386,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
   public StoreDiagnosticsInfo bindToStore(final String fsURI)
       throws IOException {
 
-      return bindToStore(toURI("command", fsURI));
+    return bindToStore(toURI("command", fsURI));
   }
 
   /**
@@ -412,7 +412,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
   /**
    * Probe the list of endpoints.
    * @param endpoints list to probe (unauthed)
-   * @throws IOException  IO Failure
+   * @throws IOException IO Failure
    */
   public void probeEndpoints(final List<URI> endpoints)
       throws IOException {
@@ -443,7 +443,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
   /**
    * Probe the list of endpoints.
    * @param endpoints list to probe (unauthed)
-   * @throws IOException  IO Failure
+   * @throws IOException IO Failure
    */
   public void probeOptionalEndpoints(final List<URI> endpoints)
       throws IOException {
@@ -539,8 +539,8 @@ public class StoreDiag extends DiagnosticsEntryPoint {
   /**
    * Probe all the required classes from base settings,
    * the FS diags, and any file passed in as -required.
-   * @throws ClassNotFoundException no class
    * @param optional is this a probe for optional classes
+   * @throws ClassNotFoundException no class
    * @throws IOException other faillure
    */
   public void probeRequiredAndOptionalClasses(boolean optional)
@@ -656,7 +656,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
     for (Map.Entry<String, String> entry : vars.entrySet()) {
       String key = entry.getKey();
       String value = maybeSanitize(entry.getValue(),
-      key.startsWith("AWS_"));
+          key.startsWith("AWS_"));
       println("[%03d] %s=\"%s\"", i, key, value);
     }
   }
@@ -669,7 +669,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
   public void dumpLog4J() throws IOException {
     heading("Log4J");
     String resource = "/" + LOG_4_PROPERTIES;
-    Enumeration<URL> logjJs = this.getClass()
+    Enumeration<URL> logjJs = getClass()
         .getClassLoader()
         .getResources(resource);
     int found = 0;
@@ -684,11 +684,11 @@ public class StoreDiag extends DiagnosticsEntryPoint {
     if (found > 1) {
       warn("Found multiple log4j.properties files");
     }
-    
+
     println("%n%s",
-      CharStreams.toString(new InputStreamReader(
-          this.getClass().getResourceAsStream(resource),
-          Charsets.UTF_8)));
+        CharStreams.toString(new InputStreamReader(
+            getClass().getResourceAsStream(resource),
+            Charsets.UTF_8)));
   }
 
   /**
@@ -723,7 +723,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
 
     FileSystem fs;
 
-    try(StoreDurationInfo ignored = new StoreDurationInfo(
+    try (StoreDurationInfo ignored = new StoreDurationInfo(
         LOG, "Creating filesystem for %s", baseDir)) {
       fs = FileSystem.newInstance(baseDir.toUri(), conf);
     }
@@ -743,7 +743,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
           } catch (IOException | StoreExitException e) {
 
             // problem
-            warn("%s",e.toString());
+            warn("%s", e.toString());
             LOG.debug("checking path capabilities", e);
             break;
           }
@@ -757,7 +757,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
 
 
     Path root = fs.makeQualified(new Path("/"));
-    try (StoreDurationInfo ignored = new StoreDurationInfo(LOG,
+    try (StoreDurationInfo ignored = new StoreDurationInfo(getOut(),
         "GetFileStatus %s", root)) {
       println("root entry %s", fs.getFileStatus(root));
     } catch (FileNotFoundException e) {
@@ -769,7 +769,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
     int limit = LIST_LIMIT;
     boolean baseDirFound;
     boolean accessDenied = false;
-    try (StoreDurationInfo ignored = new StoreDurationInfo(LOG,
+    try (StoreDurationInfo ignored = new StoreDurationInfo(getOut(),
         "First %d entries of listStatus(%s)", limit, baseDir)) {
       RemoteIterator<FileStatus> statuses = fs.listStatusIterator(baseDir);
       int statusCount = 0;
@@ -792,24 +792,27 @@ public class StoreDiag extends DiagnosticsEntryPoint {
       println("Directory %s does not exist", baseDir);
       baseDirFound = false;
     }
+
     heading("Attempt to read a file");
+    // =======================================
 
     if (firstFile != null) {
       // found a file to read
-      accessDenied = readFile(fs, firstFile.getPath());
+      accessDenied = readFile(fs, firstFile);
     } else {
       println("no file found to attempt to read");
     }
 
     heading("listfiles(%s, true)", baseDir);
+    // =======================================
 
     // now work with the full path
     limit = LIST_LIMIT;
-    try(StoreDurationInfo ignored = new StoreDurationInfo(LOG,
+    try (StoreDurationInfo ignored = new StoreDurationInfo(getOut(),
         "First %d entries of listFiles(%s)", limit, baseDir)) {
       RemoteIterator<LocatedFileStatus> files = fs.listFiles(baseDir, true);
       try {
-        while (files.hasNext() && (limit--)> 0) {
+        while (files.hasNext() && (limit--) > 0) {
           FileStatus status = files.next();
           println(statusToString(status));
         }
@@ -826,6 +829,8 @@ public class StoreDiag extends DiagnosticsEntryPoint {
 
 
     heading("Security and Delegation Tokens");
+    // =======================================
+
     boolean requireToken = hasOption(DELEGATION);
     boolean issued = false;
     String outcome = "did not";
@@ -847,7 +852,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
     } else {
       //
       Credentials cred = new Credentials();
-      try (StoreDurationInfo ignored = new StoreDurationInfo(LOG,
+      try (StoreDurationInfo ignored = new StoreDurationInfo(getOut(),
           "collecting delegation tokens")) {
         try {
           String renewer = "yarn@EXAMPLE";
@@ -871,8 +876,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
           }
         }
       }
-      Collection<Token<? extends TokenIdentifier>> tokens
-          = cred.getAllTokens();
+      Collection<Token<? extends TokenIdentifier>> tokens = cred.getAllTokens();
       int size = tokens.size();
       println("Number of tokens issued by filesystem: %d", size);
       if (size > 0) {
@@ -894,7 +898,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
     // now create a directory
     Path dir = new Path(baseDir, "dir-" + UUID.randomUUID());
 
-    try (StoreDurationInfo ignored = new StoreDurationInfo(LOG,
+    try (StoreDurationInfo ignored = new StoreDurationInfo(getOut(),
         "probe for a directory which does not yet exist %s", dir)) {
       FileStatus status = fs.getFileStatus(dir);
       println("Unexpectedly got the status of a file which should not exist%n"
@@ -908,7 +912,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
     }
     heading("Filesystem Write Operations");
 
-    try (StoreDurationInfo ignored = new StoreDurationInfo(LOG,
+    try (StoreDurationInfo ignored = new StoreDurationInfo(getOut(),
         "creating a directory %s", dir)) {
       fs.mkdirs(dir);
     } catch (AccessDeniedException e) {
@@ -919,7 +923,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
     }
 
     // Directory ops
-    try (StoreDurationInfo ignored = new StoreDurationInfo(LOG,
+    try (StoreDurationInfo ignored = new StoreDurationInfo(getOut(),
         "create directory %s", dir)) {
       FileStatus status = fs.getFileStatus(dir);
       if (!status.isDirectory()) {
@@ -937,7 +941,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
       long creationTime = System.currentTimeMillis();
       long closeTime;
       long completionTime;
-      try (StoreDurationInfo ignored = new StoreDurationInfo(LOG,
+      try (StoreDurationInfo ignored = new StoreDurationInfo(getOut(),
           "Creating file %s", file)) {
         FSDataOutputStream data = fs.create(file, true);
         data.writeUTF(HELLO);
@@ -955,12 +959,12 @@ public class StoreDiag extends DiagnosticsEntryPoint {
         println("Output stream summary: %s", data);
       }
 
-      try (StoreDurationInfo ignored = new StoreDurationInfo(LOG,
+      try (StoreDurationInfo ignored = new StoreDurationInfo(getOut(),
           "Listing  %s", dir)) {
         fs.listFiles(dir, false);
       }
       FSDataInputStream in = null;
-      try (StoreDurationInfo ignored = new StoreDurationInfo(LOG,
+      try (StoreDurationInfo ignored = new StoreDurationInfo(getOut(),
           "Reading file %s", file)) {
         in = fs.open(file);
         printStreamCapabilities(in, CapabilityKeys.INPUTSTREAM_CAPABILITIES);
@@ -969,7 +973,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
         in.close();
         println("input stream summary: %s", in);
         if (!HELLO.equals(utf)) {
-          throw new StoreDiagException("Expected  %s to contain the text %s" 
+          throw new StoreDiagException("Expected  %s to contain the text %s"
               + " -but it has the text \"%s",
               HELLO, file, utf);
         }
@@ -1006,12 +1010,17 @@ public class StoreDiag extends DiagnosticsEntryPoint {
         }
       }
 
+      // ask the fs for any validation here
+      storeInfo.validateFile(this, fs, file, status);
+
+
+      heading("Renaming");
 
       // move the file into a subdir
       Path subdir = new Path(dir, "subdir");
       Path subdir2 = new Path(dir, "subdir2");
       Path subfile = new Path(subdir, "subfile");
-      try (StoreDurationInfo ignored = new StoreDurationInfo(LOG,
+      try (StoreDurationInfo ignored = new StoreDurationInfo(getOut(),
           "Renaming file %s under %s", file, subdir)) {
         fs.mkdirs(subdir);
         fs.rename(file, subfile);
@@ -1019,7 +1028,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
       }
       verifyPathNotFound(fs, subfile);
       // delete the file
-      try (StoreDurationInfo ignored = new StoreDurationInfo(LOG,
+      try (StoreDurationInfo ignored = new StoreDurationInfo(getOut(),
           "delete dir %s", subdir2)) {
         fs.delete(subdir2, true);
       }
@@ -1039,9 +1048,10 @@ public class StoreDiag extends DiagnosticsEntryPoint {
    * Read a file.
    */
   private boolean readFile(final FileSystem fs,
-      final Path path) throws IOException {
+      final FileStatus status) throws IOException {
     boolean accessWasDenied = false;
-    try (StoreDurationInfo ignored = new StoreDurationInfo(LOG,
+    Path path = status.getPath();
+    try (StoreDurationInfo ignored = new StoreDurationInfo(getOut(),
         "Reading file %s", path);
          FSDataInputStream in = fs.open(path)) {
       // read the first char or -1
@@ -1052,9 +1062,9 @@ public class StoreDiag extends DiagnosticsEntryPoint {
           (c > ' ') ? Character.toString((char) c) : "(n/a)");
       printStreamCapabilities(in, CapabilityKeys.INPUTSTREAM_CAPABILITIES);
       println("Stream summary: %s", in);
-    } catch(FileNotFoundException ex) {
+    } catch (FileNotFoundException ex) {
       warn("file %s: not found/readable %s", path, ex);
-    } catch(AccessDeniedException ex) {
+    } catch (AccessDeniedException ex) {
       warn("client lacks access to file %s: %s", path, ex);
       accessWasDenied = true;
     }
@@ -1072,7 +1082,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
   }
 
   public void deleteDir(final FileSystem fs, final Path dir) {
-    try (StoreDurationInfo ignored = new StoreDurationInfo(LOG,
+    try (StoreDurationInfo ignored = new StoreDurationInfo(getOut(),
         "delete directory %s", dir)) {
       try {
         fs.delete(dir, true);
@@ -1084,7 +1094,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
 
   protected void verifyPathNotFound(FileSystem fs, Path path)
       throws IOException {
-    try (StoreDurationInfo ignored = new StoreDurationInfo(LOG,
+    try (StoreDurationInfo ignored = new StoreDurationInfo(getOut(),
         "probing path %s", path)) {
       final FileStatus st = fs.getFileStatus(path);
       throw new StoreDiagException(
@@ -1114,7 +1124,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
    * @return return code
    * @throws Exception failure
    */
-  public static int exec(String...args) throws Exception {
+  public static int exec(String... args) throws Exception {
     return ToolRunner.run(new StoreDiag(), args);
   }
 

@@ -31,8 +31,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.s3a.S3AFileStatus;
 import org.apache.hadoop.fs.store.StoreExitException;
 
 import static org.apache.hadoop.fs.s3a.Constants.BUFFER_DIR;
@@ -433,6 +435,8 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       "com/amazonaws/endpointdiscovery/endpoint-discovery.json"
   };
 
+  public static final String KEEP = "keep";
+
   public S3ADiagnosticsInfo(final URI fsURI, final Printout output) {
     super(fsURI, output);
   }
@@ -645,7 +649,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       printout.warn("Value of %s looks like a URL: %s", ENDPOINT, endpoint);
       printout.println("It SHOULD normally be a hostname or IP address");
       printout.println("Unless you have a private store with a non-standard port or"
-              + " are using AWS S3 PrivateLink");
+          + " are using AWS S3 PrivateLink");
       if (!pathStyleAccess) {
         printout.warn("You should probably set %s to true", PATH_STYLE_ACCESS);
       }
@@ -724,6 +728,42 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
 
 
   @Override
+  public void validateFile(
+      final Printout printout,
+      final FileSystem filesystem,
+      final Path path,
+      final FileStatus status) throws IOException {
+
+    printout.heading("Reviewing bucket versioning");
+    if (!(status instanceof S3AFileStatus)) {
+      printout.warn("The file status for path %s is not an S3AFileStatus: %s%n",
+          path, status);
+      return;
+    }
+    S3AFileStatus st = (S3AFileStatus) status;
+    final String versionId = st.getVersionId();
+    if (versionId == null) {
+      printout.warn("The bucket does not have versioning enabled;"
+          + " another backup strategy is needed");
+    } else {
+      printout.println("The bucket is using versioning.");
+
+      if (!filesystem.hasPathCapability(path,
+          STORE_CAPABILITY_DIRECTORY_MARKER_ACTION_KEEP)) {
+        printout.warn("To avoid performance penalties, set %s to %s",
+            DIRECTORY_MARKER_RETENTION, KEEP);
+      } else {
+        printout.println("directory marker retention is enabled, so performance will suffer less");
+      }
+      printout.println("");
+
+    }
+
+
+  }
+
+
+  @Override
   protected void performanceHints(
       final Printout printout,
       final Configuration conf) {
@@ -744,7 +784,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
         FS_S3A_COMMITTER_THREADS, 256);
 
     hint(printout,
-        !"keep".equals(conf.get(DIRECTORY_MARKER_RETENTION, "")),
+        !KEEP.equals(conf.get(DIRECTORY_MARKER_RETENTION, "")),
         "If backwards compatibility is not an issue, set %s to keep",
         DIRECTORY_MARKER_RETENTION);
     hint(printout,

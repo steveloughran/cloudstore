@@ -32,6 +32,7 @@ import java.util.Queue;
 import java.util.Set;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.LocalDirAllocator;
 import org.apache.hadoop.fs.Path;
@@ -49,6 +50,7 @@ public class StoreDiagnosticsInfo {
   protected static final Object[][] EMPTY_OPTIONS = {};
 
   protected static final String[] EMPTY_CLASSNAMES = {};
+
   protected static final String[] EMPTY_CAPABILITIES = {};
 
   protected static final String[] EMPTY_RESOURCES = {};
@@ -173,7 +175,7 @@ public class StoreDiagnosticsInfo {
   }
 
   /**
-   * List of options for filesystems. 
+   * List of options for filesystems.
    * Each entry must be a tuple of (string, password, sensitive).
    * "password" entries are read via Configuration.getPassword(),
    * so will be read from a credential file.
@@ -181,7 +183,7 @@ public class StoreDiagnosticsInfo {
    * @return option array
    */
   public Object[][] getFilesystemOptions() {
-      return EMPTY_OPTIONS;
+    return EMPTY_OPTIONS;
   }
 
   /**
@@ -191,7 +193,7 @@ public class StoreDiagnosticsInfo {
    * @return option array
    */
   public Object[][] getEnvVars() {
-      return OptionSets.STANDARD_ENV_VARS;
+    return OptionSets.STANDARD_ENV_VARS;
   }
 
   /**
@@ -201,7 +203,7 @@ public class StoreDiagnosticsInfo {
    * @return option array
    */
   public Object[][] getSelectedSystemProperties() {
-      return STANDARD_SYSPROPS;
+    return STANDARD_SYSPROPS;
   }
 
   /**
@@ -322,10 +324,10 @@ public class StoreDiagnosticsInfo {
       final String defVal) throws IOException {
     String endpoint = conf.getTrimmed(key, defVal);
     if (!endpoint.isEmpty()) {
-        uris.add(StoreDiag.toURI(
-            "From configuration key " + key,
-            uriPrefix + endpoint));
-        return true;
+      uris.add(StoreDiag.toURI(
+          "From configuration key " + key,
+          uriPrefix + endpoint));
+      return true;
     } else {
       return false;
     }
@@ -363,10 +365,10 @@ public class StoreDiagnosticsInfo {
       printout.warn("The URL For this store doesn't have a valid host %s",
           getFsURI());
     } else if (!host.endsWith(domain)) {
-      printout.warn("The URL for this store normally contains the domain %s," 
+      printout.warn("The URL for this store normally contains the domain %s,"
               + " but it is %s",
           domain, host);
-      printout.warn("Unless you are using a private endpoint, this is NOT" 
+      printout.warn("Unless you are using a private endpoint, this is NOT"
           + " GOING TO WORK");
       if (followupURL != null) {
         printout.warn("For more information, see: %s", followupURL);
@@ -387,13 +389,14 @@ public class StoreDiagnosticsInfo {
     printout.heading("Configuration options with prefix %s", prefix);
     Map<String, String> propsWithPrefix = conf.getPropsWithPrefix(prefix);
     Set<String> sorted = sortKeys(propsWithPrefix.keySet());
-    for (String k: sorted) {
+    for (String k : sorted) {
       if (!k.contains(".secret.")) {
         printout.println("%s%s=\"%s\"",
             prefix, k, propsWithPrefix.get(k));
-      } else
+      } else {
         printout.println("%s%s=\"%s\"",
             prefix, k, propsWithPrefix.get(k));
+      }
 
     }
   }
@@ -402,7 +405,6 @@ public class StoreDiagnosticsInfo {
    * Constructs a mapping of configuration and includes all properties that
    * start with the specified configuration prefix.  Property names in the
    * mapping are trimmed to remove the configuration prefix.
-   *
    * @param confPrefix configuration prefix
    * @return mapping of configuration properties with prefix stripped
    */
@@ -462,9 +464,9 @@ public class StoreDiagnosticsInfo {
         continue;
       }
       if (!absDir.canWrite()) {
-          printout.warn("\t* is not writable by the current user");
-          failureLikely = true;
-          continue;
+        printout.warn("\t* is not writable by the current user");
+        failureLikely = true;
+        continue;
       }
       // at this point the dir is good
       printout.println("\t* exists and is writable");
@@ -513,7 +515,6 @@ public class StoreDiagnosticsInfo {
    * the FS JARs aren't on the classpath, the specific diagnostics
    * info subclass will fail with a ClassNotFoundException. Do not cast,
    * at least not directly in that specific class.
-   * 
    * @param printout dest for messages
    * @param path created filesystem
    * @param filesystem filesystem instance.
@@ -521,6 +522,22 @@ public class StoreDiagnosticsInfo {
   public void validateFilesystem(final Printout printout,
       final Path path,
       final FileSystem filesystem) throws IOException {
+
+  }
+
+  /**
+   * Validate a file which has just been created.
+   * @param printout output
+   * @param filesystem fs
+   * @param path path
+   * @param status status of file at path
+   * @throws IOException failure
+   */
+  public void validateFile(
+      Printout printout,
+      FileSystem filesystem,
+      Path path,
+      FileStatus status) throws IOException {
 
   }
 

@@ -506,6 +506,20 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable {
 
   }
 
+  protected Optional<Long> getOptionalLong(final String s) {
+    return getOptional(s).map(Long::valueOf);
+  }
+
+  protected long getLongOption(final String s, long def) {
+    return getOptional(s).map(Long::valueOf).orElse(def);
+  }
+
+
+
+  protected int result(boolean b) {
+    return b ? 1 : 0;
+  }
+
   protected static final class LimitReachedException extends IOException {
 
     private static final long serialVersionUID = -8594688586071585301L;

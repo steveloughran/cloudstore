@@ -24,6 +24,7 @@ import java.text.SimpleDateFormat;
 import com.amazonaws.services.s3.model.ListObjectsRequest;
 import com.amazonaws.services.s3.model.ListVersionsRequest;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
+import com.amazonaws.services.s3.model.S3VersionSummary;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -135,5 +136,9 @@ public class S3ListingSupport {
         summary.getSize(),
         df.format(summary.getLastModified()),
         summary.getETag());
+  }
+
+  static boolean isDirMarker(final S3VersionSummary summary) {
+    return objectRepresentsDirectory(summary.getKey(), summary.getSize());
   }
 }

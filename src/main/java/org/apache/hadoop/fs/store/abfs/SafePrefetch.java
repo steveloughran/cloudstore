@@ -32,6 +32,7 @@ import org.apache.hadoop.fs.azurebfs.constants.ConfigurationKeys;
 import org.apache.hadoop.fs.store.PathCapabilityChecker;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
 import org.apache.hadoop.fs.store.commands.EnvEntry;
+import org.apache.hadoop.fs.store.diag.CapabilityKeys;
 import org.apache.hadoop.util.ToolRunner;
 
 import static org.apache.hadoop.fs.store.CommonParameters.DEFINE;
@@ -83,8 +84,8 @@ public class SafePrefetch extends StoreEntryPoint {
           path, fs);
       return 0;
     }
-    String etag_capability = "fs.capability.etags.available";
-    String readahead_safe = "fs.azure.capability.readahead.safe";
+    String etag_capability = CapabilityKeys.FS_CAPABILITY_ETAGS_AVAILABLE;
+    String readahead_safe = CapabilityKeys.FS_AZURE_CAPABILITY_READAHEAD_SAFE;
 
     println("Using filesystem %s", fs.getUri());
     Path abfsPath = path.makeQualified(fs.getUri(), fs.getWorkingDirectory());
