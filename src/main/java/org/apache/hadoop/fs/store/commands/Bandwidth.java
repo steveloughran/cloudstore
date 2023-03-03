@@ -117,7 +117,7 @@ public class Bandwidth extends StoreEntryPoint {
     };
 
     // total duration tracker.
-    final StoreDurationInfo uploadDurationTracker = new StoreDurationInfo(null, "upload");
+    final StoreDurationInfo uploadDurationTracker = new StoreDurationInfo();
 
     // open the file. track duration
     FSDataOutputStream upload;
@@ -154,7 +154,7 @@ public class Bandwidth extends StoreEntryPoint {
     // now download
     heading("Download");
 
-    StoreDurationInfo downloadDurationTracker = new StoreDurationInfo(null, "upload");
+    StoreDurationInfo downloadDurationTracker = new StoreDurationInfo();
     FSDataInputStream download;
     try (StoreDurationInfo d = new StoreDurationInfo(LOG, "open %s", path)) {
       // TODO: once we drop CDH6 support, we can move to openFile and set

@@ -539,7 +539,7 @@ Usage: listobjects <path>
 
 ## Command `listversions`
 
-See [listversions](./src/main/site/listversions.md).
+See [listversions](./src/main/site/versioned-objects.md).
 
 ## Command `localhost`
 
@@ -760,7 +760,7 @@ This is to be expected, given that the service isn't there.
 
 Restores a versioned S3 Object to a path within the same bucket.
 
-See [listversions](./src/main/site/listversions.md).
+See [versioned objects](./src/main/site/versioned-objects.md).
 
 ## Command `safeprefetch`
 
@@ -800,11 +800,18 @@ the operation was reported as a success.
 
 The file `file.tar; true` was attempted to be opened; as it is not present the operation failed.
 Expect a stack trace in the report
+
 ## Command `tlsinfo`
 
 Print out tls information. The `storediag` command prints the same information;
 this command purely looks at the JVM settings.
 
+
+## Command `undelete`
+
+"undeletes" S3 objects by removing directory tombstones from a bucket path.
+
+See [versioned objects](./src/main/site/versioned-objects.md).
 
 ## S3A Diagnostics Credential Provider
 

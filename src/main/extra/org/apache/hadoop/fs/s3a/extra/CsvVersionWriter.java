@@ -34,7 +34,7 @@ import static org.apache.hadoop.fs.s3a.extra.S3ListingSupport.isDirMarker;
 /**
  * write to csv; pulled out to make writing to avro etc easier in future.
  */
-final class CsvVersionWriter extends SummaryProcessor {
+final class CsvVersionWriter extends ListAndProcessVersionedObjects.NoopProcessor {
 
   private final SimpleCsvWriter csv;
 
@@ -77,7 +77,7 @@ final class CsvVersionWriter extends SummaryProcessor {
     csv.close();
   }
 
-  boolean process(S3VersionSummary summary, Path path) throws IOException {
+  public boolean process(S3VersionSummary summary, Path path) throws IOException {
     final boolean deleteMarker = summary.isDeleteMarker();
     final boolean dirMarker = isDirMarker(summary);
     if (dirMarker && !logDirs) {

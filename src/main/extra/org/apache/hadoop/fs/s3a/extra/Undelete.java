@@ -18,23 +18,27 @@
 
 package org.apache.hadoop.fs.s3a.extra;
 
-import java.io.PrintStream;
+import java.io.IOException;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.model.DeleteObjectsRequest;
+import com.amazonaws.services.s3.model.S3VersionSummary;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.FSDataOutputStream;
-import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.s3a.S3AFileSystem;
+import org.apache.hadoop.fs.s3a.impl.StoreContext;
 import org.apache.hadoop.fs.store.StoreDurationInfo;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
 import org.apache.hadoop.util.ToolRunner;
 
+import static org.apache.hadoop.fs.s3a.extra.S3ListingSupport.isDirMarker;
 import static org.apache.hadoop.fs.store.CommonParameters.DEFINE;
 import static org.apache.hadoop.fs.store.CommonParameters.LIMIT;
 import static org.apache.hadoop.fs.store.CommonParameters.TOKENFILE;
@@ -43,9 +47,12 @@ import static org.apache.hadoop.fs.store.CommonParameters.XMLFILE;
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
 import static org.apache.hadoop.fs.store.diag.S3ADiagnosticsInfo.FS_S3A_AUDIT_REJECT_OUT_OF_SPAN_OPERATIONS;
 
-public class ListVersions extends StoreEntryPoint {
+/**
+ * Undeleter -removes tombstone markers (possibly) on top of files.
+ */
+public class Undelete extends StoreEntryPoint implements SummaryProcessor {
 
-  private static final Logger LOG = LoggerFactory.getLogger(ListVersions.class);
+  private static final Logger LOG = LoggerFactory.getLogger(Undelete.class);
 
   public static final String AGE = "age";
 
@@ -65,35 +72,42 @@ public class ListVersions extends StoreEntryPoint {
   public static final String USAGE
       = "Usage: listversions <path>\n"
       + optusage(DEFINE, "key=value", "Define a property")
-      + optusage(DELETED, "include delete markers")
-      + optusage(DIRS, "include directory markers")
       + optusage(LIMIT, "limit", "limit of files to list")
-      + optusage(OUTPUT, "file", "output file")
-      + optusage(QUIET, "quiet output")
-      + optusage(SEPARATOR, "string", "Separator if not <tab>")
       + optusage(AGE, "seconds", "Only include versions created in this time interval")
       + optusage(SINCE, "epoch-time", "Only include versions after this time")
       + optusage(TOKENFILE, "file", "Hadoop token file to load")
-      + optusage(VERBOSE, "print verbose output")
       + optusage(XMLFILE, "file", "XML config file to load");
 
-  public static final String NAME = "listversions";
+  public static final String NAME = "undelete";
 
-  public ListVersions() {
-    createCommandFormat(1, 1,
-        DELETED,
-        DIRS,
-        QUIET,
-        VERBOSE);
+  private final int deletePageSize;
+
+  private AmazonS3 s3;
+
+  private S3AFileSystem fs;
+
+  private StoreContext context;
+
+  private Path source;
+
+  private List<DeleteObjectsRequest.KeyVersion> deletions;
+
+  public Undelete() {
+    createCommandFormat(1, 1);
     addValueOptions(TOKENFILE,
         XMLFILE,
         DEFINE,
         LIMIT,
-        OUTPUT,
-        SEPARATOR,
+        //OUTPUT,
+        //SEPARATOR,
         AGE,
         SINCE
     );
+    deletePageSize = 1000;
+  }
+
+  private void newDeletions() {
+    deletions = new ArrayList<>(deletePageSize);
   }
 
   @Override
@@ -108,9 +122,6 @@ public class ListVersions extends StoreEntryPoint {
     // stop auditing rejecting client direct calls.
     conf.setBoolean(FS_S3A_AUDIT_REJECT_OUT_OF_SPAN_OPERATIONS, false);
     int limit = getIntOption(LIMIT, 0);
-    boolean quiet = hasOption(QUIET);
-    boolean logDeleted = hasOption(DELETED);
-    boolean logDirs = hasOption(DIRS);
     long since = getLongOption(SINCE, 0);
 
     final Optional<Long> age = getOptionalLong(AGE);
@@ -123,73 +134,70 @@ public class ListVersions extends StoreEntryPoint {
     }
     Instant ageLimit = Instant.ofEpochSecond(since);
 
-    S3AFileSystem fs = null;
-    final Path source = new Path(paths.get(0));
-    final String name = NAME;
+    source = new Path(paths.get(0));
     fs = (S3AFileSystem) source.getFileSystem(conf);
-    try (StoreDurationInfo duration = new StoreDurationInfo(getOut(), name)) {
-      SummaryProcessor processor;
+    context = fs.createStoreContext();
 
-      if (!quiet) {
-        final String output = getOption(OUTPUT);
-        PrintStream dest;
-        boolean closeOutput;
-        if (output != null) {
-          // writing to a dir
-          final Path destPath = new Path(output);
-          final FileSystem destFS = destPath.getFileSystem(conf);
-          final FSDataOutputStream dataOutputStream = destFS.createFile(destPath)
-              .overwrite(true)
-              .recursive()
-              .build();
-          dest = new PrintStream(dataOutputStream);
-          closeOutput = true;
-          println("Saving output to %s", destPath);
-        } else {
-          dest = getOut();
-          closeOutput = false;
-        }
-        final String separator = getOptional(SEPARATOR).orElse("\t");
-        processor = new CsvVersionWriter(dest, closeOutput, separator, logDirs,
-            logDeleted);
-      } else {
-        processor = new ListAndProcessVersionedObjects.NoopProcessor();
-      }
+    s3 = fs.getAmazonS3ClientForTesting(NAME);
+    newDeletions();
+
+    try (StoreDurationInfo duration = new StoreDurationInfo(getOut(), NAME)) {
 
       final ListAndProcessVersionedObjects listing =
-          new ListAndProcessVersionedObjects(name,
+          new ListAndProcessVersionedObjects(NAME,
               this,
               fs,
               source,
-              processor,
+              this,
               ageLimit,
               limit);
 
-      listing.execute();
+      final long count = listing.execute();
 
+      // final deletion
+      if (!deletions.isEmpty()) {
+        executeDeleteOperation();
+      }
 
       println();
-      println("Found %,d objects under %s with total size %,d bytes",
-          listing.getObjectCount(), source, listing.getTotalSize());
 
-      println("Hidden file count %,d with hidden data size %,d bytes",
-          listing.getHidden(), listing.getHiddenData());
-      println("Hidden zero-byte file count %,d",
-          listing.getHiddenZeroByteFiles());
-      println("Hidden directory markers %,d",
-          listing.getHiddenDirMarkers());
-      println("Tombstone entries %,d comprising %,d files and %,d dir markers",
-          listing.getTombstones(),
-          listing.getFileTombstones(),
-          listing.getDirTombstones());
-      println();
+      println("Removed %,d tombstones\n", count);
 
-    } finally {
-
-      maybeDumpStorageStatistics(fs);
     }
 
     return 0;
+  }
+
+  @Override
+  public boolean process(final S3VersionSummary summary, final Path path) throws IOException {
+    final boolean deleteMarker = summary.isDeleteMarker();
+    final boolean dirMarker = isDirMarker(summary);
+    if (dirMarker || !deleteMarker) {
+      // skip this
+      return false;
+    }
+    // ok, queue for explicit delete;
+    // for now this is blocking, though async IO would work too.
+    println("%s @ %s", fs.keyToQualifiedPath(summary.getKey()), summary.getVersionId());
+    deletions.add(new DeleteObjectsRequest.KeyVersion(summary.getKey(), summary.getVersionId()));
+    if (deletions.size() == deletePageSize) {
+      executeDeleteOperation();
+    }
+    return true;
+  }
+
+  private void executeDeleteOperation() throws IOException {
+    final DeleteObjectsRequest r = new DeleteObjectsRequest(fs.getBucket())
+        .withKeys(deletions)
+        .withQuiet(true);
+
+    println();
+    try(StoreDurationInfo duration = new StoreDurationInfo(getOut(),
+        "deleting %,d tombstones", deletions.size())) {
+      context.getInvoker().retry("delete", source.toString(), true, () ->
+          s3.deleteObjects(r));
+    }
+    newDeletions();
   }
 
 
@@ -201,7 +209,7 @@ public class ListVersions extends StoreEntryPoint {
    * @throws Exception failure
    */
   public static int exec(String... args) throws Exception {
-    return ToolRunner.run(new ListVersions(), args);
+    return ToolRunner.run(new Undelete(), args);
   }
 
   /**

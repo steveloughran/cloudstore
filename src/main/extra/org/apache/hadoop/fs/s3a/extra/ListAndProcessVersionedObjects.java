@@ -32,6 +32,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.s3a.S3AFileSystem;
 import org.apache.hadoop.fs.store.diag.Printout;
 
+import static java.util.Objects.requireNonNull;
 import static org.apache.hadoop.fs.s3a.extra.S3ListingSupport.createListVersionsRequest;
 import static org.apache.hadoop.fs.s3a.extra.S3ListingSupport.isDirMarker;
 import static org.apache.hadoop.fs.s3a.extra.S3ListingSupport.pathToKey;
@@ -84,12 +85,12 @@ public class ListAndProcessVersionedObjects {
       final SummaryProcessor processor,
       final Instant ageLimit,
       final long limit) {
-    this.name = name;
-    this.out = out;
-    this.fs = fs;
-    this.source = source;
-    this.processor = processor;
-    this.ageLimit = ageLimit;
+    this.name = requireNonNull(name);
+    this.out = requireNonNull(out);
+    this.fs = requireNonNull(fs);
+    this.source = requireNonNull(source);
+    this.processor = requireNonNull(processor);
+    this.ageLimit = requireNonNull(ageLimit);
     this.limit = limit;
   }
 
@@ -127,7 +128,7 @@ public class ListAndProcessVersionedObjects {
   }
 
 
-  public void execute() throws IOException {
+  public long execute() throws IOException {
     if (ageLimit.toEpochMilli() > 0) {
       out.println("Skipping entries older than %s", ageLimit);
       if (ageLimit.isAfter(Instant.now())) {
@@ -144,7 +145,7 @@ public class ListAndProcessVersionedObjects {
         = new ListVersionsIterator(s3, source, request);
 
     processedCount = 0;
-    out.heading("Scanning %s", source);
+    out.heading("Processing %s", source);
     try {
 
       boolean finished = false;
@@ -189,6 +190,7 @@ public class ListAndProcessVersionedObjects {
       processor.close();
 
     }
+    return processedCount;
   }
 
   public long getObjectCount() {
@@ -198,4 +200,18 @@ public class ListAndProcessVersionedObjects {
   public long getTotalSize() {
     return totalSize;
   }
+
+  static class NoopProcessor implements SummaryProcessor {
+
+    @Override
+    public boolean process(final S3VersionSummary summary, final Path path) throws IOException {
+      return true;
+    }
+
+    @Override
+    public void close() throws IOException {
+
+    }
+  }
+
 }

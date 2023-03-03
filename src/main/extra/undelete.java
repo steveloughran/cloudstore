@@ -16,17 +16,17 @@
  * limitations under the License.
  */
 
-package org.apache.hadoop.fs.s3a.extra;
+import org.apache.hadoop.fs.s3a.extra.Undelete;
+import org.apache.hadoop.fs.store.commands.Command;
 
-import java.io.Closeable;
-import java.io.IOException;
+public class undelete extends Command {
 
-import com.amazonaws.services.s3.model.S3VersionSummary;
+  public static void main(String[] args) throws Exception {
+    Undelete.main(args);
+  }
 
-import org.apache.hadoop.fs.Path;
-
-interface SummaryProcessor extends Closeable {
-
-  boolean process(S3VersionSummary summary, Path path) throws IOException ;
+  public static void help() {
+    printCommand("undelete", "undelete s3 objects by removing tombstones");
+  }
 
 }

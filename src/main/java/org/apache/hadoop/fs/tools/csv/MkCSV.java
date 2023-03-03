@@ -151,7 +151,7 @@ public class MkCSV extends StoreEntryPoint {
 
     // total duration tracker.
     final StoreDurationInfo
-        uploadDurationTracker = new StoreDurationInfo(null, "upload");
+        uploadDurationTracker = new StoreDurationInfo();
 
     // open the file. track duration
     FSDataOutputStream upload;

@@ -12,6 +12,23 @@
   limitations under the License. See accompanying LICENSE file.
 -->
 
+## S3 Versioned Object support
+
+AWS S3 supports [object versioning](https://docs.aws.amazon.com/AmazonS3/latest/userguide/Versioning.html),
+where old copies of objects are retained after being overwritten or deleted.
+
+The versioned object commands use AWS SDK operations not directly accessible
+through the Hadoop Filesystem APIs to view and retrieve versioned
+objects.
+
+Points to note
+* This is lower level and a bit brittle.
+* S3A Auditing is bypassed.
+* If custom S3A signers are used, they need to able to handle S3 Requests (ListVersions) which
+  are not normally used.
+* The caller must be in an IAM Role with the permissions to invoke this, and for `undelete` to be able
+  to delete versioned objects.
+
 # Command `listversions`
 
 Lists all versions of files under a path.
@@ -23,14 +40,17 @@ hadoop jar cloudstore-1.0.jar listversions
 Usage: listversions <path>
         -D <key=value>  Define a property
         -deleted        include delete markers
-        -dirs   include directory markers        
+        -dirs   include directory markers
         -limit <limit>  limit of files to list
         -out <file>     output file
         -q      quiet output
         -separator <string>     Separator if not <tab>
+        -age <seconds>  Only include versions created in this time interval
+        -since <epoch-time>     Only include versions after this time
         -tokenfile <file>       Hadoop token file to load
         -verbose        print verbose output
         -xmlfile <file> XML config file to load
+
 
 ```
 
@@ -118,12 +138,137 @@ Taking a TSV file and restoring all those files with restore=1 to a different lo
 A single file can be restored using the `restore` command, which will take a file and version
 and create a new copy in a different location in the same bucket.
 
-```
-hadoop jar cloudstore-1.0.jar restore s3a://stevel-london/FileSystemContractBaseTest "zn8c734o2CaH2ZfsS.I7_mpDl6kgh63O" /restored.txt
+```bash
+> hadoop jar cloudstore-1.0.jar restore s3a://stevel-london/FileSystemContractBaseTest "zn8c734o2CaH2ZfsS.I7_mpDl6kgh63O" /restored.txt
 
 restoring s3a://stevel-london/FileSystemContractBaseTest @ zn8c734o2CaH2ZfsS.I7_mpDl6kgh63O to s3a://stevel-london/restored.txt
 Starting: restore
 Duration of restore: 0:00:715
 Restored object of size 2,048 bytes to s3a://stevel-london/restored.txt
+```
+
+## `undelete` command
+
+"undeletes" S3 objects by removing directory tombstones from a bucket path.
+
+By undeleting all tombstones added since a specific date, all objects deleted after that
+point in time will become visible.
+
+Usage
+```
+ undelete 
+        -D <key=value>  Define a property
+        -limit <limit>  limit of files to list
+        -age <seconds>  Only include versions created in this time interval
+        -since <epoch-time>     Only include versions after this time
+        -tokenfile <file>       Hadoop token file to load
+        -xmlfile <file> XML config file to load
+```
+
+### Example
+
+Preparation: create then delete a file 
+
+```bash
+# create a file
+> hadoop fs -touch s3a://stevel-london/undelete.txt
+
+# delete it
+> bin/hadoop fs -rm  s3a://stevel-london/undelete.txt
+Deleted s3a://stevel-london/undelete.txt
+
+# list versions including tombstones
+bin/hadoop jar cloudstore-1.0.jar listversions -deleted s3a://stevel-london/undelete.txt
+Starting: listversions
+2023-03-03 15:28:16,552 [main] WARN  s3a.S3AFileSystem (S3AFileSystem.java:getAmazonS3ClientForTesting(1216)) - Access to S3A client requested, reason listversions
+
+Processing s3a://stevel-london/undelete.txt
+===========================================
+
+"index" "key"   "path"  "restore"       "latest"        "size"  "tombstone"     "directory"     "date"  "timestamp"     "version"       "etag"
+1       "undelete.txt"  "s3a://stevel-london/undelete.txt"      0       1       0       1       0       "2023-03-03+000003:27:12"       1677857232000   ".KZMHdxWduHoSRHYVhN2NhjW7ar2VVPZ"      ""
+2       "undelete.txt"  "s3a://stevel-london/undelete.txt"      1       0       0       0       0       "2023-03-03+000003:26:29"       1677857189000   "ZJMKH.5PrEwiy9z1HbDqPHOaTxhUkhxC"      "e7331e043593313055a187f255354442"
+
+Found 2 objects under s3a://stevel-london/undelete.txt with total size 0 bytes
+Hidden file count 1 with hidden data size 0 bytes
+Hidden zero-byte file count 1
+Hidden directory markers 0
+Tombstone entries 1 comprising 1 files and 0 dir markers
+
+Duration of listversions: 0:00:648
+```
+
+The object `s3a://stevel-london/undelete.txt` at version "ZJMKH.5PrEwiy9z1HbDqPHOaTxhUkhxC" is not visible as there is a tombstone above it.
+
+Calling the undelete command will remove the tombstone
+
+```bash
+hadoop jar cloudstore-1.0.jar undelete s3a://stevel-london/undelete.txt
+
+2023-03-03 15:30:59,755 [main] WARN  s3a.S3AFileSystem (S3AFileSystem.java:getAmazonS3ClientForTesting(1216)) - Access to S3A client requested, reason undelete
+Starting: undelete
+2023-03-03 15:30:59,757 [main] WARN  s3a.S3AFileSystem (S3AFileSystem.java:getAmazonS3ClientForTesting(1216)) - Access to S3A client requested, reason undelete
+
+Processing s3a://stevel-london/undelete.txt
+===========================================
+
+s3a://stevel-london/undelete.txt @ .KZMHdxWduHoSRHYVhN2NhjW7ar2VVPZ
+Starting: deleting 1 tombstones
+Duration of deleting 1 tombstones: 0:00:100
+
+Removed 1 tombstones
+
+Duration of undelete: 0:00:744
+```
+
+which can be verified
+
+```bash
+> hadoop fs -ls  s3a://stevel-london/undelete.txt
+
+-rw-rw-rw-   1 stevel stevel          0 2023-03-03 15:26 s3a://stevel-london/undelete.txt
+
 
 ```
+
+The `-since` and `-age` options can 
+
+* `-since` a time in seconds since 1970-01-01 which all tombstones
+must have been created on or after (hint: there are web pages to calculate this)
+  
+* `-age` a time in seconds; all tombstones created up to that many seconds before the invocation
+  of the command. 
+
+```bash
+> hadoop jar cloudstore-1.0.jar undelete -age 24000 -limit 10 s3a://stevel-london/
+
+2023-03-03 15:39:18,964 [main] WARN  s3a.S3AFileSystem (S3AFileSystem.java:getAmazonS3ClientForTesting(1216)) - Access to S3A client requested, reason undelete
+Starting: undelete
+Skipping entries older than 2023-03-03T08:59:18Z
+2023-03-03 15:39:18,971 [main] WARN  s3a.S3AFileSystem (S3AFileSystem.java:getAmazonS3ClientForTesting(1216)) - Access to S3A client requested, reason undelete
+
+Processing s3a://stevel-london/
+===============================
+
+s3a://stevel-london/fork-0002/test/select.dat @ JqxWt1daEIqFJx7G0ifQjV93Oblb0YHa
+s3a://stevel-london/fork-0002/test/select.dat @ CCSW8wU9mCu5iazVDhTxFiCYTrC3GjFL
+s3a://stevel-london/fork-0002/test/select.dat @ 3.Vtzm6Z3ph6FkNqphp_jpEyRok5GvDA
+s3a://stevel-london/fork-0002/test/select.dat @ KuDfH6Ml62QeNgfGmaizP5146lDX8zs_
+s3a://stevel-london/fork-0002/test/select.dat @ VKmq3L0DCfLTKIhghk1N_o6CNUeL4Enj
+s3a://stevel-london/fork-0002/test/select1.dat @ 4ysnIFMiPLBrwM8sQ7K7XR6IOv2BDvQ8
+s3a://stevel-london/fork-0002/test/select1.dat @ gQFSM65vjLTITX6PRj8FBIg7sQc6VZZ6
+s3a://stevel-london/fork-0002/test/select1.dat @ yC2xiuOaJ5YM_sfWNx0uwUblSlO39Z0P
+s3a://stevel-london/fork-0002/test/select1.dat @ sCNAxSVqNYWYsSBIx3LKl3OiURvtYFOX
+s3a://stevel-london/fork-0002/test/select1.dat @ IeIcnBOAkppxOth5NFkjnECL4pV_YDNe
+Starting: deleting 10 tombstones
+Duration of deleting 10 tombstones: 0:00:355
+
+Removed 10 tombstones
+
+Duration of undelete: 0:01:968
+```
+
+Note that there may be multiple tombstones one on top of each other *without any intervening file*.
+All these tombstones need to be removed before the file becomes visible.
+Deleting tombstones *older* than the most recent file does not affect the
+visibility of the file.

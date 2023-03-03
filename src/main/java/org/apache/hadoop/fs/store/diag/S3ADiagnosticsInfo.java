@@ -124,6 +124,8 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
 
   public static final String DISABLE_CACHE = "fs.s3a.impl.disable.cache";
 
+  public static final String BULK_DELETE_PAGE_SIZE = "fs.s3a.bulk.delete.page.size";
+
   private static final Object[][] options = {
       /* Core auth */
       {ACCESS_KEY, true, true},
@@ -145,7 +147,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.s3a.block.size", false, false},
       {"fs.s3a.bucket.probe", false, false},
       {"fs.s3a.buffer.dir", false, false},
-      {"fs.s3a.bulk.delete.page.size", false, false},
+      {BULK_DELETE_PAGE_SIZE, false, false},
       /* change detection */
       {"fs.s3a.change.detection.source", false, false},
       {"fs.s3a.change.detection.mode", false, false},
