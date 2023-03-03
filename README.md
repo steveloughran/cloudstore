@@ -15,8 +15,9 @@ kept out right now for various reasons
 3. Ability to compile against older versions. We've currently switched to Hadoop 3.3+
    due to the need to make API calls and operations not in older versions.
  
-*Author*: Steve Loughran, Hadoop Committer, plus anyone else who has debugging needs
- 
+*Author*: Steve Loughran, Hadoop Committer, plus anyone else who has debugging needs.
+
+
 ## Features
 
 ### Primarily: diagnostics
@@ -43,6 +44,13 @@ the output: we do not dare change the behaviour or output for this reason.
 * And the shell removes stack traces on failures, making it of "limited value"
 when things don't work. And object stores are fairly fussy to get working, 
 primarily due to authentication, classpath and network settings
+
+## See also
+
+* [Security](./SECURITY.md)
+* [Building](./BUILDING.md)
+
+# Command Index
 
 ## Command `storediag`
 
