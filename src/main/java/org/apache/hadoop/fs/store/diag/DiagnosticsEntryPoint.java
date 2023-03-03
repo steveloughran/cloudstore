@@ -35,10 +35,8 @@ import java.util.TreeSet;
 
 import com.google.common.base.Function;
 
-import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
-import org.apache.hadoop.util.StringUtils;
 
 import static org.apache.hadoop.fs.store.StoreUtils.checkArgument;
 import static org.apache.hadoop.util.VersionInfo.getDate;
@@ -47,7 +45,7 @@ import static org.apache.hadoop.util.VersionInfo.getSrcChecksum;
 import static org.apache.hadoop.util.VersionInfo.getUser;
 import static org.apache.hadoop.util.VersionInfo.getVersion;
 
-public class DiagnosticsEntryPoint extends StoreEntryPoint implements Printout {
+public class DiagnosticsEntryPoint extends StoreEntryPoint  {
 
   /** {@value}. */
   public static final String CLASSPATH = "java.class.path";
@@ -249,79 +247,6 @@ public class DiagnosticsEntryPoint extends StoreEntryPoint implements Printout {
         println("[%03d]  %s = %s", ++index, var, value);
       }
     }
-  }
-
-  /**
-   * Print the selected options in a config.
-   * This is an array of (name, secret, obfuscate) entries.
-   * @param title heading to print
-   * @param conf source configuration
-   * @param options map of options
-   */
-  @Override
-  public final void printOptions(String title, Configuration conf,
-      Object[][] options)
-      throws IOException {
-    int index = 0;
-    if (options.length > 0) {
-      heading(title);
-      for (final Object[] option : options) {
-        printOption(conf,
-            ++index,
-            (String) option[0],
-            (Boolean) option[1],
-            (Boolean) option[2]);
-      }
-    }
-  }
-
-  /**
-   * Sanitize a value if needed.
-   * @param value option value.
-   * @param obfuscate should it be obfuscated?
-   * @return string safe to log; in quotes
-   */
-  @Override
-  public String maybeSanitize(String value, boolean obfuscate) {
-    return obfuscate ? DiagnosticsEntryPoint.sanitize(value) :
-        ("\"" + value + "\"");
-  }
-
-  @Override
-  public void printOption(Configuration conf,
-      final int index,
-      final String key,
-      final boolean secret,
-      final boolean obfuscate)
-      throws IOException {
-    if (key.isEmpty()) {
-      return;
-    }
-    String source = "";
-    String option;
-    if (secret) {
-      final char[] password = conf.getPassword(key);
-      if (password != null) {
-        option = new String(password).trim();
-        source = "<credentials>";
-      } else {
-        option = null;
-      }
-    } else {
-      option = conf.get(key);
-    }
-    String full;
-    if (option == null) {
-      full = "(unset)";
-    } else {
-      option = maybeSanitize(option, obfuscate);
-      String[] origins = conf.getPropertySources(key);
-      if (origins != null && origins.length != 0) {
-        source = "[" + StringUtils.join(",", origins) + "]";
-      }
-      full = option + " " + source;
-    }
-    println("[%03d]  %s = %s", index, key, full);
   }
 
   /**

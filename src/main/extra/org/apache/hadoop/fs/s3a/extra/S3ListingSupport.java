@@ -141,4 +141,11 @@ public class S3ListingSupport {
   static boolean isDirMarker(final S3VersionSummary summary) {
     return objectRepresentsDirectory(summary.getKey(), summary.getSize());
   }
+
+
+
+  static int result(boolean b) {
+    return b ? 1 : 0;
+  }
+
 }

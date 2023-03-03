@@ -18,21 +18,11 @@
 
 package org.apache.hadoop.fs.s3a.extra;
 
-import java.io.Closeable;
-import java.io.IOException;
-import java.io.OutputStream;
 import java.io.PrintStream;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.time.Instant;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.ListVersionsRequest;
-import com.amazonaws.services.s3.model.S3VersionSummary;
-import com.amazonaws.services.s3.model.VersionListing;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,12 +33,8 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.s3a.S3AFileSystem;
 import org.apache.hadoop.fs.store.StoreDurationInfo;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
-import org.apache.hadoop.fs.tools.csv.SimpleCsvWriter;
 import org.apache.hadoop.util.ToolRunner;
 
-import static org.apache.hadoop.fs.s3a.extra.S3ListingSupport.createListVersionsRequest;
-import static org.apache.hadoop.fs.s3a.extra.S3ListingSupport.isDirMarker;
-import static org.apache.hadoop.fs.s3a.extra.S3ListingSupport.pathToKey;
 import static org.apache.hadoop.fs.store.CommonParameters.DEFINE;
 import static org.apache.hadoop.fs.store.CommonParameters.LIMIT;
 import static org.apache.hadoop.fs.store.CommonParameters.TOKENFILE;
@@ -107,7 +93,7 @@ public class ListVersions extends StoreEntryPoint {
         SEPARATOR,
         AGE,
         SINCE
-        );
+    );
   }
 
   @Override
@@ -121,7 +107,7 @@ public class ListVersions extends StoreEntryPoint {
     final Configuration conf = createPreconfiguredConfig();
     // stop auditing rejecting client direct calls.
     conf.setBoolean(FS_S3A_AUDIT_REJECT_OUT_OF_SPAN_OPERATIONS, false);
-    int limit = getIntOption(LIMIT,0);
+    int limit = getIntOption(LIMIT, 0);
     boolean quiet = hasOption(QUIET);
     boolean logDeleted = hasOption(DELETED);
     boolean logDirs = hasOption(DIRS);
@@ -139,31 +125,13 @@ public class ListVersions extends StoreEntryPoint {
 
     S3AFileSystem fs = null;
     final Path source = new Path(paths.get(0));
-    try (StoreDurationInfo duration = new StoreDurationInfo(LOG,
-        NAME)) {
+    final String name = NAME;
+    try (StoreDurationInfo duration = new StoreDurationInfo(LOG, name)) {
       fs = (S3AFileSystem) source.getFileSystem(conf);
 
-      final AmazonS3 s3 = fs.getAmazonS3ClientForTesting(NAME);
-      String key = pathToKey(source);
-      ListVersionsRequest request = createListVersionsRequest(
-          source.toUri().getHost(), key, null);
 
-      final ListVersionsIterator objects
-          = new ListVersionsIterator(s3, source, request);
+      SummaryProcessor processor;
 
-
-      int objectCount = 0;
-      long totalSize = 0;
-      heading("Listing %s", source);
-      SummaryWriter writer;
-
-      if (since > 0) {
-        println("Skipping entries older than %s", ageLimit);
-        if (ageLimit.isAfter(Instant.now())) {
-          // happens if millis were used or something else went wrong
-          warn("the filter time is greater than the current time");
-        }
-      }
 
 
       if (!quiet) {
@@ -186,74 +154,38 @@ public class ListVersions extends StoreEntryPoint {
           closeOutput = false;
         }
         final String separator = getOptional(SEPARATOR).orElse("\t");
-        writer = new CsvVersionWriter(dest, closeOutput, separator);
+        processor = new CsvVersionWriter(dest, closeOutput, separator, logDirs,
+            logDeleted);
       } else {
-        writer = new SummaryWriter();
+        processor = new SummaryProcessor();
       }
-      long tombstones = 0;
-      long fileTombstones = 0;
-      long hidden = 0;
-      long hiddenData = 0;
-      long hiddenZeroByteFiles = 0;
-      long dirMarkers = 0;
-      long hiddenDirMarkers = 0;
-      try {
 
-        boolean finished = false;
-        while (!finished && objects.hasNext()) {
-          final VersionListing page = objects.next();
-          for (S3VersionSummary summary : page.getVersionSummaries()) {
-            objectCount++;
-            if (limit > 0 && objectCount > limit) {
-              finished = true;
-              break;
-            } else {
-              // maybe skip
-              final Instant timestamp = summary.getLastModified().toInstant();
-              if (timestamp.isBefore(ageLimit)) {
-                continue;
-              }
+      final ListAndProcessVersionedObjects listing =
+          new ListAndProcessVersionedObjects(name,
+              this,
+              fs,
+              source,
+              processor,
+              ageLimit,
+              limit);
 
-              final long size = summary.getSize();
-              totalSize += size;
+      listing.execute();
 
-              final boolean isDirMarker = isDirMarker(summary);
-              boolean write = logDirs || !isDirMarker;
-              dirMarkers += result(isDirMarker);
-              if (summary.isDeleteMarker()) {
-                tombstones++;
-                fileTombstones += result(!isDirMarker);
-                write &= logDeleted;
-              } else {
-                if (!summary.isLatest()) {
-                  if (!isDirMarker) {
-                    hidden++;
-                    hiddenData += size;
-                    hiddenZeroByteFiles += result(size == 0);
-                  } else {
-                    hiddenDirMarkers++;
-                  }
-                }
-              }
-              if (write) {
-                writer.write(summary, fs.keyToQualifiedPath(summary.getKey()));
-              }
-            }
-          }
-        }
-      } finally {
-        writer.close();
-
-      }
 
       println();
-      println("Found %,d objects under %s with total size %,d bytes", objectCount, source, totalSize);
+      println("Found %,d objects under %s with total size %,d bytes",
+          listing.getObjectCount(), source, listing.getTotalSize());
+
       println("Hidden file count %,d with hidden data size %,d bytes",
-          hidden, hiddenData);
-      println("Hidden zero-byte file count %,d", hiddenZeroByteFiles);
-      println("Hidden directory markers %,d", hiddenDirMarkers);
+          listing.getHidden(), listing.getHiddenData());
+      println("Hidden zero-byte file count %,d",
+          listing.getHiddenZeroByteFiles());
+      println("Hidden directory markers %,d",
+          listing.getHiddenDirMarkers());
       println("Tombstone entries %,d comprising %,d files and %,d dir markers",
-          tombstones, fileTombstones, tombstones - fileTombstones);
+          listing.getTombstones(),
+          listing.getFileTombstones(),
+          listing.getDirTombstones());
       println();
 
     } finally {
@@ -261,78 +193,6 @@ public class ListVersions extends StoreEntryPoint {
     }
 
     return 0;
-  }
-
-  private static class SummaryWriter implements Closeable {
-
-    void write(S3VersionSummary summary, Path path) throws IOException {
-
-    }
-    @Override
-    public void close() throws IOException {
-
-    }
-  }
-
-
-  /**
-   * write to csv; pulled out to make writing to avro etc easier in future.
-   */
-  private static final class CsvVersionWriter extends SummaryWriter {
-
-    private final SimpleCsvWriter csv;
-
-    private final DateFormat df = new SimpleDateFormat("yyyy-MM-ddZhh:mm:ss");
-
-    long index = 0;
-
-    private CsvVersionWriter(final OutputStream out, final boolean closeOutput, String separator) throws IOException {
-      csv = new SimpleCsvWriter(out, separator, "\n", true, closeOutput);
-      csv.columns(
-          "index",
-          "key",
-          "path",
-          "restore",
-          "latest",
-          "size",
-          "tombstone",
-          "directory",
-          "date",
-          "timestamp",
-          "version",
-          "etag"
-      );
-      csv.newline();
-    }
-
-    @Override
-    public void close() throws IOException {
-      csv.close();
-    }
-
-    void write(S3VersionSummary summary, Path path) throws IOException {
-      final boolean deleteMarker = summary.isDeleteMarker();
-      final boolean dirMarker = isDirMarker(summary);
-      csv.columnL(++index);
-      csv.column(summary.getKey());
-      csv.column(path);
-      csv.columnB(!deleteMarker && !dirMarker);
-      csv.columnB(summary.isLatest());
-      csv.columnL(summary.getSize());
-      csv.columnB(deleteMarker);
-      csv.columnB(dirMarker);
-      final Date lastModified = summary.getLastModified();
-      csv.column(df.format(lastModified));
-      csv.columnL(lastModified.getTime());
-      final String versionId = summary.getVersionId();
-      csv.column(versionId);
-      csv.column(summary.getETag());
-      csv.newline();
-    }
-
-    private long getIndex() {
-      return index;
-    }
   }
 
 

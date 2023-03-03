@@ -45,12 +45,15 @@ import org.apache.hadoop.fs.shell.CommandFormat;
 import org.apache.hadoop.fs.statistics.IOStatistics;
 import org.apache.hadoop.fs.statistics.IOStatisticsSource;
 */
+import org.apache.hadoop.fs.store.diag.DiagnosticsEntryPoint;
+import org.apache.hadoop.fs.store.diag.Printout;
 import org.apache.hadoop.io.IOUtils;
 import org.apache.hadoop.security.Credentials;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.security.token.Token;
 import org.apache.hadoop.security.token.TokenIdentifier;
 import org.apache.hadoop.util.ExitUtil;
+import org.apache.hadoop.util.StringUtils;
 import org.apache.hadoop.util.Tool;
 
 /*
@@ -67,7 +70,7 @@ import static org.apache.hadoop.fs.store.StoreUtils.split;
  * Entry point for store applications
  */
 @SuppressWarnings("UseOfSystemOutOrSystemErr")
-public class StoreEntryPoint extends Configured implements Tool, Closeable {
+public class StoreEntryPoint extends Configured implements Tool, Closeable, Printout {
 
   protected static final int MB_1 = (1024 * 1024);
 
@@ -514,10 +517,77 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable {
     return getOptional(s).map(Long::valueOf).orElse(def);
   }
 
+  /**
+   * Print the selected options in a config.
+   * This is an array of (name, secret, obfuscate) entries.
+   * @param title heading to print
+   * @param conf source configuration
+   * @param options map of options
+   */
+  @Override
+  public final void printOptions(String title, Configuration conf,
+      Object[][] options)
+      throws IOException {
+    int index = 0;
+    if (options.length > 0) {
+      heading(title);
+      for (final Object[] option : options) {
+        printOption(conf,
+            ++index,
+            (String) option[0],
+            (Boolean) option[1],
+            (Boolean) option[2]);
+      }
+    }
+  }
 
+  /**
+   * Sanitize a value if needed.
+   * @param value option value.
+   * @param obfuscate should it be obfuscated?
+   * @return string safe to log; in quotes
+   */
+  @Override
+  public String maybeSanitize(String value, boolean obfuscate) {
+    return obfuscate ? DiagnosticsEntryPoint.sanitize(value) :
+        ("\"" + value + "\"");
+  }
 
-  protected int result(boolean b) {
-    return b ? 1 : 0;
+  @Override
+  public void printOption(Configuration conf,
+      final int index,
+      final String key,
+      final boolean secret,
+      final boolean obfuscate)
+      throws IOException {
+    if (key.isEmpty()) {
+      return;
+    }
+    String source = "";
+    String option;
+    if (secret) {
+      final char[] password = conf.getPassword(key);
+      if (password != null) {
+        option = new String(password).trim();
+        source = "<credentials>";
+      } else {
+        option = null;
+      }
+    } else {
+      option = conf.get(key);
+    }
+    String full;
+    if (option == null) {
+      full = "(unset)";
+    } else {
+      option = maybeSanitize(option, obfuscate);
+      String[] origins = conf.getPropertySources(key);
+      if (origins != null && origins.length != 0) {
+        source = "[" + StringUtils.join(",", origins) + "]";
+      }
+      full = option + " " + source;
+    }
+    println("[%03d]  %s = %s", index, key, full);
   }
 
   protected static final class LimitReachedException extends IOException {
