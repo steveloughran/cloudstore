@@ -28,13 +28,16 @@ mvn clean install -Phadoop-3.3.2 -Pextra
 To publish the release use the gui or the github command line
 
 ```bash
-
 set -gx date 2023-03-03
 git add .
-git commit -m "release $date"
+git commit -S -m "release $date"
 git push
 gh release create tag-release-$date -t release-$date -n "versioning" -d target/cloudstore-1.0.jar
+# then go to the web ui to review and finalize the relese
 ```
 
-The version `cloudstore-1.0.jar` is always used, not just from laziness but because it allows
-for bash scripts to always be able fetch the latest version through curl then execute it.
+* If a new release is made the same day, remember to create a new tag
+* The version `cloudstore-1.0.jar` is always used, not just from laziness but because it allows
+for bash scripts to always be able to fetch the latest version through curl then execute it.
+
+
