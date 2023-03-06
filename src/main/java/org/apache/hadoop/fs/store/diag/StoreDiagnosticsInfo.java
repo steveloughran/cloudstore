@@ -32,6 +32,7 @@ import java.util.Queue;
 import java.util.Set;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.LocalDirAllocator;
@@ -594,5 +595,21 @@ public class StoreDiagnosticsInfo {
         val < recommend,
         "Option %s has value %d. Recommend a value of at least %d",
         option, val, recommend);
+  }
+
+  /**
+   * Validate an output stream of a file being written to.
+   * @param printout
+   * @param fs fs
+   * @param file path to file
+   * @param data output stream
+   * @throws IOException IO failure
+   */
+  public void validateOutputStream(
+      final Printout printout,
+      final FileSystem fs,
+      final Path file,
+      final FSDataOutputStream data) throws IOException {
+
   }
 }

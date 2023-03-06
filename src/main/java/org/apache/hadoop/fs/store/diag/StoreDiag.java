@@ -944,8 +944,11 @@ public class StoreDiag extends DiagnosticsEntryPoint {
       try (StoreDurationInfo ignored = new StoreDurationInfo(getOut(),
           "Creating file %s", file)) {
         FSDataOutputStream data = fs.create(file, true);
-        data.writeUTF(HELLO);
         printStreamCapabilities(data, CapabilityKeys.OUTPUTSTREAM_CAPABILITIES);
+        storeInfo.validateOutputStream(this, fs,file, data);
+
+        heading("Writing data to %s", file);
+        data.writeUTF(HELLO);
 
         try {
           data.hsync();
