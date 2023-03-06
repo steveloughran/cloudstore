@@ -32,7 +32,7 @@ set -gx date 2023-03-03
 git add .
 git commit -S -m "release $date"
 git push
-gh release create tag-release-$date -t release-$date -n "versioning" -d target/cloudstore-1.0.jar
+gh release create tag-release-$date -t release-$date -n "release of $date" -d target/cloudstore-1.0.jar
 # then go to the web ui to review and finalize the relese
 ```
 

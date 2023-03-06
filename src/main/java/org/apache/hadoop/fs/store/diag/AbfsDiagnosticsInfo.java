@@ -376,7 +376,7 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
           writeOperations);
     }
     int leaseThreads;
-    if (conf.getBoolean(FS_AZURE_INFINITE_LEASE_DIRECTORIES, false)) {
+    if (!conf.getTrimmed(FS_AZURE_INFINITE_LEASE_DIRECTORIES, "").isEmpty()) {
       leaseThreads = conf.getInt(FS_AZURE_LEASE_THREADS, 0);
       printout.println("Filesystem has directory leasing enabled with lease thread count of %,d", leaseThreads);
 
