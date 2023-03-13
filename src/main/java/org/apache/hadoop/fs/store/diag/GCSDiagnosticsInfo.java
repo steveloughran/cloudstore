@@ -37,7 +37,6 @@ public class GCSDiagnosticsInfo extends StoreDiagnosticsInfo {
    */
   public static final String[] classnames = {
       "com.google.cloud.hadoop.fs.gcs.GoogleHadoopFS",
-      "com.google.cloud.hadoop.util.HadoopConfigurationProperty",
       "com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystem"
   };
 
@@ -46,6 +45,7 @@ public class GCSDiagnosticsInfo extends StoreDiagnosticsInfo {
    */
   public static final String[] optionalClassnames = {
       "com.google.cloud.hadoop.repackaged.gcs.com.google.cloud.hadoop.gcsio.GoogleCloudStorage",
+      "com.google.cloud.hadoop.util.HadoopConfigurationProperty",
       "com.google.api.client.http.HttpRequestInitializer"
   };
 

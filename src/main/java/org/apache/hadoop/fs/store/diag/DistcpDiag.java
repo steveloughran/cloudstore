@@ -42,8 +42,8 @@ public class DistcpDiag extends DiagnosticsEntryPoint {
       {"distcp.blocks.per.chunk", false, false},
       {"mapreduce.map.java.opts", false, false},
       {"mapreduce.reduce.java.opts", false, false},
-      {"", false, false},
-      {"", false, false},
+      {"dfs.checksum.combine.mode", false, false},
+      {"fs.gs.checksum.type", false, false},
   };
 
   @Override

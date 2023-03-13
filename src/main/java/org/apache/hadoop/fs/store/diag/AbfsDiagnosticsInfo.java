@@ -97,6 +97,8 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
 
   public static final String FS_AZURE_LEASE_THREADS = "fs.azure.lease.threads";
 
+  public static final String FS_AZURE_ATOMIC_RENAME_KEY = "fs.azure.atomic.rename.key";
+
   private static final Object[][] options = {
 
       {"abfs.external.authorization.class", false, false},
@@ -121,7 +123,7 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.azure.account.throttling.enabled", false, false},
       {"fs.azure.always.use.https", false, false},
       {"fs.azure.appendblob.directories", false, false},
-      {"fs.azure.atomic.rename.key", false, false},
+      {FS_AZURE_ATOMIC_RENAME_KEY, false, false},
       {"fs.azure.block.location.impersonatedhost", false, false},
       {"fs.azure.block.size", false, false},
       {"fs.azure.buffered.pread.disable", false, false},
@@ -190,10 +192,12 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
       {"mapreduce.fileoutputcommitter.marksuccessfuljobs", false, false},
 
       {"mapreduce.manifest.committer.cleanup.parallel.delete", false, false},
-      {"mapreduce.manifest.committer.io.thread.count", false, false},
-      {"mapreduce.manifest.committer.validate.output", false, false},
       {"mapreduce.manifest.committer.delete.target.files", false, false},
+      {"mapreduce.manifest.committer.diagnostics.manifest.directory", false, false},
+      {"mapreduce.manifest.committer.io.thread.count", false, false},
+      {"mapreduce.manifest.committer.store.operations.classname", false, false},
       {"mapreduce.manifest.committer.summary.report.directory", false, false},
+      {"mapreduce.manifest.committer.validate.output", false, false},
 
       {"mapreduce.fileoutputcommitter.algorithm.version.v1.experimental.mv.threads", false, false},
       {"mapreduce.fileoutputcommitter.algorithm.version.v1.experimental.parallel.task.commit", false, false},
@@ -376,9 +380,11 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
           writeOperations);
     }
     int leaseThreads;
-    if (!conf.getTrimmed(FS_AZURE_INFINITE_LEASE_DIRECTORIES, "").isEmpty()) {
+    final String leaseDirs = conf.getTrimmed(FS_AZURE_INFINITE_LEASE_DIRECTORIES, "");
+    if (!leaseDirs.isEmpty()) {
       leaseThreads = conf.getInt(FS_AZURE_LEASE_THREADS, 0);
-      printout.println("Filesystem has directory leasing enabled with lease thread count of %,d", leaseThreads);
+      printout.println("Filesystem has directory leasing for directories %s with lease thread count of %,d",
+          leaseDirs, leaseThreads);
 
       if (leaseThreads == 0) {
         printout.warn("Lease thread count is 0 (set in %s)", FS_AZURE_LEASE_THREADS);
@@ -387,6 +393,11 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
         printout.warn("Lease thread count is 1 (set in %s)", FS_AZURE_LEASE_THREADS);
         printout.warn("Leases release may be slower than desired");
       }
+    }
+    final String atomicRenames = conf.getTrimmed(FS_AZURE_ATOMIC_RENAME_KEY, "");
+    if (!atomicRenames.isEmpty()) {
+      printout.println("Atomic rename is enabled for %s", atomicRenames);
+
     }
 
   }

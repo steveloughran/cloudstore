@@ -688,6 +688,8 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       printout.println("Endpoint is an AWS S3 store");
 
     }
+    printout.heading("Bucket Name validation");
+
     String bucket = getFsURI().getHost();
     if (bucket.contains(".")) {
       printout.warn("The bucket name %s contains dot '.'", bucket);
@@ -695,6 +697,12 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       printout.warn("In the S3A connector, per bucket options no longer work");
       if (!pathStyleAccess && secureConnections) {
         printout.warn("HTTPS certificate validation is probably broken");
+      }
+      printout.warn("If you are using a fully qualified domain name as the bucket name *this doesn't work");
+      printout.warn("1. Set " + ENDPOINT + " to the endpoint/S3 host");
+      printout.warn("2. Use the bucket name in the s3a URL");
+      if (!pathStyleAccess) {
+        printout.warn("3. And consider setting " + PATH_STYLE_ACCESS + " to true");
       }
     }
     printout.heading("Authentication");
