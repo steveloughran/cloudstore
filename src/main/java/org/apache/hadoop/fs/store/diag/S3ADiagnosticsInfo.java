@@ -126,13 +126,20 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
 
   public static final String BULK_DELETE_PAGE_SIZE = "fs.s3a.bulk.delete.page.size";
 
+  public static final String CONNECTION_SSL_ENABLED = "fs.s3a.connection.ssl.enabled";
+
+  public static final String SERVER_SIDE_ENCRYPTION_ALGORITHM =
+      "fs.s3a.server-side-encryption-algorithm";
+
+  public static final String SERVER_SIDE_ENCRYPTION_KEY = "fs.s3a.server-side-encryption.key";
+
   private static final Object[][] options = {
       /* Core auth */
       {ACCESS_KEY, true, true},
       {SECRET_KEY, true, true},
       {SESSION_TOKEN, true, true},
-      {"fs.s3a.server-side-encryption-algorithm", true, false},
-      {"fs.s3a.server-side-encryption.key", true, true},
+      {SERVER_SIDE_ENCRYPTION_ALGORITHM, true, false},
+      {SERVER_SIDE_ENCRYPTION_KEY, true, true},
       {"fs.s3a.encryption.algorithm", true, false},
       {"fs.s3a.encryption.key", true, true},
       {AWS_CREDENTIALS_PROVIDER, false, false},
@@ -153,7 +160,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.s3a.change.detection.mode", false, false},
       {"fs.s3a.change.detection.version.required", false, false},
 
-      {"fs.s3a.connection.ssl.enabled", false, false},
+      {CONNECTION_SSL_ENABLED, false, false},
       {FS_S3A_CONNECTION_MAXIMUM, false, false},
       {"fs.s3a.connection.establish.timeout", false, false},
       {"fs.s3a.connection.request.timeout", false, false},
@@ -547,7 +554,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
     }
     final boolean pathStyleAccess = conf.getBoolean(PATH_STYLE_ACCESS, false);
     boolean secureConnections =
-        conf.getBoolean("fs.s3a.connection.ssl.enabled", true);
+        conf.getBoolean(CONNECTION_SSL_ENABLED, true);
     final boolean endpointIsUrl =
         endpoint.startsWith("http:") || endpoint.startsWith("https:");
     String scheme = secureConnections ? "https" : "http";
@@ -602,8 +609,8 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
     printout.heading("Encryption");
 
     String encryption =
-        conf.get("fs.s3a.server-side-encryption-algorithm", "").trim();
-    String key = conf.get("fs.s3a.server-side-encryption.key", "").trim();
+        conf.get(SERVER_SIDE_ENCRYPTION_ALGORITHM, "").trim();
+    String key = conf.get(SERVER_SIDE_ENCRYPTION_KEY, "").trim();
     boolean hasKey = !key.isEmpty();
     switch (encryption) {
 
@@ -611,7 +618,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       if (!hasKey) {
         throw new IllegalStateException(String.format(
             "Encryption method %s requires a key in %s",
-            encryption, "fs.s3a.server-side-encryption.key"));
+            encryption, SERVER_SIDE_ENCRYPTION_KEY));
       }
       break;
 
@@ -619,8 +626,8 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       if (!hasKey) {
         printout.warn("SSE-KMS is enabled in %s"
                 + " but there is no key set in %s",
-            "fs.s3a.server-side-encryption-algorithm",
-            "fs.s3a.server-side-encryption.key");
+            SERVER_SIDE_ENCRYPTION_ALGORITHM,
+            SERVER_SIDE_ENCRYPTION_KEY);
         printout.warn("The default key will be used%n"
             + "The current user MUST have permissions to use this");
       } else {
@@ -642,6 +649,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
     printout.heading("Endpoint validation");
     String endpoint = conf.getTrimmed(ENDPOINT, "").toLowerCase(Locale.ROOT);
     String region = conf.getTrimmed(REGION, "").toLowerCase(Locale.ROOT);
+    String bucket = getFsURI().getHost();
 
     boolean secureConnections = conf.getBoolean(SECURE_CONNECTIONS,
         DEFAULT_SECURE_CONNECTIONS);
@@ -659,6 +667,12 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
     if (endpoint.isEmpty()) {
       printout.println("Central us-east endpoint will be used. "
           + "When not executing within EC2, this is less efficient for buckets in other regions");
+      if (bucket.contains(".")) {
+        printout.warn("The s3 bucket looks like a domain name but the client is using AWS us-east");
+        printout.warn("Set " + ENDPOINT + " to the endpoint,"
+            + " tune " + PATH_STYLE_ACCESS
+            + " and " + SECURE_CONNECTIONS + " as appropriate");
+      }
     } else if (endpoint.endsWith("amazonaws.cn")) {
       printout.println("AWS china is in use");
     } else if (!endpoint.contains(".amazonaws.")) {
@@ -690,7 +704,6 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
     }
     printout.heading("Bucket Name validation");
 
-    String bucket = getFsURI().getHost();
     if (bucket.contains(".")) {
       printout.warn("The bucket name %s contains dot '.'", bucket);
       printout.warn("AWS do not allow this on new buckets as it has problems");
@@ -699,10 +712,14 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
         printout.warn("HTTPS certificate validation is probably broken");
       }
       printout.warn("If you are using a fully qualified domain name as the bucket name *this doesn't work");
-      printout.warn("1. Set " + ENDPOINT + " to the endpoint/S3 host");
-      printout.warn("2. Use the bucket name in the s3a URL");
+      int l = 1;
+      printout.println("%d. Set " + ENDPOINT + " to the endpoint/S3 host", l++);
+      printout.warn("%d. Use the bucket name in the s3a URL", l++);
       if (!pathStyleAccess) {
-        printout.warn("3. And consider setting " + PATH_STYLE_ACCESS + " to true");
+        printout.warn("%d. Consider setting " + PATH_STYLE_ACCESS + " to true", l++);
+      }
+      if (secureConnections) {
+        printout.println("%d. To disable https, set %s to true", SECURE_CONNECTIONS, l++);
       }
     }
     printout.heading("Authentication");

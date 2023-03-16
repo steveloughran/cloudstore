@@ -425,7 +425,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
 
       println("If the request fails with any network error it is likely");
 
-      println("to be configuration problem with address, proxy, etc%n");
+      println("to be configuration problem with address, proxy, etc");
 
       println("If it is some authentication error, then don't worry so much\n"
           + "  -look for the results of the filesystem operations");

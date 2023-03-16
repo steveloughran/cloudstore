@@ -150,6 +150,17 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
    * @param format format string
    * @param args optional arguments
    */
+  public void println(String format) {
+    print(format);
+    out.println();
+    out.flush();
+  }
+
+  /**
+   * Print a formatted string followed by a newline to the output stream.
+   * @param format format string
+   * @param args optional arguments
+   */
   public void println(String format, Object... args) {
     print(format, args);
     out.println();
@@ -163,7 +174,7 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
    */
   protected final void print(String format, Object... args) {
     if (args.length == 0) {
-      out.printf(format);
+      out.print(format);
     } else {
       out.printf(format, args);
     }
