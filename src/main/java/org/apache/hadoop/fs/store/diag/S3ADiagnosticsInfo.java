@@ -651,10 +651,15 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
     String region = conf.getTrimmed(REGION, "").toLowerCase(Locale.ROOT);
     String bucket = getFsURI().getHost();
 
+
     boolean secureConnections = conf.getBoolean(SECURE_CONNECTIONS,
         DEFAULT_SECURE_CONNECTIONS);
     boolean pathStyleAccess = conf.getBoolean(PATH_STYLE_ACCESS, false);
-    printout.println("Endpoint is set to \"%s\"", endpoint);
+    printout.println("%s = \"%s\"", ENDPOINT, endpoint);
+    printout.println("%s = \"%s\"", REGION, region);
+    printout.println("%s = \"%s\"", PATH_STYLE_ACCESS, pathStyleAccess);
+    printout.println("%s = \"%s\"", SECURE_CONNECTIONS, secureConnections);
+
     if (endpoint.startsWith("https:") || endpoint.startsWith("http:")) {
       printout.warn("Value of %s looks like a URL: %s", ENDPOINT, endpoint);
       printout.println("It SHOULD normally be a hostname or IP address");
@@ -675,6 +680,12 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       }
     } else if (endpoint.endsWith("amazonaws.cn")) {
       printout.println("AWS china is in use");
+    } else if (endpoint.endsWith(".vpce.amazonaws.com")) {
+      printout.println("AWS VPCE is being used for a VPN connection to S3");
+      printout.warn("you MUST set %s to the region of this store; it is currently \"%s\"",
+          REGION, region);
+      printout.println("Note: older hadoop releases do not support this option");
+      printout.println("See https://issues.apache.org/jira/browse/HADOOP-17705 for a workaround");
     } else if (!endpoint.contains(".amazonaws.")) {
       printout.println(
           "This does not appear to be an amazon endpoint, unless it is a VPN addresss.");
@@ -682,7 +693,6 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
         printout.println("If this is a vpn link to aws, the AWS region MUST be set in %s",
             REGION);
       }
-
       printout.println(
           "For third party endpoints, verify the network port and http protocol"
               + " options are valid.");
@@ -694,15 +704,21 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
             + " this is not the normal setting for third party stores.");
         printout.warn("It requires DNS to resolve all bucket hostnames");
         if (secureConnections) {
-          printout.warn(
-              "As https is in use, the certificates must also be wildcarded");
+          printout.warn("As https is in use, the certificates must also be wildcarded");
         }
       }
     } else {
       printout.println("Endpoint is an AWS S3 store");
+      if (region.isEmpty()) {
+        printout.println("For reliable signing and performance the AWS region SHOULD be set in %s",
+            REGION);
+      }
 
     }
+
     printout.heading("Bucket Name validation");
+
+    printout.println("bucket name = \"%s\"", bucket);
 
     if (bucket.contains(".")) {
       printout.warn("The bucket name %s contains dot '.'", bucket);
@@ -722,11 +738,12 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
         printout.println("%d. To disable https, set %s to true", SECURE_CONNECTIONS, l++);
       }
     }
-    printout.heading("Authentication");
     String dtbinding = conf.getTrimmed(DELEGATION_TOKEN_BINDING, "");
     String[] auth = conf.getStrings(AWS_CREDENTIALS_PROVIDER, "");
 
     if (!dtbinding.isEmpty()) {
+      printout.heading("Delegation Tokens");
+
       printout.println("Delegation token binding %s is active", dtbinding);
       printout.println("This will take over authentication from the settings in %s",
           AWS_CREDENTIALS_PROVIDER);
