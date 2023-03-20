@@ -83,6 +83,7 @@ import static org.apache.hadoop.fs.store.CommonParameters.SYSPROP;
 import static org.apache.hadoop.fs.store.CommonParameters.TOKENFILE;
 import static org.apache.hadoop.fs.store.CommonParameters.VERBOSE;
 import static org.apache.hadoop.fs.store.CommonParameters.XMLFILE;
+import static org.apache.hadoop.fs.store.StoreExitCodes.E_ERROR;
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_SUCCESS;
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
 import static org.apache.hadoop.fs.store.diag.OptionSets.CLUSTER_OPTIONS;
@@ -228,12 +229,17 @@ public class StoreDiag extends DiagnosticsEntryPoint {
     probeAllEndpoints();
 
     // and the filesystem operations
-    executeFileSystemOperations(path, writeOperations);
+    final boolean completed = executeFileSystemOperations(path, writeOperations);
 
     // dump JVM status
     printJVMStats();
-    // Validate parameters.
-    return E_SUCCESS;
+
+    if (completed) {
+      heading("Success!");
+    } else {
+      heading("Failed to complete file operations");
+    }
+    return completed ? E_SUCCESS : E_ERROR;
   }
 
   /**
@@ -707,8 +713,10 @@ public class StoreDiag extends DiagnosticsEntryPoint {
 
   /**
    * Execute the FS level operations, one by one.
+   * @return
    */
-  public void executeFileSystemOperations(final Path baseDir,
+  public boolean executeFileSystemOperations(
+      final Path baseDir,
       final boolean attempWriteOperations) throws IOException {
     final Configuration conf = getConf();
     heading("Test filesystem %s", baseDir);
@@ -792,6 +800,9 @@ public class StoreDiag extends DiagnosticsEntryPoint {
       println("Directory %s does not exist", baseDir);
       baseDirFound = false;
     }
+
+    heading("Listing the directory %s has succeded");
+    println("The store is reachable and the client has list permissions");
 
     heading("Attempt to read a file");
     // =======================================
@@ -906,9 +917,14 @@ public class StoreDiag extends DiagnosticsEntryPoint {
     } catch (FileNotFoundException expected) {
       // expected this; ignore it.
     }
-    if (accessDenied || !attempWriteOperations) {
-      println("Tests are read only");
-      return;
+    if (accessDenied) {
+      println("Client lacks read access to the store; aborting");
+      return false;
+    }
+    if (!attempWriteOperations) {
+      heading("All read operations succeeded: client has read access");
+      println("Tests are read only; to test write permissions rerun with -%s", WRITE);
+      return true;
     }
     heading("Filesystem Write Operations");
 
@@ -1037,6 +1053,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
       }
       verifyPathNotFound(fs, subdir2);
 
+      heading("All read and write operations succeeded: good to go");
     } finally {
       // teardown: attempt to delete the directory
       deleteDir(fs, dir);
@@ -1045,6 +1062,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
       }
       fs.close();
     }
+    return true;
   }
 
   /**
