@@ -84,6 +84,8 @@ import static org.apache.hadoop.fs.store.CommonParameters.TOKENFILE;
 import static org.apache.hadoop.fs.store.CommonParameters.VERBOSE;
 import static org.apache.hadoop.fs.store.CommonParameters.XMLFILE;
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_ERROR;
+import static org.apache.hadoop.fs.store.StoreExitCodes.E_NOT_FOUND;
+import static org.apache.hadoop.fs.store.StoreExitCodes.E_NO_ACCESS;
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_SUCCESS;
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
 import static org.apache.hadoop.fs.store.diag.OptionSets.CLUSTER_OPTIONS;
@@ -770,7 +772,9 @@ public class StoreDiag extends DiagnosticsEntryPoint {
       println("root entry %s", fs.getFileStatus(root));
     } catch (FileNotFoundException e) {
       errorln("The remote store doesn't seem to exist: %s", root);
-      throw e;
+      throw (StoreDiagException)(new StoreDiagException(E_NOT_FOUND,
+          "Not found %s: %s", root, e.toString())
+          .initCause(e));
     }
 
     FileStatus firstFile = null;
@@ -801,7 +805,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
       baseDirFound = false;
     }
 
-    heading("Listing the directory %s has succeded");
+    heading("Listing the directory %s has succeded", baseDir);
     println("The store is reachable and the client has list permissions");
 
     heading("Attempt to read a file");
@@ -901,8 +905,8 @@ public class StoreDiag extends DiagnosticsEntryPoint {
       }
     }
     if (requireToken && !issued) {
-      throw new StoreDiagException("No delegation token issued by filesystem %s",
-          fsUri);
+      throw new StoreDiagException(E_NO_ACCESS,
+          "No delegation token issued by filesystem %s", fsUri);
     }
 
 
