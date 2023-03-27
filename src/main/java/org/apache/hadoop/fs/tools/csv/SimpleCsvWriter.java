@@ -32,16 +32,36 @@ import static java.util.Objects.requireNonNull;
  */
 public class SimpleCsvWriter implements Closeable {
 
+  /**
+   * Writer.
+   */
   private final Writer out;
 
+  /**
+   * separator.
+   */
   private final String separator;
 
+  /**
+   * end of line sequence.
+   */
   private final String eol;
 
+  /**
+   * should columns be quoted?
+   */
   private final boolean quote;
 
+  /**
+   * should the writer be closed in {@link #close()}?
+   */
   private final boolean closeOutput;
 
+  /**
+   * track whether the write is the start of the line.
+   * if it isn't, a separator is inserted before the
+   * column is printed.
+   */
   private boolean isStartOfLine = true;
 
   /**
@@ -121,6 +141,12 @@ public class SimpleCsvWriter implements Closeable {
     col(o, quote);
   }
 
+  /**
+   * Write a column with the given quote flag.
+   * @param o object
+   * @param quoteColumn to quote?
+   * @throws IOException io failure
+   */
   private void col(final Object o, final boolean quoteColumn) throws IOException {
     if (isStartOfLine) {
       isStartOfLine = false;
@@ -135,6 +161,11 @@ public class SimpleCsvWriter implements Closeable {
     }
   }
 
+  /**
+   * convert a possibly null object to a string.
+   * @param o object
+   * @return the string value; if null the empty string.
+   */
   private static String toString(final Object o) {
     return o != null
         ? o.toString()
@@ -167,10 +198,19 @@ public class SimpleCsvWriter implements Closeable {
     out.write(val);
   }
 
+  /**
+   * quote a string. note: no double quoting takes place.
+   * @param o object to stringify
+   * @throws IOException io failure
+   */
   public void quote(Object o) throws IOException {
     write(String.format("\"%s\"", toString(o)));
   }
 
+  /**
+   * Write a newline.
+   * @throws IOException io failure
+   */
   public void newline() throws IOException {
     out.write(eol);
     isStartOfLine = true;
