@@ -140,6 +140,7 @@ public class OptionSets {
       {"javax.net.ssl.keyStore", false},
       {"javax.net.ssl.keyStorePassword", true},
       {"javax.net.ssl.trustStore", false},
+      {"javax.net.ssl.trustStorePassword", true},
       {"jdk.certpath.disabledAlgorithms", false},
       {"jdk.tls.client.cipherSuites", false},
       {"jdk.tls.client.protocols", false},
