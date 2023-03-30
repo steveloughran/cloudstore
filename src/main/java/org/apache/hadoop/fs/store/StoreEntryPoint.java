@@ -47,6 +47,7 @@ import org.apache.hadoop.fs.statistics.IOStatisticsSource;
 */
 import org.apache.hadoop.fs.store.diag.DiagnosticsEntryPoint;
 import org.apache.hadoop.fs.store.diag.Printout;
+import org.apache.hadoop.fs.store.diag.StoreLogExactlyOnce;
 import org.apache.hadoop.io.IOUtils;
 import org.apache.hadoop.security.Credentials;
 import org.apache.hadoop.security.UserGroupInformation;
@@ -76,12 +77,12 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
 
   private static final Logger LOG = LoggerFactory.getLogger(StoreEntryPoint.class);
 
-  private static final int KB_1 = 1024;
-
   /**
    * Exit code when a usage message was printed: {@value}.
    */
-  public static int EXIT_USAGE = StoreExitCodes.E_USAGE;
+  public static final int EXIT_USAGE = StoreExitCodes.E_USAGE;
+
+  private StoreLogExactlyOnce LogJceksFailureOnce = new StoreLogExactlyOnce(LOG);
 
   protected CommandFormat commandFormat;
 
@@ -569,7 +570,7 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
       final int index,
       final String key,
       final boolean secret,
-      final boolean obfuscate)
+      boolean obfuscate)
       throws IOException {
     if (key.isEmpty()) {
       return;
@@ -577,12 +578,19 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
     String source = "";
     String option;
     if (secret) {
-      final char[] password = conf.getPassword(key);
-      if (password != null) {
-        option = new String(password).trim();
-        source = "<credentials>";
-      } else {
-        option = null;
+      try {
+        final char[] password = conf.getPassword(key);
+        if (password != null) {
+          option = new String(password).trim();
+          source = "<credentials>";
+        } else {
+          option = null;
+        }
+      } catch (IOException e) {
+        // can be triggered by jceks
+        LogJceksFailureOnce.warn("Failed to read key {}", key, e);
+        option = "failed: " + e;
+        obfuscate = false;
       }
     } else {
       option = conf.get(key);
