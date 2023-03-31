@@ -69,7 +69,7 @@ public class DiagnosticsEntryPoint extends StoreEntryPoint  {
   protected static final int HIDE_SUFFIX = 4;
 
   /** {@value}. */
-  protected static final int HIDE_THRESHOLD = HIDE_PREFIX + HIDE_SUFFIX;
+  protected static final int HIDE_THRESHOLD = HIDE_PREFIX * 2 + HIDE_SUFFIX;
 
   /**
    * Sort the keys.
@@ -100,15 +100,16 @@ public class DiagnosticsEntryPoint extends StoreEntryPoint  {
   /**
    * Sanitize a sensitive option.
    * @param value option value.
+   * @param hide flag to hide everything
    * @return sanitized value.
    */
-  public static String sanitize(final String value) {
-    String safe = value;
-    int len = safe.length();
-    StringBuilder b = new StringBuilder(len);
-    int prefix = HIDE_PREFIX;
-    int suffix = HIDE_SUFFIX;
-    if (len > HIDE_THRESHOLD) {
+  public static String sanitize(final String value, boolean hide) {
+    String safe;
+    int len = value.length();
+    if (!hide && len > HIDE_THRESHOLD) {
+      StringBuilder b = new StringBuilder(len);
+      int prefix = HIDE_PREFIX;
+      int suffix = HIDE_SUFFIX;
       b.append(value, 0, prefix);
       b.append(DiagnosticsEntryPoint.stars(len - prefix - suffix));
       b.append(value, len - suffix, len);

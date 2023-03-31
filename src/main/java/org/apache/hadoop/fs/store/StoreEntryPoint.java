@@ -84,6 +84,11 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
 
   private StoreLogExactlyOnce LogJceksFailureOnce = new StoreLogExactlyOnce(LOG);
 
+  /**
+   * Hide all sensitive data.
+   */
+  protected boolean hideAllSensitiveChars = false;
+
   protected CommandFormat commandFormat;
 
   private PrintStream out = System.out;
@@ -561,7 +566,7 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
    */
   @Override
   public String maybeSanitize(String value, boolean obfuscate) {
-    return obfuscate ? DiagnosticsEntryPoint.sanitize(value) :
+    return obfuscate ? DiagnosticsEntryPoint.sanitize(value, hideAllSensitiveChars) :
         ("\"" + value + "\"");
   }
 

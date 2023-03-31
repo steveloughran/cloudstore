@@ -81,16 +81,25 @@ The `--tokenfile` option loads tokens saved with `hdfs fetchdt`. It does
 not need Kerberos, though most filesystems expect Kerberos enabled for
 them to pick up tokens (not S3A, potentially other stores).
 
-### Options
+### Usage
 
 ```
--w    Attempt writes to as well as reads from the filesystem
--t    Require delegation tokens to be issued
--j    List the JARs
--5    Print MD5 checksums of the jars listed (requires -j)
--tokenfile <file>   Hadoop token file to load
--xmlfile <file>     Hadoop XML file to load
--require <file>     Text file of classes and resources to require
+Usage: storediag [options] <filesystem>
+        -D <key=value>  Define a property
+        -e      List the environmment variables. *danger: does not redact secrets*
+        -h      redact all chars in sensitive options
+        -j      List the JARs on the classpath
+        -l      Dump the Log4J settings
+        -o      Downgrade all 'required' classes to optional
+        -principal <principal>  kerberos principal to request a token for
+        -required <file>        text file of extra classes+resources to require
+        -s      List the JVM System Properties
+        -t      Require delegation tokens to be issued
+        -tokenfile <file>       Hadoop token file to load
+        -verbose                Verbose output
+        -w      attempt write operations on the filesystem
+        -xmlfile <file>         XML config file to load
+        -5      Print MD5 checksums of the jars listed (requires -j)
 ```
 
 The `-require` option takes a text file where every line is one of

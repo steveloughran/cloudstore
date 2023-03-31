@@ -105,6 +105,9 @@ public class StoreDiag extends DiagnosticsEntryPoint {
   /** {@value}. */
   public static final String ENVARS = "e";
 
+  /** hide all secrets: {@value}. */
+  public static final String HIDE = "h";
+
   /** {@value}. */
   public static final String OPTIONAL = "o";
 
@@ -131,23 +134,22 @@ public class StoreDiag extends DiagnosticsEntryPoint {
 
   /** {@value}. */
   public static final String USAGE =
-      "Usage: storediag\n"
-          + optusage(DELEGATION, "Require delegation tokens to be issued")
-          + optusage(JARS, "List the JARs on the classpath")
-          + optusage(ENVARS, "List the environmment variables. *danger: does not redact secrets*")
-          + optusage(LOGDUMP, "Dump the Log4J settings")
-          + optusage(MD5, "Print MD5 checksums of the jars listed (requires -j)")
-          + optusage(OPTIONAL, "Downgrade all 'required' classes to optional")
-          + optusage(SYSPROPS, "List the JVMs System Properties")
-          + optusage(WRITE, "attempt write operations on the filesystem")
+      "Usage: storediag [options] <filesystem>\n"
           + optusage(DEFINE, "key=value", "Define a property")
+          + optusage(ENVARS, "List the environmment variables. *danger: does not redact secrets*")
+          + optusage(HIDE, "redact all chars in sensitive options")
+          + optusage(JARS, "List the JARs on the classpath")
+          + optusage(LOGDUMP, "Dump the Log4J settings")
+          + optusage(OPTIONAL, "Downgrade all 'required' classes to optional")
+          + optusage(PRINCIPAL, "principal", "kerberos principal to request a token for")
+          + optusage(REQUIRED, "file", "text file of extra classes+resources to require")
+          + optusage(SYSPROPS, "List the JVM System Properties")
+          + optusage(DELEGATION, "Require delegation tokens to be issued")
           + optusage(TOKENFILE, "file", "Hadoop token file to load")
+          + optusage(VERBOSE, "Verbose output")
+          + optusage(WRITE, "attempt write operations on the filesystem")
           + optusage(XMLFILE, "file", "XML config file to load")
-          + optusage(REQUIRED, "file",
-          "text file of extra classes+resources to require")
-          + optusage(PRINCIPAL, "principal",
-          "kerberos principal to request a DT for")
-          + "<filesystem>";
+          + optusage(MD5, "Print MD5 checksums of the jars listed (requires -j)");
 
   private StoreDiagnosticsInfo storeInfo;
 
@@ -155,6 +157,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
     createCommandFormat(1, 1,
         DELEGATION,
         ENVARS,
+        HIDE,
         JARS,
         LOGDUMP,
         MD5,
@@ -198,6 +201,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
     // and its FS URI
     storeInfo = bindToStore(path.toUri());
     final boolean writeOperations = hasOption(WRITE);
+    setHideAllSensitiveChars(hasOption(HIDE));
 
     printHadoopVersionInfo();
     printOSVersion();
@@ -1165,4 +1169,14 @@ public class StoreDiag extends DiagnosticsEntryPoint {
     }
   }
 
+  /**
+   * Hide all sensitive data.
+   */
+  protected boolean isHideAllSensitiveChars() {
+    return hideAllSensitiveChars;
+  }
+
+  protected void setHideAllSensitiveChars(boolean hideAllSensitiveChars) {
+    this.hideAllSensitiveChars = hideAllSensitiveChars;
+  }
 }
