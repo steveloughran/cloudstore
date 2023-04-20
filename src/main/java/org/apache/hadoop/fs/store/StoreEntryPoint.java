@@ -444,18 +444,25 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
     if (fs == null) {
       return;
     }
-    heading("Storage Statistics");
+    // TODO: use reflection to find this
     String report = ""; //ioStatisticsSourceToString(fs);
     if (!report.isEmpty()) {
+      heading("IO Statistics");
+
       println("%s", report);
     } else {
       // fall back
       StorageStatistics st = fs.getStorageStatistics();
+
       Iterator<StorageStatistics.LongStatistic> it
           = st.getLongStatistics();
-      while (it.hasNext()) {
-        StorageStatistics.LongStatistic next = it.next();
-        println("%s\t%s", next.getName(), next.getValue());
+      if (it.hasNext()) {
+        // there is data
+        heading("Storage Statistics");
+        while (it.hasNext()) {
+          StorageStatistics.LongStatistic next = it.next();
+          println("%s\t%s", next.getName(), next.getValue());
+        }
       }
     }
   }

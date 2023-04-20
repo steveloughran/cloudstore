@@ -21,6 +21,7 @@ package org.apache.hadoop.fs.store.commands;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InterruptedIOException;
+import java.io.PrintStream;
 import java.nio.file.AccessDeniedException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -47,7 +48,6 @@ import org.apache.hadoop.fs.PathFilter;
 import org.apache.hadoop.fs.RemoteIterator;
 import org.apache.hadoop.fs.store.StoreDurationInfo;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
-import org.apache.hadoop.util.StringUtils;
 import org.apache.hadoop.util.ToolRunner;
 
 import static org.apache.commons.io.FileUtils.byteCountToDisplaySize;
@@ -114,7 +114,9 @@ public class ExtendedDu extends StoreEntryPoint {
         source,
         threads);
 
-    final StoreDurationInfo duration = new StoreDurationInfo(LOG, "List files under %s", source);
+    final PrintStream out = isVerbose() ? getOut() : null;
+
+    final StoreDurationInfo duration = new StoreDurationInfo(out, "List files under %s", source);
     fileCount = new AtomicInteger(0);
     totalSize = new AtomicLong(0);
     fs = source.getFileSystem(conf);
@@ -129,10 +131,11 @@ public class ExtendedDu extends StoreEntryPoint {
         = new ExecutorCompletionService<>(workers);
     List<Summary> results = new ArrayList<>();
 
+
     try {
       long submitted = 0;
       RemoteIterator<FileStatus> dir;
-      try (StoreDurationInfo firstLoad = new StoreDurationInfo(LOG,
+      try (StoreDurationInfo firstLoad = new StoreDurationInfo(out,
           "Initial list of path %s", source)) {
         dir = fs.listStatusIterator(source);
       }
@@ -144,7 +147,7 @@ public class ExtendedDu extends StoreEntryPoint {
         } else {
           // it's a dir
           submitted++;
-          completion.submit(() -> scanOneDir(st.getPath()));
+          completion.submit(() -> scanOneDir(out, st.getPath()));
         }
       }
 
@@ -177,12 +180,15 @@ public class ExtendedDu extends StoreEntryPoint {
     long totalSize = this.totalSize.get();
     long bytesPerFile = (files > 0 ? totalSize / files : 0);
     println("");
+    heading("Disk usage of %s", source);
     println("Found %s files, %,.2f milliseconds per file",
         files, millisPerFile);
-    println("Data size %s (%,d bytes)",
+    println("Data size %siB (%,d bytes)",
         long2String(totalSize, "", DECIMAL_PLACES), totalSize);
-    println("Average file size %s (%,d bytes)",
+    println("Average file size %siB (%,d bytes)",
         long2String(bytesPerFile,"", DECIMAL_PLACES), bytesPerFile);
+    println("");
+
     return 0;
   }
 
@@ -221,11 +227,11 @@ public class ExtendedDu extends StoreEntryPoint {
     }
   }
 
-  private Summary scanOneDir(Path path) throws IOException {
+  private Summary scanOneDir(final PrintStream out, Path path) throws IOException {
     long size = 0;
     int count = 0;
     RemoteIterator<LocatedFileStatus> lister = null;
-    try (StoreDurationInfo duration = new StoreDurationInfo(LOG,
+    try (StoreDurationInfo duration = new StoreDurationInfo(out,
         "List %s", path)){
       lister = fs.listFiles(path, true);
       while (lister.hasNext()) {
@@ -240,12 +246,8 @@ public class ExtendedDu extends StoreEntryPoint {
       LOG.debug("Interrupted", interrupted);
     } catch (AccessDeniedException | PathAccessDeniedException denied) {
       println("Access denied listing %s", path);
-    } catch (FileNotFoundException deleted) {
+    } catch (FileNotFoundException | LimitReachedException end) {
       // path has been deleted; ignore
-    } catch (LimitReachedException limited) {
-
-      // the limit has been reached
-
     } finally {
       if (lister != null) {
         printIfVerbose("List iterator: %s", lister);
