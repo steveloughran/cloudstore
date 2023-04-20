@@ -30,6 +30,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -610,6 +611,12 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
         source = "[" + StringUtils.join(",", origins) + "]";
       }
       full = option + " " + source;
+    }
+    // pretty inefficient to do this every option, but
+    // it's a bit late to fix.
+    final Set<String> finalParameters = conf.getFinalParameters();
+    if (finalParameters.contains(key)) {
+      full = full + "[final]";
     }
     println("[%03d]  %s = %s", index, key, full);
   }

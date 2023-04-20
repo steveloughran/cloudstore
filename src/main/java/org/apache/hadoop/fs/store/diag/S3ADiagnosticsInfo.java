@@ -669,7 +669,9 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
         printout.warn("You should probably set %s to true", PATH_STYLE_ACCESS);
       }
     }
+    boolean isUsingAws = false;
     if (endpoint.isEmpty()) {
+      isUsingAws = true;
       printout.println("Central us-east endpoint will be used. "
           + "When not executing within EC2, this is less efficient for buckets in other regions");
       if (bucket.contains(".")) {
@@ -679,14 +681,17 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
             + " and " + SECURE_CONNECTIONS + " as appropriate");
       }
     } else if (endpoint.endsWith("amazonaws.cn")) {
+      isUsingAws = true;
       printout.println("AWS china is in use");
     } else if (endpoint.endsWith(".vpce.amazonaws.com")) {
+      isUsingAws = true;
       printout.println("AWS VPCE is being used for a VPN connection to S3");
       printout.warn("you MUST set %s to the region of this store; it is currently \"%s\"",
           REGION, region);
       printout.println("Note: older hadoop releases do not support this option");
       printout.println("See https://issues.apache.org/jira/browse/HADOOP-17705 for a workaround");
     } else if (!endpoint.contains(".amazonaws.")) {
+      isUsingAws = false;
       printout.println(
           "This does not appear to be an amazon endpoint, unless it is a VPN addresss.");
       if (region.isEmpty()) {
@@ -708,12 +713,18 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
         }
       }
     } else {
+      isUsingAws = true;
       printout.println("Endpoint is an AWS S3 store");
       if (region.isEmpty()) {
         printout.println("For reliable signing and performance the AWS region SHOULD be set in %s",
             REGION);
       }
 
+    }
+    if (isUsingAws) {
+      printout.println("Important: if you are working with a third party store,");
+      printout.println(" this client is still trying to connect to to AWS S3");
+      printout.println("Expect failure until %s is set to the private endpoint", ENDPOINT);
     }
 
     printout.heading("Bucket Name validation");
@@ -735,7 +746,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
         printout.warn("%d. Consider setting " + PATH_STYLE_ACCESS + " to true", l++);
       }
       if (secureConnections) {
-        printout.println("%d. To disable https, set %s to true", SECURE_CONNECTIONS, l++);
+        printout.println("%d. To disable HTTPS, set %s to true", SECURE_CONNECTIONS, l++);
       }
     }
     String dtbinding = conf.getTrimmed(DELEGATION_TOKEN_BINDING, "");

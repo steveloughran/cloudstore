@@ -129,6 +129,24 @@ public class OptionSets {
       {"", false},
   };
 
+
+  /**
+   * java URL system properties; not used for asf httpclient apps.
+   * see {@code sun.net.NetworkClient}.
+   */
+  public static final Object[][] JAVA_NET_SYSPROPS = {
+      {"sun.net.client.defaultConnectTimeout", false},
+      {"sun.net.client.defaultReadTimeout", false},
+      {"java.net.preferIPv4Stack", false},
+      {"java.net.preferIPv6Addresses", false},
+      {"networkaddress.cache.ttl", false},
+      {"networkaddress.cache.negative.ttl", false},
+      {"sun.net.inetaddr.ttl", false},
+      {"sun.net.inetaddr.negative.ttl", false},
+      {"", false},
+      {"", false},
+  };
+
   /**
    * TLS System properties.
    */

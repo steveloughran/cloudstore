@@ -40,8 +40,11 @@ import org.apache.hadoop.fs.azurebfs.constants.FileSystemConfigurations;
 import org.apache.hadoop.fs.azurebfs.services.AbfsOutputStream;
 import org.apache.hadoop.fs.store.StoreDurationInfo;
 
+import static org.apache.hadoop.fs.store.StoreUtils.cat;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.*;
 import static org.apache.hadoop.fs.store.diag.OptionSets.HADOOP_TMP_DIR;
+import static org.apache.hadoop.fs.store.diag.OptionSets.JAVA_NET_SYSPROPS;
+import static org.apache.hadoop.fs.store.diag.OptionSets.STANDARD_SYSPROPS;
 
 /**
  * Abfs diagnostics.
@@ -357,6 +360,11 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
 
   public String[] getOptionalPathCapabilites() {
     return optionalCapabilities;
+  }
+
+  @Override
+  public Object[][] getSelectedSystemProperties() {
+    return cat(JAVA_NET_SYSPROPS, STANDARD_SYSPROPS);
   }
 
   @Override

@@ -136,7 +136,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
   public static final String USAGE =
       "Usage: storediag [options] <filesystem>\n"
           + optusage(DEFINE, "key=value", "Define a property")
-          + optusage(ENVARS, "List the environmment variables. *danger: does not redact secrets*")
+          + optusage(ENVARS, "List the environment variables. *danger: does not redact secrets*")
           + optusage(HIDE, "redact all chars in sensitive options")
           + optusage(JARS, "List the JARs on the classpath")
           + optusage(LOGDUMP, "Dump the Log4J settings")

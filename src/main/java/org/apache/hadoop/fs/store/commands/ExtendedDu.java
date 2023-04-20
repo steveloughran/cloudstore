@@ -47,6 +47,7 @@ import org.apache.hadoop.fs.PathFilter;
 import org.apache.hadoop.fs.RemoteIterator;
 import org.apache.hadoop.fs.store.StoreDurationInfo;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
+import org.apache.hadoop.util.StringUtils;
 import org.apache.hadoop.util.ToolRunner;
 
 import static org.apache.commons.io.FileUtils.byteCountToDisplaySize;
@@ -57,6 +58,7 @@ import static org.apache.hadoop.fs.store.CommonParameters.TOKENFILE;
 import static org.apache.hadoop.fs.store.CommonParameters.VERBOSE;
 import static org.apache.hadoop.fs.store.CommonParameters.XMLFILE;
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
+import static org.apache.hadoop.util.StringUtils.TraditionalBinaryPrefix.long2String;
 
 /**
  * Use the mapreduce LocateFiles class
@@ -76,6 +78,8 @@ public class ExtendedDu extends StoreEntryPoint {
       + "\t<path>";
 
   public static final int DEFAULT_THREADS = 8;
+
+  public static final int DECIMAL_PLACES = 2;
 
   private AtomicInteger fileCount;
 
@@ -167,7 +171,7 @@ public class ExtendedDu extends StoreEntryPoint {
         println("%s\t%d\t%s",
             s.path,
             s.count,
-            byteCountToDisplaySize(s.size)));
+            long2String(s.size, "", DECIMAL_PLACES)));
     long files = fileCount.get();
     double millisPerFile = files > 0 ? (((float)duration.value()) / files) : 0;
     long totalSize = this.totalSize.get();
@@ -176,9 +180,9 @@ public class ExtendedDu extends StoreEntryPoint {
     println("Found %s files, %,.2f milliseconds per file",
         files, millisPerFile);
     println("Data size %s (%,d bytes)",
-        byteCountToDisplaySize(totalSize), totalSize);
+        long2String(totalSize, "", DECIMAL_PLACES), totalSize);
     println("Average file size %s (%,d bytes)",
-        byteCountToDisplaySize(bytesPerFile), bytesPerFile);
+        long2String(bytesPerFile,"", DECIMAL_PLACES), bytesPerFile);
     return 0;
   }
 
