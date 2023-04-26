@@ -337,6 +337,7 @@ Usage: dux
         -threads <threads>      number of threads
         -limit <limit>  limit of files to list
         -verbose        print verbose output
+        -bfs            do a breadth first search of the path
         <path>
 ```
 

@@ -27,8 +27,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Queue;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -94,7 +92,7 @@ public class ExtendedDu extends StoreEntryPoint {
 
   private int limit;
 
-  ExecutorService completion;
+  private ExecutorService completion;
 
   private Queue<Future<Summary>> queue;
 
@@ -155,7 +153,7 @@ public class ExtendedDu extends StoreEntryPoint {
         } else {
           // it's a dir
           submitted++;
-          if(!isBFS) {
+          if (!isBFS) {
             queue.add(completion.submit(() -> scanOneDir(out, st.getPath())));
           } else {
             queue.add(completion.submit(() -> scanOneDirBFS(out, st.getPath())));
@@ -167,7 +165,7 @@ public class ExtendedDu extends StoreEntryPoint {
       println("Waiting for %d scan to finish", submitted);
       while (!queue.isEmpty()) {
         Future<Summary> fts = queue.remove();
-        if(fts.isDone()){
+        if (fts.isDone()) {
           results.add(fts.get());
         } else {
           queue.add(fts);
@@ -253,7 +251,7 @@ public class ExtendedDu extends StoreEntryPoint {
         final FileStatus status = lister.next();
         long len = status.getLen();
         count ++;
-        if(!status.isFile()){
+        if (!status.isFile()) {
           printIfVerbose("Pushing path:", path.toString());
           queue.add(completion.submit(() -> scanOneDirBFS(out, status.getPath())));
           continue;
