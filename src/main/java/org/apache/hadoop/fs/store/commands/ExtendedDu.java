@@ -245,16 +245,16 @@ public class ExtendedDu extends StoreEntryPoint {
   private Summary scanOneDirBFS(final PrintStream out, Path path) throws IOException {
     long size = 0;
     int count = 0;
-    RemoteIterator<LocatedFileStatus> lister = null;
+    RemoteIterator<FileStatus> lister = null;
     try (StoreDurationInfo duration = new StoreDurationInfo(out,
         "List %s", path)){
-      lister = fs.listFiles(path, true);
+      lister = fs.listStatusIterator(path);
       while (lister.hasNext()) {
-        final LocatedFileStatus status = lister.next();
+        final FileStatus status = lister.next();
         long len = status.getLen();
         count ++;
         if(!status.isFile()){
-          out.println("Pushing path:" + path.toString());
+          printIfVerbose("Pushing path:", path.toString());
           queue.add(completion.submit(() -> scanOneDirBFS(out, status.getPath())));
           continue;
         }
