@@ -26,8 +26,9 @@ import java.nio.file.AccessDeniedException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.ExecutorCompletionService;
+import java.util.Queue;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -51,6 +52,7 @@ import org.apache.hadoop.fs.store.StoreEntryPoint;
 import org.apache.hadoop.util.ToolRunner;
 
 import static org.apache.commons.io.FileUtils.byteCountToDisplaySize;
+import static org.apache.hadoop.fs.store.CommonParameters.BFS;
 import static org.apache.hadoop.fs.store.CommonParameters.DEFINE;
 import static org.apache.hadoop.fs.store.CommonParameters.LIMIT;
 import static org.apache.hadoop.fs.store.CommonParameters.THREADS;
@@ -75,6 +77,7 @@ public class ExtendedDu extends StoreEntryPoint {
       + optusage(THREADS, "threads", "number of threads")
       + optusage(LIMIT, "limit", "limit of files to list")
       + optusage(VERBOSE, "print verbose output")
+      + optusage(BFS, "breadth first search of the tree", "do a deep breadth first search of the tree")
       + "\t<path>";
 
   public static final int DEFAULT_THREADS = 8;
@@ -89,9 +92,13 @@ public class ExtendedDu extends StoreEntryPoint {
 
   private int limit;
 
+  private ExecutorService completion;
+
+  private Queue<Future<Summary>> queue;
+
   public ExtendedDu() {
     createCommandFormat(1, 1, VERBOSE);
-    addValueOptions(TOKENFILE, XMLFILE, DEFINE, THREADS, LIMIT);
+    addValueOptions(TOKENFILE, XMLFILE, DEFINE, THREADS, LIMIT, BFS);
   }
 
   @Override
@@ -108,6 +115,8 @@ public class ExtendedDu extends StoreEntryPoint {
     int threads = getOptional(THREADS).map(Integer::valueOf).orElse(
         DEFAULT_THREADS);
 
+    boolean isBFS = getOptional(BFS).isPresent();
+
     final Path source = new Path(paths.get(0));
     println("");
     heading("Listing files under %s with thread count %d",
@@ -122,13 +131,10 @@ public class ExtendedDu extends StoreEntryPoint {
     fs = source.getFileSystem(conf);
     limit = getOptional(LIMIT).map(Integer::valueOf).orElse(0);
     // worker pool
-    ExecutorService workers = new ThreadPoolExecutor(threads, threads,
+    completion = new ThreadPoolExecutor(threads, threads,
         0L, TimeUnit.MILLISECONDS,
         new LinkedBlockingQueue<>());
-
-    // now completion service for all outstanding workers
-    ExecutorCompletionService<Summary> completion
-        = new ExecutorCompletionService<>(workers);
+    queue = new LinkedBlockingQueue<>();
     List<Summary> results = new ArrayList<>();
 
 
@@ -147,16 +153,23 @@ public class ExtendedDu extends StoreEntryPoint {
         } else {
           // it's a dir
           submitted++;
-          completion.submit(() -> scanOneDir(out, st.getPath()));
+          if (!isBFS) {
+            queue.add(completion.submit(() -> scanOneDir(out, st.getPath())));
+          } else {
+            queue.add(completion.submit(() -> scanOneDirBFS(out, st.getPath())));
+          }
         }
       }
 
       // here we have all scans submitted
       println("Waiting for %d scan to finish", submitted);
-      while (submitted > 0) {
-        final Summary summary = completion.take().get();
-        results.add(summary);
-        submitted--;
+      while (!queue.isEmpty()) {
+        Future<Summary> fts = queue.remove();
+        if (fts.isDone()) {
+          results.add(fts.get());
+        } else {
+          queue.add(fts);
+        }
       }
 
     } catch (LimitReachedException ex) {
@@ -181,8 +194,8 @@ public class ExtendedDu extends StoreEntryPoint {
     long bytesPerFile = (files > 0 ? totalSize / files : 0);
     println("");
     heading("Disk usage of %s", source);
-    println("Found %s files, %,.2f milliseconds per file",
-        files, millisPerFile);
+    println("Found %s files, time taken %,.2f, %,.2f milliseconds per file",
+        files, (float)duration.value(), millisPerFile);
     println("Data size %siB (%,d bytes)",
         long2String(totalSize, "", DECIMAL_PLACES), totalSize);
     println("Average file size %siB (%,d bytes)",
@@ -225,6 +238,42 @@ public class ExtendedDu extends StoreEntryPoint {
       sb.append('}');
       return sb.toString();
     }
+  }
+
+  private Summary scanOneDirBFS(final PrintStream out, Path path) throws IOException {
+    long size = 0;
+    int count = 0;
+    RemoteIterator<FileStatus> lister = null;
+    try (StoreDurationInfo duration = new StoreDurationInfo(out,
+        "List %s", path)){
+      lister = fs.listStatusIterator(path);
+      while (lister.hasNext()) {
+        final FileStatus status = lister.next();
+        long len = status.getLen();
+        count ++;
+        if (!status.isFile()) {
+          printIfVerbose("Pushing path:", path.toString());
+          queue.add(completion.submit(() -> scanOneDirBFS(out, status.getPath())));
+          continue;
+        }
+        size += len;
+        updateValues(1, len);
+      }
+    } catch (InterruptedIOException | RejectedExecutionException interrupted) {
+      println("Interrupted");
+      LOG.debug("Interrupted", interrupted);
+    } catch (AccessDeniedException | PathAccessDeniedException denied) {
+      println("Access denied listing %s", path);
+    } catch (FileNotFoundException | LimitReachedException end) {
+      // path has been deleted; ignore
+    } finally {
+      if (lister != null) {
+        printIfVerbose("List iterator: %s", lister);
+        maybeClose(lister);
+      }
+    }
+    final Summary summary = new Summary(path, size, count);
+    return summary;
   }
 
   private Summary scanOneDir(final PrintStream out, Path path) throws IOException {

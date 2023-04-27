@@ -52,6 +52,8 @@ public final class CommonParameters {
   /** {@value}. */
   public static final String THREADS = "threads";
 
+  public static final String BFS = "bfs";
+
   private CommonParameters() {
   }
 }
