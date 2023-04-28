@@ -650,6 +650,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
     String endpoint = conf.getTrimmed(ENDPOINT, "").toLowerCase(Locale.ROOT);
     String region = conf.getTrimmed(REGION, "").toLowerCase(Locale.ROOT);
     String bucket = getFsURI().getHost();
+    boolean privateLink = false;
 
 
     boolean secureConnections = conf.getBoolean(SECURE_CONNECTIONS,
@@ -660,15 +661,6 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
     printout.println("%s = \"%s\"", PATH_STYLE_ACCESS, pathStyleAccess);
     printout.println("%s = \"%s\"", SECURE_CONNECTIONS, secureConnections);
 
-    if (endpoint.startsWith("https:") || endpoint.startsWith("http:")) {
-      printout.warn("Value of %s looks like a URL: %s", ENDPOINT, endpoint);
-      printout.println("It SHOULD normally be a hostname or IP address");
-      printout.println("Unless you have a private store with a non-standard port or"
-          + " are using AWS S3 PrivateLink");
-      if (!pathStyleAccess) {
-        printout.warn("You should probably set %s to true", PATH_STYLE_ACCESS);
-      }
-    }
     boolean isUsingAws = false;
     if (endpoint.isEmpty()) {
       isUsingAws = true;
@@ -680,11 +672,12 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
             + " tune " + PATH_STYLE_ACCESS
             + " and " + SECURE_CONNECTIONS + " as appropriate");
       }
-    } else if (endpoint.endsWith("amazonaws.cn")) {
+    } else if (endpoint.endsWith("amazonaws.cn") || endpoint.endsWith("amazonaws.cn/")) {
       isUsingAws = true;
       printout.println("AWS china is in use");
-    } else if (endpoint.endsWith(".vpce.amazonaws.com")) {
+    } else if (endpoint.endsWith(".vpce.amazonaws.com") || endpoint.endsWith(".vpce.amazonaws.com/")) {
       isUsingAws = true;
+      privateLink = true;
       printout.println("AWS VPCE is being used for a VPN connection to S3");
       printout.warn("you MUST set %s to the region of this store; it is currently \"%s\"",
           REGION, region);
@@ -721,7 +714,17 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       }
 
     }
-    if (isUsingAws) {
+
+    if (!privateLink && (endpoint.startsWith("https:") || endpoint.startsWith("http:"))) {
+      printout.warn("Value of %s looks like a URL: %s", ENDPOINT, endpoint);
+      printout.println("It SHOULD normally be a hostname or IP address");
+      printout.println("Unless you have a private store with a non-standard port or"
+          + " are using AWS S3 PrivateLink");
+      if (!pathStyleAccess) {
+        printout.warn("You should probably set %s to true", PATH_STYLE_ACCESS);
+      }
+    }
+    if (!privateLink && isUsingAws) {
       printout.println("Important: if you are working with a third party store,");
       printout.println(" this client is still trying to connect to to AWS S3");
       printout.println("Expect failure until %s is set to the private endpoint", ENDPOINT);

@@ -28,7 +28,7 @@ mvn clean install -Phadoop-3.3.2 -Pextra
 To publish the release use the gui or the github command line
 
 ```bash
-set -gx date 2023-03-03
+set -gx date 2023-04-28
 git add .
 git commit -S -m "release $date"
 git push
