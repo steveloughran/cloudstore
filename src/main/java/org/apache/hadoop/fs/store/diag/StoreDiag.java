@@ -233,6 +233,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
       tlsInfo();
     }
     probeAllEndpoints();
+    storeInfo.preflightFilesystemChecks(this, path);
 
     // and the filesystem operations
     final boolean completed = executeFileSystemOperations(path, writeOperations);
@@ -479,16 +480,13 @@ public class StoreDiag extends DiagnosticsEntryPoint {
     final String host = endpoint.getHost();
 
     heading("Endpoint: %s", endpoint);
-    InetAddress addr = null;
     try {
-      addr = InetAddress.getByName(host);
+      printCanonicalHostname(this, host);
     } catch (UnknownHostException e) {
       warn("Host %s unknown", endpoint);
       return;
     }
-    println("Canonical hostname %s%n  IP address %s",
-        addr.getCanonicalHostName(),
-        addr.getHostAddress());
+
     if ("0.0.0.0".equals(host)) {
       return;
     }
@@ -547,6 +545,19 @@ public class StoreDiag extends DiagnosticsEntryPoint {
     }
   }
 
+  /**
+   * Determine the canonical name of a host.
+   * @param out printer
+   * @param host host to resolve
+   * @throws UnknownHostException if the host doesn't exist
+   */
+  public static void printCanonicalHostname(final Printout out, final String host)
+      throws UnknownHostException {
+    InetAddress addr = InetAddress.getByName(host);
+    out.println("Canonical hostname %s%n  IP address %s",
+        addr.getCanonicalHostName(),
+        addr.getHostAddress());
+  }
 
   /**
    * Probe all the required classes from base settings,
@@ -767,7 +778,6 @@ public class StoreDiag extends DiagnosticsEntryPoint {
 
     }
 
-    storeInfo.validateFilesystem(this, baseDir, fs);
 
 
     Path root = fs.makeQualified(new Path("/"));
@@ -780,6 +790,8 @@ public class StoreDiag extends DiagnosticsEntryPoint {
           "Not found %s: %s", root, e.toString())
           .initCause(e));
     }
+
+    storeInfo.validateFilesystem(this, baseDir, fs);
 
     FileStatus firstFile = null;
     int limit = LIST_LIMIT;

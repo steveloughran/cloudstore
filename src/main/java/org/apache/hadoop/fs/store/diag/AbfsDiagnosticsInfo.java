@@ -24,6 +24,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -33,7 +34,6 @@ import org.slf4j.LoggerFactory;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataOutputStream;
-import org.apache.hadoop.fs.FSDataOutputStreamBuilder;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.azurebfs.constants.FileSystemConfigurations;
@@ -45,6 +45,7 @@ import static org.apache.hadoop.fs.store.diag.CapabilityKeys.*;
 import static org.apache.hadoop.fs.store.diag.OptionSets.HADOOP_TMP_DIR;
 import static org.apache.hadoop.fs.store.diag.OptionSets.JAVA_NET_SYSPROPS;
 import static org.apache.hadoop.fs.store.diag.OptionSets.STANDARD_SYSPROPS;
+import static org.apache.hadoop.fs.store.diag.StoreDiag.printCanonicalHostname;
 
 /**
  * Abfs diagnostics.
@@ -417,6 +418,28 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
     addUriOption(uris, conf, "fs.azure.account.oauth2.refresh.token.endpoint", "",
         "https://login.microsoftonline.com/Common/oauth2/token");
     return uris;
+  }
+
+  /**
+   * Any preflight checks of the filesystem config/url etc.
+   * @param printout output
+   * @param path path which will be used
+   * @throws IOException failure.
+   */
+  @Override
+  public void preflightFilesystemChecks(final Printout printout,
+        final Path path) throws IOException {
+
+    // look at the host of the account
+    final String host = getFsURI().getHost();
+    try (StoreDurationInfo ignored = new StoreDurationInfo(LOG,
+            "Probing for account name being a valid host")) {
+      printCanonicalHostname(printout, host);
+    } catch (UnknownHostException e) {
+      printout.warn("The hostname of the filesystem %s is unknown.", getFsURI());
+      printout.warn( "This means the account %s does not exist", host);
+      throw e;
+    }
   }
 
   @Override

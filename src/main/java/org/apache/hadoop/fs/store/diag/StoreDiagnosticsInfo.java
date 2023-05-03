@@ -508,6 +508,17 @@ public class StoreDiagnosticsInfo {
   }
 
   /**
+   * Any preflight checks of the filesystem config/url etc.
+   * @param printout output
+   * @param path path which will be used
+   * @throws IOException failure.
+   */
+  public void preflightFilesystemChecks(Printout printout,
+      Path path) throws IOException {
+
+  }
+
+  /**
    * Perform any validation of the filesystem itself (is it the right type,
    * are there any options you can check for. This is
    * called after the FS has been created, but before any read or
