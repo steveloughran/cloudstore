@@ -1012,8 +1012,8 @@ public class StoreDiag extends DiagnosticsEntryPoint {
         in.close();
         println("input stream summary: %s", in);
         if (!HELLO.equals(utf)) {
-          throw new StoreDiagException("Expected  %s to contain the text %s"
-              + " -but it has the text \"%s",
+          throw new StoreDiagException("Expected %s to contain the text %s"
+              + " -but it has the text \"%s\"",
               HELLO, file, utf);
         }
       } finally {
