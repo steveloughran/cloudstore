@@ -45,6 +45,7 @@ import static org.apache.hadoop.fs.store.diag.CapabilityKeys.*;
 import static org.apache.hadoop.fs.store.diag.OptionSets.HADOOP_TMP_DIR;
 import static org.apache.hadoop.fs.store.diag.OptionSets.JAVA_NET_SYSPROPS;
 import static org.apache.hadoop.fs.store.diag.OptionSets.STANDARD_SYSPROPS;
+import static org.apache.hadoop.fs.store.diag.OptionSets.X509;
 import static org.apache.hadoop.fs.store.diag.StoreDiag.printCanonicalHostname;
 
 /**
@@ -224,11 +225,15 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
   };
 
   public static final String[] optionalClassnames = {
+      // SSL stuff
       "org.wildfly.openssl.OpenSSLProvider",
+      X509,
+      // guavae
       "com.google.common.base.Preconditions",
       "org.apache.hadoop.thirdparty.com.google.common.base.Preconditions",
-      "org.apache.hadoop.mapreduce.lib.output.committer.manifest.ManifestCommitter",
+      // manifest committer
       "org.apache.hadoop.fs.EtagSource",
+      "org.apache.hadoop.mapreduce.lib.output.committer.manifest.ManifestCommitter",
       "org.apache.hadoop.mapreduce.lib.output.ResilientCommitByRenameHelper",
       // extra stuff from extension modules
       "org.apache.knox.gateway.cloud.idbroker.abfs.AbfsIDBTokenIdentifier",

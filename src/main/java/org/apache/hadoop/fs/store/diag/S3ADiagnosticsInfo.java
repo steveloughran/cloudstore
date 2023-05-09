@@ -63,6 +63,7 @@ import static org.apache.hadoop.fs.store.diag.HBossConstants.CAPABILITY_HBOSS;
 import static org.apache.hadoop.fs.store.diag.OptionSets.HTTP_CLIENT_RESOURCES;
 import static org.apache.hadoop.fs.store.diag.OptionSets.STANDARD_ENV_VARS;
 import static org.apache.hadoop.fs.store.diag.OptionSets.STANDARD_SYSPROPS;
+import static org.apache.hadoop.fs.store.diag.OptionSets.X509;
 
 /**
  * Reminder: do not cast to any S3A FS class or reference Constants so
@@ -400,9 +401,12 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       "org.apache.hadoop.fs.s3a.ArnResource",
       "",
 
+      // SSL stuff
+      "org.wildfly.openssl.OpenSSLProvider",
+      X509,
+
       // extra stuff from extension modules
       "org.apache.knox.gateway.cloud.idbroker.s3a.IDBDelegationTokenBinding",
-      "org.wildfly.openssl.OpenSSLProvider",
       "org.apache.ranger.raz.hook.s3.RazS3ADelegationTokenIdentifier",
 
       // HBase HBoss

@@ -174,6 +174,11 @@ public class OptionSets {
       MOZILLA_PUBLIC_SUFFIX_LIST
   };
 
+  /**
+   * X509 class used by wildfly and not in java17.
+   */
+  public static final String X509 = "com.sun.security.cert.internal.x509.X509V1CertImpl";
+
   public static final String HADOOP_TMP_DIR = "hadoop.tmp.dir";
 
 
