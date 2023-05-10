@@ -58,6 +58,7 @@ import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_DI
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_DIRECTORY_MARKER_POLICY_AUTHORITATIVE;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_DIRECTORY_MARKER_POLICY_DELETE;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_DIRECTORY_MARKER_POLICY_KEEP;
+import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_DIRECTORY_MULTIPART_UPLOAD_ENABLED;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_MAGIC_COMMITTER;
 import static org.apache.hadoop.fs.store.diag.HBossConstants.CAPABILITY_HBOSS;
 import static org.apache.hadoop.fs.store.diag.OptionSets.HTTP_CLIENT_RESOURCES;
@@ -101,6 +102,19 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
 
   public static final String FS_S3A_MULTIPART_SIZE = "fs.s3a.multipart.size";
 
+  // minimum size in bytes before we start a multipart uploads or copy
+  public static final String MIN_MULTIPART_THRESHOLD =
+      "fs.s3a.multipart.threshold";
+
+  /**
+   * Option to enable or disable the multipart uploads.
+   * Value: {@value}.
+   * <p>
+   * Default is {@link #DEFAULT_MULTIPART_UPLOAD_ENABLED}.
+   */
+  public static final String MULTIPART_UPLOADS_ENABLED = "fs.s3a.multipart.uploads.enabled";
+
+
   public static final String FS_S3A_FAST_UPLOAD_BUFFER =
       "fs.s3a.fast.upload.buffer";
 
@@ -133,6 +147,20 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       "fs.s3a.server-side-encryption-algorithm";
 
   public static final String SERVER_SIDE_ENCRYPTION_KEY = "fs.s3a.server-side-encryption.key";
+
+  /**
+   * Controls whether the prefetching input stream is enabled.
+   */
+  public static final String PREFETCH_ENABLED_KEY = "fs.s3a.prefetch.enabled";
+
+  /**
+   * The size of a single prefetched block in number of bytes.
+   */
+  public static final String PREFETCH_BLOCK_SIZE_KEY = "fs.s3a.prefetch.block.size";
+  /**
+   * Maximum number of blocks prefetched at any given time.
+   */
+  public static final String PREFETCH_BLOCK_COUNT_KEY = "fs.s3a.prefetch.block.count";
 
   private static final Object[][] options = {
       /* Core auth */
@@ -182,10 +210,12 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {DISABLE_CACHE, false, false},
       {"fs.s3a.list.version", false, false},
       {"fs.s3a.max.total.tasks", false, false},
-      {FS_S3A_MULTIPART_SIZE, false, false},
       {"fs.s3a.multiobjectdelete.enable", false, false},
+      {FS_S3A_MULTIPART_SIZE, false, false},
+      {MULTIPART_UPLOADS_ENABLED, false, false},
       {"fs.s3a.multipart.purge", false, false},
       {"fs.s3a.multipart.purge.age", false, false},
+      {MIN_MULTIPART_THRESHOLD, false, false},
       {"fs.s3a.paging.maximum", false, false},
       {"fs.s3a.prefetch.enabled", false, false},
       {"fs.s3a.prefetch.block.count", false, false},
@@ -434,8 +464,10 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       STORE_CAPABILITY_DIRECTORY_MARKER_POLICY_AUTHORITATIVE,
       STORE_CAPABILITY_DIRECTORY_MARKER_ACTION_KEEP,
       STORE_CAPABILITY_DIRECTORY_MARKER_ACTION_DELETE,
+      STORE_CAPABILITY_DIRECTORY_MULTIPART_UPLOAD_ENABLED,
       FS_S3A_CREATE_PERFORMANCE,
       FS_S3A_CREATE_HEADER,
+
 
       // hboss if wrapped by it
       CAPABILITY_HBOSS
