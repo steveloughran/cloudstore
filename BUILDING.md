@@ -25,14 +25,17 @@ To build a production release
 mvn clean install -Phadoop-3.3.2 -Pextra
 ```
 
+## Releasing
+
 To publish the release use the gui or the github command line
 
 ```bash
-set -gx date 2023-04-28
+set -gx now (date '+%Y-%m-%d')
+echo [$now]
 git add .
-git commit -S -m "release $date"
+git commit -S -m "release $now"
 git push
-gh release create tag-release-$date -t release-$date -n "release of $date" -d target/cloudstore-1.0.jar
+gh release create tag-release-$now -t release-$now -n "release of $now" -d target/cloudstore-1.0.jar
 # then go to the web ui to review and finalize the relese
 ```
 

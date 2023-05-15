@@ -821,9 +821,9 @@ Expect a stack trace in the report
 
 ## Command `tlsinfo`
 
-Print out tls information. The `storediag` command prints the same information;
-this command purely looks at the JVM settings.
+Print out tls information, and X509 certificates.
 
+The `-verbose` option prints the full details about each CA, rather than just their principals' names.
 
 ## Command `undelete`
 
