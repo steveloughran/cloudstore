@@ -18,15 +18,23 @@
 
 package org.apache.hadoop.fs.store.commands;
 
+import java.security.KeyStore;
+import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
+import java.security.cert.X509Certificate;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLParameters;
+import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.X509TrustManager;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.apache.hadoop.fs.store.diag.DiagnosticsEntryPoint;
+import org.apache.hadoop.fs.store.diag.Printout;
 import org.apache.hadoop.util.ToolRunner;
 
 import static org.apache.hadoop.fs.store.CommonParameters.DEFINE;
@@ -49,34 +57,8 @@ public class TLSInfo extends DiagnosticsEntryPoint {
       + optusage(VERBOSE, "verbose output");
 
   public TLSInfo() {
-    createCommandFormat(1, 999, VERBOSE);
+    createCommandFormat(0, 0, VERBOSE);
     addValueOptions(XMLFILE, DEFINE);
-  }
-
-  /**
-   * Print information about TLS.
-   */
-  public void tlsInfo() {
-
-    lookupAndPrintSanitizedValues(TLS_SYSPROPS,
-        "TLS System Properties",
-        System::getProperty);
-    println();
-    try {
-      final SSLContext sslContext = SSLContext.getDefault();
-      final SSLParameters sslParameters =
-          sslContext.getSupportedSSLParameters();
-      final String[] protocols = sslParameters.getProtocols();
-      heading("HTTPS supported protocols");
-      for (String protocol : protocols) {
-        println("    %s", protocol);
-      }
-    } catch (NoSuchAlgorithmException e) {
-      LOG.warn("failed to create SSL context", e);
-    }
-    println();
-    println("See https://www.java.com/en/configure_crypto.html");
-    println();
   }
 
   @Override
@@ -86,8 +68,62 @@ public class TLSInfo extends DiagnosticsEntryPoint {
       errorln(USAGE);
       return E_USAGE;
     }
-    tlsInfo();
+    lookupAndPrintSanitizedValues(TLS_SYSPROPS,
+        "TLS System Properties",
+        System::getProperty);
+    println();
+    tlsInfo(this);
+    certInfo(this, isVerbose());
     return 0;
+  }
+
+  /**
+   * Print information about TLS.
+   * @param printout output
+   */
+  public static void tlsInfo(final Printout printout) {
+
+
+    try {
+      final SSLContext sslContext = SSLContext.getDefault();
+      final SSLParameters sslParameters =
+          sslContext.getSupportedSSLParameters();
+      final String[] protocols = sslParameters.getProtocols();
+      printout.heading("HTTPS supported protocols");
+      for (String protocol : protocols) {
+        printout.println("    %s", protocol);
+      }
+    } catch (NoSuchAlgorithmException e) {
+      LOG.warn("failed to create SSL context", e);
+    }
+    printout.println();
+    printout.println("See https://www.java.com/en/configure_crypto.html");
+    printout.println();
+  }
+
+  public static void certInfo(final Printout printout, final boolean verbose) {
+
+    try {
+      TrustManagerFactory trustManagerFactory =
+         TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+      List<X509Certificate> x509Certificates = new ArrayList<>();
+      trustManagerFactory.init((KeyStore)null);
+      Arrays.asList(trustManagerFactory.getTrustManagers()).stream().forEach(t -> {
+                          x509Certificates.addAll(Arrays.asList(((X509TrustManager)t).getAcceptedIssuers()));
+                      });
+      printout.heading("Certificates from the default certificate manager");
+      int counter = 1;
+      for (X509Certificate cert : x509Certificates) {
+        printout.println("[%03d] %s: %s",
+            counter,
+            cert.getSubjectX500Principal().toString(),
+            verbose ? cert.toString() : "");
+        counter++;
+      }
+    } catch (NoSuchAlgorithmException | KeyStoreException e) {
+      printout.warn("Failed to retrieve keystore %s", e.toString());
+      LOG.warn("Stack trace", e);
+    }
   }
 
   /**

@@ -22,7 +22,18 @@ import java.io.IOException;
 
 import org.apache.hadoop.conf.Configuration;
 
+/**
+ * API for printing.
+ */
 public interface Printout {
+
+  void println();
+
+  /**
+   * Print a formatted string followed by a newline to the output stream.
+   * @param format format string
+   */
+  void println(String format);
 
   /**
    * Print a formatted string followed by a newline to the output stream.
@@ -30,6 +41,18 @@ public interface Printout {
    * @param args optional arguments
    */
   void println(String format, Object... args);
+
+  /**
+   * Flush the stream.
+   */
+  void flush();
+
+  /**
+   * Print a formatted string without any newline.
+   * @param format format string
+   * @param args optional arguments
+   */
+  void print(String format, Object... args);
 
   /**
    * Print a warning.

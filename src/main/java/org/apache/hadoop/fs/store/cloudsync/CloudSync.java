@@ -26,9 +26,9 @@ import org.apache.hadoop.fs.tools.cloudup.Cloudup;
 
 public class CloudSync extends StoreEntryPoint {
 
-    private static final Logger LOG = LoggerFactory.getLogger(Cloudup.class);
+    private static final Logger LOG = LoggerFactory.getLogger(CloudSync.class);
 
     public static final String USAGE
-        = "Usage: cloudup -s source -d dest [-o] [-i] [-l <largest>] [-t threads] ";
+        = "Usage: cloudsync -s source -d dest [-o] [-i] [-l <largest>] [-t threads] ";
 
   }

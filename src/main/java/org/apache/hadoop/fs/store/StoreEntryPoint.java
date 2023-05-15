@@ -147,9 +147,10 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
     this.out = out;
   }
 
+  @Override
   public final void println() {
     out.println();
-    out.flush();
+    flush();
   }
 
   /**
@@ -157,10 +158,11 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
    * @param format format string
    * @param args optional arguments
    */
+  @Override
   public void println(String format) {
     print(format);
     out.println();
-    out.flush();
+    flush();
   }
 
   /**
@@ -171,6 +173,14 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
   public void println(String format, Object... args) {
     print(format, args);
     out.println();
+    flush();
+  }
+
+  /**
+   * Flush the stream.
+   */
+  @Override
+  public void flush() {
     out.flush();
   }
 
@@ -179,7 +189,8 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
    * @param format format string
    * @param args optional arguments
    */
-  protected final void print(String format, Object... args) {
+  @Override
+  public final void print(String format, Object... args) {
     if (args.length == 0) {
       out.print(format);
     } else {
