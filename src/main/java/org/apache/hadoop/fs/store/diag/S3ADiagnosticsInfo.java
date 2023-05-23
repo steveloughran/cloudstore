@@ -19,8 +19,6 @@
 package org.apache.hadoop.fs.store.diag;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -35,6 +33,8 @@ import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.s3a.S3AFileStatus;
+import org.apache.hadoop.fs.s3a.S3AUtils;
+import org.apache.hadoop.fs.s3native.S3xLoginHelper;
 import org.apache.hadoop.fs.store.StoreExitException;
 
 import static org.apache.hadoop.fs.s3a.Constants.BUFFER_DIR;
@@ -44,6 +44,8 @@ import static org.apache.hadoop.fs.s3a.Constants.INPUT_FADV_NORMAL;
 import static org.apache.hadoop.fs.s3a.Constants.INPUT_FADV_RANDOM;
 import static org.apache.hadoop.fs.s3a.Constants.INPUT_FADV_SEQUENTIAL;
 import static org.apache.hadoop.fs.s3a.Constants.SECURE_CONNECTIONS;
+import static org.apache.hadoop.fs.s3a.S3AUtils.getAWSAccessKeys;
+import static org.apache.hadoop.fs.store.StoreEntryPoint.getOrigins;
 import static org.apache.hadoop.fs.store.StoreUtils.cat;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.ABORTABLE_STREAM;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.ETAGS_AVAILABLE;
@@ -60,6 +62,7 @@ import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_DI
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_DIRECTORY_MARKER_POLICY_KEEP;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_DIRECTORY_MULTIPART_UPLOAD_ENABLED;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_MAGIC_COMMITTER;
+import static org.apache.hadoop.fs.store.diag.DiagnosticsEntryPoint.sanitize;
 import static org.apache.hadoop.fs.store.diag.HBossConstants.CAPABILITY_HBOSS;
 import static org.apache.hadoop.fs.store.diag.OptionSets.HTTP_CLIENT_RESOURCES;
 import static org.apache.hadoop.fs.store.diag.OptionSets.STANDARD_ENV_VARS;
@@ -373,8 +376,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
    */
   public static final String[] CLASSNAMES = {
       S3AFS_CLASSNAME,
-      "com.amazonaws.services.s3.AmazonS3",
-      "com.amazonaws.ClientConfiguration",
+
       "java.lang.System",
   };
 
@@ -382,15 +384,25 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
    * Optional classes.
    */
   public static final String[] OPTIONAL_CLASSNAMES = {
+      // v1 sdk
+      "com.amazonaws.services.s3.AmazonS3",
+      "com.amazonaws.ClientConfiguration",
+      "com.amazonaws.auth.EnvironmentVariableCredentialsProvider",
       // AWS features outwith the aws-s3-sdk JAR and needed for later releases.
       // STS
       "com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClient",
+
       // region support
       "com.amazonaws.regions.AwsRegionProvider",
       "com.amazonaws.regions.AwsEnvVarOverrideRegionProvider",
       "com.amazonaws.regions.AwsSystemPropertyRegionProvider",
       "com.amazonaws.regions.InstanceMetadataRegionProvider",
       "com.amazonaws.internal.TokenBucket",
+
+      // v2 SDK
+      "software.amazon.awssdk.auth.credentials.AwsCredentialsProvider",
+      "software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider",
+      "software.amazon.awssdk.core.exception.SdkException",
 
       /* Jackson stuff */
       "com.fasterxml.jackson.annotation.JacksonAnnotation",
@@ -482,6 +494,8 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
 
   public static final String KEEP = "keep";
 
+  public static final int SECRET_KEY_EXPECTED_LENGTH = 30;
+
   public S3ADiagnosticsInfo(final URI fsURI, final Printout output) {
     super(fsURI, output);
   }
@@ -542,28 +556,15 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
   }
 
   /**
-   * Patch the config. This uses reflection to work on Hadoop 2.7.
+   * Patch the config. Originally used reflection to work on Hadoop 2.7;
+   * now just calls S3AUtils.
    * @param conf initial configuration.
    * @return patched config.
    */
   @Override
   public Configuration patchConfigurationToInitalization(
       final Configuration conf) {
-    try {
-      Class<?> aClass = getClass().getClassLoader()
-          .loadClass("org.apache.hadoop.fs.s3a.S3AUtils");
-      Method m = aClass.getMethod("propagateBucketOptions",
-          Configuration.class,
-          String.class);
-      return (Configuration) m.invoke(null, conf, getFsURI().getHost());
-    } catch (ClassNotFoundException e) {
-      LOG.error("S3AUtils not found: hadoop-aws is not on the classpath", e);
-      // this will carry on elsewhere
-    } catch (NoSuchMethodException
-             | IllegalAccessException
-             | InvocationTargetException e) {
-      LOG.info("S3AUtils.propagateBucketOptions() not found; assume old Hadoop version");
-    }
+    S3AUtils.propagateBucketOptions(conf, getFsURI().getHost());
     return conf;
   }
 
@@ -801,6 +802,39 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       // TODO: analyse default values.
     }
 
+    printout.heading("Analyzing login credentials");
+    final S3xLoginHelper.Login accessKeys = getAWSAccessKeys(getFsURI(), conf);
+    String accessKey = accessKeys.getUser();
+    String secretKey = accessKeys.getPassword();
+    String sessionToken = lookupPassword(conf, SESSION_TOKEN, "");
+    if (accessKey.isEmpty()) {
+      printout.warn("No S3A access key defined; env var or other auth mechanism must be active");
+    } else {
+      printout.println("access key %s",
+          sanitize(accessKey, false));
+      // there is a key, validate things approximately
+      if (accessKey.length() < 16) {
+        printout.warn("Key length (%d) too short for AWS", accessKey.length());
+      }
+      if (secretKey.isEmpty()) {
+        printout.warn("Access key set in %s, but secret key is not set", ACCESS_KEY, SECRET_KEY);
+      } else {
+        final int secretLen = secretKey.length();
+        if (secretLen < SECRET_KEY_EXPECTED_LENGTH) {
+          printout.warn(
+              "Length of secret key from %s expected to be 30 characters long, but is %d characters",
+              SECRET_KEY, secretLen);
+        } else {
+          printout.println("Secret key length is %d characters", secretLen);
+        }
+        if (sessionToken.isEmpty()) {
+          printout.println("Connector has access key, secret key and no session token");
+        } else {
+          printout.println("Connector has access key, secret key and session token");
+        }
+      }
+
+    }
 
     // now print everything fs.s3a.ext, assuming that
     // there are no secrets in it. Don't do that.
@@ -935,4 +969,23 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
     }
   }
 
+  /**
+   * Get a password from a configuration/configured credential providers.
+   * @param conf configuration
+   * @param key key to look up
+   * @param defVal value to return if there is no password
+   * @return a password or the value in {@code defVal}
+   * @throws IOException on any problem
+   */
+  private static String lookupPassword(Configuration conf, String key, String defVal)
+      throws IOException {
+    try {
+      final char[] pass = conf.getPassword(key);
+      return pass != null
+          ? new String(pass).trim()
+          : defVal;
+    } catch (IOException ioe) {
+      throw new IOException("Cannot find password option " + key, ioe);
+    }
+  }
 }

@@ -624,10 +624,7 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
       full = "(unset)";
     } else {
       option = maybeSanitize(option, obfuscate);
-      String[] origins = conf.getPropertySources(key);
-      if (origins != null && origins.length != 0) {
-        source = "[" + StringUtils.join(",", origins) + "]";
-      }
+      source = getOrigins(conf, key, source);
       full = option + " " + source;
     }
     // pretty inefficient to do this every option, but
@@ -637,6 +634,22 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
       full = full + "[final]";
     }
     println("[%03d]  %s = %s", index, key, full);
+  }
+
+  /**
+   * Get the origin of a config as a string.
+   * @param conf configuration
+   * @param key key
+   * @param sourceDefault default string.
+   * @return a source string
+   */
+  public static String getOrigins(final Configuration conf, final String key, String sourceDefault) {
+    String source = sourceDefault;
+    String[] origins = conf.getPropertySources(key);
+    if (origins != null && origins.length != 0) {
+      source = "[" + StringUtils.join(",", origins) + "]";
+    }
+    return source;
   }
 
   protected static final class LimitReachedException extends IOException {

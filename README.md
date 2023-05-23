@@ -678,6 +678,12 @@ came in HADOOP-17156/
 
 See [mkcsv](src/main/site/mkcsv.md)
 
+## Command `mkbucket`
+
+Creates a new bucket
+
+See [mkcsv](src/main/site/mkbucket.md)
+
 ## Command `pathcapability`
 
 Probes a filesystem for offering a specific named capability on the given path.

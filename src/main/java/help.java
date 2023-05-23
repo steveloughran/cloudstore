@@ -60,8 +60,9 @@ public class help extends Command {
     printCommand("iampolicy", "generate AWS IAM policy");
     printCommand("listobjects", "list S3 objects and their translated statuses");
     printCommand("listversions", "list all versions of S3 objects under a path");
+    printCommand("mkbucket", "Create an S3 bucket");
     printCommand("regions\t", "emulate region lookup of AWS SDK");
-    printCommand("restore", "Restore a versioned S3 object");
+    printCommand("restore\t", "Restore a versioned S3 object");
     printCommand("sessionkeys", "generate AWS session keys from a long-lived login");
     println("%nThese are only available on some builds and require a compatible hadoop release");
 

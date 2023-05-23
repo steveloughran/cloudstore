@@ -16,19 +16,18 @@
  * limitations under the License.
  */
 
-package org.apache.hadoop.fs.store.cloudsync;
+import org.apache.hadoop.fs.s3a.extra.MkBucket;
+import org.apache.hadoop.fs.store.commands.Command;
+import org.apache.hadoop.fs.tools.csv.MkCSV;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+public class mkbucket extends Command {
 
-import org.apache.hadoop.fs.store.StoreEntryPoint;
-import org.apache.hadoop.fs.tools.cloudup.Cloudup;
-
-public class CloudSync extends StoreEntryPoint {
-
-    private static final Logger LOG = LoggerFactory.getLogger(CloudSync.class);
-
-    public static final String USAGE
-        = "Usage: cloudsync -s source -d dest [-o] [-i] [-l <largest>] [-t threads] ";
-
+  public static void main(String[] args) throws Exception {
+    MkBucket.main(args);
   }
+
+  public static void help() {
+    printCommand("mkbucket", "Create an S3 bucket");
+  }
+
+}

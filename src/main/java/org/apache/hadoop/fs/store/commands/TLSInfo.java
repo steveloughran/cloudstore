@@ -23,7 +23,6 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLParameters;
@@ -37,6 +36,7 @@ import org.apache.hadoop.fs.store.diag.DiagnosticsEntryPoint;
 import org.apache.hadoop.fs.store.diag.Printout;
 import org.apache.hadoop.util.ToolRunner;
 
+import static java.util.Arrays.asList;
 import static org.apache.hadoop.fs.store.CommonParameters.DEFINE;
 import static org.apache.hadoop.fs.store.CommonParameters.VERBOSE;
 import static org.apache.hadoop.fs.store.CommonParameters.XMLFILE;
@@ -101,16 +101,21 @@ public class TLSInfo extends DiagnosticsEntryPoint {
     printout.println();
   }
 
+  /**
+   * Print out certificate info.
+   * @param printout dest
+   * @param verbose verbose output
+   */
   public static void certInfo(final Printout printout, final boolean verbose) {
 
     try {
       TrustManagerFactory trustManagerFactory =
-         TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+          TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
       List<X509Certificate> x509Certificates = new ArrayList<>();
-      trustManagerFactory.init((KeyStore)null);
-      Arrays.asList(trustManagerFactory.getTrustManagers()).stream().forEach(t -> {
-                          x509Certificates.addAll(Arrays.asList(((X509TrustManager)t).getAcceptedIssuers()));
-                      });
+      trustManagerFactory.init((KeyStore) null);
+      asList(trustManagerFactory.getTrustManagers()).stream()
+          .forEach(t ->
+              x509Certificates.addAll(asList(((X509TrustManager) t).getAcceptedIssuers())));
       printout.heading("Certificates from the default certificate manager");
       int counter = 1;
       for (X509Certificate cert : x509Certificates) {

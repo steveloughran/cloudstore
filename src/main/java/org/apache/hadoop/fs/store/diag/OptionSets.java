@@ -144,7 +144,6 @@ public class OptionSets {
       {"sun.net.inetaddr.ttl", false},
       {"sun.net.inetaddr.negative.ttl", false},
       {"", false},
-      {"", false},
   };
 
   /**
@@ -164,6 +163,7 @@ public class OptionSets {
       {"jdk.tls.client.protocols", false},
       {"jdk.tls.disabledAlgorithms", false},
       {"jdk.tls.legacyAlgorithms", false},
+      {"com.sun.net.ssl.checkRevocation", false},
       {"", false},
   };
 
