@@ -33,6 +33,7 @@ To publish the release use the gui or the github command line
 set -gx now (date '+%Y-%m-%d')
 echo [$now]
 git add .
+git status
 git commit -S -m "release $now"
 git push
 gh release create tag-release-$now -t release-$now -n "release of $now" -d target/cloudstore-1.0.jar
