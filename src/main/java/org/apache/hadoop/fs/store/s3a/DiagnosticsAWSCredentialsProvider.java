@@ -19,6 +19,7 @@
 package org.apache.hadoop.fs.store.s3a;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
@@ -33,10 +34,6 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.s3a.auth.NoAwsCredentialsException;
 import org.apache.hadoop.util.StringUtils;
 
-import static org.apache.hadoop.fs.s3a.Constants.ACCESS_KEY;
-import static org.apache.hadoop.fs.s3a.Constants.SECRET_KEY;
-import static org.apache.hadoop.fs.s3a.Constants.SESSION_TOKEN;
-
 public class DiagnosticsAWSCredentialsProvider implements
     AWSCredentialsProvider {
 
@@ -44,10 +41,20 @@ public class DiagnosticsAWSCredentialsProvider implements
       DiagnosticsAWSCredentialsProvider.class);
 
   private static final String[] secrets = {
-      ACCESS_KEY,
-      SECRET_KEY,
-      SESSION_TOKEN
+      "fs.s3a.access.key",
+      "fs.s3a.secret.key",
+      "fs.s3a.session.token"
   };
+
+  protected static final String[] ENV_VARS = {
+      "AWS_ACCESS_KEY_ID",
+      "AWS_ACCESS_KEY",
+      "AWS_SECRET_KEY",
+      "AWS_SECRET_ACCESS_KEY",
+      "AWS_SESSION_TOKEN",
+      "AWS_REGION"
+  };
+
 
   private final Configuration conf;
 
@@ -62,9 +69,8 @@ public class DiagnosticsAWSCredentialsProvider implements
       // ignored
       digester = null;
     }
-    Arrays.stream(secrets)
-        .forEach(this::printSecretOption);
-
+    Arrays.stream(secrets).forEach(this::printSecretOption);
+    Arrays.stream(ENV_VARS).forEach(this::printEnvVar);
   }
 
   @Override
@@ -107,6 +113,10 @@ public class DiagnosticsAWSCredentialsProvider implements
     return md5sum(bytes);
   }
 
+  /**
+   * Print a secret option from the config.
+   * @param key key to resolve.
+   */
   public void printSecretOption(
       final String key) {
     String source = "";
@@ -136,6 +146,14 @@ public class DiagnosticsAWSCredentialsProvider implements
           key, sanitize(option), md5sum(password), source);
     } else {
       LOG.info("Option {} unset", key);
+    }
+  }
+
+  private void printEnvVar(String var) {
+    final String value = System.getenv(var);
+    if (value != null) {
+      LOG.info("Env Var {} = {} {}",
+          var, sanitize(value), md5sum(value.getBytes(StandardCharsets.UTF_8)));
     }
   }
 

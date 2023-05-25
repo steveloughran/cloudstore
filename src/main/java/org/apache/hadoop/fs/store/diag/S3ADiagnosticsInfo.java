@@ -335,9 +335,6 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"AWS_PROFILE", false},
       {"AWS_RETRY_MODE", false},
       {"", false},
-      {"", false},
-      {"", false},
-      {"", false},
   };
 
   /**
@@ -453,6 +450,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
 
       // HBase HBoss
       "org.apache.hadoop.hbase.oss.HBaseObjectStoreSemantics",
+      "org.apache.hadoop.fs.store.s3a.DiagnosticsAWSCredentialsProvider",
       "",
 
   };
