@@ -981,7 +981,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
           "Creating file %s", file)) {
         FSDataOutputStream data = fs.create(file, true);
         printStreamCapabilities(data, CapabilityKeys.OUTPUTSTREAM_CAPABILITIES);
-        storeInfo.validateOutputStream(this, fs,file, data);
+        storeInfo.validateOutputStream(this, fs, file, data);
 
         heading("Writing data to %s", file);
         data.writeUTF(HELLO);

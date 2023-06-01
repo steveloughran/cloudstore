@@ -64,6 +64,7 @@ public class OptionSets {
       {"fs.trash.classname", false, false},
       {"fs.trash.interval", false, false},
       {"fs.trash.checkpoint.interval", false, false},
+      {"fs.file.impl", false, false},
       {"hadoop.tmp.dir", false, false},
       {"hdp.version", false, false},
       {"yarn.resourcemanager.address", false, false},

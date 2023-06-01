@@ -45,7 +45,6 @@ import static org.apache.hadoop.fs.s3a.Constants.INPUT_FADV_RANDOM;
 import static org.apache.hadoop.fs.s3a.Constants.INPUT_FADV_SEQUENTIAL;
 import static org.apache.hadoop.fs.s3a.Constants.SECURE_CONNECTIONS;
 import static org.apache.hadoop.fs.s3a.S3AUtils.getAWSAccessKeys;
-import static org.apache.hadoop.fs.store.StoreEntryPoint.getOrigins;
 import static org.apache.hadoop.fs.store.StoreUtils.cat;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.ABORTABLE_STREAM;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.ETAGS_AVAILABLE;
@@ -112,8 +111,6 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
   /**
    * Option to enable or disable the multipart uploads.
    * Value: {@value}.
-   * <p>
-   * Default is {@link #DEFAULT_MULTIPART_UPLOAD_ENABLED}.
    */
   public static final String MULTIPART_UPLOADS_ENABLED = "fs.s3a.multipart.uploads.enabled";
 
