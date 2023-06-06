@@ -24,6 +24,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
+import com.amazonaws.auth.AWSCredentials;
+import com.amazonaws.auth.AWSSessionCredentials;
 import com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClientBuilder;
 import com.amazonaws.services.securitytoken.model.Credentials;
 import org.slf4j.Logger;
@@ -114,25 +116,43 @@ public class SessionKeys extends StoreEntryPoint {
       credentials = fs.shareCredentials("session");
       Configuration fsconf = fs.getConf();
       String bucket = fs.getBucket();
-      AWSSecurityTokenServiceClientBuilder builder = STSClientFactory2.builder(
-          fsconf, bucket, credentials);
-      STSClientFactory2.STSClient stsClient
-          = STSClientFactory2.createClientConnection(builder.build(),
-          new Invoker(new S3ARetryPolicy(conf), Invoker.LOG_EVENT));
-      Credentials sessionCreds;
-      if (!hasRole) {
-        sessionCreds = stsClient.requestSessionCredentials(36,
-            TimeUnit.HOURS);
+      String keyId;
+      String secretKey;
+      String sessionToken;
+      // look to see if the creds are already session credentials
+      if (credentials.getCredentials() instanceof AWSSessionCredentials) {
+        // already got session credentials, so just print out
+        println("Bucket credentials are allready session credentials");
+        final AWSSessionCredentials session = (AWSSessionCredentials) credentials.getCredentials();
+        keyId = session.getAWSAccessKeyId();
+        secretKey = session.getAWSSecretKey();
+        sessionToken = session.getSessionToken();
       } else {
-        sessionCreds = stsClient.requestRole(role,
-            "role-session",
-            json,
-            12, TimeUnit.HOURS);
+
+        Credentials sessionCreds;
+
+        AWSSecurityTokenServiceClientBuilder builder = STSClientFactory2.builder(
+            fsconf, bucket, credentials);
+        STSClientFactory2.STSClient stsClient
+            = STSClientFactory2.createClientConnection(builder.build(),
+            new Invoker(new S3ARetryPolicy(conf), Invoker.LOG_EVENT));
+
+        if (!hasRole) {
+          sessionCreds = stsClient.requestSessionCredentials(36,
+              TimeUnit.HOURS);
+        } else {
+          sessionCreds = stsClient.requestRole(role,
+              "role-session",
+              json,
+              12, TimeUnit.HOURS);
+        }
+
+
+        keyId = sessionCreds.getAccessKeyId();
+        secretKey = sessionCreds.getSecretAccessKey();
+        sessionToken = sessionCreds.getSessionToken();
       }
 
-      String keyId = sessionCreds.getAccessKeyId();
-      String secretKey = sessionCreds.getSecretAccessKey();
-      String sessionToken = sessionCreds.getSessionToken();
 
       String endpoint = fsconf.get("fs.s3a.endpoint");
       String region = fsconf.get("fs.s3a.endpoint.region");
