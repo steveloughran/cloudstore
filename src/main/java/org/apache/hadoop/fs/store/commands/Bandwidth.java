@@ -20,6 +20,7 @@ package org.apache.hadoop.fs.store.commands;
 
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -37,6 +38,8 @@ import org.apache.hadoop.fs.store.StoreUtils;
 import org.apache.hadoop.util.Progressable;
 import org.apache.hadoop.util.ToolRunner;
 
+import static java.util.Optional.empty;
+import static java.util.Optional.of;
 import static org.apache.hadoop.fs.store.CommonParameters.DEFINE;
 import static org.apache.hadoop.fs.store.CommonParameters.TOKENFILE;
 import static org.apache.hadoop.fs.store.CommonParameters.VERBOSE;
@@ -50,9 +53,15 @@ public class Bandwidth extends StoreEntryPoint {
 
   private static final Logger LOG = LoggerFactory.getLogger(Bandwidth.class);
 
+  public static final String KEEP = "keep";
+  public static final String RENAME = "rename";
+
+
   public static final String USAGE
       = "Usage: bandwidth [options] size <path>\n"
       + optusage(DEFINE, "key=value", "Define a property")
+      + optusage(KEEP, "do not delete the file")
+      + optusage(RENAME, "rename file to suffix .renamed")
       + optusage(TOKENFILE, "file", "Hadoop token file to load")
       + optusage(VERBOSE, "print verbose output")
       + optusage(XMLFILE, "file", "XML config file to load");
@@ -64,7 +73,7 @@ public class Bandwidth extends StoreEntryPoint {
   private byte[] dataBuffer;
 
   public Bandwidth() {
-    createCommandFormat(2, 2, VERBOSE);
+    createCommandFormat(2, 2, VERBOSE, KEEP, RENAME);
     addValueOptions(TOKENFILE, XMLFILE, DEFINE);
 
   }
@@ -77,6 +86,8 @@ public class Bandwidth extends StoreEntryPoint {
       return E_USAGE;
     }
     maybeAddTokens(TOKENFILE);
+    final boolean keep = hasOption(KEEP);
+    final boolean rename = hasOption(RENAME);
     final Configuration conf = createPreconfiguredConfig();
 
     // path on the CLI
@@ -84,6 +95,12 @@ public class Bandwidth extends StoreEntryPoint {
     String pathString = argList.get(1);
     Path path = new Path(pathString);
     println("Bandwidth test against %s with data size %s", path, size);
+    Path downloadPath = rename
+        ? new Path(path.getParent(), path.getName() + ".renamed")
+        : path;
+    if (keep) {
+      println("Retaining file %s", downloadPath);
+    }
 
     if (size.endsWith("p") || size.endsWith("t") || size.endsWith("e")) {
       warn("That's going to take a while");
@@ -151,15 +168,27 @@ public class Bandwidth extends StoreEntryPoint {
     // end of upload
     printFSInfoInVerbose(fs);
 
+    Optional<StoreDurationInfo> renameDurationTracker = empty();
+
+
+    if (rename) {
+      heading("Rename");
+      renameDurationTracker = of(new StoreDurationInfo());
+      try (StoreDurationInfo d = new StoreDurationInfo(LOG, "rename to %s", downloadPath)) {
+        fs.rename(path, downloadPath);
+      }
+      renameDurationTracker.get().finished();
+    }
     // now download
-    heading("Download");
+    heading("Download " + downloadPath);
 
     StoreDurationInfo downloadDurationTracker = new StoreDurationInfo();
     FSDataInputStream download;
-    try (StoreDurationInfo d = new StoreDurationInfo(LOG, "open %s", path)) {
-      // TODO: once we drop CDH6 support, we can move to openFile and set
-      // length and read policy
-      download = fs.open(path);
+    try (StoreDurationInfo d = new StoreDurationInfo(LOG, "open %s", downloadPath)) {
+      download = fs.openFile(downloadPath)
+          .opt("fs.option.openfile.read.policy", "whole-file")
+          .opt("fs.option.openfile.length", Long.toString(sizeBytes))
+          .build().get();
     }
     try {
       long pos = 0;
@@ -178,12 +207,17 @@ public class Bandwidth extends StoreEntryPoint {
     }
     downloadDurationTracker.finished();
 
-    try (StoreDurationInfo d = new StoreDurationInfo(LOG, "delete file %s", path)) {
-      fs.delete(path, false);
+
+    if (!keep) {
+      try (StoreDurationInfo d = new StoreDurationInfo(LOG, "delete file %s", path)) {
+        fs.delete(path, false);
+      }
     }
 
-    // now print both summaries
+    // now print summaries
     summarize("Upload", uploadDurationTracker, sizeBytes);
+    renameDurationTracker.ifPresent(t ->
+        summarize("Rename", t, sizeBytes));
     summarize("Download", downloadDurationTracker, sizeBytes);
 
     return 0;

@@ -434,8 +434,9 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       // etags
       "org.apache.hadoop.fs.EtagSource",
 
+      // access points
       "org.apache.hadoop.fs.s3a.ArnResource",
-      "",
+
 
       // SSL stuff
       "org.wildfly.openssl.OpenSSLProvider",

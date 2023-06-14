@@ -14,6 +14,7 @@
 
 # bandwidth
 
+## Command
 
 Measure upload/download bandwidth.
 
@@ -21,12 +22,20 @@ Measure upload/download bandwidth.
  bin/hadoop jar cloudstore-1.0.jar bandwidth
 Usage: bandwidth [options] size <path>
         -D <key=value>  Define a property
+        -keep   do not delete the file
+        -rename rename file to suffix .renamed
         -tokenfile <file>       Hadoop token file to load
         -verbose        print verbose output
         -xmlfile <file> XML config file to load
 ```
+
+90tions
+
+* `-keep` : keep the file (or the renamed file) rather than delete it after the download
+* `-rename` : rename the file before the download
+## Example
 ```bash
-~/P/R/hadoop-3.3.4 time bin/hadoop jar cloudstore-1.0.jar bandwidth 64M s3a://stevel-london/bw
+> bin/hadoop jar cloudstore-1.0.jar bandwidth 64M s3a://stevel-london/bw
 
 Bandwidth test against s3a://stevel-london/bw with data size 64m
 2022-07-22 19:34:07,014 [main] INFO  Configuration.deprecation (Configuration.java:logDeprecation(1441)) - fs.s3a.server-side-encryption.key is deprecated. Instead, use fs.s3a.encryption.key
@@ -272,7 +281,7 @@ This example was executed on hadoop 3.3.4 with s3a configured to dump
 iostats in `FileSystem.close()`; an MBP M1Pro connected to Gigabit FTTH connection by
 ethernet cable. The AWS S3 store was 100-120 miles away.
 
-Note how most of the upload happened in the close() call.
+Note how most of the upload happened in the `close()` call.
 This is typical when the data being written is generated faster than the upload bandwidth
 of the uplink; the `close()` call blocks until the upload is complete.
 
@@ -281,8 +290,3 @@ of problems when this happens, such as timing out if heartbeats are required to 
 generated during the upload.
 
 
-## Support on CDH6.
-
-CDH 6.x does support this command, but without the ability to support units of measurement
-for size (e.g 64M, 1T, 4P). A simple number must be supplied, which will specify
-the number of megabytes to use in the test.
