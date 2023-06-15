@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+import com.amazonaws.auth.AWSCredentials;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,7 +33,9 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.s3a.AWSCredentialProviderList;
 import org.apache.hadoop.fs.s3a.S3AFileStatus;
+import org.apache.hadoop.fs.s3a.S3AFileSystem;
 import org.apache.hadoop.fs.s3a.S3AUtils;
 import org.apache.hadoop.fs.s3native.S3xLoginHelper;
 import org.apache.hadoop.fs.store.StoreExitException;
@@ -560,8 +563,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
   @Override
   public Configuration patchConfigurationToInitalization(
       final Configuration conf) {
-    S3AUtils.propagateBucketOptions(conf, getFsURI().getHost());
-    return conf;
+    return S3AUtils.propagateBucketOptions(conf, getFsURI().getHost());
   }
 
   /**
@@ -845,9 +847,23 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
 
     if (!S3AFS_CLASSNAME.equals(
         filesystem.getClass().getCanonicalName())) {
+      // possible if there are things in front, so don't fail.
       printout.warn("The filesystem class %s is not the S3AFileSystem",
           filesystem.getClass());
+    } else {
+      // it is s3afs, so review the auth chain
+      S3AFileSystem s3aFs = (S3AFileSystem) filesystem;
+      final AWSCredentialProviderList credentials = s3aFs.shareCredentials("diagnostics");
+      final AWSCredentials liveCredentials = credentials.getCredentials();
+      final String keyId = liveCredentials.getAWSAccessKeyId();
+      printout.heading("Credential review");
+      printout.println("AWS Credentials retrieved from class of type %s: %s",
+          liveCredentials.getClass().getCanonicalName(),
+          liveCredentials);
+      printout.println("Access key: %s", sanitize(keyId, false));
+      printout.println();
     }
+
   }
 
 

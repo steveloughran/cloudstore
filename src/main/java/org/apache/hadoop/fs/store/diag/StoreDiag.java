@@ -778,6 +778,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
 
     }
 
+    storeInfo.validateFilesystem(this, baseDir, fs);
 
 
     Path root = fs.makeQualified(new Path("/"));
@@ -791,7 +792,6 @@ public class StoreDiag extends DiagnosticsEntryPoint {
           .initCause(e));
     }
 
-    storeInfo.validateFilesystem(this, baseDir, fs);
 
     FileStatus firstFile = null;
     int limit = LIST_LIMIT;
