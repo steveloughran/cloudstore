@@ -20,3 +20,19 @@
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
+target/
+
+#idea
+.idea/
+*.iml
+.DS_Store
+*.iml
+*.ipr
+*.iws
+build.properties
+atlassian-ide-plugin.xml
+auth-keys.xml
+.junit
+
+# secrets
+auth-keys.xml
