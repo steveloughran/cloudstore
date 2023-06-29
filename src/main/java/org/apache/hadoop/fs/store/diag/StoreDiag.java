@@ -67,7 +67,6 @@ import org.apache.hadoop.fs.StreamCapabilities;
 import org.apache.hadoop.fs.UnsupportedFileSystemException;
 import org.apache.hadoop.fs.store.PathCapabilityChecker;
 import org.apache.hadoop.fs.store.StoreDurationInfo;
-import org.apache.hadoop.fs.store.StoreExitException;
 import org.apache.hadoop.io.IOUtils;
 import org.apache.hadoop.net.NetUtils;
 import org.apache.hadoop.security.AccessControlException;
@@ -75,6 +74,7 @@ import org.apache.hadoop.security.Credentials;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.security.token.Token;
 import org.apache.hadoop.security.token.TokenIdentifier;
+import org.apache.hadoop.util.ExitUtil;
 import org.apache.hadoop.util.StringUtils;
 import org.apache.hadoop.util.ToolRunner;
 
@@ -765,7 +765,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
         for (String s : pathCapabilites) {
           try {
             println("%s\t%s", s, checker.hasPathCapability(baseDir, s));
-          } catch (IOException | StoreExitException e) {
+          } catch (IOException | ExitUtil.ExitException e) {
 
             // problem
             warn("%s", e.toString());

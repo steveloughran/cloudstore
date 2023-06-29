@@ -38,7 +38,7 @@ import org.apache.hadoop.fs.s3a.S3AFileStatus;
 import org.apache.hadoop.fs.s3a.S3AFileSystem;
 import org.apache.hadoop.fs.s3a.S3AUtils;
 import org.apache.hadoop.fs.s3native.S3xLoginHelper;
-import org.apache.hadoop.fs.store.StoreExitException;
+import org.apache.hadoop.util.ExitUtil;
 
 import static org.apache.hadoop.fs.s3a.Constants.BUFFER_DIR;
 import static org.apache.hadoop.fs.s3a.Constants.DEFAULT_SECURE_CONNECTIONS;
@@ -64,7 +64,7 @@ import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_DI
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_DIRECTORY_MARKER_POLICY_KEEP;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_DIRECTORY_MULTIPART_UPLOAD_ENABLED;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_MAGIC_COMMITTER;
-import static org.apache.hadoop.fs.store.diag.DiagnosticsEntryPoint.sanitize;
+import static org.apache.hadoop.fs.store.StoreUtils.sanitize;
 import static org.apache.hadoop.fs.store.diag.HBossConstants.CAPABILITY_HBOSS;
 import static org.apache.hadoop.fs.store.diag.OptionSets.HTTP_CLIENT_RESOURCES;
 import static org.apache.hadoop.fs.store.diag.OptionSets.STANDARD_ENV_VARS;
@@ -606,7 +606,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
             "Endpoint %s is a URL; using path style access isn't going to work"
                 + "\nset %s to true",
             endpoint, PATH_STYLE_ACCESS);
-        throw new StoreExitException(-1,
+        throw new ExitUtil.ExitException(-1,
             "inconsisent endoint and path access settings");
       }
       bucketURI = String.format("%s://%s/", scheme, fqdn);

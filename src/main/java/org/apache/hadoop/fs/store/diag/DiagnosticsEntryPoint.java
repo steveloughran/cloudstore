@@ -62,15 +62,6 @@ public class DiagnosticsEntryPoint extends StoreEntryPoint  {
   /** {@value}. */
   public static final String JARS = "j";
 
-  /** {@value}. */
-  protected static final int HIDE_PREFIX = 2;
-
-  /** {@value}. */
-  protected static final int HIDE_SUFFIX = 4;
-
-  /** {@value}. */
-  protected static final int HIDE_THRESHOLD = HIDE_PREFIX * 2 + HIDE_SUFFIX;
-
   /**
    * Sort the keys.
    * @param keys keys to sort.
@@ -82,43 +73,6 @@ public class DiagnosticsEntryPoint extends StoreEntryPoint  {
       sorted.add(k.toString());
     }
     return sorted;
-  }
-
-  /**
-   * Create a list of star characters.
-   * @param n number to create.
-   * @return a string of stars
-   */
-  private static String stars(int n) {
-    StringBuilder b = new StringBuilder(n);
-    for (int i = 0; i < n; i++) {
-      b.append('*');
-    }
-    return b.toString();
-  }
-
-  /**
-   * Sanitize a sensitive option.
-   * @param value option value.
-   * @param hide flag to hide everything
-   * @return sanitized value.
-   */
-  public static String sanitize(final String value, boolean hide) {
-    String safe;
-    int len = value.length();
-    if (!hide && len > HIDE_THRESHOLD) {
-      StringBuilder b = new StringBuilder(len);
-      int prefix = HIDE_PREFIX;
-      int suffix = HIDE_SUFFIX;
-      b.append(value, 0, prefix);
-      b.append(DiagnosticsEntryPoint.stars(len - prefix - suffix));
-      b.append(value, len - suffix, len);
-      safe = b.toString();
-    } else {
-      // short values get special treatment
-      safe = DiagnosticsEntryPoint.stars(HIDE_THRESHOLD);
-    }
-    return String.format("\"%s\" [%d]", safe, len);
   }
 
 

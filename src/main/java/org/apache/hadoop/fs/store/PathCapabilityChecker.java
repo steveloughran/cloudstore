@@ -23,6 +23,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.util.ExitUtil;
 import org.apache.hadoop.util.VersionInfo;
 
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_EXCEPTION_THROWN;
@@ -53,7 +54,7 @@ public class PathCapabilityChecker {
    * Does an object have a capability?
    * uses reflection so the jar can compile/run against
    * older hadoop releases.
-   * throws StoreExitException(E_UNSUPPORTED_VERSION) if the api isn't found.
+   * throws ExitException(E_UNSUPPORTED_VERSION) if the api isn't found.
    * @param fs filesystem
    * @param path path
    * @param capability capability to probe
@@ -63,14 +64,14 @@ public class PathCapabilityChecker {
   public boolean hasPathCapability(Path path, String capability)
       throws IOException {
     if (!methodAvailable()) {
-      throw new StoreExitException(E_UNSUPPORTED_VERSION,
+      throw new ExitUtil.ExitException(E_UNSUPPORTED_VERSION,
           "Hadoop version does not support PathCapabilities: "
               + VersionInfo.getVersion());
     }
     try {
       return (Boolean) hasPathCapability.invoke(source, path, capability);
     } catch (IllegalAccessException e) {
-      throw new StoreExitException(E_UNSUPPORTED_VERSION,
+      throw new ExitUtil.ExitException(E_UNSUPPORTED_VERSION,
           "Hadoop version does not support PathCapabilities: "
               + VersionInfo.getVersion());
     } catch (InvocationTargetException e) {
@@ -78,7 +79,7 @@ public class PathCapabilityChecker {
       if (ex instanceof IOException) {
         throw (IOException) ex;
       } else {
-        throw new StoreExitException(E_EXCEPTION_THROWN,
+        throw new ExitUtil.ExitException(E_EXCEPTION_THROWN,
             ex.toString(), ex);
       }
     }

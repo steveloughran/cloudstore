@@ -46,7 +46,6 @@ import org.apache.hadoop.fs.shell.CommandFormat;
 import org.apache.hadoop.fs.statistics.IOStatistics;
 import org.apache.hadoop.fs.statistics.IOStatisticsSource;
 */
-import org.apache.hadoop.fs.store.diag.DiagnosticsEntryPoint;
 import org.apache.hadoop.fs.store.diag.Printout;
 import org.apache.hadoop.fs.store.diag.StoreLogExactlyOnce;
 import org.apache.hadoop.io.IOUtils;
@@ -370,7 +369,7 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
     String xmlfile = getOption(opt);
     if (xmlfile != null) {
       if (xmlfile.isEmpty()) {
-        throw new StoreExitException(
+        throw new ExitUtil.ExitException(
             StoreExitCodes.E_INVALID_ARGUMENT,
             "XML file option " + opt
             + " found but no value was provided");
@@ -585,7 +584,7 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
    */
   @Override
   public String maybeSanitize(String value, boolean obfuscate) {
-    return obfuscate ? DiagnosticsEntryPoint.sanitize(value, hideAllSensitiveChars) :
+    return obfuscate ? StoreUtils.sanitize(value, hideAllSensitiveChars) :
         ("\"" + value + "\"");
   }
 

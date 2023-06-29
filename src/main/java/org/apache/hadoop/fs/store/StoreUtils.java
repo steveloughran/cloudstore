@@ -27,8 +27,18 @@ import java.util.concurrent.Future;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.StorageUnit;
+import org.apache.hadoop.util.ExitUtil;
 
 public class StoreUtils {
+
+  /** {@value}. */
+  protected static final int HIDE_PREFIX = 2;
+
+  /** {@value}. */
+  protected static final int HIDE_SUFFIX = 4;
+
+  /** {@value}. */
+  protected static final int HIDE_THRESHOLD = HIDE_PREFIX * 2 + HIDE_SUFFIX;
 
   /** life without Guava. */
   public static void checkArgument(boolean condition, String text) {
@@ -87,7 +97,7 @@ public class StoreUtils {
     int split = param.indexOf('=');
     int len = param.length();
     if (split == 0 || split + 1 == len) {
-      throw new StoreExitException(StoreEntryPoint.EXIT_USAGE,
+      throw new ExitUtil.ExitException(StoreEntryPoint.EXIT_USAGE,
           "Unable to parse argument " + param);
     }
     String key = split > 0 ? param.substring(0, split) : param;
@@ -148,6 +158,43 @@ public class StoreUtils {
       uploadSize = sizeConf.getStorageSize("size", s, StorageUnit.MB);
     }
     return uploadSize;
+  }
+
+  /**
+   * Create a list of star characters.
+   * @param n number to create.
+   * @return a string of stars
+   */
+  public static String stars(int n) {
+    StringBuilder b = new StringBuilder(n);
+    for (int i = 0; i < n; i++) {
+      b.append('*');
+    }
+    return b.toString();
+  }
+
+  /**
+   * Sanitize a sensitive option.
+   * @param value option value.
+   * @param hide flag to hide everything
+   * @return sanitized value.
+   */
+  public static String sanitize(final String value, boolean hide) {
+    String safe;
+    int len = value.length();
+    if (!hide && len > HIDE_THRESHOLD) {
+      StringBuilder b = new StringBuilder(len);
+      int prefix = HIDE_PREFIX;
+      int suffix = HIDE_SUFFIX;
+      b.append(value, 0, prefix);
+      b.append(stars(len - prefix - suffix));
+      b.append(value, len - suffix, len);
+      safe = b.toString();
+    } else {
+      // short values get special treatment
+      safe = stars(HIDE_THRESHOLD);
+    }
+    return String.format("\"%s\" [%d]", safe, len);
   }
 
   public static class StringPair implements Map.Entry<String, String>{

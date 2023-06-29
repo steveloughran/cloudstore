@@ -89,23 +89,12 @@ public class MkBucket extends StoreEntryPoint {
   }
 
   /**
-   * Execute the command, return the result or throw an exception,
-   * as appropriate.
-   * @param args argument varags.
-   * @return return code
-   * @throws Exception failure
-   */
-  public static int exec(String... args) throws Exception {
-    return ToolRunner.run(new MkBucket(), args);
-  }
-
-  /**
    * Main entry point. Calls {@code System.exit()} on all execution paths.
    * @param args argument list
    */
   public static void main(String[] args) {
     try {
-      exit(exec(args), "");
+      exit(ToolRunner.run(new MkBucket(), args), "");
     } catch (Throwable e) {
       exitOnThrowable(e);
     }
