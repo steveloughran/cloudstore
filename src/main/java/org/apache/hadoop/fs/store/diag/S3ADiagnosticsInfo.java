@@ -303,6 +303,11 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.s3a.accesspoint.arn", false, false},
       {"fs.s3a.accesspoint.required", false, false},
 
+      /* prefetching */
+      {PREFETCH_ENABLED_KEY, false, false},
+      {PREFETCH_BLOCK_SIZE_KEY, false, false},
+      {PREFETCH_BLOCK_COUNT_KEY, false, false},
+
       /* hboss */
       {HBossConstants.DATA_URI, false, false},
       {HBossConstants.SYNC_IMPL, false, false},
@@ -444,6 +449,11 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       // SSL stuff
       "org.wildfly.openssl.OpenSSLProvider",
       X509,
+
+      // prefetch
+      "org.apache.hadoop.fs.impl.prefetch.PrefetchingStatistics",
+      "org.apache.hadoop.fs.s3a.prefetch.S3ACachingBlockManager",
+
 
       // extra stuff from extension modules
       "org.apache.knox.gateway.cloud.idbroker.s3a.IDBDelegationTokenBinding",
