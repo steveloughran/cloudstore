@@ -366,6 +366,19 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"com.amazonaws.services.s3.enableV4", false},
       {"com.amazonaws.services.s3.enforceV4", false},
       {"org.wildfly.openssl.path", false},
+      // aws v2 sdk sysprops from software.amazon.awssdk.core.SdkSystemSetting
+      {"aws.containerAuthorizationToken", true},
+      {"aws.containerCredentialsFullUri", false},
+      {"aws.containerCredentialsPath", false},
+      {"aws.containerServiceEndpoint", false},
+      {"aws.disableEc2Metadata", false},
+      {"aws.ec2MetadataServiceEndpoint", false},
+      {"aws.ec2MetadataServiceEndpointMode", false},
+      {"aws.s3UseUsEast1RegionalEndpoint", false},
+      {"aws.useDualstackEndpoint", false},
+      {"aws.useFipsEndpoint", false},
+      {"aws.webIdentityTokenFile", false},
+      {"", false},
       {"", false},
       {"", false},
   };
@@ -401,10 +414,6 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       "com.amazonaws.regions.InstanceMetadataRegionProvider",
       "com.amazonaws.internal.TokenBucket",
 
-      // v2 SDK
-      "software.amazon.awssdk.auth.credentials.AwsCredentialsProvider",
-      "software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider",
-      "software.amazon.awssdk.core.exception.SdkException",
 
       /* Jackson stuff */
       "com.fasterxml.jackson.annotation.JacksonAnnotation",
@@ -462,7 +471,18 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       // HBase HBoss
       "org.apache.hadoop.hbase.oss.HBaseObjectStoreSemantics",
       "org.apache.hadoop.fs.store.s3a.DiagnosticsAWSCredentialsProvider",
+
+
+      // v2 SDK
+      "software.amazon.awssdk.auth.credentials.AwsCredentialsProvider",
+      "software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider",
+      "software.amazon.awssdk.core.exception.SdkException",
+      "software.amazon.awssdk.crt.s3.S3MetaRequest",
+      "software.amazon.eventstream.MessageDecoder",
+
+
       "",
+
 
   };
 

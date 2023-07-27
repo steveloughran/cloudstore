@@ -330,7 +330,7 @@
     <profile>
       <id>latest</id>
       <properties>
-        <hadoop.version>3.3.5</hadoop.version>
+        <hadoop.version>3.3.6</hadoop.version>
       </properties>
     </profile>
 
