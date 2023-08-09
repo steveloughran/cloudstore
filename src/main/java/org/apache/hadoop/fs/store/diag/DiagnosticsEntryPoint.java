@@ -307,7 +307,6 @@ public class DiagnosticsEntryPoint extends StoreEntryPoint  {
     }
     if (verbose) {
       println("       %s", clazz.getClassLoader());
-
     }
 
   }
@@ -327,7 +326,7 @@ public class DiagnosticsEntryPoint extends StoreEntryPoint  {
     try {
       probeRequiredClass(classname, false);
       return true;
-    } catch (Exception e) {
+    } catch (LinkageError | Exception e) {
       println("       Not found on classpath: %s", classname);
       return false;
     }

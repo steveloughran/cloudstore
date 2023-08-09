@@ -65,6 +65,8 @@ import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_DI
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_DIRECTORY_MULTIPART_UPLOAD_ENABLED;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_MAGIC_COMMITTER;
 import static org.apache.hadoop.fs.store.StoreUtils.sanitize;
+import static org.apache.hadoop.fs.store.diag.DiagUtils.ipV4pattern;
+import static org.apache.hadoop.fs.store.diag.DiagUtils.isIpV4String;
 import static org.apache.hadoop.fs.store.diag.HBossConstants.CAPABILITY_HBOSS;
 import static org.apache.hadoop.fs.store.diag.OptionSets.HTTP_CLIENT_RESOURCES;
 import static org.apache.hadoop.fs.store.diag.OptionSets.STANDARD_ENV_VARS;
@@ -165,6 +167,8 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
    */
   public static final String PREFETCH_BLOCK_COUNT_KEY = "fs.s3a.prefetch.block.count";
 
+  public static final String SIGNING_ALGORITHM = "fs.s3a.signing-algorithm";
+
   private static final Object[][] options = {
       /* Core auth */
       {ACCESS_KEY, true, true},
@@ -177,7 +181,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {AWS_CREDENTIALS_PROVIDER, false, false},
       {ENDPOINT, false, false},
       {REGION, false, false},
-      {"fs.s3a.signing-algorithm", false, false},
+      {SIGNING_ALGORITHM, false, false},
 
       /* Core Set */
       {"fs.s3a.acl.default", false, false},
@@ -714,9 +718,10 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
     printout.heading("Endpoint validation");
     String endpoint = conf.getTrimmed(ENDPOINT, "").toLowerCase(Locale.ROOT);
     String region = conf.getTrimmed(REGION, "").toLowerCase(Locale.ROOT);
+    String signing = conf.getTrimmed(SIGNING_ALGORITHM, "").toLowerCase(Locale.ROOT);
     String bucket = getFsURI().getHost();
     boolean privateLink = false;
-
+    boolean isIpv4 = false;
 
     boolean secureConnections = conf.getBoolean(SECURE_CONNECTIONS,
         DEFAULT_SECURE_CONNECTIONS);
@@ -724,7 +729,8 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
     printout.println("%s = \"%s\"", ENDPOINT, endpoint);
     printout.println("%s = \"%s\"", REGION, region);
     printout.println("%s = \"%s\"", PATH_STYLE_ACCESS, pathStyleAccess);
-    printout.println("%s = \"%s\"", SECURE_CONNECTIONS, secureConnections);
+    printout.println("%s = \"%s\"", SIGNING_ALGORITHM, pathStyleAccess);
+    printout.println("%s = \"%s\"", SECURE_CONNECTIONS, signing);
 
     boolean isUsingAws = false;
     if (endpoint.isEmpty()) {
@@ -750,15 +756,22 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       printout.println("See https://issues.apache.org/jira/browse/HADOOP-17705 for a workaround");
     } else if (!endpoint.contains(".amazonaws.")) {
       isUsingAws = false;
-      printout.println(
-          "This does not appear to be an amazon endpoint, unless it is a VPN addresss.");
+      printout.println("This does not appear to be an amazon endpoint, unless it is a VPN addresss.");
+      isIpv4 = isIpV4String(endpoint);
+
       if (region.isEmpty()) {
-        printout.println("If this is a vpn link to aws, the AWS region MUST be set in %s",
+        printout.println("If this is a VPN link to AWS, the AWS region MUST be set in %s",
             REGION);
       }
       printout.println(
           "For third party endpoints, verify the network port and http protocol"
               + " options are valid.");
+      if (isIpv4) {
+        printout.println("endpoint appears to be an IPv4 network address");
+        if (secureConnections) {
+          printout.warn("HTTPS and Dotted network addresses rarely work");
+        }
+      }
       if (pathStyleAccess) {
         printout.println("Path style access is enabled;"
             + " this is normally the correct setting for third party stores.");
@@ -766,6 +779,9 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
         printout.warn("Path style access is disabled"
             + " this is not the normal setting for third party stores.");
         printout.warn("It requires DNS to resolve all bucket hostnames");
+        if (isIpv4) {
+          printout.warn("As the endpoint is an IP address, constructed hostnames unlikely to work");
+        }
         if (secureConnections) {
           printout.warn("As https is in use, the certificates must also be wildcarded");
         }
@@ -884,14 +900,18 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       // it is s3afs, so review the auth chain
       S3AFileSystem s3aFs = (S3AFileSystem) filesystem;
       final AWSCredentialProviderList credentials = s3aFs.shareCredentials("diagnostics");
-      final AWSCredentials liveCredentials = credentials.getCredentials();
-      final String keyId = liveCredentials.getAWSAccessKeyId();
-      printout.heading("Credential review");
-      printout.println("AWS Credentials retrieved from class of type %s: %s",
-          liveCredentials.getClass().getCanonicalName(),
-          liveCredentials);
-      printout.println("Access key: %s", sanitize(keyId, false));
-      printout.println();
+      try {
+        final AWSCredentials liveCredentials = credentials.getCredentials();
+        final String keyId = liveCredentials.getAWSAccessKeyId();
+        printout.heading("Credential review");
+        printout.println("AWS Credentials retrieved from class of type %s: %s",
+            liveCredentials.getClass().getCanonicalName(),
+            liveCredentials);
+        printout.println("Access key: %s", sanitize(keyId, false));
+        printout.println();
+      } catch (NoSuchMethodError e) {
+        // this is a v2 filesystem; ignore
+      }
     }
 
   }
