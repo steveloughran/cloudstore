@@ -27,7 +27,7 @@ mvn clean install -Phadoop-3.3.2 -Pextra
 
 ## Releasing
 
-To publish the release use the gui or the github command line
+To publish the release use the gui or the github command line through the `fish` shell.
 
 ```bash
 set -gx now (date '+%Y-%m-%d')
