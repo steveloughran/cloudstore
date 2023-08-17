@@ -40,6 +40,7 @@ import java.nio.file.AccessDeniedException;
 import java.nio.file.Files;
 import java.security.CodeSource;
 import java.security.NoSuchAlgorithmException;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Enumeration;
@@ -186,6 +187,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
     heading("Store Diagnostics for %s on %s",
         UserGroupInformation.getCurrentUser(),
         NetUtils.getHostname());
+    println("Collected at at %s%n", Instant.now());
 
     // process the options
     maybeAddTokens(TOKENFILE);

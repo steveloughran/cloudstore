@@ -300,7 +300,8 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.s3a.audit.referrer.enabled", false, false},
       {"fs.s3a.audit.referrer.filter", false, false},
       {FS_S3A_AUDIT_REJECT_OUT_OF_SPAN_OPERATIONS, false, false},
-      {"fs.s3a.audit.request.handlers", false, false},
+      {"fs.s3a.audit.request.handlers", false, false},       // v1 sdk
+      {"fs.s3a.audit.execution.interceptors", false, false}, // v2 sdk
       {"fs.s3a.audit.service.classname", false, false},
 
       /* access points. */
@@ -522,7 +523,9 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       "log4j.properties",
       "com/amazonaws/internal/config/awssdk_config_default.json",
       "awssdk_config_override.json",
-      "com/amazonaws/endpointdiscovery/endpoint-discovery.json"
+      "com/amazonaws/endpointdiscovery/endpoint-discovery.json",
+      "software/amazon/awssdk/global/handlers/execution.interceptors",
+      "software/amazon/awssdk/services/s3/execution.interceptors"
   };
 
   public static final String KEEP = "keep";
