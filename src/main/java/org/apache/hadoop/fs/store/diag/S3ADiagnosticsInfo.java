@@ -167,7 +167,16 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
    */
   public static final String PREFETCH_BLOCK_COUNT_KEY = "fs.s3a.prefetch.block.count";
 
+  /**
+   * Signing.
+   */
   public static final String SIGNING_ALGORITHM = "fs.s3a.signing-algorithm";
+
+  /**
+   * Signing; allows use of v2 signing on sdk v1,
+   * -D fs.s3a.signing-algorithm=S3SignerType
+   */
+  public static final String SIGNING_V2_ALGORITHM = "S3SignerType";
 
   private static final Object[][] options = {
       /* Core auth */
@@ -721,7 +730,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
     printout.heading("Endpoint validation");
     String endpoint = conf.getTrimmed(ENDPOINT, "").toLowerCase(Locale.ROOT);
     String region = conf.getTrimmed(REGION, "").toLowerCase(Locale.ROOT);
-    String signing = conf.getTrimmed(SIGNING_ALGORITHM, "").toLowerCase(Locale.ROOT);
+    String signing = conf.getTrimmed(SIGNING_ALGORITHM, "");
     String bucket = getFsURI().getHost();
     boolean privateLink = false;
     boolean isIpv4 = false;
@@ -732,10 +741,12 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
     printout.println("%s = \"%s\"", ENDPOINT, endpoint);
     printout.println("%s = \"%s\"", REGION, region);
     printout.println("%s = \"%s\"", PATH_STYLE_ACCESS, pathStyleAccess);
-    printout.println("%s = \"%s\"", SIGNING_ALGORITHM, pathStyleAccess);
-    printout.println("%s = \"%s\"", SECURE_CONNECTIONS, signing);
+    printout.println("%s = \"%s\"", SIGNING_ALGORITHM, signing);
+    printout.println("%s = \"%s\"", SECURE_CONNECTIONS, secureConnections);
 
     boolean isUsingAws = false;
+    boolean isUsingV2Signing = SIGNING_V2_ALGORITHM.equals(signing);
+
     if (endpoint.isEmpty()) {
       isUsingAws = true;
       printout.println("Central us-east endpoint will be used. "
@@ -759,7 +770,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       printout.println("See https://issues.apache.org/jira/browse/HADOOP-17705 for a workaround");
     } else if (!endpoint.contains(".amazonaws.")) {
       isUsingAws = false;
-      printout.println("This does not appear to be an amazon endpoint, unless it is a VPN addresss.");
+      printout.println("This does not appear to be an amazon endpoint, unless it is a VPN address.");
       isIpv4 = isIpV4String(endpoint);
 
       if (region.isEmpty()) {
@@ -808,11 +819,23 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
         printout.warn("You should probably set %s to true", PATH_STYLE_ACCESS);
       }
     }
-    if (!privateLink && isUsingAws) {
+    if (isUsingAws && !privateLink) {
+      printout.println("");
+      printout.println("This client is configured to connect to to AWS S3");
+      printout.println("");
       printout.println("Important: if you are working with a third party store,");
-      printout.println(" this client is still trying to connect to to AWS S3");
       printout.println("Expect failure until %s is set to the private endpoint", ENDPOINT);
     }
+
+    if (isUsingV2Signing) {
+      if (isUsingAws) {
+        printout.warn("The signing algorithm is %s; this is not supported on newer AWS buckets or the v2 AWS SDK", SIGNING_V2_ALGORITHM);
+      } else {
+        printout.println("The signing algorithm is %s; this is required for some third-party S3 stores", SIGNING_V2_ALGORITHM);
+        printout.warn("The signing algorithm is not yet available through the v2 AWS SDK");
+      }
+    }
+
 
     printout.heading("Bucket Name validation");
 
