@@ -18,6 +18,7 @@
 
 package org.apache.hadoop.fs.store.commands;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -69,6 +70,8 @@ public class Bandwidth extends StoreEntryPoint {
   private static final int BUFFER_SIZE = 32 * 1024;
 
   public static final int UPLOAD_BUFFER_SIZE = MB_1;
+
+  public static final int CLOSE_WARN_THRESHOLD_SECONDS = 60;
 
   private byte[] dataBuffer;
 
@@ -122,6 +125,7 @@ public class Bandwidth extends StoreEntryPoint {
     dataBuffer = new byte[UPLOAD_BUFFER_SIZE];
     new Random().nextBytes(dataBuffer);
     int numberOfBuffersToUpload = (int) sizeMB;
+    println("Writing data as %d arrays each of size %,d bytes", numberOfBuffersToUpload, UPLOAD_BUFFER_SIZE);
 
     // progress callback counts #of invocations, and optionally prints a .
     AtomicLong progressCount = new AtomicLong();
@@ -146,18 +150,22 @@ public class Bandwidth extends StoreEntryPoint {
           .overwrite(true)
           .build();
     }
+    StoreDurationInfo closeDuration;
     try {
       // now do the upload
       // println placement is so that progress . entries are on their own line
       for (int i = 0; i < numberOfBuffersToUpload; i++) {
+        LOG.info("Write block {}", String.format("%,d ", i));
         upload.write(dataBuffer);
-        println("%,d ", i);
       }
       println();
-      // write all remaining data
 
-      try (StoreDurationInfo d = new StoreDurationInfo(LOG, "upload stream close()")) {
+      // close and so write all remaining data
+      closeDuration = new StoreDurationInfo(LOG, "upload stream close()");
+      try {
         upload.close();
+      } finally {
+        closeDuration.finished();
       }
     } finally {
       printIfVerbose("Upload Stream: %s", upload);
@@ -167,6 +175,17 @@ public class Bandwidth extends StoreEntryPoint {
 
     // end of upload
     printFSInfoInVerbose(fs);
+
+    final Duration dur = closeDuration.asDuration();
+    if (dur.getSeconds() > CLOSE_WARN_THRESHOLD_SECONDS) {
+      heading("Close() slow due to data generation/bandwidth mismatch");
+      warn("Close took %s seconds", dur.getSeconds());
+      warn("This is a sign of a mismatch between data generation and upload bandwidth");
+      warn("A long delay in close() can cause problems with applications which do not expect delays");
+      warn("Consider limiting the number of blocks which can be queued for upload");
+      warn("in the filesystem client's output stream");
+    }
+
 
     Optional<StoreDurationInfo> renameDurationTracker = empty();
 
@@ -194,7 +213,7 @@ public class Bandwidth extends StoreEntryPoint {
       long pos = 0;
       // now do the download
       for (int i = 0; i < numberOfBuffersToUpload; i++) {
-        println("%,d ", i);
+        LOG.info("Read block {}", String.format("%,d ", i));
         download.readFully(pos, dataBuffer);
         pos += UPLOAD_BUFFER_SIZE;
       }
