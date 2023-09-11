@@ -677,11 +677,11 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
     } else {
       if (endpointIsUrl) {
         getOutput().warn(
-            "Endpoint %s is a URL; using path style access isn't going to work"
+            "Endpoint %s is a URL; using bucket-hostname access isn't going to work"
                 + "\nset %s to true",
             endpoint, PATH_STYLE_ACCESS);
         throw new ExitUtil.ExitException(-1,
-            "inconsisent endoint and path access settings");
+            "Inconsistent endpoint and path access settings");
       }
       bucketURI = String.format("%s://%s/", scheme, fqdn);
     }
