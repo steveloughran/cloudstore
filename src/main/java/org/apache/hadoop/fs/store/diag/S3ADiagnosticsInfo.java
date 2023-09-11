@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
@@ -334,13 +335,25 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
 
   };
 
+  public static final String ENV_AWS_ACCESS_KEY_ID = "AWS_ACCESS_KEY_ID";
+
+  public static final String ENV_AWS_ACCESS_KEY = "AWS_ACCESS_KEY";
+
+  public static final String ENV_AWS_SECRET_KEY = "AWS_SECRET_KEY";
+
+  public static final String ENV_AWS_SECRET_ACCESS_KEY = "AWS_SECRET_ACCESS_KEY";
+
+  public static final String ENV_AWS_SESSION_TOKEN = "AWS_SESSION_TOKEN";
+
+  public static final String ENV_AWS_REGION = "AWS_REGION";
+
   protected static final Object[][] ENV_VARS = {
-      {"AWS_ACCESS_KEY_ID", true},
-      {"AWS_ACCESS_KEY", true},
-      {"AWS_SECRET_KEY", true},
-      {"AWS_SECRET_ACCESS_KEY", true},
-      {"AWS_SESSION_TOKEN", true},
-      {"AWS_REGION", false},
+      {ENV_AWS_ACCESS_KEY_ID, true},
+      {ENV_AWS_ACCESS_KEY, true},
+      {ENV_AWS_SECRET_KEY, true},
+      {ENV_AWS_SECRET_ACCESS_KEY, true},
+      {ENV_AWS_SESSION_TOKEN, true},
+      {ENV_AWS_REGION, false},
       {"AWS_S3_US_EAST_1_REGIONAL_ENDPOINT", false},
       {"AWS_CBOR_DISABLE", false},
       {"AWS_CONFIG_FILE", false},
@@ -354,6 +367,21 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"AWS_PROFILE", false},
       {"AWS_RETRY_MODE", false},
       {"", false},
+  };
+
+  /**
+   * If any of these are set then the config is a mess as
+   * they make configs inconsistent, don't get propagated
+   * and generally create the "hdfs fs -ls works but not distcp"
+   * problems.
+   */
+  private static final String[][] ENV_VARS_WE_HATE = {
+      {ENV_AWS_ACCESS_KEY_ID, ACCESS_KEY, "S3 access key"},
+      {ENV_AWS_ACCESS_KEY, ACCESS_KEY, "S3 access key"},
+      {ENV_AWS_SECRET_KEY, SECRET_KEY, "S3 secret key"},
+      {ENV_AWS_SECRET_ACCESS_KEY, SECRET_KEY, "S3 secret key"},
+      {ENV_AWS_SESSION_TOKEN, SESSION_TOKEN, "S3 session token"},
+      {ENV_AWS_REGION, REGION, "S3 endpoint region"},
   };
 
   /**
@@ -677,11 +705,43 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
   }
   */
 
+  private boolean warnIfOptionAlsoSetInEnvVar(
+      final Printout printout,
+      final Configuration conf,
+      final String purpose,
+      final String option,
+      final String envVar) {
+    String env = System.getenv(envVar);
+    final boolean hasEnv = env != null && !env.isEmpty();
+    final boolean hasConf = conf.get(option) != null;
+    if (hasEnv) {
+      printout.warn("%s is set in the environment variable %s",
+          purpose, envVar, env, option, env);
+      if (hasConf) {
+        printout.warn("%s is also set in the configuration option, which can cause confusion",
+            option);
+        printout.println("Recommend: unset the environment variable %s", envVar);
+      } else {
+        printout.warn("This environment variable will not be passed into launched applications");
+        printout.println("Recommend: unset the environment variable %s; set the option \"%s\" instead",
+            envVar, option);
+      }
+      printout.println();
+    }
+    return hasEnv;
+  }
+
   @Override
   protected void validateConfig(final Printout printout,
       final Configuration conf,
       final boolean writeOperations) throws IOException {
     printout.heading("S3A Config validation");
+
+    // check for any of the env vars we hate
+    for (String[] entry : ENV_VARS_WE_HATE) {
+      warnIfOptionAlsoSetInEnvVar(printout, conf,
+          entry[2], entry[1], entry[0]);
+    }
 
     printout.heading("Output Buffering");
     validateBufferDir(printout, conf, BUFFER_DIR, OptionSets.HADOOP_TMP_DIR,
@@ -728,6 +788,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
 
     // validate endpoint to make sure it is not a URL.
     printout.heading("Endpoint validation");
+
     String endpoint = conf.getTrimmed(ENDPOINT, "").toLowerCase(Locale.ROOT);
     String region = conf.getTrimmed(REGION, "").toLowerCase(Locale.ROOT);
     String signing = conf.getTrimmed(SIGNING_ALGORITHM, "");
@@ -743,6 +804,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
     printout.println("%s = \"%s\"", PATH_STYLE_ACCESS, pathStyleAccess);
     printout.println("%s = \"%s\"", SIGNING_ALGORITHM, signing);
     printout.println("%s = \"%s\"", SECURE_CONNECTIONS, secureConnections);
+    printout.println();
 
     boolean isUsingAws = false;
     boolean isUsingV2Signing = SIGNING_V2_ALGORITHM.equals(signing);
@@ -763,11 +825,15 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
     } else if (endpoint.endsWith(".vpce.amazonaws.com") || endpoint.endsWith(".vpce.amazonaws.com/")) {
       isUsingAws = true;
       privateLink = true;
-      printout.println("AWS VPCE is being used for a VPN connection to S3");
-      printout.warn("you MUST set %s to the region of this store; it is currently \"%s\"",
+      printout.println("AWS PrivateLink is being used for a VPN connection to S3");
+      printout.warn("You MUST set %s to the region of this store; it is currently \"%s\"",
           REGION, region);
       printout.println("Note: older hadoop releases do not support this option");
       printout.println("See https://issues.apache.org/jira/browse/HADOOP-17705 for a workaround");
+      if (!endpoint.startsWith("https://bucket.") && !endpoint.startsWith("bucket.")) {
+        printout.warn("The endpoint %s hostname does not start with \"bucket.\"", endpoint);
+        printout.warn("This is not a valid endpoint for PrivateLink");
+      }
     } else if (!endpoint.contains(".amazonaws.")) {
       isUsingAws = false;
       printout.println("This does not appear to be an amazon endpoint, unless it is a VPN address.");
@@ -777,9 +843,8 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
         printout.println("If this is a VPN link to AWS, the AWS region MUST be set in %s",
             REGION);
       }
-      printout.println(
-          "For third party endpoints, verify the network port and http protocol"
-              + " options are valid.");
+      printout.println("For third party endpoints, verify the network port"
+          + " and http protocol options are valid.");
       if (isIpv4) {
         printout.println("endpoint appears to be an IPv4 network address");
         if (secureConnections) {
@@ -787,12 +852,26 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
         }
       }
       if (pathStyleAccess) {
+        boolean showHowToChange = true;
         printout.println("Path style access is enabled;"
             + " this is normally the correct setting for third party stores.");
+        if (isUsingAws && !privateLink) {
+          printout.warn("This is not the recommended setting for AWS S3 except through PrivateLink");
+        } else {
+          showHowToChange = false;
+        }
+        if (showHowToChange) {
+          printout.warn("To disable path style access, set %s to false", PATH_STYLE_ACCESS);
+        }
+
+
       } else {
         printout.warn("Path style access is disabled"
             + " this is not the normal setting for third party stores.");
         printout.warn("It requires DNS to resolve all bucket hostnames");
+        if (privateLink) {
+          printout.error("This does not work with AWS PrivateLink");
+        }
         if (isIpv4) {
           printout.warn("As the endpoint is an IP address, constructed hostnames unlikely to work");
         }
@@ -821,7 +900,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
     }
     if (isUsingAws && !privateLink) {
       printout.println("");
-      printout.println("This client is configured to connect to to AWS S3");
+      printout.println("This client is configured to connect to AWS S3");
       printout.println("");
       printout.println("Important: if you are working with a third party store,");
       printout.println("Expect failure until %s is set to the private endpoint", ENDPOINT);
@@ -856,7 +935,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
         printout.warn("%d. Consider setting " + PATH_STYLE_ACCESS + " to true", l++);
       }
       if (secureConnections) {
-        printout.println("%d. To disable HTTPS, set %s to true", SECURE_CONNECTIONS, l++);
+        printout.println("%d. To disable HTTPS, set %s to true", l++, SECURE_CONNECTIONS);
       }
     }
     String dtbinding = conf.getTrimmed(DELEGATION_TOKEN_BINDING, "");

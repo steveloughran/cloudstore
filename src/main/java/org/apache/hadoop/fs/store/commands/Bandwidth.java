@@ -18,6 +18,7 @@
 
 package org.apache.hadoop.fs.store.commands;
 
+import java.io.IOException;
 import java.time.Duration;
 import java.util.List;
 import java.util.Locale;
@@ -37,6 +38,7 @@ import org.apache.hadoop.fs.store.StoreDurationInfo;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
 import org.apache.hadoop.fs.store.StoreUtils;
 import org.apache.hadoop.util.Progressable;
+import org.apache.hadoop.util.ShutdownHookManager;
 import org.apache.hadoop.util.ToolRunner;
 
 import static java.util.Optional.empty;
@@ -73,6 +75,8 @@ public class Bandwidth extends StoreEntryPoint {
 
   public static final int CLOSE_WARN_THRESHOLD_SECONDS = 60;
 
+  public static final int PRIORITY = 10;
+
   private byte[] dataBuffer;
 
   public Bandwidth() {
@@ -96,11 +100,11 @@ public class Bandwidth extends StoreEntryPoint {
     // path on the CLI
     String size = argList.get(0).toLowerCase(Locale.ENGLISH);
     String pathString = argList.get(1);
-    Path path = new Path(pathString);
-    println("Bandwidth test against %s with data size %s", path, size);
+    Path uploadPath = new Path(pathString);
+    println("Bandwidth test against %s with data size %s", uploadPath, size);
     Path downloadPath = rename
-        ? new Path(path.getParent(), path.getName() + ".renamed")
-        : path;
+        ? new Path(uploadPath.getParent(), uploadPath.getName() + ".renamed")
+        : uploadPath;
     if (keep) {
       println("Retaining file %s", downloadPath);
     }
@@ -108,7 +112,7 @@ public class Bandwidth extends StoreEntryPoint {
     if (size.endsWith("p") || size.endsWith("t") || size.endsWith("e")) {
       warn("That's going to take a while");
     }
-    FileSystem fs = path.getFileSystem(conf);
+    FileSystem fs = uploadPath.getFileSystem(conf);
     println("Using filesystem %s", fs.getUri());
 
     double uploadSize = StoreUtils.getDataSize(size);
@@ -142,13 +146,29 @@ public class Bandwidth extends StoreEntryPoint {
 
     // open the file. track duration
     FSDataOutputStream upload;
-    try (StoreDurationInfo d = new StoreDurationInfo(LOG, "Opening %s for upload", path)) {
-      upload = fs.createFile(path)
+    try (StoreDurationInfo d = new StoreDurationInfo(LOG, "Opening %s for upload", uploadPath)) {
+      upload = fs.createFile(uploadPath)
           .progress(progress)
           .recursive()
           .bufferSize(BUFFER_SIZE)
           .overwrite(true)
           .build();
+    }
+    // set up
+    if (!keep) {
+      // setup cleanup so if the upload is interrupted,
+      // filesystem shutdown may delete the file
+      fs.deleteOnExit(uploadPath);
+      if (rename) {
+        fs.deleteOnExit(downloadPath);
+      }
+      ShutdownHookManager.get().addShutdownHook(() -> {
+        try {
+          fs.close();
+        } catch (IOException ignored) {
+
+        }
+      }, PRIORITY);
     }
     StoreDurationInfo closeDuration;
     try {
@@ -194,7 +214,7 @@ public class Bandwidth extends StoreEntryPoint {
       heading("Rename");
       renameDurationTracker = of(new StoreDurationInfo());
       try (StoreDurationInfo d = new StoreDurationInfo(LOG, "rename to %s", downloadPath)) {
-        fs.rename(path, downloadPath);
+        fs.rename(uploadPath, downloadPath);
       }
       renameDurationTracker.get().finished();
     }
@@ -228,8 +248,9 @@ public class Bandwidth extends StoreEntryPoint {
 
 
     if (!keep) {
-      try (StoreDurationInfo d = new StoreDurationInfo(LOG, "delete file %s", path)) {
-        fs.delete(path, false);
+      try (StoreDurationInfo d = new StoreDurationInfo(LOG, "delete file %s", uploadPath)) {
+        fs.delete(uploadPath, false);
+        fs.delete(downloadPath, false);
       }
     }
 

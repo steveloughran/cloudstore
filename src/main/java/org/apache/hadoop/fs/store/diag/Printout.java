@@ -61,6 +61,16 @@ public interface Printout {
    */
   void warn(String format, Object... args);
 
+
+  /**
+   * Print an error. unless overridden, this forwards to warn.
+   * @param format format string
+   * @param args optional arguments
+   */
+  default void error(String format, Object... args) {
+    warn(format, args);
+  }
+
   void heading(String format, Object... args);
 
   /**

@@ -31,6 +31,7 @@ import static org.apache.hadoop.fs.store.StoreDiagConstants.IOSTATISTICS_LOGGING
 /**
  * standard env vars, JVM options etc.
  */
+@SuppressWarnings("SpellCheckingInspection")
 public class OptionSets {
 
   /**
@@ -151,7 +152,6 @@ public class OptionSets {
    * TLS System properties.
    */
   public static final Object[][] TLS_SYSPROPS = {
-      {"java.version", false},
       {"java.version", false},
       {"java.library.path", false},
       {"https.protocols", false},

@@ -122,7 +122,7 @@ public class SessionKeys extends StoreEntryPoint {
       // look to see if the creds are already session credentials
       if (credentials.getCredentials() instanceof AWSSessionCredentials) {
         // already got session credentials, so just print out
-        println("Bucket credentials are allready session credentials");
+        println("Bucket credentials are already session credentials");
         final AWSSessionCredentials session = (AWSSessionCredentials) credentials.getCredentials();
         keyId = session.getAWSAccessKeyId();
         secretKey = session.getAWSSecretKey();
@@ -137,14 +137,16 @@ public class SessionKeys extends StoreEntryPoint {
             = STSClientFactory2.createClientConnection(builder.build(),
             new Invoker(new S3ARetryPolicy(conf), Invoker.LOG_EVENT));
 
+        int duration = hasRole ? 12: 36;
+        println("Session duration: %d hours", duration);
         if (!hasRole) {
-          sessionCreds = stsClient.requestSessionCredentials(36,
+          sessionCreds = stsClient.requestSessionCredentials(duration,
               TimeUnit.HOURS);
         } else {
           sessionCreds = stsClient.requestRole(role,
               "role-session",
               json,
-              12, TimeUnit.HOURS);
+              duration, TimeUnit.HOURS);
         }
 
 

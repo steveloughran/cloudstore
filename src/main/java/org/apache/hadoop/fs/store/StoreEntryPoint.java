@@ -70,7 +70,7 @@ import static org.apache.hadoop.fs.store.StoreUtils.split;
 /**
  * Entry point for store applications
  */
-@SuppressWarnings("UseOfSystemOutOrSystemErr")
+@SuppressWarnings({"UseOfSystemOutOrSystemErr", "SpellCheckingInspection"})
 public class StoreEntryPoint extends Configured implements Tool, Closeable, Printout {
 
   protected static final int MB_1 = (1024 * 1024);
@@ -200,6 +200,10 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
 
   public final void warn(String format, Object... args) {
     println("WARNING: " + String.format(format, args));
+  }
+
+  public final void error(String format, Object... args) {
+    errorln("ERROR: " + format, args);
   }
 
   public static void errorln(String format, Object... args) {
