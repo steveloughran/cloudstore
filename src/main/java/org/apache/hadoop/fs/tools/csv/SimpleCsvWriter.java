@@ -133,21 +133,23 @@ public class SimpleCsvWriter implements Closeable {
   }
 
   /**
-   * Write a single object's string value.
+   * Write a single object's string value, quoted if required.
    * @param o object to write; null is mapped to the empty string.
+   * @return this instance.
    * @throws IOException IO failure.
    */
-  public void column(Object o) throws IOException {
-    col(o, quote);
+  public SimpleCsvWriter column(Object o) throws IOException {
+    return col(o, quote);
   }
 
   /**
    * Write a column with the given quote flag.
    * @param o object
    * @param quoteColumn to quote?
+   * @return this instance.
    * @throws IOException io failure
    */
-  private void col(final Object o, final boolean quoteColumn) throws IOException {
+  private SimpleCsvWriter col(final Object o, final boolean quoteColumn) throws IOException {
     if (isStartOfLine) {
       isStartOfLine = false;
     } else {
@@ -159,6 +161,7 @@ public class SimpleCsvWriter implements Closeable {
     } else {
       write(s);
     }
+    return this;
   }
 
   /**
@@ -178,21 +181,24 @@ public class SimpleCsvWriter implements Closeable {
    * That makes counting the number of matched
    * rows straightforward.
    * @param b boolean
+   * @return this instance.
    * @throws IOException io failure
    */
-  public void columnB(boolean b) throws IOException {
+  public SimpleCsvWriter columnB(boolean b) throws IOException {
     columnL(b ? 1 : 0);
+    return this;
   }
 
   /**
    * Write a long, unquoted, always.
    * @param i value
+   * @return this instance.
    * @throws IOException io failure
    */
-  public void columnL(long i) throws IOException {
+  public SimpleCsvWriter columnL(long i) throws IOException {
     col(Long.toString(i), false);
+   return this;
   }
-
 
   public void write(String val) throws IOException {
     out.write(val);
@@ -209,11 +215,13 @@ public class SimpleCsvWriter implements Closeable {
 
   /**
    * Write a newline.
+   * @return this instance.
    * @throws IOException io failure
    */
-  public void newline() throws IOException {
+  public SimpleCsvWriter newline() throws IOException {
     out.write(eol);
     isStartOfLine = true;
+    return this;
   }
 
   /**

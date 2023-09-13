@@ -79,17 +79,14 @@ public class StoreDurationInfo
   }
 
  /**
-   * Create the duration text from a {@code String.format()} code call.
-   * @param log log to write to
-   * @param format format string
-   * @param args list of arguments
+   * Create the duration with no output printed.
    */
   public StoreDurationInfo() {
-    started = time();
-    finished = started;
     this.text = "";
     this.log = null;
     this.out = null;
+    started = time();
+    finished = started;
   }
 
   private long time() {

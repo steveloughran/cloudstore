@@ -219,7 +219,7 @@ public class MkCSV extends StoreEntryPoint {
     printFSInfoInVerbose(fs);
 
     long sizeBytes = status.getLen();
-    summarize("CSV Generation", uploadDurationTracker, sizeBytes);
+    summarize("CSV Generation", uploadDurationTracker, sizeBytes, "", null);
 
     return 0;
 

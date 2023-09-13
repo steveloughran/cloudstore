@@ -525,8 +525,18 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
     }
   }
 
+  /**
+   * @param operation
+   * @param tracker
+   * @param sizeBytes
+   * @param blockName
+   * @param blockSummary
+   */
   protected void summarize(String operation,
-      StoreDurationInfo tracker, long sizeBytes) {
+      StoreDurationInfo tracker,
+      long sizeBytes,
+      final String blockName,
+      final MinMeanMax blockSummary) {
     heading("%s Summary", operation);
     println("Data size %,d bytes", sizeBytes);
     println("%s duration %s", operation, tracker.getDurationString());
@@ -542,10 +552,16 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
     double megabytesPerSecond = megabitsPerSecond / 8;
 
     println("%s bandwidth in Megabits/second %,.3f Mbit/s", operation, megabitsPerSecond);
-    println();
     println("%s bandwidth in Megabytes/second %,.3f MB/s", operation, megabytesPerSecond);
+    if (blockSummary != null) {
+      println("%s %d: min %.3f seconds, max %.3f seconds, mean %.3f seconds,",
+          blockName,
+          blockSummary.samples(),
+          blockSummary.min() / 1000.0,
+          blockSummary.max()  / 1000.0,
+          blockSummary.mean() / 1000.0);
+    }
     println();
-
   }
 
   protected Optional<Long> getOptionalLong(final String s) {

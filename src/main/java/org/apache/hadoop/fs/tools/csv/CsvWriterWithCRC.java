@@ -80,9 +80,10 @@ public final class CsvWriterWithCRC extends SimpleCsvWriter  {
    * @throws IOException IO failure.
    */
   @Override
-  public void newline() throws IOException {
+  public SimpleCsvWriter newline() throws IOException {
     super.newline();
     rowCrc.update(getEol().getBytes(StandardCharsets.UTF_8));
+    return this;
   }
 
   /**

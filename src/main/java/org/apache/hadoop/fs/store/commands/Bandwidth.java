@@ -19,6 +19,7 @@
 package org.apache.hadoop.fs.store.commands;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.time.Duration;
 import java.util.List;
 import java.util.Locale;
@@ -34,15 +35,18 @@ import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.store.MinMeanMax;
 import org.apache.hadoop.fs.store.StoreDurationInfo;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
 import org.apache.hadoop.fs.store.StoreUtils;
+import org.apache.hadoop.fs.tools.csv.CsvWriterWithCRC;
 import org.apache.hadoop.util.Progressable;
 import org.apache.hadoop.util.ShutdownHookManager;
 import org.apache.hadoop.util.ToolRunner;
 
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
+import static org.apache.hadoop.fs.store.CommonParameters.CSVFILE;
 import static org.apache.hadoop.fs.store.CommonParameters.DEFINE;
 import static org.apache.hadoop.fs.store.CommonParameters.TOKENFILE;
 import static org.apache.hadoop.fs.store.CommonParameters.VERBOSE;
@@ -67,7 +71,8 @@ public class Bandwidth extends StoreEntryPoint {
       + optusage(RENAME, "rename file to suffix .renamed")
       + optusage(TOKENFILE, "file", "Hadoop token file to load")
       + optusage(VERBOSE, "print verbose output")
-      + optusage(XMLFILE, "file", "XML config file to load");
+      + optusage(XMLFILE, "file", "XML config file to load")
+      + optusage(CSVFILE, "file", "CSV file save statistics to load");
 
   private static final int BUFFER_SIZE = 32 * 1024;
 
@@ -77,12 +82,15 @@ public class Bandwidth extends StoreEntryPoint {
 
   public static final int PRIORITY = 10;
 
+  private static final String EOL = "\r\n";
+
+  private static final String SEPARATOR = ",";
+
   private byte[] dataBuffer;
 
   public Bandwidth() {
     createCommandFormat(2, 2, VERBOSE, KEEP, RENAME);
-    addValueOptions(TOKENFILE, XMLFILE, DEFINE);
-
+    addValueOptions(TOKENFILE, XMLFILE, DEFINE, CSVFILE);
   }
 
   @Override
@@ -95,8 +103,11 @@ public class Bandwidth extends StoreEntryPoint {
     maybeAddTokens(TOKENFILE);
     final boolean keep = hasOption(KEEP);
     final boolean rename = hasOption(RENAME);
+    final String csvFile = getOption(CSVFILE);
+
     final Configuration conf = createPreconfiguredConfig();
 
+    final PrintStream out = getOut();
     // path on the CLI
     String size = argList.get(0).toLowerCase(Locale.ENGLISH);
     String pathString = argList.get(1);
@@ -107,6 +118,9 @@ public class Bandwidth extends StoreEntryPoint {
         : uploadPath;
     if (keep) {
       println("Retaining file %s", downloadPath);
+    }
+    if (csvFile != null) {
+      println("Saving statistics as CSV data to %s", csvFile);
     }
 
     if (size.endsWith("p") || size.endsWith("t") || size.endsWith("e")) {
@@ -124,6 +138,25 @@ public class Bandwidth extends StoreEntryPoint {
     }
     println("Upload size in Megabytes %,d MB", sizeMB);
     long sizeBytes = sizeMB * MB_1;
+
+    CsvWriterWithCRC writer = null;
+    Path csvPath = null;
+    if (csvFile != null) {
+      csvPath = new Path(csvFile);
+      FSDataOutputStream upload;
+
+      FileSystem csvFs = csvPath.getFileSystem(conf);
+
+      upload = csvFs.createFile(csvPath)
+          .recursive()
+          .bufferSize(BUFFER_SIZE)
+          .overwrite(true)
+          .build();
+      writer = new CsvWriterWithCRC(upload, SEPARATOR, EOL, true);
+
+      writer.columns("operation", "bytes", "duration");
+      writer.newline();
+    }
 
     // buffer of randomness
     dataBuffer = new byte[UPLOAD_BUFFER_SIZE];
@@ -146,7 +179,7 @@ public class Bandwidth extends StoreEntryPoint {
 
     // open the file. track duration
     FSDataOutputStream upload;
-    try (StoreDurationInfo d = new StoreDurationInfo(LOG, "Opening %s for upload", uploadPath)) {
+    try (StoreDurationInfo d = new StoreDurationInfo(out, "Opening %s for upload", uploadPath)) {
       upload = fs.createFile(uploadPath)
           .progress(progress)
           .recursive()
@@ -170,23 +203,30 @@ public class Bandwidth extends StoreEntryPoint {
         }
       }, PRIORITY);
     }
+    MinMeanMax blockUploads = new MinMeanMax("block write duration");
     StoreDurationInfo closeDuration;
     try {
       // now do the upload
       // println placement is so that progress . entries are on their own line
       for (int i = 0; i < numberOfBuffersToUpload; i++) {
-        LOG.info("Write block {}", String.format("%,d ", i));
+        StoreDurationInfo duration = new StoreDurationInfo();
+        print("Write block %,d", i);
         upload.write(dataBuffer);
+        duration.finished();
+        blockUploads.add(duration.value());
+        println(" in %.3f seconds", duration.value() / 1000.0);
+        row(writer, "upload", sizeBytes, duration);
       }
       println();
 
       // close and so write all remaining data
-      closeDuration = new StoreDurationInfo(LOG, "upload stream close()");
+      closeDuration = new StoreDurationInfo(out, "upload stream close()");
       try {
         upload.close();
       } finally {
-        closeDuration.finished();
+        closeDuration.close();
       }
+      row(writer, "close-upload", sizeBytes, closeDuration);
     } finally {
       printIfVerbose("Upload Stream: %s", upload);
     }
@@ -196,6 +236,76 @@ public class Bandwidth extends StoreEntryPoint {
     // end of upload
     printFSInfoInVerbose(fs);
 
+
+    Optional<StoreDurationInfo> renameDurationTracker = empty();
+    if (rename) {
+      heading("Rename");
+      final StoreDurationInfo rd = new StoreDurationInfo();
+      renameDurationTracker = of(rd);
+      try (StoreDurationInfo d = new StoreDurationInfo(out, "rename to %s", downloadPath)) {
+        fs.rename(uploadPath, downloadPath);
+      }
+      rd.finished();
+      row(writer, "rename", sizeBytes, rd);
+    }
+    // now download
+    heading("Download " + downloadPath);
+
+    StoreDurationInfo downloadDurationTracker = new StoreDurationInfo();
+    FSDataInputStream download;
+    StoreDurationInfo openDuration = new StoreDurationInfo(out, "open %s", downloadPath);
+    try {
+      download = fs.openFile(downloadPath)
+          .opt("fs.option.openfile.read.policy", "whole-file")
+          .opt("fs.option.openfile.length", Long.toString(sizeBytes))
+          .build().get();
+    } finally {
+      openDuration.finished();
+      row(writer, "open", 0, openDuration);
+    }
+    MinMeanMax blockDownload = new MinMeanMax("block read duration");
+
+    try {
+      long pos = 0;
+      // now do the download
+      for (int i = 0; i < numberOfBuffersToUpload; i++) {
+        print("Read block %,d", i);
+        StoreDurationInfo duration = new StoreDurationInfo();
+        download.readFully(pos, dataBuffer);
+        pos += UPLOAD_BUFFER_SIZE;
+        duration.finished();
+        blockDownload.add(duration.value());
+        println(" in %.3f seconds", duration.value() / 1000.0);
+        row(writer, "download", sizeBytes, duration);
+      }
+      println();
+      try (StoreDurationInfo d = new StoreDurationInfo(out, "download stream close()")) {
+        download.close();
+      }
+    } finally {
+      writer.close();
+      printIfVerbose("Download Stream: %s", download);
+    }
+    downloadDurationTracker.finished();
+
+
+    if (!keep) {
+      try (StoreDurationInfo d = new StoreDurationInfo(out, "delete file %s", uploadPath)) {
+        fs.delete(uploadPath, false);
+        fs.delete(downloadPath, false);
+      }
+    }
+
+    // now print summaries
+    summarize("Upload", uploadDurationTracker, sizeBytes,
+        "Blocks uploaded (ignoring close() overhead):", blockUploads);
+
+    // use close to time for "real" mean block upload time
+    println("Close() duration: %s (hour:minute:seconds)", closeDuration.getDurationString());
+    println("Mean Upload duration/block including close() overhead %.3f seconds",
+        (blockUploads.sum() + uploadDurationTracker.value()) / blockUploads.samples()  / 1000.0);
+
+    // warn on slow close
     final Duration dur = closeDuration.asDuration();
     if (dur.getSeconds() > CLOSE_WARN_THRESHOLD_SECONDS) {
       heading("Close() slow due to data generation/bandwidth mismatch");
@@ -206,62 +316,28 @@ public class Bandwidth extends StoreEntryPoint {
       warn("in the filesystem client's output stream");
     }
 
-
-    Optional<StoreDurationInfo> renameDurationTracker = empty();
-
-
-    if (rename) {
-      heading("Rename");
-      renameDurationTracker = of(new StoreDurationInfo());
-      try (StoreDurationInfo d = new StoreDurationInfo(LOG, "rename to %s", downloadPath)) {
-        fs.rename(uploadPath, downloadPath);
-      }
-      renameDurationTracker.get().finished();
-    }
-    // now download
-    heading("Download " + downloadPath);
-
-    StoreDurationInfo downloadDurationTracker = new StoreDurationInfo();
-    FSDataInputStream download;
-    try (StoreDurationInfo d = new StoreDurationInfo(LOG, "open %s", downloadPath)) {
-      download = fs.openFile(downloadPath)
-          .opt("fs.option.openfile.read.policy", "whole-file")
-          .opt("fs.option.openfile.length", Long.toString(sizeBytes))
-          .build().get();
-    }
-    try {
-      long pos = 0;
-      // now do the download
-      for (int i = 0; i < numberOfBuffersToUpload; i++) {
-        LOG.info("Read block {}", String.format("%,d ", i));
-        download.readFully(pos, dataBuffer);
-        pos += UPLOAD_BUFFER_SIZE;
-      }
-      println();
-      try (StoreDurationInfo d = new StoreDurationInfo(LOG, "download stream close()")) {
-        download.close();
-      }
-    } finally {
-      printIfVerbose("Download Stream: %s", download);
-    }
-    downloadDurationTracker.finished();
-
-
-    if (!keep) {
-      try (StoreDurationInfo d = new StoreDurationInfo(LOG, "delete file %s", uploadPath)) {
-        fs.delete(uploadPath, false);
-        fs.delete(downloadPath, false);
-      }
-    }
-
-    // now print summaries
-    summarize("Upload", uploadDurationTracker, sizeBytes);
     renameDurationTracker.ifPresent(t ->
-        summarize("Rename", t, sizeBytes));
-    summarize("Download", downloadDurationTracker, sizeBytes);
+        summarize("Rename", t, sizeBytes, "", null));
+    summarize("Download", downloadDurationTracker, sizeBytes,
+        "Blocks downloaded:", blockDownload);
 
+    if (csvPath != null) {
+      print("CSV formatted data saved to %s", csvPath);
+    }
     return 0;
 
+  }
+
+  private static void row(final CsvWriterWithCRC writer,
+      final String a,
+      final long sizeCol,
+      final StoreDurationInfo dur) throws IOException {
+    if (writer != null) {
+      writer.column(a)
+          .columnL(sizeCol)
+          .columnL(dur.value())
+          .newline();
+    }
   }
 
   /**
