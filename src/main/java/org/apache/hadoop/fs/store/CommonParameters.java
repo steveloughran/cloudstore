@@ -29,9 +29,6 @@ public final class CommonParameters {
   /** {@value}. */
   public static final String XMLFILE = "xmlfile";
 
-  /** {@value}. */
-  public static final String CSVFILE = "csv";
-
   /** file for system properties {@value}. */
   public static final String SYSPROPFILE = "syspropfile";
 

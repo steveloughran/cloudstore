@@ -38,6 +38,8 @@ public class StoreDurationInfo
 
   private long finished;
 
+  private boolean isFinished;
+
   private final String text;
 
   private final Logger log;
@@ -78,7 +80,7 @@ public class StoreDurationInfo
     }
   }
 
- /**
+  /**
    * Create the duration with no output printed.
    */
   public StoreDurationInfo() {
@@ -93,8 +95,14 @@ public class StoreDurationInfo
     return System.currentTimeMillis();
   }
 
-  public void finished() {
-    finished = time();
+  /**
+   * Finish the operation; only valid once.
+   */
+  public synchronized void finished() {
+    if (!isFinished) {
+      finished = time();
+      isFinished = true;
+    }
   }
 
   public String getDurationString() {
@@ -104,7 +112,7 @@ public class StoreDurationInfo
   public static String humanTime(long time) {
     long seconds = (time / 1000);
     long minutes = (seconds / 60);
-    return String.format("%d:%02d:%03d", minutes, seconds % 60, time % 1000);
+    return String.format("%d:%02d.%03d", minutes, seconds % 60, time % 1000);
   }
 
   /**
@@ -122,11 +130,17 @@ public class StoreDurationInfo
   public Duration asDuration() {
     return Duration.ofMillis(value());
   }
+
   @Override
   public String toString() {
     return getDurationString();
   }
 
+
+  /**
+   * Close the duration, invoke {@link #finished()}.
+   * Log the final state if a log or output stream was provided.
+   */
   @Override
   public void close() {
     finished();

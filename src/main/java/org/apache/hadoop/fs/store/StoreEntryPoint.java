@@ -155,7 +155,6 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
   /**
    * Print a formatted string followed by a newline to the output stream.
    * @param format format string
-   * @param args optional arguments
    */
   @Override
   public void println(String format) {
@@ -295,6 +294,16 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
    */
   protected final String getOption(String opt) {
     return getCommandFormat().getOptValue(opt);
+  }
+
+  /**
+   * Get the value of a key-val option.
+   * @param opt option.
+   * @param defval default value
+   * @return the value or null
+   */
+  protected final String getOption(String opt, String defval) {
+    return hasOption(opt) ? getCommandFormat().getOptValue(opt) : defval;
   }
 
   /**

@@ -25,17 +25,17 @@ kept out right now for various reasons
 Why? 
 
 1. Sometimes things fail, and the first problem is classpath;
-1. The second, invariably some client-side config. 
-1. Then there's networking and permissions...
-1. The Hadoop FS connectors all assume a well configured system, and don't
+2. The second, invariably some client-side config. 
+3. Then there's networking and permissions...
+4. The Hadoop FS connectors all assume a well configured system, and don't
 do much in terms of meaningful diagnostics.
-1. This is compounded by the fact that we dare not log secret credentials.
-1. And in support calls, it's all to easy to get those secrets, even
+5. This is compounded by the fact that we dare not log secret credentials.
+6. And in support calls, it's all to easy to get those secrets, even
 though its a major security breach to get them.
 
 ### Secondary: higher performance cloud IO
 
-The main hadoop `hadoop fs` commands are written assuming a filesystem, where
+The main hadoop `hadoop fs` commands are written assuming a filesystem, where:
 
 * Recursive treewalks are the way to traverse the store.
 * The code was written for Hadoop 1.0 and uses the filesystem APIs of that era.
@@ -133,16 +133,7 @@ The comments are printed too! This means you can use them in the reports.
 
 ## Command `bandwidth`
 
-Measure upload/download bandwidth.
-
-```bash
- bin/hadoop jar cloudstore-1.0.jar bandwidth
-Usage: bandwidth [options] size <path>
-        -D <key=value>  Define a property
-        -tokenfile <file>       Hadoop token file to load
-        -verbose        print verbose output
-        -xmlfile <file> XML config file to load
-```
+Measure upload/download bandwidth, optionally saving data to a CSV file.
 
 See [bandwidth](src/main/site/bandwidth.md) for details.
 

@@ -19,10 +19,12 @@ With maven, with profiles for many different hadoop versions.
 To build a production release
 1. Use java8
 2. And compile against a shipping hadoop version, with `-Pextra` for the extra stuff
+3. Do not attempt to build the AWS v1 SDK components `-Pextra` against a version of Hadoop
+   built with the AWS V2 SDK. It will fail
 
 
 ```bash
-mvn clean install -Phadoop-3.3.2 -Pextra
+mvn clean install -Pextra
 ```
 
 ## Releasing
