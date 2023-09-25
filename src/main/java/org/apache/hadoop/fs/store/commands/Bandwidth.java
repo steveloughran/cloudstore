@@ -108,7 +108,9 @@ public class Bandwidth extends StoreEntryPoint {
         KEEP,
         RENAME,
         VERBOSE);
-    addValueOptions(TOKENFILE, XMLFILE,
+    addValueOptions(
+        TOKENFILE,
+        XMLFILE,
         BLOCK,
         CSVFILE,
         DEFINE,
@@ -192,7 +194,7 @@ public class Bandwidth extends StoreEntryPoint {
           .build();
       writer = new CsvWriterWithCRC(upload, SEPARATOR, EOL, true);
 
-      writer.columns("operation", "bytes", "total", "duration");
+      writer.columns("operation", "iteration", "bytes", "total", "duration");
       writer.newline();
     }
 
@@ -222,7 +224,7 @@ public class Bandwidth extends StoreEntryPoint {
           .overwrite(true)
           .build();
       d.finished();
-      row(writer, "create-file", 0, 0, d);
+      row(writer, "create-file", 1, 0, 0, d);
     }
     // set up
     if (!keep) {
@@ -262,7 +264,7 @@ public class Bandwidth extends StoreEntryPoint {
         duration.finished();
         blockUploads.add(duration.value());
         println(" in %.3f seconds", duration.value() / 1000.0);
-        row(writer, "upload-block", blockSize, total += blockSize, duration);
+        row(writer, "upload-block",  i + 1, blockSize, total += blockSize, duration);
       }
       println();
 
@@ -274,7 +276,7 @@ public class Bandwidth extends StoreEntryPoint {
       } finally {
         closeDuration.close();
       }
-      row(writer, "close-upload", 0, fileSizeBytes, closeDuration);
+      row(writer, "close-upload", 1, 0, fileSizeBytes, closeDuration);
 
       println();
       // print out progress info
@@ -286,7 +288,7 @@ public class Bandwidth extends StoreEntryPoint {
     }
     // upload is done, print some statistics
     uploadDurationTracker.finished();
-    row(writer, "upload", blockSize, blockSize, uploadDurationTracker);
+    row(writer, "upload", 1, blockSize, blockSize, uploadDurationTracker);
 
     // end of upload
     printFSInfoInVerbose(fs);
@@ -304,7 +306,7 @@ public class Bandwidth extends StoreEntryPoint {
         fs.rename(uploadPath, downloadPath);
       }
       rd.finished();
-      row(writer, "rename", fileSizeBytes, 0, rd);
+      row(writer, "rename", 1, fileSizeBytes, 0, rd);
     }
 
     /*
@@ -322,7 +324,7 @@ public class Bandwidth extends StoreEntryPoint {
           .build().get();
     } finally {
       openDuration.finished();
-      row(writer, "open-for-download", 0, 0, openDuration);
+      row(writer, "open-for-download", 1, 0, 0, openDuration);
     }
     MinMeanMax blockDownload = new MinMeanMax("block read duration");
 
@@ -338,14 +340,14 @@ public class Bandwidth extends StoreEntryPoint {
         duration.finished();
         blockDownload.add(duration.value());
         println(" in %.3f seconds", duration.value() / 1000.0);
-        row(writer, "download-block", blockSize, total += blockSize, duration);
+        row(writer, "download-block", i + 1, blockSize, total += blockSize, duration);
       }
       println();
       try (StoreDurationInfo d = new StoreDurationInfo(out, "download stream close()")) {
         download.close();
       }
       downloadDurationTracker.finished();
-      row(writer, "download", fileSizeBytes, fileSizeBytes, downloadDurationTracker);
+      row(writer, "download", 1, fileSizeBytes, fileSizeBytes, downloadDurationTracker);
     } finally {
       writer.close();
       printIfVerbose("Download Stream: %s", download);
@@ -400,15 +402,19 @@ public class Bandwidth extends StoreEntryPoint {
    * write a row to the CSV file.
    * @param writer file to write to
    * @param a action
+   * @param iteration iteration for repeated operations
    * @param opBytes bytes processed in operation
    * @param totalBytes ongoing byte count
    * @param dur duration
    * @throws IOException write failure
    */
-  private static void row(final CsvWriterWithCRC writer,
+  private static void row(
+      final CsvWriterWithCRC writer,
       final String a,
+      final int iteration,
       final long opBytes,
-      final long totalBytes, final StoreDurationInfo dur) throws IOException {
+      final long totalBytes,
+      final StoreDurationInfo dur) throws IOException {
     if (writer != null) {
       writer.column(a)
           .columnL(opBytes)
