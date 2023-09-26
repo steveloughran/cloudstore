@@ -20,6 +20,7 @@ package org.apache.hadoop.fs.store;
 
 import java.io.PrintStream;
 import java.time.Duration;
+import java.util.function.Supplier;
 
 import org.slf4j.Logger;
 
@@ -40,9 +41,19 @@ public class StoreDurationInfo
 
   private boolean isFinished;
 
-  private final String text;
+
+  private final Supplier<String> text;
+
+  public static final Supplier<String> EMPTY_TEXT = () -> "";
+
+  private String textStr;
 
   private final Logger log;
+
+  /**
+   * Should the log be at INFO rather than DEBUG.
+   */
+  private final boolean logAtInfo;
 
   private final PrintStream out;
 
@@ -53,15 +64,39 @@ public class StoreDurationInfo
    * @param args list of arguments
    */
   public StoreDurationInfo(Logger log, String format, Object... args) {
-    started = time();
-    finished = started;
-    this.text = String.format(format, args);
+
+    this(log, true, format, args);
+  }
+
+  /**
+   * Create the duration text from a {@code String.format()} code call
+   * and log either at info or debug.
+   * @param log log to write to
+   * @param logAtInfo should the log be at info, rather than debug
+   * @param format format string
+   * @param args list of arguments
+   */
+  public StoreDurationInfo(Logger log,
+      boolean logAtInfo,
+      String format,
+      Object... args) {
+    this.started = time();
+    this.finished = started;
+    this.text = () -> String.format(format, args);
     this.log = log;
-    out = null;
+    this.logAtInfo = logAtInfo;
+    this.out = null;
     if (log != null) {
-      log.info("Starting: {}", text);
+      if (logAtInfo) {
+        log.info("Starting: {}", getFormattedText());
+      } else {
+        if (log.isDebugEnabled()) {
+          log.debug("Starting: {}", getFormattedText());
+        }
+      }
     }
   }
+
 
   /**
    * Create the duration text from a {@code String.format()} code call.
@@ -72,11 +107,13 @@ public class StoreDurationInfo
   public StoreDurationInfo(PrintStream out, String format, Object... args) {
     started = time();
     finished = started;
-    this.text = String.format(format, args);
+    this.text = () -> String.format(format, args);
     this.out = out;
     this.log = null;
+    this.logAtInfo = false;
+
     if (out != null) {
-      out.printf("Starting: %s%n", text);
+      out.printf("Starting: %s%n", getFormattedText());
     }
   }
 
@@ -84,11 +121,17 @@ public class StoreDurationInfo
    * Create the duration with no output printed.
    */
   public StoreDurationInfo() {
-    this.text = "";
+    this.text = EMPTY_TEXT;
     this.log = null;
     this.out = null;
+    this.logAtInfo = false;
     started = time();
     finished = started;
+  }
+
+
+  private String getFormattedText() {
+    return (textStr == null) ? (textStr = text.get()) : textStr;
   }
 
   private long time() {
@@ -112,7 +155,8 @@ public class StoreDurationInfo
   public static String humanTime(long time) {
     long seconds = (time / 1000);
     long minutes = (seconds / 60);
-    return String.format("%d:%02d.%03d", minutes, seconds % 60, time % 1000);
+    long hours = (minutes / 60);
+    return String.format("%d:%02d:%02d.%03d", hours, minutes % 60, seconds % 60, time % 1000);
   }
 
   /**
@@ -145,10 +189,16 @@ public class StoreDurationInfo
   public void close() {
     finished();
     if (log != null) {
-      log.info("Duration of {}: {}", text, this);
+      if (logAtInfo) {
+        log.info("Duration of {}: {}", getFormattedText(), this);
+        ;
+      } else {
+        log.debug("Duration of {}: {}", getFormattedText(), this);
+      }
+
     }
     if (out != null) {
-      out.printf("Duration of %s: %s%n", text, this);
+      out.printf("Duration of %s: %s%n", getFormattedText(), this);
     }
   }
 }

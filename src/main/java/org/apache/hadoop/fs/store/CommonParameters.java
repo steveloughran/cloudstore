@@ -54,6 +54,22 @@ public final class CommonParameters {
 
   public static final String BFS = "bfs";
 
+  public static final String BLOCK = "block";
+
+  public static final String CSVFILE = "csv";
+
+  public static final String FLUSH = "flush";
+
+  public static final String HFLUSH = "hflush";
+
+  public static final String IGNORE = "ignore";
+
+  public static final String LARGEST = "largest";
+
+  public static final String OVERWRITE = "overwrite";
+
+  public static final String UPDATE = "update";
+
   private CommonParameters() {
   }
 }

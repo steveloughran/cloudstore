@@ -66,6 +66,11 @@ import static org.apache.hadoop.fs.store.CommonParameters.VERBOSE;
 import static org.apache.hadoop.fs.store.CommonParameters.XMLFILE;
 import static org.apache.hadoop.fs.store.StoreDiagConstants.IOSTATISTICS_LOGGING_LEVEL;
 import static org.apache.hadoop.fs.store.StoreUtils.split;
+import static org.apache.hadoop.fs.store.diag.S3ADiagnosticsInfo.DIRECTORY_MARKER_RETENTION;
+import static org.apache.hadoop.fs.store.diag.S3ADiagnosticsInfo.FS_S3A_CONNECTION_MAXIMUM;
+import static org.apache.hadoop.fs.store.diag.S3ADiagnosticsInfo.FS_S3A_THREADS_MAX;
+import static org.apache.hadoop.fs.store.diag.S3ADiagnosticsInfo.INPUT_FADVISE;
+import static org.apache.hadoop.fs.store.diag.S3ADiagnosticsInfo.INPUT_FADV_NORMAL;
 
 /**
  * Entry point for store applications
@@ -520,6 +525,20 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
     maybePatchDefined(conf, DEFINE);
     conf.set(IOSTATISTICS_LOGGING_LEVEL, "info");
 
+    return conf;
+  }
+
+  /**
+   * Patch the configuration for maximum S3A performance.
+   * @param conf config
+   * @return the now updated config
+   */
+  protected Configuration patchForMaxS3APerformance(Configuration conf) {
+    conf.setBoolean(DIRECTORY_MARKER_RETENTION, true);
+    final int workers = 256;
+    conf.setInt(FS_S3A_CONNECTION_MAXIMUM, workers * 2);
+    conf.setInt(FS_S3A_THREADS_MAX, workers);
+    conf.set(INPUT_FADVISE, INPUT_FADV_NORMAL);
     return conf;
   }
 

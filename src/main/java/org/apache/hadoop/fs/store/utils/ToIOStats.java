@@ -17,5 +17,9 @@
  */
 
 package org.apache.hadoop.fs.store.utils;
+
+/**
+ * Reflection based IOStats support.
+ */
 public class ToIOStats {
 }

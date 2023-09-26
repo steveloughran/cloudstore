@@ -75,6 +75,11 @@ public final class NanoTimer {
     return now() - startTime;
   }
 
+  /**
+   * Bandwidth as MiB/s.
+   * @param bytes bytes
+   * @return double value
+   */
   public double bandwidth(long bytes) {
     return bandwidthMBs(bytes, duration());
   }
@@ -88,6 +93,16 @@ public final class NanoTimer {
   public double bandwidthBytes(long bytes) {
     double duration = duration();
     return duration > 0 ? bytes / duration : 0;
+  }
+
+  /**
+   * Bandwidth as bits per second.
+   * @param bytes bytes in
+   * @return the number of bits per second this operation.
+   *         0 if duration == 0.
+   */
+  public double bandwidthMegabits(long bytes) {
+    return bandwidth(bytes) * 8;
   }
 
   /**

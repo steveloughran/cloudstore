@@ -18,29 +18,34 @@
 
 package org.apache.hadoop.fs.tools.cloudup;
 
-import javax.annotation.Nonnull;
 import java.io.Serializable;
 import java.util.Comparator;
 import java.util.Objects;
+import javax.annotation.Nonnull;
 
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.Path;
 
 final class UploadEntry implements Serializable, Comparable<UploadEntry> {
 
+  private FileStatus sourceStatus;
+
   public long getDuration() {
-    return endTime -startTime;
+    return endTime - startTime;
   }
 
   public enum State {
     ready,
     queued,
     active,
+    skipped,
     succeeded,
     failed
   }
 
-  private State state= State.ready;
+  private State state = State.ready;
+
+  private long id = 0;
 
   /** Source. Must be absolute. */
   private final Path source;
@@ -69,13 +74,10 @@ final class UploadEntry implements Serializable, Comparable<UploadEntry> {
    */
   private Exception exception;
 
-  public UploadEntry(Path source) {
-    this.source = source;
-  }
-
   public UploadEntry(FileStatus status) {
-    source = status.getPath();
-    size = status.getLen();
+    this.sourceStatus = status;
+    this.source = status.getPath();
+    this.size = status.getLen();
   }
 
   /**
@@ -83,7 +85,9 @@ final class UploadEntry implements Serializable, Comparable<UploadEntry> {
    * @return true iff the upload is in succeeded or failed states
    */
   public boolean isCompleted() {
-    return state == State.succeeded || state == State.failed;
+    return state == State.succeeded
+        || state == State.failed
+        || state == State.skipped;
   }
 
   /**
@@ -106,6 +110,25 @@ final class UploadEntry implements Serializable, Comparable<UploadEntry> {
     return this.state == state;
   }
 
+  /**
+   * Set id value.
+   * @param value new value
+   */
+  void setId(final long value) {
+    id = value;
+  }
+
+  long getId() {
+    return id;
+  }
+
+  /**
+   * Is the upload ready to be executed?
+   */
+  public boolean notYetExecuted() {
+    return state == State.ready || state == State.queued;
+  }
+
   public Path getSource() {
     return source;
   }
@@ -123,7 +146,11 @@ final class UploadEntry implements Serializable, Comparable<UploadEntry> {
   }
 
   public String sizeStr() {
-    return Cloudup.commas(size);
+    return String.format("%,d", size);
+  }
+
+  FileStatus getSourceStatus() {
+    return sourceStatus;
   }
 
   public long getStartTime() {
@@ -156,8 +183,8 @@ final class UploadEntry implements Serializable, Comparable<UploadEntry> {
    */
   @Override
   public boolean equals(Object o) {
-    if (this == o) { return true; }
-    if (o == null || getClass() != o.getClass()) { return false; }
+    if (this == o) {return true;}
+    if (o == null || getClass() != o.getClass()) {return false;}
     UploadEntry that = (UploadEntry) o;
     return Objects.equals(source, that.source);
   }

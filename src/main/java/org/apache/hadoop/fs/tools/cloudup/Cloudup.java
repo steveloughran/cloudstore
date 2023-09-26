@@ -23,11 +23,9 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 import java.util.concurrent.Callable;
@@ -40,23 +38,22 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.atomic.AtomicReference;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.GnuParser;
-import org.apache.commons.cli.Options;
-import org.apache.commons.cli.ParseException;
 import org.apache.commons.collections.comparators.ReverseComparator;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
+import org.apache.hadoop.fs.FSDataOutputStreamBuilder;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.FutureDataInputStreamBuilder;
 import org.apache.hadoop.fs.LocatedFileStatus;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.PathIOException;
 import org.apache.hadoop.fs.RemoteIterator;
 import org.apache.hadoop.fs.StorageStatistics;
 import org.apache.hadoop.fs.store.StoreDurationInfo;
@@ -65,11 +62,20 @@ import org.apache.hadoop.fs.store.StoreUtils;
 import org.apache.hadoop.util.Progressable;
 import org.apache.hadoop.util.ToolRunner;
 
+import static org.apache.hadoop.fs.store.CommonParameters.BLOCK;
+import static org.apache.hadoop.fs.store.CommonParameters.CSVFILE;
 import static org.apache.hadoop.fs.store.CommonParameters.DEFINE;
+import static org.apache.hadoop.fs.store.CommonParameters.FLUSH;
+import static org.apache.hadoop.fs.store.CommonParameters.HFLUSH;
+import static org.apache.hadoop.fs.store.CommonParameters.IGNORE;
+import static org.apache.hadoop.fs.store.CommonParameters.LARGEST;
+import static org.apache.hadoop.fs.store.CommonParameters.OVERWRITE;
 import static org.apache.hadoop.fs.store.CommonParameters.TOKENFILE;
+import static org.apache.hadoop.fs.store.CommonParameters.UPDATE;
 import static org.apache.hadoop.fs.store.CommonParameters.VERBOSE;
 import static org.apache.hadoop.fs.store.CommonParameters.XMLFILE;
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
+import static org.apache.hadoop.fs.store.StoreUtils.await;
 
 /**
  * Entry point for Cloudup: parallelized upload of local files
@@ -78,60 +84,165 @@ import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
  */
 public class Cloudup extends StoreEntryPoint {
 
+
+  public static final String THREADS = "threads";
+
+
   private static final Logger LOG = LoggerFactory.getLogger(Cloudup.class);
 
-  public static final String USAGE
-      =
-      "Usage: cloudup -s source -d dest [-o] [-i] [-l <largest>] [-t threads] ";
 
   private static final int DEFAULT_LARGEST = 4;
 
   private static final int DEFAULT_THREADS = 16;
 
-  public static final int BUFFER_SIZE = 4_000_000;
+  private static final int DEFAULT_BLOCK_SIZE = 2;
 
+  // all the verbs, here just just make renaming again easier.
+  
+  private static final String COPYING = "Copying";
+
+  private static final String COPY_CAPS = "Copy";
+
+  private static final String COPY_LC = "copy";
+
+  private static final String COPIES = "copies";
+
+  private static final String COPIED = "copied";
+
+  private int blockSize = DEFAULT_BLOCK_SIZE;
+
+  /**
+   * Usage string: {@value}.
+   */
+  public static final String USAGE
+      = "Usage: cloudup [options] <source> <dest>\n"
+      + optusage(BLOCK, "size", "block size in megabytes")
+      + optusage(DEFINE, "key=value", "Define a property")
+      // + optusage(CSVFILE, "file", "CSV file to log operation details")
+      + optusage(FLUSH, "flush the output after writing each block")
+      + optusage(HFLUSH, "hflush() the output after writing each block")
+      + optusage(IGNORE, "ignore errors")
+      + optusage(LARGEST, "largest", "number of large files to " + COPY_LC + " first")
+      + optusage(OVERWRITE, "overwrite files")
+      + optusage(THREADS, "threads", "number of worker threads")
+      + optusage(TOKENFILE, "file", "Hadoop token file to load")
+      + optusage(UPDATE, "only copy up new or more recent files")
+      + optusage(VERBOSE, "print verbose output")
+      + optusage(XMLFILE, "file", "XML config file to load");
+
+  /**
+   * Executor service for workers.
+   */
   private ExecutorService workers;
 
+  /**
+   * Source filesystem.
+   */
   private FileSystem sourceFS;
 
+  /**
+   * Source path (qualified).
+   */
   private Path sourcePath;
 
-  private FileSystem destFS;
-
-  private Path destPath;
-
-  private AtomicBoolean exit = new AtomicBoolean(false);
-
-  private boolean overwrite = true;
-
-  private boolean ignoreFailures = true;
-
-  // single element exception with sync access.
-  private final Exception[] firstException = new Exception[1];
-
-  private CompletionService<Outcome> completion;
-
+  /**
+   * Source path status.
+   */
   private FileStatus sourcePathStatus;
 
+  /**
+   * Did the destination exist?
+   */
+  private boolean destDidNotExist;
+
+  /**
+   * Destination filesystem.
+   */
+  private FileSystem destFS;
+
+  /**
+   * Destination path (qualified).
+   */
+  private Path destPath;
+
+  /**
+   * Destination path status.
+   */
   private FileStatus destPathStatus;
 
+  /**
+   * Exit flag: set to true when problems surface.
+   */
+  private final AtomicBoolean exit = new AtomicBoolean(false);
+
+  /**
+   * Verbose option.
+   */
   private boolean verbose;
+
+  /**
+   * Overwrite option.
+   */
+  private boolean overwrite = true;
+
+  /**
+   * Should failures be ignored?
+   */
+  @SuppressWarnings("FieldAccessedSynchronizedAndUnsynchronized")
+  private boolean ignoreFailures = true;
+
+  private final AtomicLong operationIndex = new AtomicLong(0);
+
+  /**
+   * First exception raised.
+   */
+  private final AtomicReference<Exception> firstException = new AtomicReference<>();
+
+  /**
+   * Completion service for uploads.
+   */
+  private CompletionService<Outcome> completion;
+
+  /**
+   * Update option.
+   */
+  private boolean update;
+
+  /**
+   * Flush option.
+   */
+  private boolean flush;
+
+  /**
+   * Hflush option.
+   */
+  private boolean hflush;
 
 
   public Cloudup() {
-    createCommandFormat(0, 0, VERBOSE);
-    addValueOptions(TOKENFILE, XMLFILE, DEFINE);
+    createCommandFormat(2, 2,
+        FLUSH,
+        HFLUSH,
+        IGNORE,
+        OVERWRITE,
+        UPDATE,
+        VERBOSE
+    );
+    addValueOptions(
+        BLOCK,
+        CSVFILE,
+        DEFINE,
+        LARGEST,
+        THREADS,
+        TOKENFILE,
+        XMLFILE
+        );
   }
 
   /**
-   * convert a long to a string with commas inserted.
-   * @param l long
-   * @return string value
+   * current time.
+   * @return now.
    */
-  static String commas(long l) {
-    return String.format("%,d", l);
-  }
-
   private long now() {
     return System.currentTimeMillis();
   }
@@ -147,42 +258,44 @@ public class Cloudup extends StoreEntryPoint {
   @Override
   public int run(String[] args) throws Exception {
     // parse the path
-    if (args.length == 0) {
-      LOG.info(USAGE);
+    List<String> argList = parseArgs(args);
+
+    if (argList.size() != 2) {
+      errorln(USAGE);
       return E_USAGE;
     }
-    final CommandLineParser parser = new GnuParser();
 
-    CommandLine command;
-    try {
-      command = parser.parse(
-          OptionSwitch.addAllOptions(new Options()), args, true);
-    } catch (ParseException e) {
-      throw new IllegalArgumentException("Unable to parse arguments. " +
-          Arrays.toString(args)
-          + "\n" + USAGE,
-          e);
-    }
-    final int largest = OptionSwitch.LARGEST.eval(command, DEFAULT_LARGEST);
-    final int threads = OptionSwitch.THREADS.eval(command, DEFAULT_THREADS);
 
-    overwrite = OptionSwitch.OVERWRITE.hasOption(command);
-    ignoreFailures = OptionSwitch.IGNORE_FAILURES.hasOption(command);
-    final Path src = new Path(OptionSwitch.SOURCE.required(command));
-    final Configuration conf = getConf();
+    final Configuration conf = patchForMaxS3APerformance(createPreconfiguredConfig());
+    flush = hasOption(FLUSH);
+    hflush = hasOption(HFLUSH);
+    ignoreFailures = hasOption(IGNORE);
+    overwrite = hasOption(OVERWRITE);
+    update = hasOption(UPDATE);
+    verbose = isVerbose();
+    final Path src = new Path(argList.get(0));
     sourceFS = src.getFileSystem(conf);
     sourcePath = sourceFS.makeQualified(src);
-    destPath = new Path(OptionSwitch.DEST.required(command));
-    destFS = destPath.getFileSystem(conf);
-    verbose = OptionSwitch.VERBOSE.hasOption(command);
 
-    LOG.info("Uploading from {} to {};"
-            + " threads={}; large files={}"
-            + " overwrite={}, ignore failures={}",
+    final Path dest = new Path(argList.get(1));
+    destFS = dest.getFileSystem(conf);
+    destPath = destFS.makeQualified(dest);
+
+    final String csvFile = getOption(CSVFILE);
+    if (csvFile != null) {
+      warn("CSV file logging is not yet implemented");
+    }
+    final int largest = getIntOption(LARGEST, DEFAULT_LARGEST);
+    final int threads = getIntOption(THREADS, DEFAULT_THREADS);
+    blockSize = getIntOption(BLOCK, DEFAULT_BLOCK_SIZE) * (1024 * 1024);
+
+    println(COPYING
+            + " from %s to %s;"
+            + " threads=%,d; large files=%,d; block size=%dn;"
+            + " overwrite=%s; update=%s verbose=%s; ignore failures=%s",
         sourcePath, destPath,
-        threads, largest,
-        overwrite, ignoreFailures);
-
+        threads, largest, blockSize,
+        overwrite, update, verbose, ignoreFailures);
 
     // see what we have for a source: file & dir are treated differently
     sourcePathStatus = sourceFS.getFileStatus(sourcePath);
@@ -191,9 +304,10 @@ public class Cloudup extends StoreEntryPoint {
     } catch (FileNotFoundException e) {
       destPathStatus = null;
     }
+    destDidNotExist = destPathStatus == null;
 
     if (destFS.equals(sourceFS)) {
-      // dest FS is also local filesystem.
+      // dest FS is also source filesystem.
       // make sure that the source isn't under the dest,
       // and vice versa
 
@@ -220,14 +334,16 @@ public class Cloudup extends StoreEntryPoint {
     // prepare the destination
 
     final Future<String> prepareDestResult = workers.submit(prepareDest());
-    String info = StoreUtils.await(prepareDestResult);
-    LOG.info("Destination prepared: {}", info);
+    String info = await(prepareDestResult);
+    debug("Destination prepared: {}", info);
 
-    List<UploadEntry> uploadList = StoreUtils.await(listFilesOperation);
+    List<UploadEntry> uploadList = await(listFilesOperation);
     final int uploadCount = uploadList.size();
 
     preparationDuration.finished();
-    LOG.info("Files to upload = {}; preparation StoreDurationInfo = {}",
+    println("Files to "
+            + COPY_LC
+            + " = %,d; preparation  = %s",
         uploadCount, preparationDuration);
 
 
@@ -249,26 +365,32 @@ public class Cloudup extends StoreEntryPoint {
     int submittedFiles = 0;
     for (int i = 0; i < sortUploadCount; i++) {
       UploadEntry upload = uploadList.get(i);
-      LOG.info("Large file {}: size = {}: {}",
-          i + 1,
-          upload.sizeStr(),
-          upload.getSource());
       long submitSize = submit(upload);
+      println("[%02d]: size = %,d bytes: %s",
+          i + 1,
+          upload.getSize(),
+          upload.getSource());
       if (submitSize >= 0) {
         submittedFiles++;
         sortUploadSize += submitSize;
       }
     }
-    LOG.info("Largest {} uploads commenced, total size = {}",
-        uploadCount,
-        commas(sortUploadSize));
 
+    // largest files queued for upload
+    int remaining = uploadCount - sortUploadCount;
+    println("Largest %,d "
+            + COPIES
+            + " commenced, total size = %,d bytes. Remaining files: %,d",
+        submittedFiles,
+        sortUploadSize,
+        remaining);
 
     // shuffle and submit remainder
+
     int shuffledUploadCount = 0;
     long shuffledUploadSize = 0;
 
-    if (uploadCount > sortUploadCount) {
+    if (remaining > 0) {
       Collections.shuffle(uploadList);
       for (UploadEntry entry : uploadList) {
         long size = submit(entry);
@@ -278,13 +400,13 @@ public class Cloudup extends StoreEntryPoint {
           shuffledUploadSize += size;
         }
       }
-      LOG.info("Shuffled uploads commenced: {}, total size = {}",
+      println("Shuffled files and queued: %,d, total size = %,d bytes",
           shuffledUploadCount, shuffledUploadSize);
     }
     submittedFiles += shuffledUploadCount;
 
     if (submittedFiles == 0) {
-      LOG.info("No files submitted");
+      println("No files submitted");
       return 0;
     }
 
@@ -292,7 +414,7 @@ public class Cloudup extends StoreEntryPoint {
 
 
     // now await all outcomes to complete
-    LOG.info("Awaiting completion of {} operations", uploadCount);
+    println("Awaiting completion of %,d operations", uploadCount);
     List<Future<Outcome>> outcomes = new ArrayList<>(uploadCount);
     for (int i = 0; i < uploadCount; i++) {
       Future<Outcome> outcome = completion.take();
@@ -303,32 +425,31 @@ public class Cloudup extends StoreEntryPoint {
     uploadDuration.finished();
     uploadTimer.end();
 
-
-    dumpStats(sourceFS, "Source statistics");
-    if (!sourceFS.equals(destFS)) {
-      dumpStats(destFS, "Dest statistics");
+    if (isVerbose()) {
+      dumpStats(sourceFS, "Source statistics");
+      if (!sourceFS.equals(destFS)) {
+        dumpStats(destFS, "Dest statistics");
+      }
     }
-
-    LOG.info("\n\nUploads attempted: {}, size {}, StoreDurationInfo:  {}",
-        uploadCount,
-        commas(uploadSize),
-        uploadDuration);
-    LOG.info("Bandwidth {} MB/s",
-        uploadTimer.bandwidthDescription(uploadSize));
-    LOG.info(String.format("Seconds per file %.3fs",
-        ((double) uploadDuration.value()) / uploadCount));
 
     // run through the outcomes and process errors
     // at this point, all the uploads have been executed.
     long finalUploadedSize = 0;
+    long skippedSize = 0;
+    int skipCount = 0;
     int errors = 0;
-    Exception exception = firstException[0];
+    Exception exception = firstException.get();
 
     for (Future<Outcome> outcome : outcomes) {
       try {
-        final Outcome result = StoreUtils.await(outcome);
+        final Outcome result = await(outcome);
         result.maybeThrowException();
-        finalUploadedSize += result.getBytesUploaded();
+        if (result.skipped()) {
+          skipCount++;
+          skippedSize += result.getBytesUploaded();
+        } else {
+          finalUploadedSize += result.getBytesUploaded();
+        }
       } catch (InterruptedException ignored) {
         // ignored
       } catch (Exception e) {
@@ -339,15 +460,43 @@ public class Cloudup extends StoreEntryPoint {
       }
     }
 
+
+    heading("Summary of " + COPY_LC + " from %s to %s",
+        sourcePath, destPath);
+    println("File copies attempted: %,d; size %,d bytes",
+        uploadCount,
+        uploadSize,
+        uploadDuration);
+    println("Files skipped: %,d, size %,d bytes", skipCount, skippedSize);
+    println();
+    println("Listing duration: (HH:MM:ss) : %s", preparationDuration);
+    println(COPY_CAPS
+        + " duration: (HH:MM:ss) : %s", uploadDuration);
+    println();
+    final int filesActuallyUploaded = uploadCount - skipCount;
+    if (filesActuallyUploaded > 0) {
+      println("Effective bandwidth %,.3f MiB/s, %,.3f Megabits/s",
+          uploadTimer.bandwidth(finalUploadedSize),
+          uploadTimer.bandwidthMegabits(finalUploadedSize));
+      println("Seconds per file: %.3fs",
+          ((double) (uploadDuration.value()) / (filesActuallyUploaded * 1000)));
+    } else {
+      println("No files "
+          + COPIED);
+    }
+    println();
+
     if (exception != null) {
-      LOG.warn("Upload failed due to an error");
-      LOG.warn("Number of errors: {} actual bytes uploaded = {}",
+      println(COPY_CAPS + " failed due to an error");
+      println("Number of errors: %,d actual bytes " + COPIED + " = %,d",
           errors,
-          commas(finalUploadedSize));
+          finalUploadedSize);
       if (!ignoreFailures) {
         throw exception;
       }
     }
+    println();
+    println();
 
     return 0;
   }
@@ -363,6 +512,7 @@ public class Cloudup extends StoreEntryPoint {
 
   /**
    * Submit an upload; does nothing if the upload is already queued.
+   * Updates the ID of the upload.
    * @param upload upload to submit
    * @return size to upload; -1 for no upload
    */
@@ -395,7 +545,7 @@ public class Cloudup extends StoreEntryPoint {
 
   private Callable<List<UploadEntry>> buildUploads() {
     return () -> {
-      LOG.info("Listing source files under {}", sourcePath);
+      println("Listing source files under %s", sourcePath);
       return createUploadList();
     };
   }
@@ -414,7 +564,9 @@ public class Cloudup extends StoreEntryPoint {
       entry.setDest(getFinalPath(status.getPath()));
       uploads.add(entry);
     }
-    LOG.info("List {}", ri);
+    if (verbose) {
+      println("List %s", ri);
+    }
     if (ri instanceof Closeable) {
       ((Closeable) ri).close();
     }
@@ -429,41 +581,48 @@ public class Cloudup extends StoreEntryPoint {
    */
   private Outcome uploadOneFile(final UploadEntry upload) {
 
+    String threadId = Thread.currentThread().getName();
+
     // fail fast on exit flag
     if (exit.get()) {
       return Outcome.notExecuted(upload);
     }
 
     //skip uploading duplicate (and uploaded already) files
-    if (!upload.inState(UploadEntry.State.ready)
-        && !upload.inState(UploadEntry.State.queued)) {
-      LOG.warn("Skipping upload of {}", upload);
+    if (!upload.notYetExecuted()) {
       return Outcome.notExecuted(upload);
     }
-
-    // Although S3A in Hadoop 2.9 has a robust copy call which qualifies
-    // the path and checks for safe operations, 2.8 doesn't. Add robustness
-    // here at the expense of IOPs
+    upload.setId(operationIndex.incrementAndGet());
     upload.setStartTime(now());
     final Path source = upload.getSource();
     final Path dest = destFS.makeQualified(upload.getDest());
     try {
-      LOG.info("Uploading {} to {} (size: {})",
-          source, dest, upload.sizeStr());
-      uploadOneFile(upload, dest);
-      upload.setState(UploadEntry.State.succeeded);
+      println("[%s] [%04d] " + COPYING + " %s to %s (size: %,d bytes)",
+          threadId, upload.getId(), source, dest, upload.getSize());
+      final UploadEntry.State state = copyFile(upload, dest);
+      upload.setState(state);
       upload.setEndTime(now());
-      LOG.info("Successful upload of {} to {} in {} s",
+      final String outcome = state == UploadEntry.State.succeeded
+          ? ("Successful " + COPY_LC + " of")
+          : ("Skipped " + COPY_LC + " of");
+      println("[%s] [%04d] %s %s to %s  (size: %,d bytes) in %ss",
+          threadId,
+          upload.getId(),
+          outcome,
           source,
           dest,
+          upload.getSize(),
           StoreDurationInfo.humanTime(upload.getDuration()));
       return Outcome.succeeded(upload);
     } catch (Exception e) {
       upload.setState(UploadEntry.State.failed);
       upload.setException(e);
       upload.setEndTime(now());
-      LOG.warn("Failed to upload {} : {}", source, e.toString());
-      LOG.debug("Upload to {} failed", dest, e);
+      println("[%s] [%04d] Failed to "
+          + COPY_LC
+          + " %s to %s: %s", threadId, upload.getId(), source, dest, e);
+      LOG.debug(COPY_CAPS
+          + " {} to {} failed", source, dest, e);
       noteException(e);
       return Outcome.failed(upload, e);
     }
@@ -474,48 +633,108 @@ public class Cloudup extends StoreEntryPoint {
    * is shorter than expected, and logs close time.
    * @param upload upload entry
    * @param dest test path
+   * @return the outcome (skipped/succeeded)
    * @throws IOException failure
    */
-  private void uploadOneFile(final UploadEntry upload, final Path dest)
-      throws IOException {
+  private UploadEntry.State copyFile(final UploadEntry upload, final Path dest)
+      throws IOException, InterruptedException {
     final Path source = upload.getSource();
     long remaining = upload.getSize();
+    final long id = upload.getId();
 
-    int bufferSize = (int) Math.min(BUFFER_SIZE, remaining);
-    try (FSDataInputStream in = sourceFS.open(source);
-         FSDataOutputStream out = destFS.createFile(dest)
-             .overwrite(overwrite)
-             .progress(progress)
-             .recursive()
-             .bufferSize(bufferSize)
-             .build()) {
+    FileStatus sourceStatus = upload.getSourceStatus();
+    boolean s3aCreatePerformance = destDidNotExist;
+
+    if (update && !destDidNotExist) {
+      // update is set, and as the dest path may exist, look for it.
+      try {
+        // update is set: only upload if the source is newer
+        final FileStatus destStatus = destFS.getFileStatus(dest);
+
+        if (destStatus.getLen() == sourceStatus.getLen()
+            && sourceStatus.getModificationTime() <= destStatus.getModificationTime()) {
+          // source is older than dest
+          debug("Skipping "
+                  + COPY_LC
+                  + " of %s to %s",
+              source, dest);
+          return UploadEntry.State.skipped;
+        }
+        // file exists and will be overwritten
+        debug("Overwriting {}", dest);
+        s3aCreatePerformance = true;
+      } catch (FileNotFoundException fnfe) {
+        // dest doesn't exist; no need to worry about overwriting.
+        s3aCreatePerformance = true;
+      }
+    }
+
+    int bufferSize = (int) Math.min(blockSize, remaining);
+
+    // now, very aggressive write call, especially in update where we know the dest path
+    // is being overwritten
+    final FSDataOutputStreamBuilder output = destFS.createFile(dest)
+        .overwrite(overwrite || update)
+        .progress(progress)
+        .recursive()
+        .bufferSize(bufferSize);
+    // enable optimised read options on s3a fs and maybe others.
+    output.opt("fs.s3a.create.performance",
+       Boolean.valueOf(s3aCreatePerformance));  // either we know there's no file, or we're overwriting
+
+    final FutureDataInputStreamBuilder input = sourceFS.openFile(source)
+        .opt("fs.option.openfile.read.policy", "whole-file, sequential")
+        .opt("fs.s3a.experimental.fadvise", "sequential")
+        .opt("fs.option.openfile.length", Long.toString(sourceStatus.getLen()))
+        .withFileStatus(sourceStatus);
+
+    try (FSDataInputStream in = await(input.build());
+         FSDataOutputStream out = output.build()) {
       byte[] buffer = new byte[bufferSize];
       while (remaining > 0) {
-        int blockSize = (int) Math.min(bufferSize, remaining);
-        in.readFully(buffer,0, blockSize);
-        out.write(buffer,0, blockSize);
+        int len = (int) Math.min(bufferSize, remaining);
+        in.readFully(buffer, 0, len);
+        out.write(buffer, 0, len);
+        if (flush) {
+          out.flush();
+        }
+        if (hflush) {
+          out.hflush();
+        }
 
-        remaining -= blockSize;
+        remaining -= len;
         if (verbose) {
           print(".");
         }
       }
 
-      in.close();
-
-      try (StoreDurationInfo d = new StoreDurationInfo(LOG,
-          "close(%s)", dest)) {
+      try (StoreDurationInfo d = new StoreDurationInfo(LOG, isVerbose(),
+          "[%04d] close reader (%s)", id, source)) {
+        in.close();
+      }
+      try (StoreDurationInfo d = new StoreDurationInfo(LOG, isVerbose(),
+          "[%04d] close writer (%s)", id, dest)) {
         out.flush();
         out.close();
       }
-      LOG.info("In: {}", in);
-      LOG.info("Out: {}", out);
+      if (verbose) {
+        println("[%04d] In: %s", id, in);
+        println("[%04d] Out: %s", id, out);
+      }
     }
 
+    return UploadEntry.State.succeeded;
   }
 
+  /**
+   * Progress counter is incremented on every callback from
+   * the output stream.
+   */
   final AtomicLong progressCount = new AtomicLong();
 
+  /**
+   * Progress callback.
+   */
   final Progressable progress = () -> {
     progressCount.incrementAndGet();
     if (verbose) {
@@ -531,8 +750,7 @@ public class Cloudup extends StoreEntryPoint {
    * @param ex exception.
    */
   private synchronized void noteException(Exception ex) {
-    if (firstException[0] == null) {
-      firstException[0] = ex;
+    if (firstException.compareAndSet(null, ex)) {
       if (!ignoreFailures) {
         exit.set(true);
       }
@@ -550,9 +768,11 @@ public class Cloudup extends StoreEntryPoint {
     URI taskOutputUri = srcFile.toUri();
     URI relativePath = sourcePath.toUri().relativize(taskOutputUri);
     if (taskOutputUri == relativePath) {
-      throw new IOException("Can not get the relative path:"
-          + " base = " + sourcePath + " child = " + srcFile);
+      throw new PathIOException(sourcePath.toString(),
+          "Cannot get the relative path:"
+              + " base = " + sourcePath + " child = " + srcFile);
     }
+
     if (!relativePath.getPath().isEmpty()) {
       return new Path(destPath, relativePath.getPath());
     } else {
@@ -572,10 +792,13 @@ public class Cloudup extends StoreEntryPoint {
    */
   private void dumpStats(FileSystem fs, String header) {
     // Not supported on Hadoop 2.7
-    LOG.info("\n" + header + ": " + fs.getUri());
+    println();
+    println("%s: %s", header, fs.getUri());
 
-    // hope to see FS IOStats
-    LOG.info("Filesystem {}", fs);
+    if (verbose) {
+      // hope to see FS IOStats
+      println("Filesystem %s", fs);
+    }
 
     Iterator<StorageStatistics.LongStatistic> iterator
         = fs.getStorageStatistics().getLongStatistics();
@@ -587,9 +810,8 @@ public class Cloudup extends StoreEntryPoint {
       results.put(stat.getName(), stat.getValue());
     }
     // log the results
-    for (Map.Entry<String, Long> entry : results.entrySet()) {
-      LOG.info("{}={}", entry.getKey(), entry.getValue());
-    }
+    results.entrySet().forEach((entry) ->
+        println("%s=%,d", entry.getKey(), entry.getValue()));
 
   }
 
@@ -640,6 +862,14 @@ public class Cloudup extends StoreEntryPoint {
 
     private boolean isExecuted() {
       return executed;
+    }
+
+    private UploadEntry.State getState() {
+      return upload.getState();
+    }
+
+    private boolean skipped() {
+      return upload.inState(UploadEntry.State.skipped);
     }
 
     private Exception getException() {

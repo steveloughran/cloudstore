@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.hadoop.fs.shim.api;
+package org.apache.hadoop.fs.store.shim;
 
 /**
  * Interface to probe for feature being directly available in

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.hadoop.fs.shim.api;
+package org.apache.hadoop.fs.store.shim;
 
 /**
  * An API shim of type {@code TYPE}.

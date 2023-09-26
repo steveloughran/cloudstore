@@ -16,9 +16,9 @@
  * limitations under the License.
  */
 
-package org.apache.hadoop.fs.shim.impl;
+package org.apache.hadoop.fs.store.shim.impl;
 
-import org.apache.hadoop.fs.shim.api.APIShim;
+import org.apache.hadoop.fs.store.shim.APIShim;
 
 import static java.util.Objects.requireNonNull;
 

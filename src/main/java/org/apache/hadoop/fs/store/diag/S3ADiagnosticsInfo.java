@@ -30,6 +30,7 @@ import com.amazonaws.auth.AWSCredentials;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
@@ -43,10 +44,6 @@ import org.apache.hadoop.util.ExitUtil;
 
 import static org.apache.hadoop.fs.s3a.Constants.BUFFER_DIR;
 import static org.apache.hadoop.fs.s3a.Constants.DEFAULT_SECURE_CONNECTIONS;
-import static org.apache.hadoop.fs.s3a.Constants.INPUT_FADVISE;
-import static org.apache.hadoop.fs.s3a.Constants.INPUT_FADV_NORMAL;
-import static org.apache.hadoop.fs.s3a.Constants.INPUT_FADV_RANDOM;
-import static org.apache.hadoop.fs.s3a.Constants.INPUT_FADV_SEQUENTIAL;
 import static org.apache.hadoop.fs.s3a.Constants.SECURE_CONNECTIONS;
 import static org.apache.hadoop.fs.s3a.S3AUtils.getAWSAccessKeys;
 import static org.apache.hadoop.fs.store.StoreUtils.cat;
@@ -127,6 +124,34 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
   public static final String FS_S3A_FAST_UPLOAD_ACTIVE_BLOCKS =
       "fs.s3a.fast.upload.active.blocks";
 
+
+  /**
+   * Which input strategy to use for buffering, seeking and similar when
+   * reading data.
+   * Value: {@value}
+   */
+  public static final String INPUT_FADVISE =
+      "fs.s3a.experimental.input.fadvise";
+
+  /**
+   * General input. Some seeks, some reads.
+   * Value: {@value}
+   */
+  public static final String INPUT_FADV_NORMAL = "normal";
+
+  /**
+   * Optimized for sequential access.
+   * Value: {@value}
+   */
+  public static final String INPUT_FADV_SEQUENTIAL = "sequential";
+
+  /**
+   * Optimized purely for random seek+read/positionedRead operations;
+   * The performance of sequential IO may be reduced in exchange for
+   * more efficient {@code seek()} operations.
+   * Value: {@value}
+   */
+  public static final String INPUT_FADV_RANDOM = "random";
 
   public static final String DELEGATION_TOKEN_BINDING =
       "fs.s3a.delegation.token.binding";

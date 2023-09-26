@@ -366,6 +366,18 @@
     </profile>
 
     <profile>
+      <id>cdh7.1</id>
+      <activation>
+        <property>
+          <name>cdh7.1</name>
+        </property>
+      </activation>
+      <properties>
+        <hadoop.version>3.1.1.7.1.7.2000-1</hadoop.version>
+      </properties>
+    </profile>
+
+    <profile>
       <id>extra</id>
       <activation>
         <property>

@@ -171,52 +171,8 @@ com.amazonaws.services.s3.model.AmazonS3Exception: The specified method is not a
 
 ## Command `cloudup` -upload and download files; optimised for cloud storage 
 
-Bulk download of everything from s3a://bucket/qelogs/ to the local dir localquelogs (assuming the default fs is file://)
+See [cloudup](src/main/site/cloudup.md)
 
-Usage
-
-```
-cloudup -s source -d dest [-o] [-i] [-l <largest>] [-t threads] 
-
--s <uri> : source
--d <uri> : dest
--o: overwrite
--i: ignore failures
--t <n> : number of threads
--l <n> : number of "largest" files to start uploading before just randomly picking files.
-
-```
-
-Algorithm
-
-1. source files are listed.
-1. A pool of worker threads is created
-2. the largest N files are queued for upload first, where N is a default or the value set by `-l`.
-1. The remainder of the files are randomized to avoid throttling and then queued
-1. the program waits for everything to complete.
-1. Source and dest FS stats are printed.
-
-This is not `distcp` run across a cluster; it's a single process with some threads. 
-Works best for reading lots of small files from an object store or when you have a 
-mix of large and small files to download or uplaod.
-
-
-
-```
-bin/hadoop jar cloudstore-1.0.jar cloudup \
- -s s3a://bucket/qelogs/ \
- -d localqelogs \
- -t 32 -o
-```
-
-and the other way
-
-```
-bin/hadoop jar cloudstore-1.0.jar cloudup \
- -d localqelogs \
- -s s3a://bucket/qelogs/ \
- -t 32 -o  -l 4
-```
 
 ## Command `committerinfo`
 

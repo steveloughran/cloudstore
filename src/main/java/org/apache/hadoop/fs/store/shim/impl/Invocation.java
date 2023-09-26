@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.hadoop.fs.shim.impl;
+package org.apache.hadoop.fs.store.shim.impl;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;

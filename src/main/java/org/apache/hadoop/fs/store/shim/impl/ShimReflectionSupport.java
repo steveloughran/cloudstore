@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.hadoop.fs.shim.impl;
+package org.apache.hadoop.fs.store.shim.impl;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -29,9 +29,10 @@ import java.util.concurrent.ExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.apache.hadoop.fs.shim.api.IsImplemented;
+import org.apache.hadoop.fs.store.shim.IsImplemented;
 
-import static org.apache.hadoop.fs.shim.impl.Invocation.unavailable;
+import static org.apache.hadoop.fs.store.shim.impl.Invocation.unavailable;
+
 
 /**
  * Shim utilities.
@@ -267,5 +268,20 @@ public final class ShimReflectionSupport {
           .append("\n");
     }
     return result.toString();
+  }
+  /**
+   * Load a class; return null if it is not found.
+   * @param name classname.
+   * @return the class, if found
+   */
+  public static Class<?> loadClass(final String name) {
+    Class<?> cl;
+    try {
+      cl = ShimReflectionSupport.class.getClassLoader().loadClass(name);
+    } catch (ClassNotFoundException e) {
+      LOG.debug("No {}", name);
+      cl = null;
+    }
+    return cl;
   }
 }

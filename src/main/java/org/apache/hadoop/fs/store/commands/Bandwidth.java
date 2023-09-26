@@ -35,6 +35,7 @@ import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.store.CommonParameters;
 import org.apache.hadoop.fs.store.MinMeanMax;
 import org.apache.hadoop.fs.store.StoreDurationInfo;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
@@ -46,7 +47,11 @@ import org.apache.hadoop.util.ToolRunner;
 
 import static java.util.Optional.empty;
 import static java.util.Optional.of;
+import static org.apache.hadoop.fs.store.CommonParameters.BLOCK;
+import static org.apache.hadoop.fs.store.CommonParameters.CSVFILE;
 import static org.apache.hadoop.fs.store.CommonParameters.DEFINE;
+import static org.apache.hadoop.fs.store.CommonParameters.FLUSH;
+import static org.apache.hadoop.fs.store.CommonParameters.HFLUSH;
 import static org.apache.hadoop.fs.store.CommonParameters.TOKENFILE;
 import static org.apache.hadoop.fs.store.CommonParameters.VERBOSE;
 import static org.apache.hadoop.fs.store.CommonParameters.XMLFILE;
@@ -60,10 +65,6 @@ public class Bandwidth extends StoreEntryPoint {
 
   private static final Logger LOG = LoggerFactory.getLogger(Bandwidth.class);
 
-  public static final String BLOCK = "block";
-  public static final String CSVFILE = "csv";
-  public static final String FLUSH = "flush";
-  public static final String HFLUSH = "hflush";
   public static final String KEEP = "keep";
   public static final String RENAME = "rename";
   public static final String POLICY = "policy";
@@ -71,8 +72,8 @@ public class Bandwidth extends StoreEntryPoint {
 
   public static final String USAGE
       = "Usage: bandwidth [options] size <path>\n"
+      + optusage(BLOCK, "size", "block size in megabytes")
       + optusage(DEFINE, "key=value", "Define a property")
-      + optusage(BLOCK, "block-size", "block size in megabytes")
       + optusage(CSVFILE, "file", "CSV file to log operation details")
       + optusage(FLUSH, "flush the output after writing each block")
       + optusage(HFLUSH, "hflush() the output after writing each block")
@@ -107,14 +108,16 @@ public class Bandwidth extends StoreEntryPoint {
         HFLUSH,
         KEEP,
         RENAME,
-        VERBOSE);
+        VERBOSE
+    );
     addValueOptions(
-        TOKENFILE,
-        XMLFILE,
         BLOCK,
         CSVFILE,
         DEFINE,
-        POLICY);
+        POLICY,
+        TOKENFILE,
+        XMLFILE
+        );
   }
 
   @Override
