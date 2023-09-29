@@ -39,6 +39,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.LogManager;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,6 +64,7 @@ import org.apache.hadoop.fs.store.StoreUtils;
 import org.apache.hadoop.util.Progressable;
 import org.apache.hadoop.util.ToolRunner;
 
+import static java.util.logging.Level.*;
 import static org.apache.hadoop.fs.store.CommonParameters.BLOCK;
 import static org.apache.hadoop.fs.store.CommonParameters.CSVFILE;
 import static org.apache.hadoop.fs.store.CommonParameters.DEFINE;
@@ -109,6 +112,8 @@ public class Cloudup extends StoreEntryPoint {
 
   private static final String COPIED = "copied";
 
+  private static final String DEBUG = "debug";
+
   private int blockSize = DEFAULT_BLOCK_SIZE;
 
   /**
@@ -117,6 +122,7 @@ public class Cloudup extends StoreEntryPoint {
   public static final String USAGE
       = "Usage: cloudup [options] <source> <dest>\n"
       + optusage(BLOCK, "size", "block size in megabytes")
+      + optusage(DEBUG, "debug with extra logging")
       + optusage(DEFINE, "key=value", "Define a property")
       // + optusage(CSVFILE, "file", "CSV file to log operation details")
       + optusage(FLUSH, "flush the output after writing each block")
@@ -218,9 +224,12 @@ public class Cloudup extends StoreEntryPoint {
    */
   private boolean hflush;
 
+  private boolean debug;
+
 
   public Cloudup() {
     createCommandFormat(2, 2,
+        DEBUG,
         FLUSH,
         HFLUSH,
         IGNORE,
@@ -272,6 +281,7 @@ public class Cloudup extends StoreEntryPoint {
     ignoreFailures = hasOption(IGNORE);
     overwrite = hasOption(OVERWRITE);
     update = hasOption(UPDATE);
+    debug = hasOption(DEBUG);
     verbose = isVerbose();
     final Path src = new Path(argList.get(0));
     sourceFS = src.getFileSystem(conf);
@@ -289,6 +299,15 @@ public class Cloudup extends StoreEntryPoint {
     final int threads = getIntOption(THREADS, DEFAULT_THREADS);
     blockSize = getIntOption(BLOCK, DEFAULT_BLOCK_SIZE) * (1024 * 1024);
 
+
+    if (debug) {
+      ConsoleHandler handler = new ConsoleHandler();
+      handler.setLevel(ALL);
+      java.util.logging.Logger log = LogManager.getLogManager().getLogger("");
+
+      log.addHandler(handler);
+      log.setLevel(ALL);
+    }
     println(COPYING
             + " from %s to %s;"
             + " threads=%,d; large files=%,d; block size=%dn;"
