@@ -37,9 +37,7 @@ import org.apache.hadoop.fs.store.diag.Printout;
 import org.apache.hadoop.util.ToolRunner;
 
 import static java.util.Arrays.asList;
-import static org.apache.hadoop.fs.store.CommonParameters.DEFINE;
-import static org.apache.hadoop.fs.store.CommonParameters.VERBOSE;
-import static org.apache.hadoop.fs.store.CommonParameters.XMLFILE;
+import static org.apache.hadoop.fs.store.CommonParameters.STANDARD_OPTS;
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
 import static org.apache.hadoop.fs.store.diag.OptionSets.TLS_SYSPROPS;
 
@@ -52,13 +50,10 @@ public class TLSInfo extends DiagnosticsEntryPoint {
 
   public static final String USAGE
       = "Usage: tlsinfo\n"
-      + optusage(DEFINE, "key=value", "Define a property")
-      + optusage(XMLFILE, "file", "XML config file to load")
-      + optusage(VERBOSE, "verbose output");
+      + STANDARD_OPTS;
 
   public TLSInfo() {
-    createCommandFormat(0, 0, VERBOSE);
-    addValueOptions(XMLFILE, DEFINE);
+    createCommandFormat(0, 0);
   }
 
   @Override

@@ -42,8 +42,11 @@ import org.apache.hadoop.fs.store.StoreEntryPoint;
 import org.apache.hadoop.fs.tools.csv.SimpleCsvWriter;
 import org.apache.hadoop.util.ToolRunner;
 
+import static org.apache.hadoop.fs.store.CommonParameters.DEBUG;
+import static org.apache.hadoop.fs.store.CommonParameters.DEBUG_USAGE;
 import static org.apache.hadoop.fs.store.CommonParameters.DEFINE;
 import static org.apache.hadoop.fs.store.CommonParameters.LIMIT;
+import static org.apache.hadoop.fs.store.CommonParameters.STANDARD_OPTS;
 import static org.apache.hadoop.fs.store.CommonParameters.TOKENFILE;
 import static org.apache.hadoop.fs.store.CommonParameters.VERBOSE;
 import static org.apache.hadoop.fs.store.CommonParameters.XMLFILE;
@@ -69,26 +72,21 @@ public class ListMultiparts extends StoreEntryPoint {
 
   public static final String USAGE
       = "Usage: listversions <path>\n"
-      + optusage(DEFINE, "key=value", "Define a property")
+      + STANDARD_OPTS
       + optusage(LIMIT, "limit", "limit of files to list")
       + optusage(OUTPUT, "file", "output file")
       + optusage(QUIET, "quiet output")
       + optusage(SEPARATOR, "string", "Separator if not <tab>")
       + optusage(AGE, "seconds", "Only include versions created in this time interval")
       + optusage(SINCE, "epoch-time", "Only include versions after this time")
-      + optusage(TOKENFILE, "file", "Hadoop token file to load")
-      + optusage(VERBOSE, "print verbose output")
-      + optusage(XMLFILE, "file", "XML config file to load");
+      ;
 
   public static final String NAME = "listversions";
 
   public ListMultiparts() {
     createCommandFormat(1, 1,
-        QUIET,
-        VERBOSE);
-    addValueOptions(TOKENFILE,
-        XMLFILE,
-        DEFINE,
+        QUIET);
+    addValueOptions(
         LIMIT,
         OUTPUT,
         SEPARATOR,

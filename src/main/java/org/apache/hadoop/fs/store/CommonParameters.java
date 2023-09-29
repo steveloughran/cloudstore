@@ -18,6 +18,8 @@
 
 package org.apache.hadoop.fs.store;
 
+import static org.apache.hadoop.fs.store.StoreEntryPoint.optusage;
+
 /**
  * Common parameters across entry points.
  */
@@ -40,6 +42,12 @@ public final class CommonParameters {
 
   /** {@value}. */
   public static final String VERBOSE = "verbose";
+
+  public static final String STANDARD_OPTS =
+      optusage(DEFINE, "key=value", "Define a property")
+          + optusage(TOKENFILE, "file", "Hadoop token file to load")
+            + optusage(XMLFILE, "file", "XML config file to load")
+            + optusage(VERBOSE, "verbose output");
 
   /**
    * File for log4j properties: {@value}.
@@ -69,6 +77,10 @@ public final class CommonParameters {
   public static final String OVERWRITE = "overwrite";
 
   public static final String UPDATE = "update";
+
+  public static final String DEBUG = "debug";
+
+  public static final String DEBUG_USAGE = "debug with extra logging";
 
   private CommonParameters() {
   }

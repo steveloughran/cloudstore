@@ -47,6 +47,7 @@ import static org.apache.hadoop.fs.s3a.Constants.AWS_CREDENTIALS_PROVIDER;
 import static org.apache.hadoop.fs.s3a.Constants.SECRET_KEY;
 import static org.apache.hadoop.fs.s3a.Constants.SESSION_TOKEN;
 import static org.apache.hadoop.fs.store.CommonParameters.DEFINE;
+import static org.apache.hadoop.fs.store.CommonParameters.STANDARD_OPTS;
 import static org.apache.hadoop.fs.store.CommonParameters.TOKENFILE;
 import static org.apache.hadoop.fs.store.CommonParameters.VERBOSE;
 import static org.apache.hadoop.fs.store.CommonParameters.XMLFILE;
@@ -70,16 +71,14 @@ public class SessionKeys extends StoreEntryPoint {
 
   public static final String USAGE
       = "Usage: sessionkeys\n"
-      + optusage(DEFINE, "key=value", "Define a property")
-      + optusage(XMLFILE, "file", "XML config file to load")
+      + STANDARD_OPTS
       + optusage(ROLE, "arn", "Role to assume")
       + optusage(JSON, "file", "Json file to load (only valid if -role is set")
       + " <S3A path>";
 
   public SessionKeys() {
-    createCommandFormat(1, 1,
-        VERBOSE);
-    addValueOptions(TOKENFILE, XMLFILE, DEFINE, ROLE, JSON);
+    createCommandFormat(1, 1);
+    addValueOptions(ROLE, JSON);
   }
 
   @Override

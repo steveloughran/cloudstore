@@ -19,7 +19,6 @@
 package org.apache.hadoop.fs.store.test;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.contract.AbstractBondedFSContract;
 
 /**

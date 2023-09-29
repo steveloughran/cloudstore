@@ -41,7 +41,12 @@ import org.apache.hadoop.fs.azurebfs.services.AbfsOutputStream;
 import org.apache.hadoop.fs.store.StoreDurationInfo;
 
 import static org.apache.hadoop.fs.store.StoreUtils.cat;
-import static org.apache.hadoop.fs.store.diag.CapabilityKeys.*;
+import static org.apache.hadoop.fs.store.diag.CapabilityKeys.ETAGS_AVAILABLE;
+import static org.apache.hadoop.fs.store.diag.CapabilityKeys.ETAGS_PRESERVED_IN_RENAME;
+import static org.apache.hadoop.fs.store.diag.CapabilityKeys.FS_ACLS;
+import static org.apache.hadoop.fs.store.diag.CapabilityKeys.FS_APPEND;
+import static org.apache.hadoop.fs.store.diag.CapabilityKeys.FS_PERMISSIONS;
+import static org.apache.hadoop.fs.store.diag.CapabilityKeys.FS_XATTRS;
 import static org.apache.hadoop.fs.store.diag.OptionSets.HADOOP_TMP_DIR;
 import static org.apache.hadoop.fs.store.diag.OptionSets.JAVA_NET_SYSPROPS;
 import static org.apache.hadoop.fs.store.diag.OptionSets.STANDARD_SYSPROPS;

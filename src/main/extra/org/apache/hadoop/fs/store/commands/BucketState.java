@@ -39,7 +39,10 @@ import org.apache.hadoop.fs.store.StoreDurationInfo;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
 import org.apache.hadoop.util.ToolRunner;
 
+import static org.apache.hadoop.fs.store.CommonParameters.DEBUG;
+import static org.apache.hadoop.fs.store.CommonParameters.DEBUG_USAGE;
 import static org.apache.hadoop.fs.store.CommonParameters.DEFINE;
+import static org.apache.hadoop.fs.store.CommonParameters.STANDARD_OPTS;
 import static org.apache.hadoop.fs.store.CommonParameters.TOKENFILE;
 import static org.apache.hadoop.fs.store.CommonParameters.XMLFILE;
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
@@ -53,14 +56,11 @@ public class BucketState extends StoreEntryPoint {
 
   public static final String USAGE
       = "Usage: bucketstate\n"
-      + optusage(DEFINE, "key=value", "Define a property")
-      + optusage(TOKENFILE, "file", "Hadoop token file to load")
-      + optusage(XMLFILE, "file", "XML config file to load")
+      + STANDARD_OPTS
       + " <S3A path>";
 
   public BucketState() {
     createCommandFormat(1, 1);
-    addValueOptions(TOKENFILE, XMLFILE, DEFINE);
   }
 
   @Override

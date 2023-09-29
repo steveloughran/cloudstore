@@ -136,9 +136,10 @@ public class StoreUtils {
   /**
    * get the storage size from a string, uses M, G, T etc
    * @param size data size
+   * @param storageUnit desired size unit.
    * @return size as a double.
    */
-  public static double getDataSize(final String size) {
+  public static double getDataSize(final String size, StorageUnit storageUnit) {
     double uploadSize;
 
     String s = size.trim().toUpperCase(Locale.ROOT);
@@ -155,7 +156,7 @@ public class StoreUtils {
 
 
       // upload in MB.
-      uploadSize = sizeConf.getStorageSize("size", s, StorageUnit.MB);
+      uploadSize = sizeConf.getStorageSize("size", s, storageUnit);
     }
     return uploadSize;
   }

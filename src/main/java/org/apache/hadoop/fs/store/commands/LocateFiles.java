@@ -35,10 +35,9 @@ import org.apache.hadoop.fs.store.StoreEntryPoint;
 import org.apache.hadoop.mapred.LocatedFileStatusFetcher;
 import org.apache.hadoop.util.ToolRunner;
 
-import static org.apache.hadoop.fs.store.CommonParameters.DEFINE;
+import static org.apache.hadoop.fs.store.CommonParameters.STANDARD_OPTS;
 import static org.apache.hadoop.fs.store.CommonParameters.TOKENFILE;
 import static org.apache.hadoop.fs.store.CommonParameters.VERBOSE;
-import static org.apache.hadoop.fs.store.CommonParameters.XMLFILE;
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
 import static org.apache.hadoop.mapreduce.lib.input.FileInputFormat.LIST_STATUS_NUM_THREADS;
 
@@ -53,18 +52,15 @@ public class LocateFiles extends StoreEntryPoint {
 
   public static final String USAGE
       = "Usage: locatefiles\n"
-      + optusage(DEFINE, "key=value", "Define a property")
-      + optusage(TOKENFILE, "file", "Hadoop token file to load")
-      + optusage(XMLFILE, "file", "XML config file to load")
+      + STANDARD_OPTS
       + optusage(THREADS, "threads", "number of threads")
-      + optusage(VERBOSE, "print verbose output")
       + "[<path>|<pattern>]";
 
   public static final int DEFAULT_THREADS = 4;
 
   public LocateFiles() {
-    createCommandFormat(1, 1, VERBOSE);
-    addValueOptions(TOKENFILE, XMLFILE, DEFINE, THREADS);
+    createCommandFormat(1, 1);
+    addValueOptions(THREADS);
   }
 
   @Override

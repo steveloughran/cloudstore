@@ -39,6 +39,7 @@ import org.apache.hadoop.service.launcher.LauncherExitCodes;
 import org.apache.hadoop.util.ExitUtil;
 import org.apache.hadoop.util.ToolRunner;
 
+import static org.apache.hadoop.fs.store.CommonParameters.DEBUG;
 import static org.apache.hadoop.fs.store.CommonParameters.DEFINE;
 import static org.apache.hadoop.fs.store.CommonParameters.VERBOSE;
 import static org.apache.hadoop.fs.store.CommonParameters.XMLFILE;
@@ -64,10 +65,17 @@ public class FetchTokens extends StoreEntryPoint {
 
   public FetchTokens() {
     createCommandFormat(2, 999,
-            REQUIRED, VERBOSE);
-    addValueOptions(XMLFILE, DEFINE, RENEWER);
-    getCommandFormat().addOptionWithValue(RENEWER);
-    getCommandFormat().addOptionWithValue(XMLFILE);
+            REQUIRED);
+    addValueOptions(RENEWER);
+  }
+
+  @Override
+  protected void addStandardValueOptions() {
+    addValueOptions(
+        DEFINE,
+        DEBUG,
+        VERBOSE,
+        XMLFILE);
   }
 
   public int run(String[] args, PrintStream stream) throws Exception {
@@ -87,9 +95,6 @@ public class FetchTokens extends StoreEntryPoint {
 
     final List<String> urls = paths.subList(1, paths.size());
     final boolean required = hasOption(REQUIRED);
-
-    maybeAddXMLFileOption(conf, XMLFILE);
-    maybePatchDefined(conf, DEFINE);
 
     // qualify the FS so that what gets printed is absolute.
     FileSystem fs = tokenfile.getFileSystem(conf);

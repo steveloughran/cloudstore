@@ -33,6 +33,7 @@ import org.apache.hadoop.util.ToolRunner;
 
 import static com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystemConfiguration.GCS_CONFIG_PREFIX;
 import static org.apache.hadoop.fs.store.CommonParameters.DEFINE;
+import static org.apache.hadoop.fs.store.CommonParameters.STANDARD_OPTS;
 import static org.apache.hadoop.fs.store.CommonParameters.TOKENFILE;
 import static org.apache.hadoop.fs.store.CommonParameters.VERBOSE;
 import static org.apache.hadoop.fs.store.CommonParameters.XMLFILE;
@@ -60,21 +61,17 @@ public class GsCredDiag extends StoreEntryPoint {
       = "https://www.googleapis.com/auth/devstorage.full_control";
   public static final String USAGE
       = "Usage: gcscreds\n"
-      + optusage(DEFINE, "key=value", "Define a property")
-      + optusage(XMLFILE, "file", "XML config file to load")
-      + optusage(VERBOSE, "print verbose output")
+      + STANDARD_OPTS
       + "\t<gs path>";
 
   public GsCredDiag() {
-    createCommandFormat(1, 1,
-        VERBOSE);
-    addValueOptions(TOKENFILE, XMLFILE, DEFINE);
+    createCommandFormat(1, 1);
   }
 
   @Override
   public int run(String[] args) throws Exception {
     List<String> paths = parseArgs(args);
-    if (paths.size() < 1) {
+    if (paths.isEmpty()) {
       errorln(USAGE);
       return E_USAGE;
     }

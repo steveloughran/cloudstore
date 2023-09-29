@@ -39,8 +39,11 @@ import org.apache.hadoop.fs.store.StoreEntryPoint;
 import org.apache.hadoop.util.ToolRunner;
 
 import static org.apache.hadoop.fs.s3a.extra.S3ListingSupport.isDirMarker;
+import static org.apache.hadoop.fs.store.CommonParameters.DEBUG;
+import static org.apache.hadoop.fs.store.CommonParameters.DEBUG_USAGE;
 import static org.apache.hadoop.fs.store.CommonParameters.DEFINE;
 import static org.apache.hadoop.fs.store.CommonParameters.LIMIT;
+import static org.apache.hadoop.fs.store.CommonParameters.STANDARD_OPTS;
 import static org.apache.hadoop.fs.store.CommonParameters.TOKENFILE;
 import static org.apache.hadoop.fs.store.CommonParameters.VERBOSE;
 import static org.apache.hadoop.fs.store.CommonParameters.XMLFILE;
@@ -71,12 +74,11 @@ public class Undelete extends StoreEntryPoint implements SummaryProcessor {
 
   public static final String USAGE
       = "Usage: listversions <path>\n"
-      + optusage(DEFINE, "key=value", "Define a property")
+      + STANDARD_OPTS
       + optusage(LIMIT, "limit", "limit of files to list")
       + optusage(AGE, "seconds", "Only include versions created in this time interval")
       + optusage(SINCE, "epoch-time", "Only include versions after this time")
-      + optusage(TOKENFILE, "file", "Hadoop token file to load")
-      + optusage(XMLFILE, "file", "XML config file to load");
+      ;
 
   public static final String NAME = "undelete";
 
@@ -94,9 +96,7 @@ public class Undelete extends StoreEntryPoint implements SummaryProcessor {
 
   public Undelete() {
     createCommandFormat(1, 1);
-    addValueOptions(TOKENFILE,
-        XMLFILE,
-        DEFINE,
+    addValueOptions(
         LIMIT,
         //OUTPUT,
         //SEPARATOR,

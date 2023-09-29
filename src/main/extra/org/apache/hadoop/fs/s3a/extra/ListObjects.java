@@ -38,12 +38,8 @@ import org.apache.hadoop.fs.store.StoreEntryPoint;
 import org.apache.hadoop.util.ToolRunner;
 
 import static org.apache.hadoop.fs.s3a.Invoker.once;
-import static org.apache.hadoop.fs.store.CommonParameters.DEFINE;
 import static org.apache.hadoop.fs.store.CommonParameters.LIMIT;
-import static org.apache.hadoop.fs.store.CommonParameters.TOKENFILE;
-import static org.apache.hadoop.fs.store.CommonParameters.VERBOSE;
-import static org.apache.hadoop.fs.store.CommonParameters.XMLFILE;
-import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
+import static org.apache.hadoop.fs.store.CommonParameters.STANDARD_OPTS;
 import static org.apache.hadoop.fs.store.diag.S3ADiagnosticsInfo.FS_S3A_AUDIT_REJECT_OUT_OF_SPAN_OPERATIONS;
 
 public class ListObjects extends StoreEntryPoint {
@@ -59,31 +55,25 @@ public class ListObjects extends StoreEntryPoint {
 
   public static final String USAGE
       = "Usage: listobjects <path>\n"
+      + STANDARD_OPTS
       + optusage(DELETE, "delete the objects")
-      + optusage(DEFINE, "key=value", "Define a property")
       + optusage(LIMIT, "limit", "limit of files to list")
       + optusage(PURGE, "purge directory markers")
       + optusage(QUIET, "quiet output")
-      + optusage(TOKENFILE, "file", "Hadoop token file to load")
-      + optusage(VERBOSE, "print verbose output")
-      + optusage(XMLFILE, "file", "XML config file to load");
+      ;
 
   public ListObjects() {
     createCommandFormat(1, 1,
         PURGE,
         DELETE,
-        QUIET,
-        VERBOSE);
-    addValueOptions(TOKENFILE, XMLFILE, DEFINE, LIMIT);
+        QUIET);
+    addValueOptions(
+        LIMIT);
   }
 
   @Override
   public int run(String[] args) throws Exception {
-    List<String> paths = parseArgs(args);
-    if (paths.size() < 1) {
-      errorln(USAGE);
-      return E_USAGE;
-    }
+    List<String> paths = processArgs(args, 2, -1, USAGE);
 
     final Configuration conf = createPreconfiguredConfig();
     // stop auditing rejecting client direct calls.

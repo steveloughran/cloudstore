@@ -51,15 +51,14 @@ public class MkBucket extends StoreEntryPoint {
       = "Usage: mkbucket <region> <S3A path>";
 
   public MkBucket() {
-    createCommandFormat(2, 2,
-        VERBOSE);
+    createCommandFormat(2, 2);
   }
 
 
   @Override
   public int run(String[] args) throws Exception {
     List<String> paths = parseArgs(args);
-    if (paths.size() < 1) {
+    if (paths.size() != 2) {
       errorln(USAGE);
       return E_USAGE;
     }

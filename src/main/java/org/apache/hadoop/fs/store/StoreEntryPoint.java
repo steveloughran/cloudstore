@@ -25,12 +25,15 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.LogManager;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,10 +45,6 @@ import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.StorageStatistics;
 import org.apache.hadoop.fs.shell.CommandFormat;
-/*
-import org.apache.hadoop.fs.statistics.IOStatistics;
-import org.apache.hadoop.fs.statistics.IOStatisticsSource;
-*/
 import org.apache.hadoop.fs.store.diag.Printout;
 import org.apache.hadoop.fs.store.diag.StoreLogExactlyOnce;
 import org.apache.hadoop.io.IOUtils;
@@ -57,14 +56,15 @@ import org.apache.hadoop.util.ExitUtil;
 import org.apache.hadoop.util.StringUtils;
 import org.apache.hadoop.util.Tool;
 
-/*
-import static org.apache.hadoop.fs.statistics.IOStatisticsLogging.ioStatisticsSourceToString;
-import static org.apache.hadoop.fs.statistics.IOStatisticsSupport.retrieveIOStatistics;
-*/
+import static java.util.Objects.requireNonNull;
+import static java.util.logging.Level.ALL;
+import static org.apache.hadoop.fs.store.CommonParameters.DEBUG;
 import static org.apache.hadoop.fs.store.CommonParameters.DEFINE;
+import static org.apache.hadoop.fs.store.CommonParameters.TOKENFILE;
 import static org.apache.hadoop.fs.store.CommonParameters.VERBOSE;
 import static org.apache.hadoop.fs.store.CommonParameters.XMLFILE;
 import static org.apache.hadoop.fs.store.StoreDiagConstants.IOSTATISTICS_LOGGING_LEVEL;
+import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
 import static org.apache.hadoop.fs.store.StoreUtils.split;
 import static org.apache.hadoop.fs.store.diag.S3ADiagnosticsInfo.DIRECTORY_MARKER_RETENTION;
 import static org.apache.hadoop.fs.store.diag.S3ADiagnosticsInfo.FS_S3A_CONNECTION_MAXIMUM;
@@ -87,7 +87,7 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
    */
   public static final int EXIT_USAGE = StoreExitCodes.E_USAGE;
 
-  private StoreLogExactlyOnce LogJceksFailureOnce = new StoreLogExactlyOnce(LOG);
+  private final StoreLogExactlyOnce LogJceksFailureOnce = new StoreLogExactlyOnce(LOG);
 
   /**
    * Hide all sensitive data.
@@ -259,6 +259,7 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
    * Create the command format.
    * Use {@link #addValueOptions(String...)} to declare the value
    * options afterwards.
+   * automatically add the standard opts
    * @param min minimum number of non-option arguments.
    * @param max max number of non-option arguments.
    * @param options simple options.
@@ -267,7 +268,22 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
       int min,
       int max,
       String... options) {
-    setCommandFormat(new CommandFormat(min, max, options));
+    List<String> ol = new ArrayList<>(Arrays.asList(options));
+    ol.add(DEBUG);
+    ol.add(VERBOSE);
+    setCommandFormat(new CommandFormat(min, max, ol.toArray(new String[0])));
+    addStandardValueOptions();
+  }
+
+  /**
+   * Add the standard value options; subclasses can remove any.
+   */
+  protected void addStandardValueOptions() {
+
+    addValueOptions(
+        DEFINE,
+        TOKENFILE,
+        XMLFILE);
   }
 
   /**
@@ -284,13 +300,67 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
    * Parse CLI arguments and returns the position arguments.
    * The options are stored in {@link #commandFormat}.
    *
+   * This is also where java debug logging is enabled if the
+   * {@code -debug} option is set.
+   * @param args command line arguments.
+   * @param min min number of args if positive
+   * @param max max number of args if positive
+   * @param error error text
+   * @return the position arguments from CLI.
+   * @throws IOException failure to load token from -tokenfile
+   * @throws ExitUtil.ExitException if the number of arguments is wrong.
+   */
+  protected List<String> processArgs(String[] args, int min, final int max, String error) throws IOException {
+    final List<String> parsed = parseArgs(args);
+
+    if ((min >= 0 && parsed.size() < min)
+        || (max >= 0 && parsed.size() > max)) {
+      errorln(error);
+      parsed.forEach(s -> errorln("  %s", s));
+      throw new ExitUtil.ExitException(E_USAGE,
+          "invalid argment count: expected between " + min + " and "
+              + max + " but got " + parsed.size());
+    }
+    maybeAddTokens(TOKENFILE);
+    return parsed;
+
+  }
+  /**
+   * Parse CLI arguments and returns the position arguments.
+   * The options are stored in {@link #commandFormat}.
+   *
+   * This is also where java debug logging is enabled if the
+   * {@code -debug} option is set.
+   *
    * @param args command line arguments.
    * @return the position arguments from CLI.
    */
   protected List<String> parseArgs(String[] args) {
-    return args.length > 0 ? getCommandFormat().parse(args, 0)
+    final List<String> argList = args.length > 0 ? getCommandFormat().parse(args, 0)
         : new ArrayList<>(0);
+    maybeEnableJvmLogging();
+    return argList;
   }
+
+  protected void maybeEnableJvmLogging() {
+    if (hasOption(DEBUG)) {
+      enableJvmLogging();
+    }
+  }
+
+
+  /**
+   * Enable JVM logging.
+   */
+  protected void enableJvmLogging() {
+    println("Enabling JVM logging");
+    ConsoleHandler handler = new ConsoleHandler();
+    handler.setLevel(ALL);
+    java.util.logging.Logger log = LogManager.getLogManager().getLogger("");
+    log.addHandler(handler);
+    log.setLevel(ALL);
+  }
+
 
   /**
    * Get the value of a key-val option.

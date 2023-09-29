@@ -53,12 +53,11 @@ import org.apache.hadoop.util.ToolRunner;
 
 import static org.apache.commons.io.FileUtils.byteCountToDisplaySize;
 import static org.apache.hadoop.fs.store.CommonParameters.BFS;
-import static org.apache.hadoop.fs.store.CommonParameters.DEFINE;
 import static org.apache.hadoop.fs.store.CommonParameters.LIMIT;
+import static org.apache.hadoop.fs.store.CommonParameters.STANDARD_OPTS;
 import static org.apache.hadoop.fs.store.CommonParameters.THREADS;
 import static org.apache.hadoop.fs.store.CommonParameters.TOKENFILE;
 import static org.apache.hadoop.fs.store.CommonParameters.VERBOSE;
-import static org.apache.hadoop.fs.store.CommonParameters.XMLFILE;
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
 import static org.apache.hadoop.util.StringUtils.TraditionalBinaryPrefix.long2String;
 
@@ -71,12 +70,9 @@ public class ExtendedDu extends StoreEntryPoint {
 
   public static final String USAGE
       = "Usage: dux\n"
-      + optusage(DEFINE, "key=value", "Define a property")
-      + optusage(TOKENFILE, "file", "Hadoop token file to load")
-      + optusage(XMLFILE, "file", "XML config file to load")
+      + STANDARD_OPTS
       + optusage(THREADS, "threads", "number of threads")
       + optusage(LIMIT, "limit", "limit of files to list")
-      + optusage(VERBOSE, "print verbose output")
       + optusage(BFS, "breadth first search of the tree", "do a deep breadth first search of the tree")
       + "\t<path>";
 
@@ -97,8 +93,11 @@ public class ExtendedDu extends StoreEntryPoint {
   private Queue<Future<Summary>> queue;
 
   public ExtendedDu() {
-    createCommandFormat(1, 1, VERBOSE);
-    addValueOptions(TOKENFILE, XMLFILE, DEFINE, THREADS, LIMIT, BFS);
+    createCommandFormat(1, 1);
+    addValueOptions(
+        THREADS,
+        LIMIT,
+        BFS);
   }
 
   @Override

@@ -44,8 +44,7 @@ public class IamPolicy extends StoreEntryPoint {
       = "Usage: iampolicy <S3A path>";
 
   public IamPolicy() {
-    createCommandFormat(1, 1,
-        VERBOSE);
+    createCommandFormat(1, 1);
   }
 
 

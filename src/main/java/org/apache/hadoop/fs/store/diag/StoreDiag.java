@@ -79,11 +79,10 @@ import org.apache.hadoop.util.ExitUtil;
 import org.apache.hadoop.util.StringUtils;
 import org.apache.hadoop.util.ToolRunner;
 
-import static org.apache.hadoop.fs.store.CommonParameters.DEFINE;
+import static org.apache.hadoop.fs.store.CommonParameters.STANDARD_OPTS;
 import static org.apache.hadoop.fs.store.CommonParameters.SYSPROP;
 import static org.apache.hadoop.fs.store.CommonParameters.TOKENFILE;
 import static org.apache.hadoop.fs.store.CommonParameters.VERBOSE;
-import static org.apache.hadoop.fs.store.CommonParameters.XMLFILE;
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_ERROR;
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_NOT_FOUND;
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_NO_ACCESS;
@@ -136,7 +135,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
   /** {@value}. */
   public static final String USAGE =
       "Usage: storediag [options] <filesystem>\n"
-          + optusage(DEFINE, "key=value", "Define a property")
+          + STANDARD_OPTS
           + optusage(ENVARS, "List the environment variables. *danger: does not redact secrets*")
           + optusage(HIDE, "redact all chars in sensitive options")
           + optusage(JARS, "List the JARs on the classpath")
@@ -146,10 +145,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
           + optusage(REQUIRED, "file", "text file of extra classes+resources to require")
           + optusage(SYSPROPS, "List the JVM System Properties")
           + optusage(DELEGATION, "Require delegation tokens to be issued")
-          + optusage(TOKENFILE, "file", "Hadoop token file to load")
-          + optusage(VERBOSE, "Verbose output")
           + optusage(WRITE, "attempt write operations on the filesystem")
-          + optusage(XMLFILE, "file", "XML config file to load")
           + optusage(MD5, "Print MD5 checksums of the jars listed (requires -j)");
 
   private StoreDiagnosticsInfo storeInfo;
@@ -165,10 +161,13 @@ public class StoreDiag extends DiagnosticsEntryPoint {
         OPTIONAL,
         READONLY,
         SYSPROPS,
-        WRITE,
-        VERBOSE
+        WRITE
     );
-    addValueOptions(TOKENFILE, XMLFILE, DEFINE, REQUIRED, PRINCIPAL, SYSPROP);
+    addValueOptions(
+        PRINCIPAL,
+        REQUIRED,
+        SYSPROP
+    );
   }
 
   @Override

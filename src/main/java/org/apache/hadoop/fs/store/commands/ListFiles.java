@@ -37,11 +37,10 @@ import org.apache.hadoop.fs.store.StoreEntryPoint;
 import org.apache.hadoop.util.ToolRunner;
 
 import static org.apache.commons.io.FileUtils.byteCountToDisplaySize;
-import static org.apache.hadoop.fs.store.CommonParameters.DEFINE;
 import static org.apache.hadoop.fs.store.CommonParameters.LIMIT;
+import static org.apache.hadoop.fs.store.CommonParameters.STANDARD_OPTS;
 import static org.apache.hadoop.fs.store.CommonParameters.TOKENFILE;
 import static org.apache.hadoop.fs.store.CommonParameters.VERBOSE;
-import static org.apache.hadoop.fs.store.CommonParameters.XMLFILE;
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
 
 /**
@@ -57,17 +56,14 @@ public class ListFiles extends StoreEntryPoint {
 
   public static final String USAGE
       = "Usage: list <path>\n"
-      + optusage(DEFINE, "key=value", "Define a property")
+      + STANDARD_OPTS
       + optusage(LIMIT, "limit", "limit of files to list")
-      + optusage(TOKENFILE, "file", "Hadoop token file to load")
-      + optusage(VERBOSE, "print verbose output")
-      + optusage(XMLFILE, "file", "XML config file to load")
       ;
 
   public ListFiles() {
-    createCommandFormat(1, 1, VERBOSE);
-    addValueOptions(TOKENFILE, XMLFILE, DEFINE, LIMIT);
-  }
+    createCommandFormat(1, 1);
+    addValueOptions(
+        LIMIT);}
 
   @Override
   public int run(String[] args) throws Exception {

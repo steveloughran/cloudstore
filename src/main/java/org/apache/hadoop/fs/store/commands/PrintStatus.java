@@ -32,10 +32,9 @@ import org.apache.hadoop.fs.store.StoreDurationInfo;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
 import org.apache.hadoop.util.ToolRunner;
 
-import static org.apache.hadoop.fs.store.CommonParameters.DEFINE;
+import static org.apache.hadoop.fs.store.CommonParameters.STANDARD_OPTS;
 import static org.apache.hadoop.fs.store.CommonParameters.TOKENFILE;
 import static org.apache.hadoop.fs.store.CommonParameters.VERBOSE;
-import static org.apache.hadoop.fs.store.CommonParameters.XMLFILE;
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
 
 /**
@@ -49,15 +48,12 @@ public class PrintStatus extends StoreEntryPoint {
 
   public static final String USAGE
       = "Usage: filestatus\n"
-      + optusage(DEFINE, "key=value", "Define a property")
-      + optusage(TOKENFILE, "file", "Hadoop token file to load")
-      + optusage(XMLFILE, "file", "XML config file to load")
-      + optusage(VERBOSE, "verbose output")
+      + STANDARD_OPTS
       + " <path> [<path>*]";
 
+
   public PrintStatus() {
-    createCommandFormat(1, 999, VERBOSE);
-    addValueOptions(TOKENFILE, XMLFILE, DEFINE);
+    createCommandFormat(1, 999);
   }
 
   @Override

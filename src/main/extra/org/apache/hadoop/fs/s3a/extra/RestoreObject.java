@@ -45,8 +45,7 @@ public class RestoreObject extends StoreEntryPoint {
       = "Usage: restore [-verbose] <S3A path> <version> <dest path>";
 
   public RestoreObject() {
-    createCommandFormat(3, 3,
-        VERBOSE);
+    createCommandFormat(3, 3);
   }
 
 

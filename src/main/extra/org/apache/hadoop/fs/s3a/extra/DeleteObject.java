@@ -48,8 +48,7 @@ public class DeleteObject extends StoreEntryPoint {
       = "Usage: deleteobject <S3A path>";
 
   public DeleteObject() {
-    createCommandFormat(1, 1,
-        VERBOSE);
+    createCommandFormat(1, 1);
   }
 
 

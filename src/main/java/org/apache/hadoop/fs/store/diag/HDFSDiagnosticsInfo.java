@@ -30,7 +30,19 @@ import org.slf4j.LoggerFactory;
 
 import org.apache.hadoop.conf.Configuration;
 
-import static org.apache.hadoop.fs.store.diag.CapabilityKeys.*;
+import static org.apache.hadoop.fs.store.diag.CapabilityKeys.FS_ACLS;
+import static org.apache.hadoop.fs.store.diag.CapabilityKeys.FS_APPEND;
+import static org.apache.hadoop.fs.store.diag.CapabilityKeys.FS_CHECKSUMS;
+import static org.apache.hadoop.fs.store.diag.CapabilityKeys.FS_CONCAT;
+import static org.apache.hadoop.fs.store.diag.CapabilityKeys.FS_EXPERIMENTAL_BATCH_LISTING;
+import static org.apache.hadoop.fs.store.diag.CapabilityKeys.FS_LIST_CORRUPT_FILE_BLOCKS;
+import static org.apache.hadoop.fs.store.diag.CapabilityKeys.FS_PATHHANDLES;
+import static org.apache.hadoop.fs.store.diag.CapabilityKeys.FS_PERMISSIONS;
+import static org.apache.hadoop.fs.store.diag.CapabilityKeys.FS_SNAPSHOTS;
+import static org.apache.hadoop.fs.store.diag.CapabilityKeys.FS_STORAGEPOLICY;
+import static org.apache.hadoop.fs.store.diag.CapabilityKeys.FS_SYMLINKS;
+import static org.apache.hadoop.fs.store.diag.CapabilityKeys.FS_TRUNCATE;
+import static org.apache.hadoop.fs.store.diag.CapabilityKeys.FS_XATTRS;
 
 /**
  * HDFS Diagnostics.

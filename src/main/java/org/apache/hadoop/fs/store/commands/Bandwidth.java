@@ -31,11 +31,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.conf.StorageUnit;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.fs.store.CommonParameters;
 import org.apache.hadoop.fs.store.MinMeanMax;
 import org.apache.hadoop.fs.store.StoreDurationInfo;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
@@ -49,12 +49,10 @@ import static java.util.Optional.empty;
 import static java.util.Optional.of;
 import static org.apache.hadoop.fs.store.CommonParameters.BLOCK;
 import static org.apache.hadoop.fs.store.CommonParameters.CSVFILE;
-import static org.apache.hadoop.fs.store.CommonParameters.DEFINE;
 import static org.apache.hadoop.fs.store.CommonParameters.FLUSH;
 import static org.apache.hadoop.fs.store.CommonParameters.HFLUSH;
+import static org.apache.hadoop.fs.store.CommonParameters.STANDARD_OPTS;
 import static org.apache.hadoop.fs.store.CommonParameters.TOKENFILE;
-import static org.apache.hadoop.fs.store.CommonParameters.VERBOSE;
-import static org.apache.hadoop.fs.store.CommonParameters.XMLFILE;
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_INVALID_ARGUMENT;
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
 
@@ -72,17 +70,14 @@ public class Bandwidth extends StoreEntryPoint {
 
   public static final String USAGE
       = "Usage: bandwidth [options] size <path>\n"
+      + STANDARD_OPTS
       + optusage(BLOCK, "size", "block size in megabytes")
-      + optusage(DEFINE, "key=value", "Define a property")
       + optusage(CSVFILE, "file", "CSV file to log operation details")
       + optusage(FLUSH, "flush the output after writing each block")
       + optusage(HFLUSH, "hflush() the output after writing each block")
       + optusage(KEEP, "do not delete the file")
       + optusage(RENAME, "rename file to suffix .renamed")
       + optusage(POLICY, "policy", "read policy for file (whole-file, sequential, random...)")
-      + optusage(TOKENFILE, "file", "Hadoop token file to load")
-      + optusage(VERBOSE, "print verbose output")
-      + optusage(XMLFILE, "file", "XML config file to load")
       ;
 
   private static final int BUFFER_SIZE = 32 * 1024;
@@ -107,16 +102,12 @@ public class Bandwidth extends StoreEntryPoint {
         FLUSH,
         HFLUSH,
         KEEP,
-        RENAME,
-        VERBOSE
+        RENAME
     );
     addValueOptions(
         BLOCK,
         CSVFILE,
-        DEFINE,
-        POLICY,
-        TOKENFILE,
-        XMLFILE
+        POLICY
         );
   }
 
@@ -164,7 +155,7 @@ public class Bandwidth extends StoreEntryPoint {
     FileSystem fs = uploadPath.getFileSystem(conf);
     println("Using filesystem %s", fs.getUri());
 
-    double uploadSize = StoreUtils.getDataSize(size);
+    double uploadSize = StoreUtils.getDataSize(size, StorageUnit.MB);
 
     long sizeMB = Math.round(uploadSize);
     if (sizeMB <= 0) {

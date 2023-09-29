@@ -41,7 +41,7 @@ import org.apache.hadoop.service.launcher.LauncherExitCodes;
 import org.apache.hadoop.util.ExitUtil;
 import org.apache.hadoop.util.ToolRunner;
 
-import static org.apache.hadoop.fs.store.CommonParameters.DEFINE;
+import static org.apache.hadoop.fs.store.CommonParameters.STANDARD_OPTS;
 import static org.apache.hadoop.fs.store.CommonParameters.VERBOSE;
 import static org.apache.hadoop.fs.store.CommonParameters.XMLFILE;
 import static org.apache.hadoop.yarn.client.util.YarnClientUtils.getRmPrincipal;
@@ -55,18 +55,16 @@ public class JobTokens extends StoreEntryPoint {
 
   private static final Logger LOG = LoggerFactory.getLogger(JobTokens.class);
 
-  public static final String USAGE =
-      "Usage: jobtokens <file> [-r] [-v] [-xmlfile file] <url1> ... <url999>\n"
-          + "-r: require a token to be issued\n"
-          + "";
-
   private static final String REQUIRED = "r";
+
+  public static final String USAGE =
+      "Usage: jobtokens [options] <file> <url1> ... <url999>\n"
+          + STANDARD_OPTS
+          + optusage(REQUIRED, "-r: require a token to be issued");
 
   public JobTokens() {
     createCommandFormat(2, 999,
-            REQUIRED, VERBOSE);
-    addValueOptions(XMLFILE, DEFINE);
-    getCommandFormat().addOptionWithValue(XMLFILE);
+            REQUIRED);
   }
 
   public int run(String[] args, PrintStream stream) throws Exception {

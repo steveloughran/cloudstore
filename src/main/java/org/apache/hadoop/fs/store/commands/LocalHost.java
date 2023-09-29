@@ -28,10 +28,8 @@ import org.slf4j.LoggerFactory;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
 import org.apache.hadoop.util.ToolRunner;
 
-import static org.apache.hadoop.fs.store.CommonParameters.DEFINE;
-import static org.apache.hadoop.fs.store.CommonParameters.TOKENFILE;
+import static org.apache.hadoop.fs.store.CommonParameters.STANDARD_OPTS;
 import static org.apache.hadoop.fs.store.CommonParameters.VERBOSE;
-import static org.apache.hadoop.fs.store.CommonParameters.XMLFILE;
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
 import static org.apache.hadoop.net.NetUtils.getCanonicalUri;
 import static org.apache.hadoop.net.NetUtils.getLocalInetAddress;
@@ -47,14 +45,10 @@ public class LocalHost extends StoreEntryPoint {
 
   public static final String USAGE
       = "Usage: localhost\n"
-      + optusage(DEFINE, "key=value", "Define a property")
-      + optusage(TOKENFILE, "file", "Hadoop token file to load")
-      + optusage(XMLFILE, "file", "XML config file to load")
-      + optusage(VERBOSE, "verbose output");
+      + STANDARD_OPTS;
 
   public LocalHost() {
-    createCommandFormat(1, 999, VERBOSE);
-    addValueOptions(TOKENFILE, XMLFILE, DEFINE);
+    createCommandFormat(1, 999);
   }
 
   @Override

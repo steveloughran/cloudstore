@@ -35,11 +35,9 @@ import org.apache.hadoop.fs.store.commands.EnvEntry;
 import org.apache.hadoop.fs.store.diag.CapabilityKeys;
 import org.apache.hadoop.util.ToolRunner;
 
-import static org.apache.hadoop.fs.store.CommonParameters.DEFINE;
 import static org.apache.hadoop.fs.store.CommonParameters.LOGFILE;
+import static org.apache.hadoop.fs.store.CommonParameters.STANDARD_OPTS;
 import static org.apache.hadoop.fs.store.CommonParameters.TOKENFILE;
-import static org.apache.hadoop.fs.store.CommonParameters.VERBOSE;
-import static org.apache.hadoop.fs.store.CommonParameters.XMLFILE;
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_ERROR;
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
 import static org.apache.hadoop.fs.store.diag.AbfsDiagnosticsInfo.FS_AZURE_ENABLE_READAHEAD;
@@ -54,10 +52,7 @@ public class SafePrefetch extends StoreEntryPoint {
 
   public static final String USAGE
       = "Usage: safeprefetch [options] <path>\n"
-      + optusage(DEFINE, "key=value", "Define a property")
-      + optusage(TOKENFILE, "file", "Hadoop token file to load")
-      + optusage(VERBOSE, "print verbose output")
-      + optusage(XMLFILE, "file", "XML config file to load");
+      + STANDARD_OPTS;
 
   public SafePrefetch() {
     createCommandFormat(1, 1);

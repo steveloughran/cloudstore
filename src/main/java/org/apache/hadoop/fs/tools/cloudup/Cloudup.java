@@ -39,8 +39,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.logging.ConsoleHandler;
-import java.util.logging.LogManager;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,20 +62,16 @@ import org.apache.hadoop.fs.store.StoreUtils;
 import org.apache.hadoop.util.Progressable;
 import org.apache.hadoop.util.ToolRunner;
 
-import static java.util.logging.Level.*;
 import static org.apache.hadoop.fs.store.CommonParameters.BLOCK;
 import static org.apache.hadoop.fs.store.CommonParameters.CSVFILE;
-import static org.apache.hadoop.fs.store.CommonParameters.DEFINE;
+import static org.apache.hadoop.fs.store.CommonParameters.DEBUG;
 import static org.apache.hadoop.fs.store.CommonParameters.FLUSH;
 import static org.apache.hadoop.fs.store.CommonParameters.HFLUSH;
 import static org.apache.hadoop.fs.store.CommonParameters.IGNORE;
 import static org.apache.hadoop.fs.store.CommonParameters.LARGEST;
 import static org.apache.hadoop.fs.store.CommonParameters.OVERWRITE;
-import static org.apache.hadoop.fs.store.CommonParameters.TOKENFILE;
+import static org.apache.hadoop.fs.store.CommonParameters.STANDARD_OPTS;
 import static org.apache.hadoop.fs.store.CommonParameters.UPDATE;
-import static org.apache.hadoop.fs.store.CommonParameters.VERBOSE;
-import static org.apache.hadoop.fs.store.CommonParameters.XMLFILE;
-import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
 import static org.apache.hadoop.fs.store.StoreUtils.await;
 
 /**
@@ -101,7 +95,7 @@ public class Cloudup extends StoreEntryPoint {
   private static final int DEFAULT_BLOCK_SIZE = 2;
 
   // all the verbs, here just just make renaming again easier.
-  
+
   private static final String COPYING = "Copying";
 
   private static final String COPY_CAPS = "Copy";
@@ -112,8 +106,6 @@ public class Cloudup extends StoreEntryPoint {
 
   private static final String COPIED = "copied";
 
-  private static final String DEBUG = "debug";
-
   private int blockSize = DEFAULT_BLOCK_SIZE;
 
   /**
@@ -121,9 +113,8 @@ public class Cloudup extends StoreEntryPoint {
    */
   public static final String USAGE
       = "Usage: cloudup [options] <source> <dest>\n"
+      + STANDARD_OPTS
       + optusage(BLOCK, "size", "block size in megabytes")
-      + optusage(DEBUG, "debug with extra logging")
-      + optusage(DEFINE, "key=value", "Define a property")
       // + optusage(CSVFILE, "file", "CSV file to log operation details")
       + optusage(FLUSH, "flush the output after writing each block")
       + optusage(HFLUSH, "hflush() the output after writing each block")
@@ -131,10 +122,7 @@ public class Cloudup extends StoreEntryPoint {
       + optusage(LARGEST, "largest", "number of large files to " + COPY_LC + " first")
       + optusage(OVERWRITE, "overwrite files")
       + optusage(THREADS, "threads", "number of worker threads")
-      + optusage(TOKENFILE, "file", "Hadoop token file to load")
-      + optusage(UPDATE, "only copy up new or more recent files")
-      + optusage(VERBOSE, "print verbose output")
-      + optusage(XMLFILE, "file", "XML config file to load");
+      + optusage(UPDATE, "only copy up new or more recent files");
 
   /**
    * Executor service for workers.
@@ -224,9 +212,6 @@ public class Cloudup extends StoreEntryPoint {
    */
   private boolean hflush;
 
-  private boolean debug;
-
-
   public Cloudup() {
     createCommandFormat(2, 2,
         DEBUG,
@@ -234,18 +219,14 @@ public class Cloudup extends StoreEntryPoint {
         HFLUSH,
         IGNORE,
         OVERWRITE,
-        UPDATE,
-        VERBOSE
+        UPDATE
     );
     addValueOptions(
         BLOCK,
         CSVFILE,
-        DEFINE,
         LARGEST,
-        THREADS,
-        TOKENFILE,
-        XMLFILE
-        );
+        THREADS
+    );
   }
 
   /**
@@ -267,13 +248,7 @@ public class Cloudup extends StoreEntryPoint {
   @Override
   public int run(String[] args) throws Exception {
     // parse the path
-    List<String> argList = parseArgs(args);
-
-    if (argList.size() != 2) {
-      errorln(USAGE);
-      return E_USAGE;
-    }
-
+    List<String> argList = processArgs(args, 2, -1, USAGE);
 
     final Configuration conf = patchForMaxS3APerformance(createPreconfiguredConfig());
     flush = hasOption(FLUSH);
@@ -281,7 +256,7 @@ public class Cloudup extends StoreEntryPoint {
     ignoreFailures = hasOption(IGNORE);
     overwrite = hasOption(OVERWRITE);
     update = hasOption(UPDATE);
-    debug = hasOption(DEBUG);
+
     verbose = isVerbose();
     final Path src = new Path(argList.get(0));
     sourceFS = src.getFileSystem(conf);
@@ -300,14 +275,6 @@ public class Cloudup extends StoreEntryPoint {
     blockSize = getIntOption(BLOCK, DEFAULT_BLOCK_SIZE) * (1024 * 1024);
 
 
-    if (debug) {
-      ConsoleHandler handler = new ConsoleHandler();
-      handler.setLevel(ALL);
-      java.util.logging.Logger log = LogManager.getLogManager().getLogger("");
-
-      log.addHandler(handler);
-      log.setLevel(ALL);
-    }
     println(COPYING
             + " from %s to %s;"
             + " threads=%,d; large files=%,d; block size=%dn;"
@@ -699,7 +666,8 @@ public class Cloudup extends StoreEntryPoint {
         .bufferSize(bufferSize);
     // enable optimised read options on s3a fs and maybe others.
     output.opt("fs.s3a.create.performance",
-       Boolean.valueOf(s3aCreatePerformance));  // either we know there's no file, or we're overwriting
+        Boolean.valueOf(
+            s3aCreatePerformance));  // either we know there's no file, or we're overwriting
 
     final FutureDataInputStreamBuilder input = sourceFS.openFile(source)
         .opt("fs.option.openfile.read.policy", "whole-file, sequential")

@@ -36,7 +36,10 @@ import org.apache.hadoop.mapreduce.lib.output.PathOutputCommitterFactory;
 import org.apache.hadoop.mapreduce.task.TaskAttemptContextImpl;
 import org.apache.hadoop.util.ToolRunner;
 
+import static org.apache.hadoop.fs.store.CommonParameters.DEBUG;
+import static org.apache.hadoop.fs.store.CommonParameters.DEBUG_USAGE;
 import static org.apache.hadoop.fs.store.CommonParameters.DEFINE;
+import static org.apache.hadoop.fs.store.CommonParameters.STANDARD_OPTS;
 import static org.apache.hadoop.fs.store.CommonParameters.TOKENFILE;
 import static org.apache.hadoop.fs.store.CommonParameters.VERBOSE;
 import static org.apache.hadoop.fs.store.CommonParameters.XMLFILE;
@@ -55,15 +58,11 @@ public class CommitterInfo extends StoreEntryPoint {
 
   public static final String USAGE
       = "Usage: committerinfo\n"
-      + optusage(DEFINE, "key=value", "Define a property")
-      + optusage(TOKENFILE, "file", "Hadoop token file to load")
-      + optusage(XMLFILE, "file", "XML config file to load")
-      + optusage(VERBOSE, "verbose output")
+      + STANDARD_OPTS
       + " <path>";
 
   public CommitterInfo() {
-    createCommandFormat(1, 999, VERBOSE);
-    addValueOptions(TOKENFILE, XMLFILE, DEFINE);
+    createCommandFormat(1, 999);
   }
 
   @Override

@@ -35,8 +35,11 @@ import org.apache.hadoop.fs.store.StoreDurationInfo;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
 import org.apache.hadoop.util.ToolRunner;
 
+import static org.apache.hadoop.fs.store.CommonParameters.DEBUG;
+import static org.apache.hadoop.fs.store.CommonParameters.DEBUG_USAGE;
 import static org.apache.hadoop.fs.store.CommonParameters.DEFINE;
 import static org.apache.hadoop.fs.store.CommonParameters.LIMIT;
+import static org.apache.hadoop.fs.store.CommonParameters.STANDARD_OPTS;
 import static org.apache.hadoop.fs.store.CommonParameters.TOKENFILE;
 import static org.apache.hadoop.fs.store.CommonParameters.VERBOSE;
 import static org.apache.hadoop.fs.store.CommonParameters.XMLFILE;
@@ -64,7 +67,7 @@ public class ListVersions extends StoreEntryPoint {
 
   public static final String USAGE
       = "Usage: listversions <path>\n"
-      + optusage(DEFINE, "key=value", "Define a property")
+      + STANDARD_OPTS
       + optusage(DELETED, "include delete markers")
       + optusage(DIRS, "include directory markers")
       + optusage(LIMIT, "limit", "limit of files to list")
@@ -72,10 +75,7 @@ public class ListVersions extends StoreEntryPoint {
       + optusage(QUIET, "quiet output")
       + optusage(SEPARATOR, "string", "Separator if not <tab>")
       + optusage(AGE, "seconds", "Only include versions created in this time interval")
-      + optusage(SINCE, "epoch-time", "Only include versions after this time")
-      + optusage(TOKENFILE, "file", "Hadoop token file to load")
-      + optusage(VERBOSE, "print verbose output")
-      + optusage(XMLFILE, "file", "XML config file to load");
+      + optusage(SINCE, "epoch-time", "Only include versions after this time");
 
   public static final String NAME = "listversions";
 
@@ -83,11 +83,8 @@ public class ListVersions extends StoreEntryPoint {
     createCommandFormat(1, 1,
         DELETED,
         DIRS,
-        QUIET,
-        VERBOSE);
-    addValueOptions(TOKENFILE,
-        XMLFILE,
-        DEFINE,
+        QUIET);
+    addValueOptions(
         LIMIT,
         OUTPUT,
         SEPARATOR,

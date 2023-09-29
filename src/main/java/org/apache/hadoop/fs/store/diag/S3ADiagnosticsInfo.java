@@ -22,7 +22,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
@@ -30,7 +29,6 @@ import com.amazonaws.auth.AWSCredentials;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.apache.hadoop.classification.InterfaceStability;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
@@ -47,6 +45,7 @@ import static org.apache.hadoop.fs.s3a.Constants.DEFAULT_SECURE_CONNECTIONS;
 import static org.apache.hadoop.fs.s3a.Constants.SECURE_CONNECTIONS;
 import static org.apache.hadoop.fs.s3a.S3AUtils.getAWSAccessKeys;
 import static org.apache.hadoop.fs.store.StoreUtils.cat;
+import static org.apache.hadoop.fs.store.StoreUtils.sanitize;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.ABORTABLE_STREAM;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.ETAGS_AVAILABLE;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.FS_CHECKSUMS;
@@ -62,8 +61,6 @@ import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_DI
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_DIRECTORY_MARKER_POLICY_KEEP;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_DIRECTORY_MULTIPART_UPLOAD_ENABLED;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_MAGIC_COMMITTER;
-import static org.apache.hadoop.fs.store.StoreUtils.sanitize;
-import static org.apache.hadoop.fs.store.diag.DiagUtils.ipV4pattern;
 import static org.apache.hadoop.fs.store.diag.DiagUtils.isIpV4String;
 import static org.apache.hadoop.fs.store.diag.HBossConstants.CAPABILITY_HBOSS;
 import static org.apache.hadoop.fs.store.diag.OptionSets.HTTP_CLIENT_RESOURCES;

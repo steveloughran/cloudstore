@@ -32,17 +32,14 @@ import org.slf4j.LoggerFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.fs.store.CommonParameters;
 import org.apache.hadoop.fs.store.StoreDurationInfo;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
 
-import static org.apache.commons.io.FileUtils.byteCountToDisplaySize;
-import static org.apache.hadoop.fs.store.CommonParameters.DEFINE;
 import static org.apache.hadoop.fs.store.CommonParameters.LIMIT;
+import static org.apache.hadoop.fs.store.CommonParameters.STANDARD_OPTS;
 import static org.apache.hadoop.fs.store.CommonParameters.THREADS;
 import static org.apache.hadoop.fs.store.CommonParameters.TOKENFILE;
 import static org.apache.hadoop.fs.store.CommonParameters.VERBOSE;
-import static org.apache.hadoop.fs.store.CommonParameters.XMLFILE;
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
 
 /**
@@ -59,12 +56,9 @@ public class DirectoryTree extends StoreEntryPoint {
 
   public static final String USAGE
       = "Usage: dux\n"
-      + optusage(DEFINE, "key=value", "Define a property")
-      + optusage(TOKENFILE, "file", "Hadoop token file to load")
-      + optusage(XMLFILE, "file", "XML config file to load")
-      + optusage(CommonParameters.THREADS, "threads", "number of threads")
+      + STANDARD_OPTS
+      + optusage(THREADS, "threads", "number of threads")
       + optusage(LIMIT, "limit", "limit of files to list")
-      + optusage(VERBOSE, "print verbose output")
       + "\t<path>";
 
   public static final int DEFAULT_THREADS = 8;
@@ -72,8 +66,10 @@ public class DirectoryTree extends StoreEntryPoint {
   private FileSystem fs;
 
   public DirectoryTree() {
-    createCommandFormat(1, 1, VERBOSE);
-    addValueOptions(TOKENFILE, XMLFILE, DEFINE, THREADS, LIMIT);
+    createCommandFormat(1, 1);
+    addValueOptions(
+        THREADS,
+        LIMIT);
   }
 
   @Override
