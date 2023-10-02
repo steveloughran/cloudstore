@@ -20,12 +20,16 @@ package org.apache.hadoop.fs.store.commands;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.security.MessageDigest;
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicLong;
+
+import javax.annotation.Nullable;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -94,6 +98,8 @@ public class Bandwidth extends StoreEntryPoint {
   private static final String SEPARATOR = ",";
 
   public static final String DEFAULT_READ_POLICY = "whole-file";
+
+  public static final String DIGEST_ALGORITHM = "SHA-256";
 
   private byte[] dataBuffer;
 
@@ -173,10 +179,13 @@ public class Bandwidth extends StoreEntryPoint {
     println("Writing data as %,d blocks each of size %,d bytes", numberOfBuffersToUpload,
         blockSize);
 
+    MessageDigest uploadDigest =  MessageDigest.getInstance(DIGEST_ALGORITHM);
+    MessageDigest downloadDigest =  MessageDigest.getInstance(DIGEST_ALGORITHM);
+
     /*
       prepare the CSV output if requested
     */
-    CsvWriterWithCRC writer = null;
+    CsvWriterWithCRC csvWriter = null;
     Path csvPath = null;
     if (csvFile != null) {
       csvPath = new Path(csvFile);
@@ -186,10 +195,10 @@ public class Bandwidth extends StoreEntryPoint {
           .bufferSize(BUFFER_SIZE)
           .overwrite(true)
           .build();
-      writer = new CsvWriterWithCRC(upload, SEPARATOR, EOL, true);
+      csvWriter = new CsvWriterWithCRC(upload, SEPARATOR, EOL, true);
 
-      writer.columns("operation", "iteration", "bytes", "total", "duration");
-      writer.newline();
+      csvWriter.columns("operation", "iteration", "bytes", "total", "duration");
+      csvWriter.newline();
     }
 
     // buffer of randomness
@@ -218,7 +227,7 @@ public class Bandwidth extends StoreEntryPoint {
           .overwrite(true)
           .build();
       d.finished();
-      row(writer, "create-file", 1, 0, 0, d);
+      row(csvWriter, "create-file", 1, 0, 0, d);
     }
     // set up
     if (!keep) {
@@ -249,6 +258,7 @@ public class Bandwidth extends StoreEntryPoint {
         StoreDurationInfo duration = new StoreDurationInfo();
         print("Write block %,d", i);
         upload.write(dataBuffer);
+        uploadDigest.update(dataBuffer);
         if (flush) {
           upload.flush();
         }
@@ -258,7 +268,7 @@ public class Bandwidth extends StoreEntryPoint {
         duration.finished();
         blockUploads.add(duration.value());
         println(" in %.3f seconds", duration.value() / 1000.0);
-        row(writer, "upload-block",  i + 1, blockSize, total += blockSize, duration);
+        row(csvWriter, "upload-block",  i + 1, blockSize, total += blockSize, duration);
       }
       println();
 
@@ -270,7 +280,7 @@ public class Bandwidth extends StoreEntryPoint {
       } finally {
         closeDuration.close();
       }
-      row(writer, "close-upload", 1, 0, fileSizeBytes, closeDuration);
+      row(csvWriter, "close-upload", 1, 0, fileSizeBytes, closeDuration);
 
       println();
       // print out progress info
@@ -282,7 +292,7 @@ public class Bandwidth extends StoreEntryPoint {
     }
     // upload is done, print some statistics
     uploadDurationTracker.finished();
-    row(writer, "upload", 1, blockSize, blockSize, uploadDurationTracker);
+    row(csvWriter, "upload", 1, blockSize, blockSize, uploadDurationTracker);
 
     // end of upload
     printFSInfoInVerbose(fs);
@@ -300,7 +310,7 @@ public class Bandwidth extends StoreEntryPoint {
         fs.rename(uploadPath, downloadPath);
       }
       rd.finished();
-      row(writer, "rename", 1, fileSizeBytes, 0, rd);
+      row(csvWriter, "rename", 1, fileSizeBytes, 0, rd);
     }
 
     /*
@@ -318,7 +328,7 @@ public class Bandwidth extends StoreEntryPoint {
           .build().get();
     } finally {
       openDuration.finished();
-      row(writer, "open-for-download", 1, 0, 0, openDuration);
+      row(csvWriter, "open-for-download", 1, 0, 0, openDuration);
     }
     MinMeanMax blockDownload = new MinMeanMax("block read duration");
 
@@ -330,20 +340,25 @@ public class Bandwidth extends StoreEntryPoint {
         print("Read block %,d", i);
         StoreDurationInfo duration = new StoreDurationInfo();
         download.readFully(pos, dataBuffer);
+        downloadDigest.update(dataBuffer);
+
         pos += blockSize;
         duration.finished();
         blockDownload.add(duration.value());
         println(" in %.3f seconds", duration.value() / 1000.0);
-        row(writer, "download-block", i + 1, blockSize, total += blockSize, duration);
+        row(csvWriter, "download-block", i + 1, blockSize, total += blockSize, duration);
       }
       println();
       try (StoreDurationInfo d = new StoreDurationInfo(out, "download stream close()")) {
         download.close();
       }
       downloadDurationTracker.finished();
-      row(writer, "download", 1, fileSizeBytes, fileSizeBytes, downloadDurationTracker);
+      row(csvWriter, "download", 1, fileSizeBytes, fileSizeBytes, downloadDurationTracker);
     } finally {
-      writer.close();
+      if (csvWriter != null) {
+        csvWriter.flush();
+        csvWriter.close();
+      }
       printIfVerbose("Download Stream: %s", download);
     }
 
@@ -383,12 +398,25 @@ public class Bandwidth extends StoreEntryPoint {
     summarize("Download", downloadDurationTracker, fileSizeBytes,
         "Blocks downloaded:", blockDownload);
 
+    int exitCode = 0;
+
+    final byte[] uploadHash = uploadDigest.digest();
+    final byte[] downloadHash = downloadDigest.digest();
+    if (!Arrays.equals(uploadHash, downloadHash)) {
+      errorln("Upload hash does not match download hash: data corrupted!");
+      exitCode = -1;
+    } else {
+      println("Data checksums match: the data has not been corrupted during the test");
+    }
+
+
     if (csvPath != null) {
       print("CSV formatted data saved to %s", csvPath);
     }
+
     println();
 
-    return 0;
+    return exitCode;
 
   }
 
@@ -403,7 +431,7 @@ public class Bandwidth extends StoreEntryPoint {
    * @throws IOException write failure
    */
   private static void row(
-      final CsvWriterWithCRC writer,
+      @Nullable final CsvWriterWithCRC writer,
       final String a,
       final int iteration,
       final long opBytes,

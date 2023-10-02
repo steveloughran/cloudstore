@@ -82,7 +82,6 @@ import org.apache.hadoop.util.ToolRunner;
 import static org.apache.hadoop.fs.store.CommonParameters.STANDARD_OPTS;
 import static org.apache.hadoop.fs.store.CommonParameters.SYSPROP;
 import static org.apache.hadoop.fs.store.CommonParameters.TOKENFILE;
-import static org.apache.hadoop.fs.store.CommonParameters.VERBOSE;
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_ERROR;
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_NOT_FOUND;
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_NO_ACCESS;
