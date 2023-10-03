@@ -137,15 +137,24 @@ public class OptionSets {
    * see {@code sun.net.NetworkClient}.
    */
   public static final Object[][] JAVA_NET_SYSPROPS = {
-      {"sun.net.client.defaultConnectTimeout", false},
-      {"sun.net.client.defaultReadTimeout", false},
+      {"https.proxyHost", false},
+      {"https.proxyPort", false},
+      {"https.nonProxyHosts", false},
+      {"https.proxyPassword", true},
+      {"http.proxyHost", false},
+      {"http.proxyPort", false},
+      {"http.proxyPassword", true},
+      {"http.nonProxyHosts", false},
       {"java.net.preferIPv4Stack", false},
       {"java.net.preferIPv6Addresses", false},
       {"networkaddress.cache.ttl", false},
       {"networkaddress.cache.negative.ttl", false},
+      {"socksProxyHost", false},
+      {"socksProxyPort", false},
+      {"sun.net.client.defaultConnectTimeout", false},
+      {"sun.net.client.defaultReadTimeout", false},
       {"sun.net.inetaddr.ttl", false},
       {"sun.net.inetaddr.negative.ttl", false},
-      {"", false},
   };
 
   /**
