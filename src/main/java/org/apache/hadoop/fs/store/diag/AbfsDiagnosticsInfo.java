@@ -45,6 +45,7 @@ import static org.apache.hadoop.fs.store.diag.CapabilityKeys.ETAGS_AVAILABLE;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.ETAGS_PRESERVED_IN_RENAME;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.FS_ACLS;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.FS_APPEND;
+import static org.apache.hadoop.fs.store.diag.CapabilityKeys.FS_AZURE_CAPABILITY_READAHEAD_SAFE;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.FS_PERMISSIONS;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.FS_XATTRS;
 import static org.apache.hadoop.fs.store.diag.OptionSets.HADOOP_TMP_DIR;
@@ -62,6 +63,7 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
       AbfsDiagnosticsInfo.class);
 
   public static final String FS_AZURE_ENABLE_READAHEAD = "fs.azure.enable.readahead";
+  public static final String FS_AZURE_ENABLE_READAHEAD_V2 = "fs.azure.enable.readahead.v2";
 
   public static final String FS_AZURE_READAHEADQUEUE_DEPTH = "fs.azure.readaheadqueue.depth";
 
@@ -155,6 +157,7 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.azure.enable.flush", false, false},
       {"fs.azure.enable.mkdir.overwrite", false, false},
       {FS_AZURE_ENABLE_READAHEAD, false, false},
+      {FS_AZURE_ENABLE_READAHEAD_V2, false, false},
       {"fs.azure.identity.transformer.class", false, false},
       {"fs.azure.identity.transformer.domain.name", false, false},
       {"fs.azure.identity.transformer.enable.short.name", false, false},
@@ -249,11 +252,12 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
    * support.
    */
   public static final String[] optionalCapabilities = {
-      FS_PERMISSIONS,
-      FS_ACLS,
-      FS_APPEND,
       ETAGS_AVAILABLE,
       ETAGS_PRESERVED_IN_RENAME,
+      FS_ACLS,
+      FS_APPEND,
+      FS_AZURE_CAPABILITY_READAHEAD_SAFE,
+      FS_PERMISSIONS,
       FS_XATTRS
   };
 
@@ -447,7 +451,7 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
       printCanonicalHostname(printout, host);
     } catch (UnknownHostException e) {
       printout.warn("The hostname of the filesystem %s is unknown.", getFsURI());
-      printout.warn( "This means the account %s does not exist", host);
+      printout.warn("This means the account %s does not exist", host);
       throw e;
     }
   }

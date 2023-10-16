@@ -41,6 +41,7 @@ import static org.apache.hadoop.fs.store.CommonParameters.TOKENFILE;
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_ERROR;
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
 import static org.apache.hadoop.fs.store.diag.AbfsDiagnosticsInfo.FS_AZURE_ENABLE_READAHEAD;
+import static org.apache.hadoop.fs.store.diag.AbfsDiagnosticsInfo.FS_AZURE_ENABLE_READAHEAD_V2;
 import static org.apache.hadoop.fs.store.diag.AbfsDiagnosticsInfo.FS_AZURE_READAHEADQUEUE_DEPTH;
 
 /**
@@ -62,7 +63,7 @@ public class SafePrefetch extends StoreEntryPoint {
   @Override
   public int run(String[] args) throws Exception {
     List<String> argList = parseArgs(args);
-    if (argList.size() < 1) {
+    if (argList.isEmpty()) {
       errorln(USAGE);
       return E_USAGE;
     }
@@ -84,6 +85,13 @@ public class SafePrefetch extends StoreEntryPoint {
 
     println("Using filesystem %s", fs.getUri());
     Path abfsPath = path.makeQualified(fs.getUri(), fs.getWorkingDirectory());
+    final Configuration fsConf = fs.getConf();
+
+    final boolean readAheadEnabled = fsConf.getBoolean(FS_AZURE_ENABLE_READAHEAD, true);
+    final boolean readAheadV2Enabled = fsConf.getBoolean(FS_AZURE_ENABLE_READAHEAD_V2, true);
+    println("%s=%s", FS_AZURE_ENABLE_READAHEAD, readAheadEnabled);
+    println("%s=%s", FS_AZURE_ENABLE_READAHEAD_V2, readAheadV2Enabled);
+
     final PathCapabilityChecker checker = new PathCapabilityChecker(fs);
     if (!checker.methodAvailable()) {
       println("Hadoop version is too old for the feature to surface (no PathCapabilities)");
@@ -101,7 +109,6 @@ public class SafePrefetch extends StoreEntryPoint {
       return 0;
     }
     println("Store is vulnerable to inconsistent prefetching. This MUST be disabled\n");
-    final Configuration fsConf = fs.getConf();
     List<EnvEntry> entries = new ArrayList<>();
     entries.add(new EnvEntry(FS_AZURE_READAHEADQUEUE_DEPTH, "", "0"));
 
@@ -115,7 +122,7 @@ public class SafePrefetch extends StoreEntryPoint {
       // look for the readahead
       ConfigurationKeys.class.getField(FS_AZURE_ENABLE_READAHEAD);
 
-      if (!fsConf.getBoolean(FS_AZURE_ENABLE_READAHEAD, true)) {
+      if (!readAheadEnabled) {
         println("Readahead is disabled in %s", FS_AZURE_ENABLE_READAHEAD);
         return 0;
 
