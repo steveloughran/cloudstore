@@ -366,10 +366,10 @@
     </profile>
 
     <profile>
-      <id>cdh7.1</id>
+      <id>p</id>
       <activation>
         <property>
-          <name>cdh7.1</name>
+          <name>cdh7.1.7</name>
         </property>
       </activation>
       <properties>

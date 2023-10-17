@@ -439,6 +439,7 @@ public class Bandwidth extends StoreEntryPoint {
       final StoreDurationInfo dur) throws IOException {
     if (writer != null) {
       writer.column(a)
+          .columnL(iteration)
           .columnL(opBytes)
           .columnL(totalBytes)
           .columnL(dur.value())
