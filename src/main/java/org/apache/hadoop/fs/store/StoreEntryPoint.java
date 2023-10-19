@@ -623,7 +623,7 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
    * @return the now updated config
    */
   protected Configuration patchForMaxS3APerformance(Configuration conf) {
-    conf.setBoolean(DIRECTORY_MARKER_RETENTION, true);
+    conf.set(DIRECTORY_MARKER_RETENTION, "keep");
     final int workers = 256;
     conf.setInt(FS_S3A_CONNECTION_MAXIMUM, workers * 2);
     conf.setInt(FS_S3A_THREADS_MAX, workers);

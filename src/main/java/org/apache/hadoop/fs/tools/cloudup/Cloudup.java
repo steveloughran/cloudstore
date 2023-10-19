@@ -250,7 +250,8 @@ public class Cloudup extends StoreEntryPoint {
     // parse the path
     List<String> argList = processArgs(args, 2, -1, USAGE);
 
-    final Configuration conf = patchForMaxS3APerformance(createPreconfiguredConfig());
+    Configuration conf = createPreconfiguredConfig();
+    //Configuration conf = patchForMaxS3APerformance(createPreconfiguredConfig());
     flush = hasOption(FLUSH);
     hflush = hasOption(HFLUSH);
     ignoreFailures = hasOption(IGNORE);
