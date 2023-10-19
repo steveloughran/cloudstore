@@ -18,7 +18,6 @@
 
 import org.apache.hadoop.fs.s3a.extra.MkBucket;
 import org.apache.hadoop.fs.store.commands.Command;
-import org.apache.hadoop.fs.tools.csv.MkCSV;
 
 public class mkbucket extends Command {
 

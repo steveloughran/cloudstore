@@ -176,19 +176,12 @@ public class StoreDiag extends DiagnosticsEntryPoint {
 
   public int run(String[] args, PrintStream stream) throws Exception {
     setOut(stream);
-    List<String> paths = parseArgs(args);
-    if (paths.size() != 1) {
-      errorln(USAGE);
-      return E_USAGE;
-    }
+    List<String> paths = processArgs(args,1, 1, USAGE);
 
     heading("Store Diagnostics for %s on %s",
         UserGroupInformation.getCurrentUser(),
         NetUtils.getHostname());
     println("Collected at at %s%n", Instant.now());
-
-    // process the options
-    maybeAddTokens(TOKENFILE);
 
     // path on the CLI
     String pathString = paths.get(0);

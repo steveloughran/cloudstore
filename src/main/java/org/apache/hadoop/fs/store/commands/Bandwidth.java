@@ -119,12 +119,7 @@ public class Bandwidth extends StoreEntryPoint {
 
   @Override
   public int run(String[] args) throws Exception {
-    List<String> argList = parseArgs(args);
-    if (argList.size() < 1) {
-      errorln(USAGE);
-      return E_USAGE;
-    }
-    maybeAddTokens(TOKENFILE);
+    List<String> argList = processArgs(args, 1, -1, USAGE);
     final boolean verbose = isVerbose();
     final boolean flush = hasOption(FLUSH);
     final boolean hflush = hasOption(HFLUSH);
@@ -197,7 +192,7 @@ public class Bandwidth extends StoreEntryPoint {
           .build();
       csvWriter = new CsvWriterWithCRC(upload, SEPARATOR, EOL, true);
 
-      csvWriter.columns("operation", "iteration", "bytes", "total", "duration");
+      csvWriter.columns("operation", "iteration", "bytes", "total bytes", "duration/millis");
       csvWriter.newline();
     }
 

@@ -92,7 +92,6 @@ public class MkCSV extends StoreEntryPoint {
   @Override
   public int run(String[] args) throws Exception {
     List<String> argList = processArgs(args, 2, -1, USAGE);
-    maybeEnableJvmLogging();
     final Configuration conf = createPreconfiguredConfig();
     // path on the CLI
     String size = argList.get(0).toLowerCase(Locale.ENGLISH);

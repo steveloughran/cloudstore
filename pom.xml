@@ -75,12 +75,14 @@
 
 
     <!-- https://mvnrepository.com/artifact/ch.qos.logback/logback-classic -->
+<!--
     <dependency>
       <groupId>ch.qos.logback</groupId>
       <artifactId>logback-classic</artifactId>
       <version>1.4.5</version>
       <scope>provided</scope>
     </dependency>
+-->
 
     <dependency>
       <groupId>org.apache.hadoop</groupId>
@@ -88,7 +90,7 @@
       <version>${hadoop.version}</version>
       <scope>provided</scope>
       <exclusions>
-        <exclusion>
+<!--        <exclusion>
           <groupId>org.slf4j</groupId>
           <artifactId>*</artifactId>
         </exclusion>
@@ -99,7 +101,7 @@
         <exclusion>
           <groupId>ch.qos.reload4j</groupId>
           <artifactId>reload4j</artifactId>
-        </exclusion>
+        </exclusion>-->
       </exclusions>
     </dependency>
 
@@ -109,7 +111,7 @@
       <version>${hadoop.version}</version>
       <scope>provided</scope>
       <exclusions>
-        <exclusion>
+<!--        <exclusion>
           <groupId>org.slf4j</groupId>
           <artifactId>*</artifactId>
         </exclusion>
@@ -120,7 +122,7 @@
         <exclusion>
           <groupId>ch.qos.reload4j</groupId>
           <artifactId>reload4j</artifactId>
-        </exclusion>
+        </exclusion>-->
       </exclusions>
     </dependency>
 
@@ -131,7 +133,7 @@
       <type>test-jar</type>
       <scope>provided</scope>
       <exclusions>
-        <exclusion>
+<!--        <exclusion>
           <groupId>org.apache.hadoop</groupId>
           <artifactId>*</artifactId>
         </exclusion>
@@ -142,7 +144,7 @@
         <exclusion>
           <groupId>log4j</groupId>
           <artifactId>log4j</artifactId>
-        </exclusion>
+        </exclusion>-->
       </exclusions>
     </dependency>
 
@@ -164,14 +166,14 @@
           <groupId>com.google.guava</groupId>
           <artifactId>guava</artifactId>
         </exclusion>
-          <exclusion>
+<!--          <exclusion>
             <groupId>org.slf4j</groupId>
             <artifactId>*</artifactId>
           </exclusion>
           <exclusion>
             <groupId>log4j</groupId>
             <artifactId>log4j</artifactId>
-          </exclusion>
+          </exclusion>-->
       </exclusions>
     </dependency>
 
@@ -181,14 +183,14 @@
       <artifactId>hadoop-mapreduce-client-jobclient</artifactId>
       <scope>provided</scope>
       <exclusions>
-        <exclusion>
+<!--        <exclusion>
           <groupId>org.slf4j</groupId>
           <artifactId>*</artifactId>
         </exclusion>
         <exclusion>
           <groupId>log4j</groupId>
           <artifactId>log4j</artifactId>
-        </exclusion>
+        </exclusion>-->
       </exclusions>
     </dependency>
 
@@ -198,14 +200,14 @@
         <version>${hadoop.version}</version>
         <scope>provided</scope>
         <exclusions>
-          <exclusion>
+<!--          <exclusion>
             <groupId>org.slf4j</groupId>
             <artifactId>*</artifactId>
           </exclusion>
           <exclusion>
             <groupId>log4j</groupId>
             <artifactId>log4j</artifactId>
-          </exclusion>
+          </exclusion>-->
         </exclusions>
       </dependency>
 
@@ -399,6 +401,18 @@
                 <configuration>
                   <sources>
                     <source>src/main/extra</source>
+                  </sources>
+                </configuration>
+              </execution>
+              <execution>
+                <id>add-test-source</id>
+                <phase>generate-test-sources</phase>
+                <goals>
+                  <goal>add-test-source</goal>
+                </goals>
+                <configuration>
+                  <sources>
+                    <source>src/test/extra</source>
                   </sources>
                 </configuration>
               </execution>

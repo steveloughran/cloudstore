@@ -306,4 +306,20 @@ public class OptionSets {
             .collect(Collectors.toSet()));
 
   }
+
+  /**
+   * Logs to turn on to debug level for debugging cloud connector IO.
+   * And related classes.
+   */
+  public static final String[] CLOUD_CONNECTOR_LOGS = {
+      "org.apache.http",
+      "org.apache.hadoop.fs.s3a",
+      "org.apache.hadoop.fs.abfs",
+      "org.apache.hadoop.fs.azurebfs",
+      "org.apache.knox.gateway",
+      "org.apache.ranger",
+      "com.amazonaws.thirdparty.apache.http",
+      "software.amazon.awssdk.request",
+      "software.amazon.awssdk.thirdparty.org.apache.http"
+  };
 }

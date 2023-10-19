@@ -47,6 +47,8 @@ import org.apache.hadoop.fs.StorageStatistics;
 import org.apache.hadoop.fs.shell.CommandFormat;
 import org.apache.hadoop.fs.store.diag.Printout;
 import org.apache.hadoop.fs.store.diag.StoreLogExactlyOnce;
+import org.apache.hadoop.fs.store.logging.LogControl;
+import org.apache.hadoop.fs.store.logging.LogControllerFactory;
 import org.apache.hadoop.io.IOUtils;
 import org.apache.hadoop.security.Credentials;
 import org.apache.hadoop.security.UserGroupInformation;
@@ -56,7 +58,6 @@ import org.apache.hadoop.util.ExitUtil;
 import org.apache.hadoop.util.StringUtils;
 import org.apache.hadoop.util.Tool;
 
-import static java.util.Objects.requireNonNull;
 import static java.util.logging.Level.ALL;
 import static org.apache.hadoop.fs.store.CommonParameters.DEBUG;
 import static org.apache.hadoop.fs.store.CommonParameters.DEFINE;
@@ -66,6 +67,7 @@ import static org.apache.hadoop.fs.store.CommonParameters.XMLFILE;
 import static org.apache.hadoop.fs.store.StoreDiagConstants.IOSTATISTICS_LOGGING_LEVEL;
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
 import static org.apache.hadoop.fs.store.StoreUtils.split;
+import static org.apache.hadoop.fs.store.diag.OptionSets.CLOUD_CONNECTOR_LOGS;
 import static org.apache.hadoop.fs.store.diag.S3ADiagnosticsInfo.DIRECTORY_MARKER_RETENTION;
 import static org.apache.hadoop.fs.store.diag.S3ADiagnosticsInfo.FS_S3A_CONNECTION_MAXIMUM;
 import static org.apache.hadoop.fs.store.diag.S3ADiagnosticsInfo.FS_S3A_THREADS_MAX;
@@ -321,6 +323,7 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
           "invalid argment count: expected between " + min + " and "
               + max + " but got " + parsed.size());
     }
+    maybeEnableDebugLogging();
     maybeAddTokens(TOKENFILE);
     return parsed;
 
@@ -338,13 +341,17 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
   protected List<String> parseArgs(String[] args) {
     final List<String> argList = args.length > 0 ? getCommandFormat().parse(args, 0)
         : new ArrayList<>(0);
-    maybeEnableJvmLogging();
     return argList;
   }
 
-  protected void maybeEnableJvmLogging() {
+  /**
+   * Maybe enable JVM and cloud connector debug logging.
+   */
+  protected void maybeEnableDebugLogging() {
     if (hasOption(DEBUG)) {
+      println("Enabling debug logging");
       enableJvmLogging();
+      enableCloudConnectorLogging(LogControl.LogLevel.DEBUG);
     }
   }
 
@@ -359,6 +366,18 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
     java.util.logging.Logger log = LogManager.getLogManager().getLogger("");
     log.addHandler(handler);
     log.setLevel(ALL);
+  }
+
+  /**
+   * Enable cloud connector logging.
+   * @param level desired level
+   */
+  protected void enableCloudConnectorLogging(LogControl.LogLevel level) {
+    final Optional<LogControl> control =
+        LogControllerFactory.createController(LogControllerFactory.LOG4J);
+    control.ifPresent(c ->
+        Arrays.stream(CLOUD_CONNECTOR_LOGS).forEach(
+            log -> c.setLogLevel(log, level)));
   }
 
 
