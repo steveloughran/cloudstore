@@ -47,12 +47,7 @@ public class TarHardened extends DiagnosticsEntryPoint {
 
   @Override
   public int run(String[] args) throws Exception {
-    List<String> paths = parseArgs(args);
-    if (paths.size() > 1) {
-      // too many entries
-      errorln(USAGE);
-      return E_USAGE;
-    }
+    List<String> paths = processArgs(args, 1, 1, USAGE);
     String filename;
     if (paths.isEmpty()) {
       File tar = File.createTempFile("tarhardened", ".tgz");

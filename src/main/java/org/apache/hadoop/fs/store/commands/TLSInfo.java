@@ -58,11 +58,7 @@ public class TLSInfo extends DiagnosticsEntryPoint {
 
   @Override
   public int run(String[] args) throws Exception {
-    List<String> paths = parseArgs(args);
-    if (!paths.isEmpty()) {
-      errorln(USAGE);
-      return E_USAGE;
-    }
+    List<String> paths = processArgs(args, 0, 0, USAGE);
     lookupAndPrintSanitizedValues(TLS_SYSPROPS,
         "TLS System Properties",
         System::getProperty);

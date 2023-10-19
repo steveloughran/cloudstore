@@ -65,14 +65,8 @@ public class LocateFiles extends StoreEntryPoint {
 
   @Override
   public int run(String[] args) throws Exception {
-    List<String> paths = parseArgs(args);
-    if (paths.size() != 1) {
-      errorln(USAGE);
-      return E_USAGE;
-    }
+    List<String> paths = processArgs(args, 1, 1, USAGE);
 
-    addAllDefaultXMLFiles();
-    maybeAddTokens(TOKENFILE);
     final Configuration conf = createPreconfiguredConfig();
 
     int threads = getOptional(THREADS).map(Integer::valueOf).orElse(

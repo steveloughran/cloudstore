@@ -51,12 +51,7 @@ public class CheckStoreProperty extends StoreEntryPoint {
 
   public int run(String[] args, PrintStream stream) throws Exception {
     setOut(stream);
-    List<String> argList = parseArgs(args);
-    if (argList.size() != 3) {
-      errorln(USAGE);
-      return E_USAGE;
-    }
-
+    List<String> argList = processArgs(args, 3, 3, USAGE);
     // path on the CLI
     String pathString = argList.get(0);
     if (!pathString.endsWith("/")) {
@@ -82,18 +77,6 @@ public class CheckStoreProperty extends StoreEntryPoint {
     }
   }
 
-
-  /**
-   * Parse CLI arguments and returns the position arguments.
-   * The options are stored in {@link #commandFormat}.
-   *
-   * @param args command line arguments.
-   * @return the position arguments from CLI.
-   */
-  public List<String> parseArgs(String[] args) {
-    return args.length > 0 ? commandFormat.parse(args, 0)
-        : new ArrayList<>(0);
-  }
     /**
      * Execute the command, return the result or throw an exception,
      * as appropriate.

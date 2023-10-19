@@ -339,9 +339,8 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
    * @return the position arguments from CLI.
    */
   protected List<String> parseArgs(String[] args) {
-    final List<String> argList = args.length > 0 ? getCommandFormat().parse(args, 0)
+    return args.length > 0 ? getCommandFormat().parse(args, 0)
         : new ArrayList<>(0);
-    return argList;
   }
 
   /**

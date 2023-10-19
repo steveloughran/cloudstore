@@ -80,11 +80,7 @@ public class FetchTokens extends StoreEntryPoint {
 
   public int run(String[] args, PrintStream stream) throws Exception {
     setOut(stream);
-    List<String> paths = parseArgs(args);
-    if (paths.size() < 2) {
-      errorln(USAGE);
-      return EXIT_USAGE;
-    }
+    List<String> paths = processArgs(args, 2, -1, USAGE);
     final Configuration conf = createPreconfiguredConfig();
     final UserGroupInformation self = UserGroupInformation.getLoginUser();
 

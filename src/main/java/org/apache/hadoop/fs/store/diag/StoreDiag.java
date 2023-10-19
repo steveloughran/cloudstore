@@ -779,7 +779,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
         "GetFileStatus %s", root)) {
       println("root entry %s", fs.getFileStatus(root));
     } catch (FileNotFoundException e) {
-      errorln("The remote store doesn't seem to exist: %s", root);
+      errorln("GetFileStatus(/) failed: the remote store doesn't seem to exist: %s", root);
       throw (StoreDiagException)(new StoreDiagException(E_NOT_FOUND,
           "Not found %s: %s", root, e.toString())
           .initCause(e));

@@ -54,12 +54,7 @@ public class PathCapability extends StoreEntryPoint {
 
   @Override
   public int run(String[] args) throws Exception {
-    List<String> argList = parseArgs(args);
-    if (argList.size() < 1) {
-      errorln(USAGE);
-      return E_USAGE;
-    }
-    maybeAddTokens(TOKENFILE);
+    List<String> argList = processArgs(args, 1, -1, USAGE);
     final Configuration conf = createPreconfiguredConfig();
 
     // path on the CLI
