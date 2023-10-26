@@ -340,7 +340,7 @@ public class DiagnosticsEntryPoint extends StoreEntryPoint  {
       if (!status.getPath().toString().endsWith("/")) {
         suffix = "/";
       } else {
-        suffix = "/";
+        suffix = "";
       }
     }
     return String.format("%s%s",

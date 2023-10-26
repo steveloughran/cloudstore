@@ -213,7 +213,7 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
   }
 
   public static void errorln(String format, Object... args) {
-    System.err.println(String.format(format, args));
+    System.err.printf(format + "%n", args);
     System.err.println();
     System.err.flush();
   }
@@ -326,8 +326,8 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
     maybeEnableDebugLogging();
     maybeAddTokens(TOKENFILE);
     return parsed;
-
   }
+
   /**
    * Parse CLI arguments and returns the position arguments.
    * The options are stored in {@link #commandFormat}.

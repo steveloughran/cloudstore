@@ -237,10 +237,11 @@ public final class CapabilityKeys {
    */
   public static final String STORE_CAPABILITY_DIRECTORY_MARKER_ACTION_DELETE
       = "fs.s3a.capability.directory.marker.action.delete";
+
   /**
    * Stream supports multipart uploads to the given path.
    */
-  public static final String STORE_CAPABILITY_DIRECTORY_MULTIPART_UPLOAD_ENABLED =
+  public static final String STORE_CAPABILITY_MULTIPART_UPLOAD_ENABLED =
       "fs.s3a.capability.multipart.uploads.enabled";
 
   /**

@@ -81,12 +81,10 @@ import org.apache.hadoop.util.ToolRunner;
 
 import static org.apache.hadoop.fs.store.CommonParameters.STANDARD_OPTS;
 import static org.apache.hadoop.fs.store.CommonParameters.SYSPROP;
-import static org.apache.hadoop.fs.store.CommonParameters.TOKENFILE;
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_ERROR;
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_NOT_FOUND;
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_NO_ACCESS;
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_SUCCESS;
-import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
 import static org.apache.hadoop.fs.store.diag.OptionSets.CLUSTER_OPTIONS;
 import static org.apache.hadoop.fs.store.diag.OptionSets.HADOOP_TOKEN;
 import static org.apache.hadoop.fs.store.diag.OptionSets.HADOOP_TOKEN_FILE_LOCATION;
@@ -723,7 +721,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
 
   /**
    * Execute the FS level operations, one by one.
-   * @return
+   * @return true if everything worked.
    */
   public boolean executeFileSystemOperations(
       final Path baseDir,
@@ -755,14 +753,16 @@ public class StoreDiag extends DiagnosticsEntryPoint {
       final PathCapabilityChecker checker = new PathCapabilityChecker(fs);
       if (checker.methodAvailable()) {
         heading("Path Capabilities");
+        String capability = "";
         for (String s : pathCapabilites) {
           try {
+            capability = s;
             println("%s\t%s", s, checker.hasPathCapability(baseDir, s));
           } catch (IOException | ExitUtil.ExitException e) {
 
             // problem
-            warn("%s", e.toString());
-            LOG.debug("checking path capabilities", e);
+            warn("When checking path capability %s: %s", capability, e.toString());
+            LOG.debug("checking path capability {}", capability, e);
             break;
           }
         }
@@ -775,13 +775,36 @@ public class StoreDiag extends DiagnosticsEntryPoint {
 
 
     Path root = fs.makeQualified(new Path("/"));
+    String operation = "Examine root path";
     try (StoreDurationInfo ignored = new StoreDurationInfo(getOut(),
-        "GetFileStatus %s", root)) {
+        "Examine root path", root)) {
+      operation = "getFileStatus(/)";
       println("root entry %s", fs.getFileStatus(root));
+
+      operation = "listStatus(/)";
+      println("list /");
+      final FileStatus[] rootListing = fs.listStatus(root);
+      final int len = rootListing.length;
+
+      println("ls / contains %s entries; first entry %s",
+          len,
+          (len > 0 ?
+              statusToString(rootListing[0])
+              : "n/a" ));
     } catch (FileNotFoundException e) {
-      errorln("GetFileStatus(/) failed: the remote store doesn't seem to exist: %s", root);
+      errorln("%s failed: the remote filesystem doesn't seem to exist: %s",
+          operation, root);
+      errorln("There is no store of that name for that account at that endpoint");
+      println("Possible causes:");
+      println("  - wrong store/endpoint is being probed; check endpoint");
+      println("  - filesystem is only visible to the account and wrong account was used: check account");
+      println("  - the store is mis-spelled. check URL spelling");
+      println("  - the store never existed: check console for existence; create if desired");
+      println("  - the store has been deleted: check console for history");
+      println("There's nothing else which can be done here");
+
       throw (StoreDiagException)(new StoreDiagException(E_NOT_FOUND,
-          "Not found %s: %s", root, e.toString())
+          "Store not found %s: %s", root, e.toString())
           .initCause(e));
     }
 

@@ -40,9 +40,6 @@ import org.apache.hadoop.fs.s3a.S3AUtils;
 import org.apache.hadoop.fs.s3native.S3xLoginHelper;
 import org.apache.hadoop.util.ExitUtil;
 
-import static org.apache.hadoop.fs.s3a.Constants.BUFFER_DIR;
-import static org.apache.hadoop.fs.s3a.Constants.DEFAULT_SECURE_CONNECTIONS;
-import static org.apache.hadoop.fs.s3a.Constants.SECURE_CONNECTIONS;
 import static org.apache.hadoop.fs.s3a.S3AUtils.getAWSAccessKeys;
 import static org.apache.hadoop.fs.store.StoreUtils.cat;
 import static org.apache.hadoop.fs.store.StoreUtils.sanitize;
@@ -59,7 +56,7 @@ import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_DI
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_DIRECTORY_MARKER_POLICY_AUTHORITATIVE;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_DIRECTORY_MARKER_POLICY_DELETE;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_DIRECTORY_MARKER_POLICY_KEEP;
-import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_DIRECTORY_MULTIPART_UPLOAD_ENABLED;
+import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_MULTIPART_UPLOAD_ENABLED;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_MAGIC_COMMITTER;
 import static org.apache.hadoop.fs.store.diag.DiagUtils.isIpV4String;
 import static org.apache.hadoop.fs.store.diag.HBossConstants.CAPABILITY_HBOSS;
@@ -201,6 +198,14 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
    */
   public static final String SIGNING_V2_ALGORITHM = "S3SignerType";
 
+  public static final String BUCKET_PROBE = "fs.s3a.bucket.probe";
+
+  public static final String MULTIPART_PURGE = "fs.s3a.multipart.purge";
+
+  public static final String SECURE_CONNECTIONS = "fs.s3a.connection.ssl.enabled";
+
+  public static final String BUFFER_DIR = "fs.s3a.buffer.dir";
+
   private static final Object[][] options = {
       /* Core auth */
       {ACCESS_KEY, true, true},
@@ -220,7 +225,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.s3a.attempts.maximum", false, false},
       {"fs.s3a.authoritative.path", false, false},
       {"fs.s3a.block.size", false, false},
-      {"fs.s3a.bucket.probe", false, false},
+      {BUCKET_PROBE, false, false},
       {"fs.s3a.buffer.dir", false, false},
       {BULK_DELETE_PAGE_SIZE, false, false},
       /* change detection */
@@ -252,7 +257,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.s3a.multiobjectdelete.enable", false, false},
       {FS_S3A_MULTIPART_SIZE, false, false},
       {MULTIPART_UPLOADS_ENABLED, false, false},
-      {"fs.s3a.multipart.purge", false, false},
+      {MULTIPART_PURGE, false, false},
       {"fs.s3a.multipart.purge.age", false, false},
       {MIN_MULTIPART_THRESHOLD, false, false},
       {"fs.s3a.paging.maximum", false, false},
@@ -564,8 +569,9 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       STORE_CAPABILITY_DIRECTORY_MARKER_POLICY_AUTHORITATIVE,
       STORE_CAPABILITY_DIRECTORY_MARKER_ACTION_KEEP,
       STORE_CAPABILITY_DIRECTORY_MARKER_ACTION_DELETE,
-      STORE_CAPABILITY_DIRECTORY_MULTIPART_UPLOAD_ENABLED,
+      STORE_CAPABILITY_MULTIPART_UPLOAD_ENABLED,
       FS_S3A_CREATE_PERFORMANCE,
+      FS_S3A_CREATE_PERFORMANCE + ".enabled",
       FS_S3A_CREATE_HEADER,
 
 
@@ -813,14 +819,14 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
     boolean privateLink = false;
     boolean isIpv4 = false;
 
-    boolean secureConnections = conf.getBoolean(SECURE_CONNECTIONS,
-        DEFAULT_SECURE_CONNECTIONS);
+    // using https.
+    boolean sslConnection = conf.getBoolean(SECURE_CONNECTIONS, true);
     boolean pathStyleAccess = conf.getBoolean(PATH_STYLE_ACCESS, false);
     printout.println("%s = \"%s\"", ENDPOINT, endpoint);
     printout.println("%s = \"%s\"", REGION, region);
     printout.println("%s = \"%s\"", PATH_STYLE_ACCESS, pathStyleAccess);
     printout.println("%s = \"%s\"", SIGNING_ALGORITHM, signing);
-    printout.println("%s = \"%s\"", SECURE_CONNECTIONS, secureConnections);
+    printout.println("%s = \"%s\"", SECURE_CONNECTIONS, sslConnection);
     printout.println();
 
     boolean isUsingAws = false;
@@ -864,7 +870,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
           + " and http protocol options are valid.");
       if (isIpv4) {
         printout.println("endpoint appears to be an IPv4 network address");
-        if (secureConnections) {
+        if (sslConnection) {
           printout.warn("HTTPS and Dotted network addresses rarely work");
         }
       }
@@ -892,7 +898,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
         if (isIpv4) {
           printout.warn("As the endpoint is an IP address, constructed hostnames unlikely to work");
         }
-        if (secureConnections) {
+        if (sslConnection) {
           printout.warn("As https is in use, the certificates must also be wildcarded");
         }
       }
@@ -906,7 +912,13 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
 
     }
 
-    if (!privateLink && (endpoint.startsWith("https:") || endpoint.startsWith("http:"))) {
+
+    final boolean httpsUrl = endpoint.startsWith("https:");
+    final boolean httpURL = endpoint.startsWith("http:");
+    if (httpsUrl) {
+      sslConnection = true;
+    }
+    if (!privateLink && (httpsUrl || httpURL)) {
       printout.warn("Value of %s looks like a URL: %s", ENDPOINT, endpoint);
       printout.println("It SHOULD normally be a hostname or IP address");
       printout.println("Unless you have a private store with a non-standard port or"
@@ -941,8 +953,9 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       printout.warn("The bucket name %s contains dot '.'", bucket);
       printout.warn("AWS do not allow this on new buckets as it has problems");
       printout.warn("In the S3A connector, per bucket options no longer work");
-      if (!pathStyleAccess && secureConnections) {
-        printout.warn("HTTPS certificate validation is probably broken");
+      if (!pathStyleAccess && sslConnection) {
+        printout.warn("HTTPS certificate validation will fail unless any private"
+            + " TLS certificate includes multiple wildcards");
       }
       printout.warn("If you are using a fully qualified domain name as the bucket name *this doesn't work");
       int l = 1;
@@ -951,8 +964,12 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       if (!pathStyleAccess) {
         printout.warn("%d. Consider setting " + PATH_STYLE_ACCESS + " to true", l++);
       }
-      if (secureConnections) {
-        printout.println("%d. To disable HTTPS, set %s to true", l++, SECURE_CONNECTIONS);
+      if (sslConnection) {
+        printout.println("%d. To disable HTTPS, set %s to true/use http",
+            l++, SECURE_CONNECTIONS);
+        if (httpsUrl) {
+          printout.println("%d. And switch to an HTTP URL", l++);
+        }
       }
     }
     String dtbinding = conf.getTrimmed(DELEGATION_TOKEN_BINDING, "");
@@ -1094,6 +1111,16 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
         FS_S3A_CONNECTION_MAXIMUM, threads * 2);
     sizeHint(printout, conf,
         FS_S3A_COMMITTER_THREADS, 256);
+
+    int bucketProbe = conf.getInt(BUCKET_PROBE, 0);
+    hint(printout, bucketProbe > 0,
+        "Bucket existence is probe for on startup -this is inefficient and not needed.\n"
+            + "set %s to 0", BUCKET_PROBE);
+
+    hint(printout, conf.getBoolean(MULTIPART_PURGE, false),
+    "Whenever a filesystem client is created, it prunes the bucket for old uploads.\n"
+        + "Use a store lifecycle rule to do this and set %s to false",
+        MULTIPART_PURGE);
 
     hint(printout,
         !KEEP.equals(conf.get(DIRECTORY_MARKER_RETENTION, "")),
