@@ -1199,4 +1199,9 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       throw new IOException("Cannot find password option " + key, ioe);
     }
   }
+
+  @Override
+  public boolean deepTreeList() {
+    return true;
+  }
 }

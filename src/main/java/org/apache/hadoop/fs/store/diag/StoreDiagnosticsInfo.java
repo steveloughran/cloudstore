@@ -623,4 +623,13 @@ public class StoreDiagnosticsInfo {
       final FSDataOutputStream data) throws IOException {
 
   }
+
+
+  /**
+   * should a deep tree list take place?
+   * @return false by default
+   */
+  public boolean deepTreeList() {
+    return false;
+  }
 }

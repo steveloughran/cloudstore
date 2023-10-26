@@ -850,14 +850,17 @@ public class StoreDiag extends DiagnosticsEntryPoint {
       println("no file found to attempt to read");
     }
 
-    heading("listfiles(%s, true)", baseDir);
+    // should we do a deep or shallow tree list.
+    final boolean deepTreeList = storeInfo.deepTreeList();
+
+    heading("listfiles(%s, %s)", baseDir, deepTreeList);
     // =======================================
 
     // now work with the full path
     limit = LIST_LIMIT;
     try (StoreDurationInfo ignored = new StoreDurationInfo(getOut(),
         "First %d entries of listFiles(%s)", limit, baseDir)) {
-      RemoteIterator<LocatedFileStatus> files = fs.listFiles(baseDir, true);
+      RemoteIterator<LocatedFileStatus> files = fs.listFiles(baseDir, deepTreeList);
       try {
         while (files.hasNext() && (limit--) > 0) {
           FileStatus status = files.next();
@@ -1100,6 +1103,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
     }
     return true;
   }
+
 
   /**
    * Read a file.
