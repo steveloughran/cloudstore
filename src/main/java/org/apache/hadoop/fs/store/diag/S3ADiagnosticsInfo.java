@@ -36,11 +36,9 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.s3a.AWSCredentialProviderList;
 import org.apache.hadoop.fs.s3a.S3AFileStatus;
 import org.apache.hadoop.fs.s3a.S3AFileSystem;
-import org.apache.hadoop.fs.s3a.S3AUtils;
-import org.apache.hadoop.fs.s3native.S3xLoginHelper;
+import org.apache.hadoop.fs.store.s3a.S3ASupport;
 import org.apache.hadoop.util.ExitUtil;
 
-import static org.apache.hadoop.fs.s3a.S3AUtils.getAWSAccessKeys;
 import static org.apache.hadoop.fs.store.StoreUtils.cat;
 import static org.apache.hadoop.fs.store.StoreUtils.sanitize;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.ABORTABLE_STREAM;
@@ -660,7 +658,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
   @Override
   public Configuration patchConfigurationToInitalization(
       final Configuration conf) {
-    return S3AUtils.propagateBucketOptions(conf, getFsURI().getHost());
+    return S3ASupport.propagateBucketOptions(conf, getFsURI().getHost());
   }
 
   /**
@@ -986,10 +984,10 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
     }
 
     printout.heading("Analyzing login credentials");
-    final S3xLoginHelper.Login accessKeys = getAWSAccessKeys(getFsURI(), conf);
+    final S3ASupport.Login accessKeys = S3ASupport.getAWSAccessKeys(getFsURI(), conf);
     String accessKey = accessKeys.getUser();
     String secretKey = accessKeys.getPassword();
-    String sessionToken = lookupPassword(conf, SESSION_TOKEN, "");
+    String sessionToken = S3ASupport.lookupPassword(conf, SESSION_TOKEN, "");
     if (accessKey.isEmpty()) {
       printout.warn("No S3A access key defined; env var or other auth mechanism must be active");
     } else {
@@ -1180,28 +1178,10 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
     }
   }
 
-  /**
-   * Get a password from a configuration/configured credential providers.
-   * @param conf configuration
-   * @param key key to look up
-   * @param defVal value to return if there is no password
-   * @return a password or the value in {@code defVal}
-   * @throws IOException on any problem
-   */
-  private static String lookupPassword(Configuration conf, String key, String defVal)
-      throws IOException {
-    try {
-      final char[] pass = conf.getPassword(key);
-      return pass != null
-          ? new String(pass).trim()
-          : defVal;
-    } catch (IOException ioe) {
-      throw new IOException("Cannot find password option " + key, ioe);
-    }
-  }
-
   @Override
   public boolean deepTreeList() {
     return true;
   }
+
+
 }
