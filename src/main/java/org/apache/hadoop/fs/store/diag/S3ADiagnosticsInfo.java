@@ -42,12 +42,14 @@ import org.apache.hadoop.util.ExitUtil;
 import static org.apache.hadoop.fs.store.StoreUtils.cat;
 import static org.apache.hadoop.fs.store.StoreUtils.sanitize;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.ABORTABLE_STREAM;
+import static org.apache.hadoop.fs.store.diag.CapabilityKeys.DIRECTORY_OPERATIONS_PURGE_UPLOADS;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.ETAGS_AVAILABLE;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.FS_CHECKSUMS;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.FS_MULTIPART_UPLOADER;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.FS_S3A_CREATE_HEADER;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.FS_S3A_CREATE_PERFORMANCE;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.S3_SELECT_CAPABILITY;
+import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_AWS_V2;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_DIRECTORY_MARKER_ACTION_DELETE;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_DIRECTORY_MARKER_ACTION_KEEP;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_DIRECTORY_MARKER_AWARE;
@@ -571,7 +573,8 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       FS_S3A_CREATE_PERFORMANCE,
       FS_S3A_CREATE_PERFORMANCE + ".enabled",
       FS_S3A_CREATE_HEADER,
-
+      DIRECTORY_OPERATIONS_PURGE_UPLOADS,
+      STORE_CAPABILITY_AWS_V2,
 
       // hboss if wrapped by it
       CAPABILITY_HBOSS

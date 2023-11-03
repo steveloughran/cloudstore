@@ -320,6 +320,7 @@ public class OptionSets {
       "org.apache.ranger",
       "com.amazonaws.thirdparty.apache.http",
       "software.amazon.awssdk.request",
-      "software.amazon.awssdk.thirdparty.org.apache.http"
+      "software.amazon.awssdk.thirdparty.org.apache.http",
+      "com.google.cloud.hadoop.repackaged.gcs.com.google.cloud.hadoop"
   };
 }

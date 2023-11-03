@@ -23,11 +23,14 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.List;
+import java.util.Locale;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLParameters;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
+import javax.security.auth.x500.X500Principal;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,7 +41,6 @@ import org.apache.hadoop.util.ToolRunner;
 
 import static java.util.Arrays.asList;
 import static org.apache.hadoop.fs.store.CommonParameters.STANDARD_OPTS;
-import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
 import static org.apache.hadoop.fs.store.diag.OptionSets.TLS_SYSPROPS;
 
 /**
@@ -49,23 +51,61 @@ public class TLSInfo extends DiagnosticsEntryPoint {
   private static final Logger LOG = LoggerFactory.getLogger(TLSInfo.class);
 
   public static final String USAGE
-      = "Usage: tlsinfo\n"
+      = "Usage: tlsinfo [<match>]\n"
       + STANDARD_OPTS;
 
   public TLSInfo() {
-    createCommandFormat(0, 0);
+    createCommandFormat(1,1);
   }
 
   @Override
   public int run(String[] args) throws Exception {
-    List<String> paths = processArgs(args, 0, 0, USAGE);
+    List<String> params = processArgs(args, 0, 1, USAGE);
+    String alias = params.isEmpty() ? null : params.get(0);
+
     lookupAndPrintSanitizedValues(TLS_SYSPROPS,
         "TLS System Properties",
         System::getProperty);
     println();
     tlsInfo(this);
-    certInfo(this, isVerbose());
+    certInfo(this,
+        "Certificates from the default certificate manager",
+        null,
+        alias,
+        isVerbose());
+    // examine the keystore
+/*    final String keystoreType = KeyStore.getDefaultType();
+    println("Default Keystore type: %s", keystoreType);
+    KeyStore keyStore = KeyStore.getInstance(keystoreType);
+    keyStore.load(null);
+
+    keyStoreInfo(keyStore, alias);*/
+
     return 0;
+  }
+
+  private void keyStoreInfo(final KeyStore keyStore, String alias) throws KeyStoreException {
+    println("Keystore has %d entries", keyStore.size());
+    if (alias != null) {
+      println("Looking for alias %s", alias);
+      if (keyStore.containsAlias(alias)) {
+        println("Found alias %s", alias);
+        X509Certificate cert = (X509Certificate) keyStore.getCertificate(alias);
+        println("Certificate: %s", cert);
+      } else {
+        println("Alias %s not found", alias);
+      }
+    } else {
+      // print out all the aliases
+      int counter = 0;
+      final Enumeration<String> aliases = keyStore.aliases();
+      while (aliases.hasMoreElements()) {
+        String a = aliases.nextElement();
+        counter++;
+        println("[%03d] alias: %s", counter, a);
+      }
+
+    }
   }
 
   /**
@@ -95,28 +135,41 @@ public class TLSInfo extends DiagnosticsEntryPoint {
   /**
    * Print out certificate info.
    * @param printout dest
+   * @param heading heading to print
+   * @param keyStore nullable keystore
+   * @param alias
    * @param verbose verbose output
    */
-  public static void certInfo(final Printout printout, final boolean verbose) {
+  public static void certInfo(
+      final Printout printout,
+      String heading,
+      KeyStore keyStore,
+      final String alias,
+      final boolean verbose) {
 
+    String match = alias != null ? alias.toLowerCase(Locale.ROOT) : "";
     try {
       TrustManagerFactory trustManagerFactory =
           TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
       List<X509Certificate> x509Certificates = new ArrayList<>();
-      trustManagerFactory.init((KeyStore) null);
+      trustManagerFactory.init(keyStore);
       asList(trustManagerFactory.getTrustManagers()).stream()
           .forEach(t ->
               x509Certificates.addAll(asList(((X509TrustManager) t).getAcceptedIssuers())));
-      printout.heading("Certificates from the default certificate manager");
+      printout.heading(heading);
       int counter = 1;
       for (X509Certificate cert : x509Certificates) {
+        final X500Principal principal = cert.getSubjectX500Principal();
+        if (!match.isEmpty() && !principal.getName().toLowerCase(Locale.ROOT).contains(match)) {
+          continue;
+        }
         printout.println("[%03d] %s: %s",
             counter,
-            cert.getSubjectX500Principal().toString(),
+            principal.toString(),
             verbose ? cert.toString() : "");
         counter++;
       }
-    } catch (NoSuchAlgorithmException | KeyStoreException e) {
+    } catch (Exception e) {
       printout.warn("Failed to retrieve keystore %s", e.toString());
       LOG.warn("Stack trace", e);
     }

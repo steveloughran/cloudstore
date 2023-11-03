@@ -56,9 +56,7 @@ import static org.apache.hadoop.fs.store.CommonParameters.CSVFILE;
 import static org.apache.hadoop.fs.store.CommonParameters.FLUSH;
 import static org.apache.hadoop.fs.store.CommonParameters.HFLUSH;
 import static org.apache.hadoop.fs.store.CommonParameters.STANDARD_OPTS;
-import static org.apache.hadoop.fs.store.CommonParameters.TOKENFILE;
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_INVALID_ARGUMENT;
-import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
 
 /**
  * Bandwidth test of upload/download capacity.
@@ -86,8 +84,7 @@ public class Bandwidth extends StoreEntryPoint {
 
   private static final int BUFFER_SIZE = 32 * 1024;
 
-  public static final int UPLOAD_BUFFER_SIZE_MB = MB_1;
-  public static final int UPLOAD_BUFFER_SIZE = UPLOAD_BUFFER_SIZE_MB;
+  public static final int UPLOAD_BUFFER_SIZE_MB = 1;
 
   public static final int CLOSE_WARN_THRESHOLD_SECONDS = 60;
 
@@ -97,11 +94,9 @@ public class Bandwidth extends StoreEntryPoint {
 
   private static final String SEPARATOR = ",";
 
-  public static final String DEFAULT_READ_POLICY = "whole-file";
+  public static final String DEFAULT_READ_POLICY = "whole-file, sequential";
 
   public static final String DIGEST_ALGORITHM = "SHA-256";
-
-  private byte[] dataBuffer;
 
   public Bandwidth() {
     createCommandFormat(2, 2,
@@ -129,15 +124,17 @@ public class Bandwidth extends StoreEntryPoint {
     final String readPolicy = getOption(POLICY, DEFAULT_READ_POLICY)
         .trim()
         .toLowerCase(Locale.ENGLISH);
-    int blockSizeMB = getIntOption(BLOCK, UPLOAD_BUFFER_SIZE_MB);
+    String blockSizeStr = getOption(BLOCK, Integer.toString(UPLOAD_BUFFER_SIZE_MB));
+
+    long blockSizeMB = (long) StoreUtils.getDataSize(blockSizeStr, StorageUnit.MB);
 
     final Configuration conf = createPreconfiguredConfig();
 
     final PrintStream out = getOut();
     // path on the CLI
     String size = argList.get(0).trim().toLowerCase(Locale.ENGLISH);
-    String pathString = argList.get(1);
-    Path uploadPath = new Path(pathString);
+    Path uploadPath = new Path(argList.get(1));
+
     heading("Bandwidth test against %s with data size %s", uploadPath, size);
     println("Block size %d MB", blockSizeMB);
     Path downloadPath = rename
@@ -164,13 +161,18 @@ public class Bandwidth extends StoreEntryPoint {
       sizeMB = 1;
     }
     println("Upload size in Megabytes %,d MB", sizeMB);
-    long fileSizeBytes = sizeMB * MB_1;
-    if (sizeMB % blockSizeMB != 0) {
-      error("upload size %d is not a multiple of block size %d", sizeMB, blockSizeMB);
+    final long fileSizeBytes = sizeMB * MB_1;
+    final int blockSize =(int)(blockSizeMB * MB_1);
+    if (blockSize <= 0) {
+      error("block size MB is invalid", blockSizeMB);
       return E_INVALID_ARGUMENT;
     }
-    final int blockSize = blockSizeMB * MB_1;
-    int numberOfBuffersToUpload = (int)(sizeMB/ blockSizeMB);
+
+    if (fileSizeBytes < blockSize) {
+      error("upload size %,d MB smaller than the block size %,d MB", sizeMB, blockSizeMB);
+      return E_INVALID_ARGUMENT;
+    }
+    int numberOfBuffersToUpload = (int)(sizeMB / blockSizeMB);
     println("Writing data as %,d blocks each of size %,d bytes", numberOfBuffersToUpload,
         blockSize);
 
@@ -197,7 +199,7 @@ public class Bandwidth extends StoreEntryPoint {
     }
 
     // buffer of randomness
-    dataBuffer = new byte[blockSize];
+    byte[] dataBuffer = new byte[blockSize];
     new Random().nextBytes(dataBuffer);
 
 
@@ -301,7 +303,7 @@ public class Bandwidth extends StoreEntryPoint {
       heading("Rename");
       final StoreDurationInfo rd = new StoreDurationInfo();
       renameDurationTracker = of(rd);
-      try (StoreDurationInfo d = new StoreDurationInfo(out, "rename to %s", downloadPath)) {
+      try (StoreDurationInfo ignored = new StoreDurationInfo(out, "rename to %s", downloadPath)) {
         fs.rename(uploadPath, downloadPath);
       }
       rd.finished();
@@ -313,9 +315,9 @@ public class Bandwidth extends StoreEntryPoint {
      */
     heading("Download %s", downloadPath);
 
-    StoreDurationInfo downloadDurationTracker = new StoreDurationInfo();
-    FSDataInputStream download;
-    StoreDurationInfo openDuration = new StoreDurationInfo(out, "open %s", downloadPath);
+    final StoreDurationInfo downloadDurationTracker = new StoreDurationInfo();
+    final FSDataInputStream download;
+    final StoreDurationInfo openDuration = new StoreDurationInfo(out, "open %s", downloadPath);
     try {
       download = fs.openFile(downloadPath)
           .opt("fs.option.openfile.read.policy", readPolicy)
@@ -325,7 +327,7 @@ public class Bandwidth extends StoreEntryPoint {
       openDuration.finished();
       row(csvWriter, "open-for-download", 1, 0, 0, openDuration);
     }
-    MinMeanMax blockDownload = new MinMeanMax("block read duration");
+    final MinMeanMax blockDownload = new MinMeanMax("block read duration");
 
     try {
       long pos = 0;
@@ -351,8 +353,13 @@ public class Bandwidth extends StoreEntryPoint {
       row(csvWriter, "download", 1, fileSizeBytes, fileSizeBytes, downloadDurationTracker);
     } finally {
       if (csvWriter != null) {
-        csvWriter.flush();
-        csvWriter.close();
+        try {
+          csvWriter.flush();
+          csvWriter.close();
+        } catch (IOException e) {
+          errorln("Failed to close CSV write to %s: %s", csvPath, e);
+          LOG.debug("Failed to close CSV writer: %s", e);
+        }
       }
       printIfVerbose("Download Stream: %s", download);
     }
@@ -362,7 +369,7 @@ public class Bandwidth extends StoreEntryPoint {
       deletion
     */
     if (!keep) {
-      try (StoreDurationInfo d = new StoreDurationInfo(out, "delete file %s", uploadPath)) {
+      try (StoreDurationInfo ignored = new StoreDurationInfo(out, "delete file %s", uploadPath)) {
         fs.delete(uploadPath, false);
         fs.delete(downloadPath, false);
       }

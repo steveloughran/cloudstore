@@ -262,12 +262,27 @@ public final class CapabilityKeys {
    */
   public static final String FS_S3A_CREATE_HEADER = "fs.s3a.create.header";
 
+
+  /**
+   * Should directory operations purge uploads?
+   * This adds at least one parallelized list operation to the call,
+   * plus the overhead of deletions.
+   * Value: {@value}.
+   */
+  public static final String DIRECTORY_OPERATIONS_PURGE_UPLOADS =
+      "fs.s3a.directory.operations.purge.uploads";
+
   /**
    * Streams that support IOStatistics context and capture thread-level
    * IOStatistics.
    */
   public static String IOSTATISTICS_CONTEXT = "fs.capability.iocontext.supported";
 
+  /**
+   * Is this a v2 SDK build? value {@value}.
+   */
+  public static final String STORE_CAPABILITY_AWS_V2 =
+      "fs.s3a.capability.aws.v2";
 
   /**
    * IOStatisticsSource API.
