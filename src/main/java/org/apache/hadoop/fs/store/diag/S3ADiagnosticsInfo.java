@@ -835,8 +835,13 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
 
     if (endpoint.isEmpty()) {
       isUsingAws = true;
-      printout.println("Central us-east endpoint will be used. "
-          + "When not executing within EC2, this is less efficient for buckets in other regions");
+      if (region.isEmpty()) {
+        printout.println("Central us-east endpoint will be used. "
+            + "When not executing within EC2, this is less efficient for buckets in other regions");
+      } else {
+        printout.println("AWS Endpoint is not declared, but the region is defined"
+            + " -the S3 client will use the region-specific endpoint");
+      }
       if (bucket.contains(".")) {
         printout.warn("The s3 bucket looks like a domain name but the client is using AWS us-east");
         printout.warn("Set " + ENDPOINT + " to the endpoint,"

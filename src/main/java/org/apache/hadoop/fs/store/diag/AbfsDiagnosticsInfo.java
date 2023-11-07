@@ -232,7 +232,7 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
       "org.apache.hadoop.fs.azurebfs.AzureBlobFileSystem",
   };
 
-  public static final String[] optionalClassnames = {
+  public static final String[] OPTIONAL_CLASSNAMES = {
       // SSL stuff
       "org.wildfly.openssl.OpenSSLProvider",
       X509,
@@ -370,7 +370,7 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
 
   @Override
   public String[] getOptionalClassnames(final Configuration conf) {
-    return optionalClassnames;
+    return OPTIONAL_CLASSNAMES;
   }
 
   public String[] getOptionalPathCapabilites() {

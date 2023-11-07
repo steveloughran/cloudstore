@@ -50,8 +50,8 @@ public class help extends Command {
     // extras must not refer to the optional classes.
     println("");
     println("");
-    println("Extra Commands");
-    println("==============");
+    println("AWS V1 SDK-only Commands");
+    println("========================");
     println("");
     printCommand("bucketstate","prints the AWS bucket state");
     printCommand("committerinfo", "Print committer information");
@@ -64,7 +64,9 @@ public class help extends Command {
     printCommand("regions\t", "emulate region lookup of AWS SDK");
     printCommand("restore\t", "Restore a versioned S3 object");
     printCommand("sessionkeys", "generate AWS session keys from a long-lived login");
+
     println("%nThese are only available on some builds and require a compatible hadoop release");
+    println("In particular, S3A connector builds using the V2 AWS SDK will fail to load required classes");
 
     println("");
     println("See https://github.com/steveloughran/cloudstore");
