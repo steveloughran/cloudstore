@@ -53,7 +53,7 @@ public class help extends Command {
     println("AWS V1 SDK-only Commands");
     println("========================");
     println("");
-    printCommand("bucketstate","prints the AWS bucket state");
+    printCommand("bucketstate", "prints the AWS bucket state");
     printCommand("committerinfo", "Print committer information");
     printCommand("deleteobject", "Delete an S3 object");
     printCommand("gcscreds", "credential diagnostics for GCS. Warning: logs secrets");
@@ -66,8 +66,15 @@ public class help extends Command {
     printCommand("sessionkeys", "generate AWS session keys from a long-lived login");
 
     println("%nThese are only available on some builds and require a compatible hadoop release");
-    println("In particular, S3A connector builds using the V2 AWS SDK will fail to load required classes");
+    println(
+        "In particular, S3A connector builds using the V2 AWS SDK will fail to load required classes");
 
+    println("");
+    println("");
+    println("AWS V2 SDK-only Commands");
+    println("========================");
+    println("");
+    printCommand("regions2\t", "emulate region lookup of AWS v2 SDK");
     println("");
     println("See https://github.com/steveloughran/cloudstore");
 

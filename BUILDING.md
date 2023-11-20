@@ -21,10 +21,22 @@ To build a production release
 2. And compile against a shipping hadoop version, with `-Pextra` for the extra stuff
 3. Do not attempt to build the AWS v1 SDK components `-Pextra` against a version of Hadoop
    built with the AWS V2 SDK. It will fail
+4. If you cut a v2 sdk release, declare it in the release notes.
 
-
+V1 SDK build
 ```bash
 mvn clean install -Pextra
+```
+
+V2 SDK build
+```bash
+mvn clean install -Psdk2
+```
+
+Joint build
+```bash
+mvn clean install -Psdk2
+mvn install -Pextra
 ```
 
 ## Releasing
@@ -39,7 +51,7 @@ gh release create tag-release-$now -t release-$now -n "release of $now" -d targe
 # then go to the web ui to review and finalize the relese
 ```
 
-* If a new release is made the same day, remember to create a new tag
+* If a new release is made the same day, remember to create a new tag.
 * The version `cloudstore-1.0.jar` is always used, not just from laziness but because it allows
 for bash scripts to always be able to fetch the latest version through curl then execute it.
 

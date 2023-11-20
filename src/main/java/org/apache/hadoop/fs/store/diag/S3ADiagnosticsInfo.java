@@ -48,6 +48,7 @@ import static org.apache.hadoop.fs.store.diag.CapabilityKeys.FS_CHECKSUMS;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.FS_MULTIPART_UPLOADER;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.FS_S3A_CREATE_HEADER;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.FS_S3A_CREATE_PERFORMANCE;
+import static org.apache.hadoop.fs.store.diag.CapabilityKeys.OPTIMIZED_COPY_FROM_LOCAL;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.S3_SELECT_CAPABILITY;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_AWS_V2;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_DIRECTORY_MARKER_ACTION_DELETE;
@@ -84,6 +85,12 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
   public static final String DEFAULT_ENDPOINT = "";
 
   public static final String REGION = "fs.s3a.endpoint.region";
+  /**
+   * Is the endpoint a FIPS endpoint?
+   * Can be queried as a path capability.
+   * Value {@value}.
+   */
+  public static final String ENDPOINT_FIPS = "fs.s3a.endpoint.fips";
 
   //Enable path style access? Overrides default virtual hosting
   public static final String PATH_STYLE_ACCESS = "fs.s3a.path.style.access";
@@ -138,6 +145,8 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
    * Value: {@value}
    */
   public static final String INPUT_FADV_SEQUENTIAL = "sequential";
+
+  public static final String ASYNC_DRAIN_THRESHOLD = "fs.s3a.input.async.drain.threshold";
 
   /**
    * Optimized purely for random seek+read/positionedRead operations;
@@ -218,6 +227,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {AWS_CREDENTIALS_PROVIDER, false, false},
       {ENDPOINT, false, false},
       {REGION, false, false},
+      {ENDPOINT_FIPS, false, false},
       {SIGNING_ALGORITHM, false, false},
 
       /* Core Set */
@@ -241,11 +251,13 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.s3a.create.performance", false, false},
       {"fs.s3a.create.storage.class", false, false},
       {"fs.s3a.custom.signers", false, false},
+      {DIRECTORY_OPERATIONS_PURGE_UPLOADS, false, false},
       {DIRECTORY_MARKER_RETENTION, false, false},
       {"fs.s3a.downgrade.syncable.exceptions", false, false},
       {"fs.s3a.etag.checksum.enabled", false, false},
       {"fs.s3a.executor.capacity", false, false},
       {INPUT_FADVISE, false, false},
+      {ASYNC_DRAIN_THRESHOLD, false, false},
       {"fs.s3a.experimental.aws.s3.throttling", false, false},
       {"fs.s3a.experimental.optimized.directory.operations", false, false},
       {"fs.s3a.fast.buffer.size", false, false},
@@ -260,6 +272,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {MULTIPART_PURGE, false, false},
       {"fs.s3a.multipart.purge.age", false, false},
       {MIN_MULTIPART_THRESHOLD, false, false},
+      {OPTIMIZED_COPY_FROM_LOCAL, false, false},
       {"fs.s3a.paging.maximum", false, false},
       {"fs.s3a.prefetch.enabled", false, false},
       {"fs.s3a.prefetch.block.count", false, false},
@@ -574,7 +587,9 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       FS_S3A_CREATE_PERFORMANCE + ".enabled",
       FS_S3A_CREATE_HEADER,
       DIRECTORY_OPERATIONS_PURGE_UPLOADS,
+      OPTIMIZED_COPY_FROM_LOCAL,
       STORE_CAPABILITY_AWS_V2,
+      ENDPOINT_FIPS,
 
       // hboss if wrapped by it
       CAPABILITY_HBOSS
@@ -874,6 +889,8 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       }
       printout.println("For third party endpoints, verify the network port"
           + " and http protocol options are valid.");
+
+      printout.warn("If you are trying to connect to a bucket in AWS, this configuration is unlikely to work");
       if (isIpv4) {
         printout.println("endpoint appears to be an IPv4 network address");
         if (sslConnection) {

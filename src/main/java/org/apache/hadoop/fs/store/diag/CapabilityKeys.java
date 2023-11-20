@@ -279,6 +279,13 @@ public final class CapabilityKeys {
   public static String IOSTATISTICS_CONTEXT = "fs.capability.iocontext.supported";
 
   /**
+   * Is the higher performance copy from local file to S3 enabled?
+   * This switch allows for it to be disabled if there are problems.
+   * Value: {@value}.
+   */
+  public static final String OPTIMIZED_COPY_FROM_LOCAL = "fs.s3a.optimized.copy.from.local.enabled";
+
+  /**
    * Is this a v2 SDK build? value {@value}.
    */
   public static final String STORE_CAPABILITY_AWS_V2 =

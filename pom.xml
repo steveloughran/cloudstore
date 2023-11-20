@@ -47,6 +47,7 @@
     <test.build.dir>${project.build.directory}/test-dir</test.build.dir>
     <test.build.data>${test.build.dir}</test.build.data>
     <assertj.version>3.12.2</assertj.version>
+    <buildhelper.version>3.3.0</buildhelper.version>
 
   </properties>
 
@@ -230,7 +231,13 @@
     <dependency>
       <groupId>com.amazonaws</groupId>
       <artifactId>aws-java-sdk-bundle</artifactId>
-      <version>1.12.316</version>
+      <version>1.12.565</version>
+      <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>software.amazon.awssdk</groupId>
+      <artifactId>bundle</artifactId>
+      <version>2.21.21</version>
       <scope>compile</scope>
     </dependency>
     <!--
@@ -391,7 +398,7 @@
           <plugin>
             <groupId>org.codehaus.mojo</groupId>
             <artifactId>build-helper-maven-plugin</artifactId>
-            <version>3.3.0</version>
+            <version>${buildhelper.version}</version>
             <executions>
               <execution>
                 <phase>generate-sources</phase>
@@ -421,6 +428,55 @@
         </plugins>
       </build>
     </profile>
+
+    <!-- SDK v2 -->
+    <profile>
+      <id>sdk2</id>
+      <activation>
+        <property>
+          <name>sdk2</name>
+        </property>
+      </activation>
+      <properties>
+        <hadoop.version>3.4.0-SNAPSHOT</hadoop.version>
+      </properties>
+      <build>
+
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>build-helper-maven-plugin</artifactId>
+            <version>${buildhelper.version}</version>
+            <executions>
+              <execution>
+                <phase>generate-sources</phase>
+                <goals>
+                  <goal>add-source</goal>
+                </goals>
+                <configuration>
+                  <sources>
+                    <source>src/main/sdk2</source>
+                  </sources>
+                </configuration>
+              </execution>
+              <execution>
+                <id>add-test-source</id>
+                <phase>generate-test-sources</phase>
+                <goals>
+                  <goal>add-test-source</goal>
+                </goals>
+                <configuration>
+                  <sources>
+                    <source>src/test/sdk2</source>
+                  </sources>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
     <profile>
       <id>gcs</id>
       <activation>
@@ -433,7 +489,7 @@
           <plugin>
             <groupId>org.codehaus.mojo</groupId>
             <artifactId>build-helper-maven-plugin</artifactId>
-            <version>3.3.0</version>
+            <version>${buildhelper.version}</version>
             <executions>
               <execution>
                 <phase>generate-sources</phase>
