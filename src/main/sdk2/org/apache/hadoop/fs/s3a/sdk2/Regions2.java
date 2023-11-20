@@ -97,7 +97,8 @@ public class Regions2 extends StoreEntryPoint {
         "%s.getRegion()", name)) {
       region = provider.getRegion().id();
     } catch (Exception e) {
-      warn("Provider raised an exception %s", e);
+      warn("Provider %s raised an exception %s", name, e);
+      LOG.info("Provider {} raised an exception", name, e);
     }
     if (region != null) {
       println("Region is determined as \"%s\"", region);
