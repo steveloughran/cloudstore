@@ -16,9 +16,11 @@
  * limitations under the License.
  */
 
-package org.apache.hadoop.fs.s3a;
+package org.apache.hadoop.fs.s3a.extra;
 
 import com.amazonaws.services.s3.AmazonS3;
+
+import org.apache.hadoop.fs.s3a.S3AFileSystem;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 

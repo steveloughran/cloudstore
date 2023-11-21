@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.hadoop.fs.s3a.debug;
+package org.apache.hadoop.fs.s3a.extra;
 
 import java.io.IOException;
 import java.net.URI;

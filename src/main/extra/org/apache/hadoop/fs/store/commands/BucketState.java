@@ -18,8 +18,6 @@
 
 package org.apache.hadoop.fs.store.commands;
 
-import java.io.FileNotFoundException;
-import java.net.MalformedURLException;
 import java.nio.file.AccessDeniedException;
 import java.util.List;
 
@@ -32,20 +30,15 @@ import org.slf4j.LoggerFactory;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.fs.s3a.InternalAccess;
+import org.apache.hadoop.fs.s3a.extra.InternalAccess;
 import org.apache.hadoop.fs.s3a.Invoker;
 import org.apache.hadoop.fs.s3a.S3AFileSystem;
 import org.apache.hadoop.fs.store.StoreDurationInfo;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
 import org.apache.hadoop.util.ToolRunner;
 
-import static org.apache.hadoop.fs.store.CommonParameters.DEBUG;
-import static org.apache.hadoop.fs.store.CommonParameters.DEBUG_USAGE;
-import static org.apache.hadoop.fs.store.CommonParameters.DEFINE;
 import static org.apache.hadoop.fs.store.CommonParameters.STANDARD_OPTS;
 import static org.apache.hadoop.fs.store.CommonParameters.TOKENFILE;
-import static org.apache.hadoop.fs.store.CommonParameters.XMLFILE;
-import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
 
 /*
 org.apache.hadoop.fs.tools.BucketState.
