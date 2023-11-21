@@ -215,6 +215,12 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
 
   public static final String BUFFER_DIR = "fs.s3a.buffer.dir";
 
+  public static final String CONNECTION_ESTABLISH_TIMEOUT = "fs.s3a.connection.establish.timeout";
+
+  public static final String CONNECTION_REQUEST_TIMEOUT = "fs.s3a.connection.request.timeout";
+
+  public static final String CONNECTION_TIMEOUT = "fs.s3a.connection.timeout";
+
   private static final Object[][] options = {
       /* Core auth */
       {ACCESS_KEY, true, true},
@@ -245,9 +251,9 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
 
       {CONNECTION_SSL_ENABLED, false, false},
       {FS_S3A_CONNECTION_MAXIMUM, false, false},
-      {"fs.s3a.connection.establish.timeout", false, false},
-      {"fs.s3a.connection.request.timeout", false, false},
-      {"fs.s3a.connection.timeout", false, false},
+      {CONNECTION_ESTABLISH_TIMEOUT, false, false},
+      {CONNECTION_REQUEST_TIMEOUT, false, false},
+      {CONNECTION_TIMEOUT, false, false},
       {"fs.s3a.create.performance", false, false},
       {"fs.s3a.create.storage.class", false, false},
       {"fs.s3a.custom.signers", false, false},
@@ -1138,9 +1144,15 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
     sizeHint(printout, conf,
         FS_S3A_COMMITTER_THREADS, 256);
 
+    long goodTimeout = 60 * 1000;
+    long requestTimeout = 5 * 60 * 1000;
+    sizeHint(printout, conf, CONNECTION_TIMEOUT, goodTimeout);
+    sizeHint(printout, conf, CONNECTION_ESTABLISH_TIMEOUT, goodTimeout);
+    sizeHint(printout, conf, CONNECTION_REQUEST_TIMEOUT, requestTimeout);
+
     int bucketProbe = conf.getInt(BUCKET_PROBE, 0);
     hint(printout, bucketProbe > 0,
-        "Bucket existence is probe for on startup -this is inefficient and not needed.\n"
+        "Bucket existence is probed for on startup -this is inefficient and not needed.\n"
             + "set %s to 0", BUCKET_PROBE);
 
     hint(printout, conf.getBoolean(MULTIPART_PURGE, false),

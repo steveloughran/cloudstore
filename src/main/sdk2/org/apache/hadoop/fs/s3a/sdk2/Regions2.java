@@ -61,8 +61,6 @@ public class Regions2 extends StoreEntryPoint {
 
     heading("Determining AWS region for SDK clients");
     println("This uses same region resolution chain and ordering as in the AWS client.");
-    println("See "
-        + "https://docs.aws.amazon.com/sdk-for-java/v1/developer-guide/java-dg-region-selection.html");
 
     printRegion("SystemSettingsRegionProvider",
         new SystemSettingsRegionProvider(),
