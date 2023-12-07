@@ -292,6 +292,23 @@ public final class CapabilityKeys {
       "fs.s3a.capability.aws.v2";
 
   /**
+   * Is this a store where parent directory listings are potentially inconsistent with
+   * direct list/getFileStatus calls?
+   * This can happen with Amazon S3 Express One Zone Storage when there are pending
+   * uploads under a path.
+   * Application code can use this flag to decide whether or not to treat
+   * FileNotFoundExceptions on treewalk as errors or something to downgrade.
+   * Value: {@value}.
+   */
+  public static final String DIRECTORY_LISTING_INCONSISTENT =
+      "fs.capability.directory.listing.inconsistent";
+  /**
+   * Is this S3Express storage? value {@value}.
+   */
+  public static final String STORE_CAPABILITY_S3_EXPRESS_STORAGE =
+      "fs.s3a.capability.s3express.storage";
+
+  /**
    * IOStatisticsSource API.
    */
   public static String IOSTATISTICS = "iostatistics";

@@ -42,6 +42,7 @@ import org.apache.hadoop.util.ExitUtil;
 import static org.apache.hadoop.fs.store.StoreUtils.cat;
 import static org.apache.hadoop.fs.store.StoreUtils.sanitize;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.ABORTABLE_STREAM;
+import static org.apache.hadoop.fs.store.diag.CapabilityKeys.DIRECTORY_LISTING_INCONSISTENT;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.DIRECTORY_OPERATIONS_PURGE_UPLOADS;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.ETAGS_AVAILABLE;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.FS_CHECKSUMS;
@@ -59,6 +60,7 @@ import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_DI
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_DIRECTORY_MARKER_POLICY_KEEP;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_MULTIPART_UPLOAD_ENABLED;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_MAGIC_COMMITTER;
+import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_S3_EXPRESS_STORAGE;
 import static org.apache.hadoop.fs.store.diag.DiagUtils.isIpV4String;
 import static org.apache.hadoop.fs.store.diag.HBossConstants.CAPABILITY_HBOSS;
 import static org.apache.hadoop.fs.store.diag.OptionSets.HTTP_CLIENT_RESOURCES;
@@ -421,6 +423,35 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"aws.accessKeyId", true},
       {"aws.secretKey", true},
       {"aws.sessionToken", true},
+      // aws v2 sdk sysprops from software.amazon.awssdk.core.SdkSystemSetting
+      {"aws.secretAccessKey", true},
+      {"aws.binaryIonEnabled", false},
+      {"aws.defaultsMode", false},
+      {"aws.disableRequestCompression", false},
+      {"aws.disableS3ExpressAuth", false},
+      {"aws.cborEnabled", false},
+      {"aws.containerAuthorizationToken", true},
+      {"aws.containerCredentialsFullUri", false},
+      {"aws.containerCredentialsPath", false},
+      {"aws.containerServiceEndpoint", false},
+      {"aws.disableEc2Metadata", false},
+      {"aws.disableRequestCompression", false},
+      {"aws.ec2MetadataServiceEndpoint", false},
+      {"aws.ec2MetadataServiceEndpointMode", false},
+      {"aws.endpointDiscoveryEnabled", false},
+      {"aws.executionEnvironment", false},
+      {"aws.maxAttempts", false},
+      {"aws.region", false},
+      {"aws.roleArn", false},
+      {"aws.roleSessionName", false},
+      {"aws.retryMode", false},
+      {"aws.requestMinCompressionSizeBytes", false},
+      {"aws.s3UseUsEast1RegionalEndpoint", false},
+      {"aws.useDualstackEndpoint", false},
+      {"aws.useFipsEndpoint", false},
+      {"aws.webIdentityTokenFile", false},
+
+      // v1 options
 
       {"com.amazonaws.regions.RegionUtils.fileOverride", false},
       {"com.amazonaws.regions.RegionUtils.disableRemote", false},
@@ -438,33 +469,9 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"com.amazonaws.services.s3.enableV4", false},
       {"com.amazonaws.services.s3.enforceV4", false},
       {"org.wildfly.openssl.path", false},
-      // aws v2 sdk sysprops from software.amazon.awssdk.core.SdkSystemSetting
-      {"aws.binaryIonEnabled", false},
-      {"aws.defaultsMode", false},
-      {"aws.disableRequestCompression", false},
-      {"aws.cborEnabled", false},
-      {"aws.containerAuthorizationToken", true},
-      {"aws.containerCredentialsFullUri", false},
-      {"aws.containerCredentialsPath", false},
-      {"aws.containerServiceEndpoint", false},
-      {"aws.disableEc2Metadata", false},
-      {"aws.ec2MetadataServiceEndpoint", false},
-      {"aws.ec2MetadataServiceEndpointMode", false},
-      {"aws.endpointDiscoveryEnabled", false},
-      {"aws.executionEnvironment", false},
-      {"aws.maxAttempts", false},
-      {"aws.region", false},
-      {"aws.roleArn", false},
-      {"aws.roleSessionName", false},
-      {"aws.retryMode", false},
-      {"aws.requestMinCompressionSizeBytes", false},
-      {"aws.s3UseUsEast1RegionalEndpoint", false},
-      {"aws.useDualstackEndpoint", false},
-      {"aws.useFipsEndpoint", false},
-      {"aws.webIdentityTokenFile", false},
+
       {"software.amazon.awssdk.http.service.impl", false},
       {"software.amazon.awssdk.http.async.service.impl", false},
-      {"", false},
       {"", false},
       {"", false},
   };
@@ -565,10 +572,9 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       "software.amazon.awssdk.core.exception.SdkException",
       "software.amazon.awssdk.crt.s3.S3MetaRequest",
       "software.amazon.eventstream.MessageDecoder",
-
-
+      "software.amazon.awssdk.transfer.s3.progress.TransferListener",
+      "software.amazon.awssdk.services.s3.s3express.S3ExpressConfiguration",  // s3 express
       "",
-
 
   };
 
@@ -577,14 +583,15 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
    * support.
    */
   public static final String[] OPTIONAL_CAPABILITIES = {
+      DIRECTORY_LISTING_INCONSISTENT,
       ETAGS_AVAILABLE,
       FS_CHECKSUMS,
       FS_MULTIPART_UPLOADER,
       ABORTABLE_STREAM,
 
       // s3 specific
-      STORE_CAPABILITY_MAGIC_COMMITTER,
-      S3_SELECT_CAPABILITY,
+      STORE_CAPABILITY_AWS_V2,
+
       STORE_CAPABILITY_DIRECTORY_MARKER_AWARE,
       STORE_CAPABILITY_DIRECTORY_MARKER_POLICY_KEEP,
       STORE_CAPABILITY_DIRECTORY_MARKER_POLICY_DELETE,
@@ -592,13 +599,16 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       STORE_CAPABILITY_DIRECTORY_MARKER_ACTION_KEEP,
       STORE_CAPABILITY_DIRECTORY_MARKER_ACTION_DELETE,
       STORE_CAPABILITY_MULTIPART_UPLOAD_ENABLED,
+      STORE_CAPABILITY_MAGIC_COMMITTER,
+      S3_SELECT_CAPABILITY,
+      STORE_CAPABILITY_S3_EXPRESS_STORAGE,
+
       FS_S3A_CREATE_PERFORMANCE,
       FS_S3A_CREATE_PERFORMANCE + ".enabled",
       FS_S3A_CREATE_HEADER,
       DIRECTORY_OPERATIONS_PURGE_UPLOADS,
-      OPTIMIZED_COPY_FROM_LOCAL,
-      STORE_CAPABILITY_AWS_V2,
       ENDPOINT_FIPS,
+      OPTIMIZED_COPY_FROM_LOCAL,
 
       // hboss if wrapped by it
       CAPABILITY_HBOSS
@@ -972,7 +982,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
         printout.warn("The signing algorithm is %s; this is not supported on newer AWS buckets or the v2 AWS SDK", SIGNING_V2_ALGORITHM);
       } else {
         printout.println("The signing algorithm is %s; this is required for some third-party S3 stores", SIGNING_V2_ALGORITHM);
-        printout.warn("The signing algorithm is not yet available through the v2 AWS SDK");
+        printout.warn("The signing algorithm is not available through the v2 AWS SDK");
       }
     }
 
