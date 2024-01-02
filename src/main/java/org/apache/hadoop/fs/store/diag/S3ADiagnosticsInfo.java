@@ -891,8 +891,10 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       printout.println("AWS PrivateLink is being used for a VPN connection to S3");
       printout.warn("You MUST set %s to the region of this store; it is currently \"%s\"",
           REGION, region);
-      printout.println("Note: older hadoop releases do not support this option");
+      printout.println("Note: Hadoop releases without CDPD-26441/HADOOP-17705 do not support this option");
       printout.println("See https://issues.apache.org/jira/browse/HADOOP-17705 for a workaround");
+      printout.println("See also:");
+      printout.println("CDPD-27264. HADOOP-17771. S3AFS creation fails: Unable to find a region via the region provider chain.");
       if (!endpoint.startsWith("https://bucket.") && !endpoint.startsWith("bucket.")) {
         printout.warn("The endpoint %s hostname does not start with \"bucket.\"", endpoint);
         printout.warn("This is not a valid endpoint for PrivateLink");

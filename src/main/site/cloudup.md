@@ -21,7 +21,7 @@ cloud storage and local or cluster filesystems.
 It is a single process, multithreaded program, which assumes that
 the bandwidth to the cloud infrastructure is limited enough that a single
 process can use a lot of the bandwidth given the opportunity. 
-That is: this program is efficiently enough that distcp would only
+That is: this program is efficient enough that distcp would only
 be faster if the cloud store bandwidth was many hundreds of megabits.
 
 When uploading over long haul links, or via VPNs, the remote bandwidth
