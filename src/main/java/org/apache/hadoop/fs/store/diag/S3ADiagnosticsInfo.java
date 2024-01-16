@@ -778,10 +778,10 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       if (hasConf) {
         printout.warn("%s is also set in the configuration option, which can cause confusion",
             option);
-        printout.println("Recommend: unset the environment variable %s", envVar);
+        printout.println("*Recommend*: unset the environment variable %s", envVar);
       } else {
         printout.warn("This environment variable will not be passed into launched applications");
-        printout.println("Recommend: unset the environment variable %s; set the option \"%s\" instead",
+        printout.println("*Recommend*: unset the environment variable %s; set the option \"%s\" instead",
             envVar, option);
       }
       printout.println();
@@ -793,7 +793,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
   protected void validateConfig(final Printout printout,
       final Configuration conf,
       final boolean writeOperations) throws IOException {
-    printout.heading("S3A Config validation");
+    printout.heading("S3A Configuration validation");
 
     // check for any of the env vars we hate
     for (String[] entry : ENV_VARS_WE_HATE) {
@@ -870,14 +870,14 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
     if (endpoint.isEmpty()) {
       isUsingAws = true;
       if (region.isEmpty()) {
-        printout.println("Central us-east endpoint will be used. "
+        printout.println("- Central us-east endpoint will be used. "
             + "When not executing within EC2, this is less efficient for buckets in other regions");
       } else {
-        printout.println("AWS Endpoint is not declared, but the region is defined"
+        printout.println("-AWS Endpoint is not declared, but the region is defined"
             + " -the S3 client will use the region-specific endpoint");
       }
       if (bucket.contains(".")) {
-        printout.warn("The s3 bucket looks like a domain name but the client is using AWS us-east");
+        printout.warn("The S3 bucket looks like a domain name but the client is using AWS us-east");
         printout.warn("Set " + ENDPOINT + " to the endpoint,"
             + " tune " + PATH_STYLE_ACCESS
             + " and " + SECURE_CONNECTIONS + " as appropriate");
@@ -920,22 +920,22 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       }
       if (pathStyleAccess) {
         boolean showHowToChange = true;
-        printout.println("Path style access is enabled;"
+        printout.println("- Path style access is enabled;"
             + " this is normally the correct setting for third party stores.");
         if (isUsingAws && !privateLink) {
-          printout.warn("This is not the recommended setting for AWS S3 except through PrivateLink");
+          printout.warn("-This is not the recommended setting for AWS S3 except through PrivateLink");
         } else {
           showHowToChange = false;
         }
         if (showHowToChange) {
-          printout.warn("To disable path style access, set %s to false", PATH_STYLE_ACCESS);
+          printout.warn("- To disable path style access, set %s to false", PATH_STYLE_ACCESS);
         }
 
 
       } else {
         printout.warn("Path style access is disabled"
             + " this is not the normal setting for third party stores.");
-        printout.warn("It requires DNS to resolve all bucket hostnames");
+        printout.println("It requires DNS to resolve all bucket hostnames");
         if (privateLink) {
           printout.error("This does not work with AWS PrivateLink");
         }
@@ -1035,7 +1035,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
     String secretKey = accessKeys.getPassword();
     String sessionToken = S3ASupport.lookupPassword(conf, SESSION_TOKEN, "");
     if (accessKey.isEmpty()) {
-      printout.warn("No S3A access key defined; env var or other auth mechanism must be active");
+      printout.warn("No S3A access key defined; env var or other authentication mechanism must be active");
     } else {
       printout.println("access key %s",
           sanitize(accessKey, false));

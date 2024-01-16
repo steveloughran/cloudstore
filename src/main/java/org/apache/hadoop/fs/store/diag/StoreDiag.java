@@ -424,15 +424,15 @@ public class StoreDiag extends DiagnosticsEntryPoint {
       println("No endpoints determined for this filesystem");
     } else {
       println("Attempting to list and connect to public service endpoints,");
-      println("without any authentication credentials. ");
-      println("This is just testing the reachability of the URLs.");
+      println("without any authentication credentials.\n");
+      println("- This is just testing the reachability of the URLs.");
 
-      println("If the request fails with any network error it is likely");
+      println("- If the request fails with any network error it is likely");
 
-      println("to be configuration problem with address, proxy, etc");
+      println("  to be configuration problem with address, proxy, etc");
 
-      println("If it is some authentication error, then don't worry so much\n"
-          + "  -look for the results of the filesystem operations");
+      println("- If it is some authentication error, then don't worry so much\n"
+          + "    -look for the results of the filesystem operations");
 
       for (URI endpoint : endpoints) {
         try {
