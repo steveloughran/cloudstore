@@ -184,6 +184,7 @@ public final class CapabilityKeys {
 
   /**
    * Does the FS Support S3 Select?
+   * Not true on v2 sdk.
    * Value: {@value}.
    */
   public static final String S3_SELECT_CAPABILITY =

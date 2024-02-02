@@ -50,6 +50,7 @@ import static org.apache.hadoop.fs.store.diag.CapabilityKeys.FS_PERMISSIONS;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.FS_XATTRS;
 import static org.apache.hadoop.fs.store.diag.OptionSets.HADOOP_TMP_DIR;
 import static org.apache.hadoop.fs.store.diag.OptionSets.JAVA_NET_SYSPROPS;
+import static org.apache.hadoop.fs.store.diag.OptionSets.STANDARD_ENV_VARS;
 import static org.apache.hadoop.fs.store.diag.OptionSets.STANDARD_SYSPROPS;
 import static org.apache.hadoop.fs.store.diag.OptionSets.X509;
 import static org.apache.hadoop.fs.store.diag.StoreDiag.printCanonicalHostname;
@@ -111,7 +112,28 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
 
   public static final String FS_AZURE_ATOMIC_RENAME_KEY = "fs.azure.atomic.rename.key";
 
-  private static final Object[][] options = {
+  @Override
+  public Object[][] getEnvVars() {
+    return cat(ENV_VARS, STANDARD_ENV_VARS);
+  }
+
+  /**
+   * Environment variables set by azure deployments.
+   * This is not currently picked up by the abfs client; it is by go and python.
+   * {@link <a href="https://github.com/Azure/azure-sdk-for-python/blob/main/sdk/identity/azure-identity/azure/identity/_credentials/workload_identity.py#L70-L72">python lib</a>}
+   */
+  protected static final Object[][] ENV_VARS = {
+      {"AZURE_AUTHORITY_HOST", false},
+      {"AZURE_CLIENT_ID", false},
+      {"AZURE_FEDERATED_TOKEN_FILE", false},
+      {"AZURE_TENANT_ID", false},
+      {"", false},
+  };
+
+  /**
+   * Configuration options for the Abfs Client.
+   */
+  private static final Object[][] OPTIONS = {
 
       {"abfs.external.authorization.class", false, false},
       {"fs.abfs.impl", false, false},
@@ -129,7 +151,8 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.azure.account.oauth2.msi.endpoint", false, false},
       {"fs.azure.account.oauth2.msi.tenant", false, false},
       {"fs.azure.account.oauth2.refresh.token", true, true},
-      {"fs.azure.account.oauth2.refresh.token.endpoint", true, true},
+      {"fs.azure.account.oauth2.token.file", true, true},
+      {"fs.azure.account.oauth2.user.name", false, false},
       {"fs.azure.account.oauth2.user.name", false, false},
       {"fs.azure.account.oauth2.user.password", true, true},
       {"fs.azure.account.throttling.enabled", false, false},
@@ -284,7 +307,7 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
   public Object[][] getFilesystemOptions() {
 
     List<Object[]> optionList = new ArrayList<>(
-        Arrays.asList(AbfsDiagnosticsInfo.options));
+        Arrays.asList(AbfsDiagnosticsInfo.OPTIONS));
     // dynamically create account-specific keys
     String account = getFsURI().getHost();
     addAccountOption(optionList, "fs.azure.account.key",

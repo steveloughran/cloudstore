@@ -128,6 +128,8 @@ public class OptionSets {
    */
   public static final Object[][] STANDARD_SYSPROPS = {
       {"java.version", false},
+      {"java.specification.version", false},
+      {"java.class.version", false},
       {"", false},
   };
 
