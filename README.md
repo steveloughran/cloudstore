@@ -141,7 +141,6 @@ See [bandwidth](src/main/site/bandwidth.md) for details.
 
 See [cloudup](src/main/site/cloudup.md)
 
-
 ## Command `committerinfo`
 
 Tries to instantiate a committer using the Hadoop 3.1+ committer factory mechanism, printing out
@@ -226,6 +225,14 @@ The classic filesystem committer v1 is used because it works well here: the file
 Created committer of class org.apache.hadoop.fs.s3a.commit.magic.MagicS3GuardCommitter: MagicCommitter{}
 2019-08-05 17:37:44,462 [main] INFO  commands.CommitterInfo (DurationInfo.java:close(100)) - Create committer: duration 0:01:849
 ```
+
+
+## Command `constval`
+
+Loads a class, resolves a constant/static final field and prints its value. 
+
+See [constval](src/main/site/constval.md)
+
 
 
 ## Command `dux`  "Du, extended"

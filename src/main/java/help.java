@@ -33,6 +33,7 @@ public class help extends Command {
     println("");
     bandwidth.help();
     cloudup.help();
+    constval.help();
     distcpdiag.help();
     dux.help();
     fetchdt.help();

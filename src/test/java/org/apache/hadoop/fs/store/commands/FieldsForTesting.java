@@ -16,37 +16,16 @@
  * limitations under the License.
  */
 
-package org.apache.hadoop.fs.store.diag;
+package org.apache.hadoop.fs.store.commands;
 
-import org.apache.hadoop.util.ExitUtil;
+public class FieldsForTesting {
 
-/**
- * This is an RTE so we can do tricks in java 8 lambdas.
- */
-public class StoreDiagException extends ExitUtil.ExitException {
-
-  public StoreDiagException(final String message, final Object...args) {
-    this(-1, message, args);
-  }
-
-  @Override
-  public synchronized StoreDiagException initCause(final Throwable cause) {
-    super.initCause(cause);
-    return this;
-  }
-
-  public StoreDiagException(final int status, final String message, final Object...args) {
-    super(status, formatStr(message, args));
-  }
-
-  private static String formatStr(final String message, final Object[] args) {
-    try {
-      return String.format(message, args);
-    } catch (Exception e) {
-      return message;
-    }
-
-  }
+  public static final String FIELDS = FieldsForTesting.class.getName();
+  public static final int INT = 1;
+  public static final boolean BOOL = true;
 
 
+  private static final String privateString = "private";
+
+  private final String notStatic = "notStatic";
 }

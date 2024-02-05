@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.fs.FileUtil;
 import org.apache.hadoop.fs.contract.ContractTestUtils;
+import org.apache.hadoop.util.ExitUtil;
 import org.apache.hadoop.util.StringUtils;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
@@ -94,6 +95,18 @@ public final class StoreTestUtils extends Assert {
       throw e;
     }
   }
+
+  public static <T> ExitUtil.ExitException expectExitException(
+      int exitCode,
+      Callable<T> eval)
+      throws Exception {
+    final ExitUtil.ExitException ex = intercept(ExitUtil.ExitException.class, eval);
+    if (ex.status != exitCode) {
+      throw ex;
+    }
+    return ex;
+  }
+
 
   public static void expectOutcome(int expected, Tool tool, String... args)
       throws Exception {

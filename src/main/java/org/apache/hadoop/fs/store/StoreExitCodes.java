@@ -31,6 +31,7 @@ public class StoreExitCodes {
   public static final int E_INVALID_ARGUMENT = -1;
 
   public static final int E_NOT_FOUND = 44;
+  public static final int E_NOT_FOUND2 = 45;
 
   public static final int E_NO_ACCESS = 41;
 
