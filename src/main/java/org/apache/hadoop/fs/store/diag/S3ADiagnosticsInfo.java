@@ -49,7 +49,6 @@ import static org.apache.hadoop.fs.store.diag.CapabilityKeys.FS_CHECKSUMS;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.FS_MULTIPART_UPLOADER;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.FS_S3A_CREATE_HEADER;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.FS_S3A_CREATE_PERFORMANCE;
-import static org.apache.hadoop.fs.store.diag.CapabilityKeys.OPTIMIZED_COPY_FROM_LOCAL;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.S3_SELECT_CAPABILITY;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_AWS_V2;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_DIRECTORY_MARKER_ACTION_DELETE;
@@ -223,6 +222,31 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
 
   public static final String CONNECTION_TIMEOUT = "fs.s3a.connection.timeout";
 
+  /**
+   * Should checksums be validated on download?
+   * This is slower and not needed on TLS connections.
+   * Value: {@value}.
+   */
+  public static final String CHECKSUM_VALIDATION =
+      "fs.s3a.checksum.validation";
+
+  /**
+   * AWS credentials providers mapping with key/value pairs.
+   * Value = {@value}
+   */
+  public static final String AWS_CREDENTIALS_PROVIDER_MAPPING =
+      "fs.s3a.aws.credentials.provider.mapping";
+
+  /**
+   * Is the higher performance copy from local file to S3 enabled?
+   * This switch allows for it to be disabled if there are problems.
+   * Value: {@value}.
+   */
+  public static final String OPTIMIZED_COPY_FROM_LOCAL = "fs.s3a.optimized.copy.from.local.enabled";
+
+  /** original constant name. */
+  public static final String ORIG_COPY_FROM_LOCAL_ENABLED = "fs.s3a.copy.from.local.enabled";
+
   private static final Object[][] options = {
       /* Core auth */
       {ACCESS_KEY, true, true},
@@ -237,6 +261,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {REGION, false, false},
       {ENDPOINT_FIPS, false, false},
       {SIGNING_ALGORITHM, false, false},
+      {AWS_CREDENTIALS_PROVIDER_MAPPING, false, false},
 
       /* Core Set */
       {"fs.s3a.acl.default", false, false},
@@ -251,6 +276,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.s3a.change.detection.mode", false, false},
       {"fs.s3a.change.detection.version.required", false, false},
 
+      {CHECKSUM_VALIDATION, false, false},
       {CONNECTION_SSL_ENABLED, false, false},
       {FS_S3A_CONNECTION_MAXIMUM, false, false},
       {CONNECTION_ESTABLISH_TIMEOUT, false, false},
@@ -281,6 +307,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.s3a.multipart.purge.age", false, false},
       {MIN_MULTIPART_THRESHOLD, false, false},
       {OPTIMIZED_COPY_FROM_LOCAL, false, false},
+      {ORIG_COPY_FROM_LOCAL_ENABLED, false, false},
       {"fs.s3a.paging.maximum", false, false},
       {"fs.s3a.prefetch.enabled", false, false},
       {"fs.s3a.prefetch.block.count", false, false},
