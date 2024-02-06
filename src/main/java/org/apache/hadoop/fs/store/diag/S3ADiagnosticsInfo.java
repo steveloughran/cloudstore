@@ -416,8 +416,12 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"AWS_CONTAINER_CREDENTIALS_RELATIVE_URI", false},
       {"AWS_CONTAINER_CREDENTIALS_FULL_URI", false},
       {"AWS_CONTAINER_AUTHORIZATION_TOKEN", true},
+      {"AWS_CSM_HOST", false},
+      {"AWS_CSM_PORT", false},
+      {"AWS_CSM_CLIENT_ID", false},
       {"AWS_EC2_METADATA_DISABLED", false},
       {"AWS_EC2_METADATA_SERVICE_ENDPOINT", false},
+      {"AWS_METADATA_SERVICE_TIMEOUT", false},
       {"AWS_ENDPOINT_URL_S3", false},
       {"AWS_ENDPOINT_URL", false},
       {"AWS_IGNORE_CONFIGURED_ENDPOINT_URLS", false},
@@ -425,6 +429,10 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"AWS_METADATA_SERVICE_TIMEOUT", false},
       {"AWS_PROFILE", false},
       {"AWS_RETRY_MODE", false},
+      {"AWS_ROLE_ARN", false},
+      {"AWS_ROLE_SESSION_NAME", false},
+      {"AWS_WEB_IDENTITY_TOKEN_FILE", false},
+      {"", false},
       {"", false},
   };
 
