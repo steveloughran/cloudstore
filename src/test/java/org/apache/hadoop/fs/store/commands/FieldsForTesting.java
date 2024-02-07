@@ -25,6 +25,8 @@ public class FieldsForTesting {
   public static final boolean BOOL = true;
 
 
+  public static final String NULLSTR = null;
+
   private static final String privateString = "private";
 
   private final String notStatic = "notStatic";

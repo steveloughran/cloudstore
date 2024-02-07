@@ -78,6 +78,12 @@ public class TestConstval {
   }
 
 
+
+  @Test
+  public void testLookupNull() {
+    expectValue(FIELDS, "NULLSTR", Constval.NULL);
+  }
+
   @Test
   public void testMissingClass() throws Exception {
     expectExitException(E_NOT_FOUND,
@@ -88,11 +94,6 @@ public class TestConstval {
   public void testMissingField() throws Exception {
     expectExitException(E_NOT_FOUND2,
         () -> lookupFieldValue(CONSTVAL, "not_found"));
-  }
-
-
-  @Test
-  public void testOptionalValueOf() {
   }
 
   @Test

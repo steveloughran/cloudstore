@@ -44,6 +44,8 @@ public class Constval extends DiagnosticsEntryPoint {
   public static final String USAGE
       = "Usage: constval class field";
 
+  public static final String NULL = "{null}";
+
   public Constval() {
     createCommandFormat(2, 2);
   }
@@ -93,7 +95,8 @@ public class Constval extends DiagnosticsEntryPoint {
     // set it to accessible
     f.setAccessible(true);
     try {
-      return f.get(null).toString();
+      final Object value = f.get(null);
+      return value != null ? value.toString() : NULL;
     } catch (Throwable e) {
       throw new StoreDiagException(E_EXCEPTION_THROWN,
           "No access to " + field + " in " + classname + ": " + e)
