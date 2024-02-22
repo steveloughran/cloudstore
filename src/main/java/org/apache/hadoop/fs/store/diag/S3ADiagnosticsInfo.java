@@ -1116,7 +1116,8 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
           filesystem.getClass());
     } else {
       // it is s3afs, so review the auth chain
-      S3AFileSystem s3aFs = (S3AFileSystem) filesystem;
+      // cut out as it doesn't compile with 3.4.0+
+/*      S3AFileSystem s3aFs = (S3AFileSystem) filesystem;
       final AWSCredentialProviderList credentials = s3aFs.shareCredentials("diagnostics");
       try {
         final AWSCredentials liveCredentials = credentials.getCredentials();
@@ -1129,7 +1130,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
         printout.println();
       } catch (NoSuchMethodError e) {
         // this is a v2 filesystem; ignore
-      }
+      }*/
     }
 
   }

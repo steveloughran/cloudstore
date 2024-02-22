@@ -64,26 +64,26 @@
       <version>${assertj.version}</version>
       <scope>test</scope>
     </dependency>
-<!--
+    <!--
 
-    <dependency>
-      <groupId>org.slf4j</groupId>
-      <artifactId>slf4j-log4j12</artifactId>
-      <version>1.7.32</version>
-      <scope>provided</scope>
-    </dependency>
--->
+        <dependency>
+          <groupId>org.slf4j</groupId>
+          <artifactId>slf4j-log4j12</artifactId>
+          <version>1.7.32</version>
+          <scope>provided</scope>
+        </dependency>
+    -->
 
 
     <!-- https://mvnrepository.com/artifact/ch.qos.logback/logback-classic -->
-<!--
-    <dependency>
-      <groupId>ch.qos.logback</groupId>
-      <artifactId>logback-classic</artifactId>
-      <version>1.4.5</version>
-      <scope>provided</scope>
-    </dependency>
--->
+    <!--
+        <dependency>
+          <groupId>ch.qos.logback</groupId>
+          <artifactId>logback-classic</artifactId>
+          <version>1.4.5</version>
+          <scope>provided</scope>
+        </dependency>
+    -->
 
     <dependency>
       <groupId>org.apache.hadoop</groupId>
@@ -91,18 +91,18 @@
       <version>${hadoop.version}</version>
       <scope>provided</scope>
       <exclusions>
-<!--        <exclusion>
-          <groupId>org.slf4j</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>log4j</groupId>
-          <artifactId>log4j</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>ch.qos.reload4j</groupId>
-          <artifactId>reload4j</artifactId>
-        </exclusion>-->
+        <!--        <exclusion>
+                  <groupId>org.slf4j</groupId>
+                  <artifactId>*</artifactId>
+                </exclusion>
+                <exclusion>
+                  <groupId>log4j</groupId>
+                  <artifactId>log4j</artifactId>
+                </exclusion>
+                <exclusion>
+                  <groupId>ch.qos.reload4j</groupId>
+                  <artifactId>reload4j</artifactId>
+                </exclusion>-->
       </exclusions>
     </dependency>
 
@@ -112,18 +112,18 @@
       <version>${hadoop.version}</version>
       <scope>provided</scope>
       <exclusions>
-<!--        <exclusion>
-          <groupId>org.slf4j</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>log4j</groupId>
-          <artifactId>log4j</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>ch.qos.reload4j</groupId>
-          <artifactId>reload4j</artifactId>
-        </exclusion>-->
+        <!--        <exclusion>
+                  <groupId>org.slf4j</groupId>
+                  <artifactId>*</artifactId>
+                </exclusion>
+                <exclusion>
+                  <groupId>log4j</groupId>
+                  <artifactId>log4j</artifactId>
+                </exclusion>
+                <exclusion>
+                  <groupId>ch.qos.reload4j</groupId>
+                  <artifactId>reload4j</artifactId>
+                </exclusion>-->
       </exclusions>
     </dependency>
 
@@ -134,18 +134,18 @@
       <type>test-jar</type>
       <scope>provided</scope>
       <exclusions>
-<!--        <exclusion>
-          <groupId>org.apache.hadoop</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.slf4j</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>log4j</groupId>
-          <artifactId>log4j</artifactId>
-        </exclusion>-->
+        <!--        <exclusion>
+                  <groupId>org.apache.hadoop</groupId>
+                  <artifactId>*</artifactId>
+                </exclusion>
+                <exclusion>
+                  <groupId>org.slf4j</groupId>
+                  <artifactId>*</artifactId>
+                </exclusion>
+                <exclusion>
+                  <groupId>log4j</groupId>
+                  <artifactId>log4j</artifactId>
+                </exclusion>-->
       </exclusions>
     </dependency>
 
@@ -167,14 +167,14 @@
           <groupId>com.google.guava</groupId>
           <artifactId>guava</artifactId>
         </exclusion>
-<!--          <exclusion>
-            <groupId>org.slf4j</groupId>
-            <artifactId>*</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
-          </exclusion>-->
+        <!--          <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>*</artifactId>
+                  </exclusion>
+                  <exclusion>
+                    <groupId>log4j</groupId>
+                    <artifactId>log4j</artifactId>
+                  </exclusion>-->
       </exclusions>
     </dependency>
 
@@ -184,33 +184,33 @@
       <artifactId>hadoop-mapreduce-client-jobclient</artifactId>
       <scope>provided</scope>
       <exclusions>
-<!--        <exclusion>
-          <groupId>org.slf4j</groupId>
-          <artifactId>*</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>log4j</groupId>
-          <artifactId>log4j</artifactId>
-        </exclusion>-->
+        <!--        <exclusion>
+                  <groupId>org.slf4j</groupId>
+                  <artifactId>*</artifactId>
+                </exclusion>
+                <exclusion>
+                  <groupId>log4j</groupId>
+                  <artifactId>log4j</artifactId>
+                </exclusion>-->
       </exclusions>
     </dependency>
 
-      <dependency>
-        <groupId>org.apache.hadoop</groupId>
-        <artifactId>hadoop-mapreduce-client-core</artifactId>
-        <version>${hadoop.version}</version>
-        <scope>provided</scope>
-        <exclusions>
-<!--          <exclusion>
-            <groupId>org.slf4j</groupId>
-            <artifactId>*</artifactId>
-          </exclusion>
-          <exclusion>
-            <groupId>log4j</groupId>
-            <artifactId>log4j</artifactId>
-          </exclusion>-->
-        </exclusions>
-      </dependency>
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-mapreduce-client-core</artifactId>
+      <version>${hadoop.version}</version>
+      <scope>provided</scope>
+      <exclusions>
+        <!--          <exclusion>
+                    <groupId>org.slf4j</groupId>
+                    <artifactId>*</artifactId>
+                  </exclusion>
+                  <exclusion>
+                    <groupId>log4j</groupId>
+                    <artifactId>log4j</artifactId>
+                  </exclusion>-->
+      </exclusions>
+    </dependency>
 
 
     <!-- https://mvnrepository.com/artifact/com.google.cloud.bigdataoss/gcs-connector -->
@@ -220,7 +220,7 @@
       <version>${gcs-connector.version}</version>
       <scope>provided</scope>
       <classifier>shaded</classifier>
-<!--      who doesn't get that shaded means no dependencies?-->
+      <!--      who doesn't get that shaded means no dependencies?-->
       <exclusions>
         <exclusion>
           <groupId>*</groupId>
@@ -363,18 +363,6 @@
     </profile>
 
     <profile>
-      <id>cdh6.3</id>
-      <activation>
-        <property>
-          <name>cdh6.3</name>
-        </property>
-      </activation>
-      <properties>
-        <hadoop.version>3.0.0-cdh6.3.3</hadoop.version>
-      </properties>
-    </profile>
-
-    <profile>
       <id>p</id>
       <activation>
         <property>
@@ -429,6 +417,13 @@
       </build>
     </profile>
 
+    <!-- Simple no-op property so that hadoop release ant targets can add it to profiles if needed -->
+    <profile>
+      <id>noop</id>
+      <properties>
+      </properties>
+    </profile>
+
     <!-- SDK v2 -->
     <profile>
       <id>sdk2</id>
@@ -438,7 +433,7 @@
         </property>
       </activation>
       <properties>
-        <hadoop.version>3.4.0-SNAPSHOT</hadoop.version>
+        <hadoop.version>3.4.0</hadoop.version>
       </properties>
       <build>
 
@@ -593,9 +588,9 @@
           <artifactId>maven-jar-plugin</artifactId>
           <version>3.3.0</version>
           <configuration>
-<!--            <archive>
-              <manifestFile>src/main/resources/META-INF/MANIFEST.MF</manifestFile>
-            </archive>-->
+            <!--            <archive>
+                          <manifestFile>src/main/resources/META-INF/MANIFEST.MF</manifestFile>
+                        </archive>-->
           </configuration>
         </plugin>
 
@@ -613,12 +608,12 @@
               <configuration>
                 <forkCount>1</forkCount>
                 <reuseForks>false</reuseForks>
-<!--                <argLine>${maven-surefire-plugin.argLine} -DminiClusterDedicatedDirs=true</argLine>-->
+                <!--                <argLine>${maven-surefire-plugin.argLine} -DminiClusterDedicatedDirs=true</argLine>-->
                 <forkedProcessTimeoutInSeconds>600</forkedProcessTimeoutInSeconds>
-<!--
-                <systemPropertyVariables>
-                </systemPropertyVariables>
--->
+                <!--
+                                <systemPropertyVariables>
+                                </systemPropertyVariables>
+                -->
                 <includes>
                   <include>**/ITest*.java</include>
                 </includes>
