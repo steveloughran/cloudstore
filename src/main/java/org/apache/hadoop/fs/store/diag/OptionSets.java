@@ -79,6 +79,7 @@ public class OptionSets {
       {IOSTATISTICS_LOGGING_LEVEL, false, false},
       {"fs.iostatistics.thread.level.enabled", false, false},
 
+      {"parquet.hadoop.vectored.io.enabled", false, false},
       {"", false, false},
   };
 
