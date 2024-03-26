@@ -267,6 +267,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.s3a.acl.default", false, false},
       {"fs.s3a.attempts.maximum", false, false},
       {"fs.s3a.authoritative.path", false, false},
+      {"fs.s3a.aws.credentials.provider.mapping", false, false},
       {"fs.s3a.block.size", false, false},
       {BUCKET_PROBE, false, false},
       {"fs.s3a.buffer.dir", false, false},
