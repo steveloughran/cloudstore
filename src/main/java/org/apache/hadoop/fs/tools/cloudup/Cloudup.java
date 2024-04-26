@@ -59,6 +59,7 @@ import org.apache.hadoop.fs.StorageStatistics;
 import org.apache.hadoop.fs.store.StoreDurationInfo;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
 import org.apache.hadoop.fs.store.StoreUtils;
+import org.apache.hadoop.fs.store.logging.IOStatisticsIntegration;
 import org.apache.hadoop.util.Progressable;
 import org.apache.hadoop.util.ToolRunner;
 
@@ -782,7 +783,16 @@ public class Cloudup extends StoreEntryPoint {
     // Not supported on Hadoop 2.7
     println();
     println("%s: %s", header, fs.getUri());
+    final IOStatisticsIntegration ios = new IOStatisticsIntegration();
+    if (ios.available()) {
+      final String prettyString = ios.ioStatisticsToPrettyString(fs);
+      if (!prettyString.isEmpty()) {
+        println(prettyString);
+        return;
+      }
+    }
 
+    // only get here if there are no iostats
     if (verbose) {
       // hope to see FS IOStats
       println("Filesystem %s", fs);

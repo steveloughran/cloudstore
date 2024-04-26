@@ -44,6 +44,7 @@ import org.apache.hadoop.fs.store.MinMeanMax;
 import org.apache.hadoop.fs.store.StoreDurationInfo;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
 import org.apache.hadoop.fs.store.StoreUtils;
+import org.apache.hadoop.fs.store.logging.IOStatisticsIntegration;
 import org.apache.hadoop.fs.tools.csv.CsvWriterWithCRC;
 import org.apache.hadoop.util.Progressable;
 import org.apache.hadoop.util.ShutdownHookManager;
@@ -372,6 +373,15 @@ public class Bandwidth extends StoreEntryPoint {
       try (StoreDurationInfo ignored = new StoreDurationInfo(out, "delete file %s", uploadPath)) {
         fs.delete(uploadPath, false);
         fs.delete(downloadPath, false);
+      }
+    }
+
+    final IOStatisticsIntegration ios = new IOStatisticsIntegration();
+    if (ios.available()) {
+      final String prettyString = ios.ioStatisticsToPrettyString(fs);
+      if (!prettyString.isEmpty()) {
+        heading("Destination Filesystem IO Statistics");
+        println(prettyString);
       }
     }
 
