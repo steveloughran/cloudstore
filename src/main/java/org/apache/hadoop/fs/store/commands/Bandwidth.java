@@ -125,9 +125,7 @@ public class Bandwidth extends StoreEntryPoint {
     final String readPolicy = getOption(POLICY, DEFAULT_READ_POLICY)
         .trim()
         .toLowerCase(Locale.ENGLISH);
-    String blockSizeStr = getOption(BLOCK, Integer.toString(UPLOAD_BUFFER_SIZE_MB));
-
-    long blockSizeMB = (long) StoreUtils.getDataSize(blockSizeStr, StorageUnit.MB);
+    int blockSizeMB = getIntOption(BLOCK, UPLOAD_BUFFER_SIZE_MB);
 
     final Configuration conf = createPreconfiguredConfig();
 
