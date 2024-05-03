@@ -28,6 +28,7 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,11 +37,13 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.fs.azurebfs.constants.FileSystemConfigurations;
 import org.apache.hadoop.fs.azurebfs.services.AbfsOutputStream;
 import org.apache.hadoop.fs.store.StoreDurationInfo;
 
+import static org.apache.hadoop.fs.azurebfs.constants.ConfigurationKeys.AZURE_KEY_ACCOUNT_KEYPROVIDER;
 import static org.apache.hadoop.fs.store.StoreUtils.cat;
+import static org.apache.hadoop.fs.store.StoreUtils.checkArgument;
+import static org.apache.hadoop.fs.store.StoreUtils.sanitize;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.ETAGS_AVAILABLE;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.ETAGS_PRESERVED_IN_RENAME;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.FS_ACLS;
@@ -80,8 +83,6 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
    * What data block buffer to use.
    * <br>
    * Options include: "disk"(Default), "array", and "bytebuffer".
-   * <br>
-   * Default is {@link FileSystemConfigurations#DATA_BLOCKS_BUFFER_DEFAULT}.
    * Value: {@value}
    */
   public static final String DATA_BLOCKS_BUFFER =
@@ -93,8 +94,6 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
    * instance's pool of queued operations.
    * This stops a single stream overloading the shared thread pool.
    * {@value}
-   * <p>
-   * Default is {@link FileSystemConfigurations#BLOCK_UPLOAD_ACTIVE_BLOCKS_DEFAULT}
    */
   public static final String FS_AZURE_BLOCK_UPLOAD_ACTIVE_BLOCKS =
       "fs.azure.block.upload.active.blocks";
@@ -111,6 +110,8 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
   public static final String FS_AZURE_LEASE_THREADS = "fs.azure.lease.threads";
 
   public static final String FS_AZURE_ATOMIC_RENAME_KEY = "fs.azure.atomic.rename.key";
+
+  public static final String FS_AZURE_ACCOUNT_KEY = "fs.azure.account.key";
 
   @Override
   public Object[][] getEnvVars() {
@@ -130,6 +131,15 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
       {"", false},
   };
 
+  public static final String FS_AZURE_ACCOUNT_AUTH_TYPE = "fs.azure.account.auth.type";
+
+  public static final String FS_AZURE_ACCOUNT_OAUTH_PROVIDER_TYPE =
+      "fs.azure.account.oauth.provider.type";
+
+  public static final String FS_AZURE_ALWAYS_USE_HTTPS = "fs.azure.always.use.https";
+
+  public static final String FS_AZURE_ACCOUNT_KEYPROVIDER = "fs.azure.account.keyprovider";
+
   /**
    * Configuration options for the Abfs Client.
    */
@@ -140,10 +150,10 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.abfss.impl", false, false},
       {"fs.azure.abfs.endpoint", false, false},
       {"fs.azure.abfs.latency.track", false, false},
-      {"fs.azure.account.auth.type", false, false},
+      {FS_AZURE_ACCOUNT_AUTH_TYPE, false, false},
       {"fs.azure.account.hns.enabled", false, false},
-      {"fs.azure.account.keyprovider", false, false},
-      {"fs.azure.account.oauth.provider.type", false, false},
+      {FS_AZURE_ACCOUNT_KEYPROVIDER, false, false},
+      {FS_AZURE_ACCOUNT_OAUTH_PROVIDER_TYPE, false, false},
       {"fs.azure.account.oauth2.client.endpoint", false, false},
       {"fs.azure.account.oauth2.client.id", false, false},
       {"fs.azure.account.oauth2.client.secret", true, true},
@@ -151,12 +161,14 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.azure.account.oauth2.msi.endpoint", false, false},
       {"fs.azure.account.oauth2.msi.tenant", false, false},
       {"fs.azure.account.oauth2.refresh.token", true, true},
+      {"fs.azure.account.oauth2.refresh.token.endpoint", true, true},
       {"fs.azure.account.oauth2.token.file", true, true},
       {"fs.azure.account.oauth2.user.name", false, false},
       {"fs.azure.account.oauth2.user.name", false, false},
       {"fs.azure.account.oauth2.user.password", true, true},
+      {"fs.azure.shellkeyprovider.script", true, true},
       {"fs.azure.account.throttling.enabled", false, false},
-      {"fs.azure.always.use.https", false, false},
+      {FS_AZURE_ALWAYS_USE_HTTPS, false, false},
       {"fs.azure.appendblob.directories", false, false},
       {FS_AZURE_ATOMIC_RENAME_KEY, false, false},
       {"fs.azure.block.location.impersonatedhost", false, false},
@@ -175,12 +187,14 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.azure.enable.abfslistiterator", false, false},
       {"fs.azure.enable.autothrottling", false, false},
       {"fs.azure.enable.check.acces", false, false},
+      {"fs.azure.enable.checksum.validation", true, true},
       {"fs.azure.enable.conditional.create.overwrite", false, false},
       {"fs.azure.enable.delegation.token", false, false},
       {"fs.azure.enable.flush", false, false},
       {"fs.azure.enable.mkdir.overwrite", false, false},
       {FS_AZURE_ENABLE_READAHEAD, false, false},
       {FS_AZURE_ENABLE_READAHEAD_V2, false, false},
+      {"fs.azure.enable.rename.resilience", false, false},
       {"fs.azure.identity.transformer.class", false, false},
       {"fs.azure.identity.transformer.domain.name", false, false},
       {"fs.azure.identity.transformer.enable.short.name", false, false},
@@ -310,7 +324,7 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
         Arrays.asList(AbfsDiagnosticsInfo.OPTIONS));
     // dynamically create account-specific keys
     String account = getFsURI().getHost();
-    addAccountOption(optionList, "fs.azure.account.key",
+    addAccountOption(optionList, FS_AZURE_ACCOUNT_KEY,
         true, true);
     addAccountOption(optionList,
         "fs.azure.account.auth.type",
@@ -448,6 +462,112 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
     // now print everything fs.abfs.ext, assuming that
     // there are no secrets in it. Don't do that.
     printPrefixedOptions(printout, conf, "fs.abfs.ext.");
+
+    printout.heading("Authentication");
+
+    final URI uri = getFsURI();
+    String[] authorityParts;
+    try {
+      authorityParts = authorityParts(uri);
+    } catch (IllegalArgumentException e) {
+      printout.error(e.getMessage());
+      return;
+    }
+
+    final String fileSystemName = authorityParts[0];
+    final String accountName = authorityParts[1];
+    printout.println("Filesystem name: %s", fileSystemName);
+    printout.println("Account: %s", accountName);
+
+    String authtype = conf.get(FS_AZURE_ACCOUNT_AUTH_TYPE,
+        "SharedKey");
+    printout.println("Authentication type in %s is %s", FS_AZURE_ACCOUNT_AUTH_TYPE, authtype);
+    authtype = authtype.toLowerCase(Locale.ROOT);
+    // look at auth info
+    if ("oauth".equals(authtype)) {
+      printout.println("OAuth is enabled; HTTPS will be network protocol");
+    } else if ("sharedkey".equals(authtype)) {
+      printout.println("Authentication is SharedKey");
+      int dotIndex = accountName.indexOf(".");
+      if (dotIndex <= 0) {
+        printout.error("Acount name in %s is not fully qualified", uri);
+      } else {
+        final String subkey = accountName.substring(0, dotIndex);
+        String keyProviderClass = conf.get(AZURE_KEY_ACCOUNT_KEYPROVIDER);
+        if (keyProviderClass != null) {
+          printout.println("Resolving keys through class %s",
+              keyProviderClass);
+        } else {
+          // from SimpleKeyProvider.java
+          printout.println("resolving secrets in Hadoop configuration class/JCEKS");
+          try {
+            String storageAccountKey = getPasswordString(conf, printout, accountName, FS_AZURE_ACCOUNT_KEY);
+            if (storageAccountKey != null) {
+              printout.println("Secret key for authentication: %s",
+                  sanitize(storageAccountKey, false));
+            } else {
+              printout.error("No shared key found for %s", accountName);
+            }
+          } catch (IOException e) {
+            printout.error("Failed to retrieve password configuration option %s: %s",
+                FS_AZURE_ACCOUNT_KEY, e.toString());
+            LOG.error("error string", e);
+          }
+        }
+      }
+    } else if ("sas".equals(authtype)) {
+      printout.println("Authentication is SAS");
+    } else {
+      printout.println("Authentication is custom/delegation tokens");
+    }
+  }
+
+  private String accountConf(String accountName, String key) {
+    return key + "." + accountName;
+  }
+
+  public String getPasswordString(Configuration conf, Printout printout, String accountName, String key) throws IOException {
+    final String fullkey = accountConf(accountName, key);
+    char[] passchars = conf.getPassword(fullkey);
+    if (passchars != null) {
+      printout.println("Resolved password from key %s", fullkey);
+      return new String(passchars);
+    }
+    passchars = conf.getPassword(key);
+    if (passchars != null) {
+      printout.println("Resolved password from key %s", key);
+      return new String(passchars);
+    }
+    printout.println("Failed to find password in keys %s or %s", fullkey, key);
+    return null;
+  }
+
+
+
+  /**
+   * Splut a URI into a tuple of (fileSystemName, accountName)
+   * @param uri uri
+   * @return auth info
+   * @throws IllegalArgumentException if invalid
+   */
+  private String[] authorityParts(URI uri) {
+    final String uritext = uri.toString();
+    final String authority = uri.getRawAuthority();
+    checkArgument(authority != null, "Authority is null in " + uritext);
+    checkArgument(authority.contains("@"), "Authority has no @ splitter " + uritext);
+
+    final String[] authorityParts = authority.split("@", 2);
+
+    if (authorityParts.length < 2 || authorityParts[0] != null
+        && authorityParts[0].isEmpty()) {
+      final String errMsg = String
+              .format("'%s' has a malformed authority, expected container name. "
+                      + "Authority takes the form "
+                      + "abfs" + "://[<container name>@]<account name>",
+                  uritext);
+      checkArgument(false, errMsg);
+    }
+    return authorityParts;
   }
 
   @Override

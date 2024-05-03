@@ -837,7 +837,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
       baseDirFound = false;
     }
 
-    heading("Listing the directory %s has succeded", baseDir);
+    heading("Listing the directory %s has succeeded", baseDir);
     println("The store is reachable and the client has list permissions");
 
     heading("Attempt to read a file");
