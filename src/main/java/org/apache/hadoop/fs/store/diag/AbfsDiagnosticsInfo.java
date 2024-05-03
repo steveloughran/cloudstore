@@ -445,7 +445,9 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
       printout.println("Atomic rename is enabled for %s", atomicRenames);
 
     }
-
+    // now print everything fs.abfs.ext, assuming that
+    // there are no secrets in it. Don't do that.
+    printPrefixedOptions(printout, conf, "fs.abfs.ext.");
   }
 
   @Override

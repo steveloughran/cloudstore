@@ -89,12 +89,14 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
    */
   public static final int EXIT_USAGE = StoreExitCodes.E_USAGE;
 
+  public static final boolean DEFAULT_HIDE_ALL_SENSITIVE_CHARS = false;
+
   private final StoreLogExactlyOnce LogJceksFailureOnce = new StoreLogExactlyOnce(LOG);
 
   /**
    * Hide all sensitive data.
    */
-  protected boolean hideAllSensitiveChars = false;
+  protected boolean hideAllSensitiveChars = DEFAULT_HIDE_ALL_SENSITIVE_CHARS;
 
   protected CommandFormat commandFormat;
 

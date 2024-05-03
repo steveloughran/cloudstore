@@ -39,6 +39,8 @@ import org.apache.hadoop.fs.LocalDirAllocator;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.store.StoreUtils;
 
+import static org.apache.hadoop.fs.store.StoreEntryPoint.DEFAULT_HIDE_ALL_SENSITIVE_CHARS;
+import static org.apache.hadoop.fs.store.StoreUtils.sanitize;
 import static org.apache.hadoop.fs.store.diag.OptionSets.STANDARD_SYSPROPS;
 import static org.apache.hadoop.fs.store.diag.StoreDiag.sortKeys;
 
@@ -378,8 +380,8 @@ public class StoreDiagnosticsInfo {
   }
 
   /**
-   * Print all options with a prefix, assuming
-   * that there are no secrets in them.
+   * Print all options with a prefix.
+   * Any option with ".secret" or ".pass" in them will be obfuscated.
    * @param printout where to print
    * @param conf config to read
    * @param prefix prefix to scan
@@ -390,15 +392,14 @@ public class StoreDiagnosticsInfo {
     printout.heading("Configuration options with prefix %s", prefix);
     Map<String, String> propsWithPrefix = conf.getPropsWithPrefix(prefix);
     Set<String> sorted = sortKeys(propsWithPrefix.keySet());
-    for (String k : sorted) {
-      if (!k.contains(".secret.")) {
-        printout.println("%s%s=\"%s\"",
-            prefix, k, propsWithPrefix.get(k));
-      } else {
-        printout.println("%s%s=\"%s\"",
-            prefix, k, propsWithPrefix.get(k));
+    for (String key : sorted) {
+      final String propertyVal = propsWithPrefix.get(key);
+      final String propertyName = prefix + key;
+      String value = "\"" + propertyVal +  "\"";
+      if (propertyName.contains(".secret.") || propertyName.contains(".pass")) {
+        value = sanitize(propertyVal, DEFAULT_HIDE_ALL_SENSITIVE_CHARS);
       }
-
+      printout.println("%s=\"%s\"", propertyName, value);
     }
   }
 
