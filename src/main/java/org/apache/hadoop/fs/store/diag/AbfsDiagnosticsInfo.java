@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,6 +42,7 @@ import org.apache.hadoop.fs.azurebfs.services.AbfsOutputStream;
 import org.apache.hadoop.fs.store.StoreDurationInfo;
 
 import static org.apache.hadoop.fs.azurebfs.constants.ConfigurationKeys.AZURE_KEY_ACCOUNT_KEYPROVIDER;
+import static org.apache.hadoop.fs.azurebfs.constants.ConfigurationKeys.FS_AZURE_SAS_TOKEN_PROVIDER_TYPE;
 import static org.apache.hadoop.fs.store.StoreUtils.cat;
 import static org.apache.hadoop.fs.store.StoreUtils.checkArgument;
 import static org.apache.hadoop.fs.store.StoreUtils.sanitize;
@@ -140,6 +142,11 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
 
   public static final String FS_AZURE_ACCOUNT_KEYPROVIDER = "fs.azure.account.keyprovider";
 
+  public static final String FS_AZURE_IDENTITY_TRANSFORMER_CLASS =
+      "fs.azure.identity.transformer.class";
+
+  public static final String FS_AZURE_SAS_TOKEN_PROVIDER_TYPE = "fs.azure.sas.token.provider.type";
+
   /**
    * Configuration options for the Abfs Client.
    */
@@ -195,7 +202,7 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
       {FS_AZURE_ENABLE_READAHEAD, false, false},
       {FS_AZURE_ENABLE_READAHEAD_V2, false, false},
       {"fs.azure.enable.rename.resilience", false, false},
-      {"fs.azure.identity.transformer.class", false, false},
+      {FS_AZURE_IDENTITY_TRANSFORMER_CLASS, false, false},
       {"fs.azure.identity.transformer.domain.name", false, false},
       {"fs.azure.identity.transformer.enable.short.name", false, false},
       {"fs.azure.identity.transformer.local.service.group.mapping.file.path", false, false},
@@ -224,7 +231,7 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.azure.readahead.range", false, false},
       {FS_AZURE_READAHEADQUEUE_DEPTH, false, false},
       {"fs.azure.rename.raises.exceptions", false, false},
-      {"fs.azure.sas.token.provider.type", false, false},
+      {FS_AZURE_SAS_TOKEN_PROVIDER_TYPE, false, false},
       {"fs.azure.sas.token.renew.period.for.streams", false, false},
       {"fs.azure.secure.mode", false, false},
       {"fs.azure.shellkeyprovider.script", false, false},
@@ -479,10 +486,11 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
     printout.println("Filesystem name: %s", fileSystemName);
     printout.println("Account: %s", accountName);
 
-    String authtype = conf.get(FS_AZURE_ACCOUNT_AUTH_TYPE,
-        "SharedKey");
-    printout.println("Authentication type in %s is %s", FS_AZURE_ACCOUNT_AUTH_TYPE, authtype);
-    authtype = authtype.toLowerCase(Locale.ROOT);
+    WrappedConfiguration wrapped = new WrappedConfiguration(conf, accountName, printout);
+    final PropVal auth = wrapped.get(FS_AZURE_ACCOUNT_AUTH_TYPE, "SharedKey");
+    printout.println("Authentication type in %s is %s",
+        FS_AZURE_ACCOUNT_AUTH_TYPE, auth.details());
+    String authtype = auth.value.toLowerCase(Locale.ROOT);
     // look at auth info
     if ("oauth".equals(authtype)) {
       printout.println("OAuth is enabled; HTTPS will be network protocol");
@@ -490,21 +498,21 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
       printout.println("Authentication is SharedKey");
       int dotIndex = accountName.indexOf(".");
       if (dotIndex <= 0) {
-        printout.error("Acount name in %s is not fully qualified", uri);
+        printout.error("Account name in %s is not fully qualified", uri);
       } else {
-        final String subkey = accountName.substring(0, dotIndex);
-        String keyProviderClass = conf.get(AZURE_KEY_ACCOUNT_KEYPROVIDER);
-        if (keyProviderClass != null) {
-          printout.println("Resolving keys through class %s",
-              keyProviderClass);
+        final Optional<PropVal> keyProvider = wrapped.get(AZURE_KEY_ACCOUNT_KEYPROVIDER);
+
+        if (keyProvider.isPresent()) {
+          printout.println("Shared Key resolution keys through class %s",
+              keyProvider.get().details());
         } else {
-          // from SimpleKeyProvider.java
+          // using SimpleKeyProvider.java
           printout.println("resolving secrets in Hadoop configuration class/JCEKS");
           try {
-            String storageAccountKey = getPasswordString(conf, printout, accountName, FS_AZURE_ACCOUNT_KEY);
-            if (storageAccountKey != null) {
+            final Optional<PropVal> password = wrapped.getPasswordString(FS_AZURE_ACCOUNT_KEY);
+            if (password.isPresent()) {
               printout.println("Secret key for authentication: %s",
-                  sanitize(storageAccountKey, false));
+                  password.get().sanitized());
             } else {
               printout.error("No shared key found for %s", accountName);
             }
@@ -517,31 +525,18 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
       }
     } else if ("sas".equals(authtype)) {
       printout.println("Authentication is SAS");
+      final PropVal tokenProvider = wrapped.get(FS_AZURE_SAS_TOKEN_PROVIDER_TYPE, "");
+      printout.println("Token Provider = %s", tokenProvider.details());
+      if (tokenProvider.value.isEmpty()) {
+        printout.error("No SAS token provider set in %s", FS_AZURE_SAS_TOKEN_PROVIDER_TYPE);
+      }
     } else {
       printout.println("Authentication is custom/delegation tokens");
     }
-  }
 
-  private String accountConf(String accountName, String key) {
-    return key + "." + accountName;
+    wrapped.get(FS_AZURE_IDENTITY_TRANSFORMER_CLASS).ifPresent(s ->
+        printout.println("IdentityTransformer = %s", s));
   }
-
-  public String getPasswordString(Configuration conf, Printout printout, String accountName, String key) throws IOException {
-    final String fullkey = accountConf(accountName, key);
-    char[] passchars = conf.getPassword(fullkey);
-    if (passchars != null) {
-      printout.println("Resolved password from key %s", fullkey);
-      return new String(passchars);
-    }
-    passchars = conf.getPassword(key);
-    if (passchars != null) {
-      printout.println("Resolved password from key %s", key);
-      return new String(passchars);
-    }
-    printout.println("Failed to find password in keys %s or %s", fullkey, key);
-    return null;
-  }
-
 
 
   /**
@@ -655,5 +650,113 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
     } catch (IOException ioe) {
       LOG.info("Store doesn't permit concurrent writes", ioe);
     }
+
+  }
+
+
+
+  /**
+   * Implementation of {@code AbfsConfiguration} resolution.
+   */
+  private static final class WrappedConfiguration {
+    private final Configuration conf;
+    private final String accountName;
+    private final Printout printout;
+
+    private WrappedConfiguration(final Configuration conf, final String accountName,
+        final Printout printout) {
+      this.conf = conf;
+      this.accountName = accountName;
+      this.printout = printout;
+    }
+
+    private String accountConf(String key) {
+      return key + "." + accountName;
+    }
+
+    /**
+     * Get a value, returns tuple if found, where first arg is
+     * the value, second is source.
+     * @param key key to resolve.
+     * @return a value and origin.
+     */
+    private Optional<PropVal> get(String key) {
+      final String full = accountConf(key);
+      String s = conf.get(full);
+      if (s != null) {
+        return Optional.of(new PropVal(s, full));
+      }
+      s = conf.get(key);
+      if (s != null) {
+        return Optional.of(new PropVal(s, key));
+      }
+      return Optional.empty();
+    }
+
+    /**
+     * Get the value or the default.
+     * @param key key to resolve
+     * @param defVal default value.
+     * @return the value and origin
+     */
+    private PropVal get(String key, String defVal) {
+      return get(key).orElseGet(() -> new PropVal(defVal, "default"));
+    }
+
+    private void printIfDefined(String key, String text) {
+      get(key).ifPresent(p ->
+          printout.println("%s = %s", text, p.details()));
+    }
+
+    private void print(String key, String defVal) {
+      printout.println("%s = %s",
+          key,
+          get(key).orElse(new PropVal(defVal, "default")));
+    }
+
+    public Optional<PropVal> getPasswordString(String key) throws IOException {
+      final String full = accountConf(key);
+      char[] passchars = conf.getPassword(full);
+      if (passchars != null) {
+        return Optional.of(new PropVal(new String(passchars), full));
+      }
+      passchars = conf.getPassword(key);
+      if (passchars != null) {
+        return Optional.of(new PropVal(new String(passchars), key));
+
+      }
+      return Optional.empty();
+    }
+
+  }
+
+  /**
+   * string tuple.
+   */
+  private static final class PropVal {
+
+    private final String value;
+
+    private final String origin;
+
+    private PropVal(final String value, final String origin) {
+      this.value = value;
+      this.origin = origin;
+    }
+
+    private String details() {
+      return String.format("\"%s\" [%s]", value, origin);
+    }
+
+    private String sanitized() {
+      return String.format("\"%s\" [%s]", sanitize(value, false), origin);
+    }
+
+    @Override
+    public String toString() {
+      return details();
+    }
   }
 }
+
+
