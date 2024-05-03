@@ -399,7 +399,7 @@ public class StoreDiagnosticsInfo {
       if (propertyName.contains(".secret.") || propertyName.contains(".pass")) {
         value = sanitize(propertyVal, DEFAULT_HIDE_ALL_SENSITIVE_CHARS);
       }
-      printout.println("%s=\"%s\"", propertyName, value);
+      printout.println("%s=%s", propertyName, value);
     }
   }
 

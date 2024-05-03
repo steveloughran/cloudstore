@@ -42,7 +42,6 @@ import org.apache.hadoop.fs.azurebfs.services.AbfsOutputStream;
 import org.apache.hadoop.fs.store.StoreDurationInfo;
 
 import static org.apache.hadoop.fs.azurebfs.constants.ConfigurationKeys.AZURE_KEY_ACCOUNT_KEYPROVIDER;
-import static org.apache.hadoop.fs.azurebfs.constants.ConfigurationKeys.FS_AZURE_SAS_TOKEN_PROVIDER_TYPE;
 import static org.apache.hadoop.fs.store.StoreUtils.cat;
 import static org.apache.hadoop.fs.store.StoreUtils.checkArgument;
 import static org.apache.hadoop.fs.store.StoreUtils.sanitize;
@@ -491,11 +490,12 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
     printout.println("Authentication type in %s is %s",
         FS_AZURE_ACCOUNT_AUTH_TYPE, auth.details());
     String authtype = auth.value.toLowerCase(Locale.ROOT);
+    final PropVal tokenProvider = wrapped.get(FS_AZURE_SAS_TOKEN_PROVIDER_TYPE, "");
+    boolean requireTokenProvider = true;
     // look at auth info
-    if ("oauth".equals(authtype)) {
-      printout.println("OAuth is enabled; HTTPS will be network protocol");
-    } else if ("sharedkey".equals(authtype)) {
+    if ("sharedkey".equals(authtype)) {
       printout.println("Authentication is SharedKey");
+      requireTokenProvider = false;
       int dotIndex = accountName.indexOf(".");
       if (dotIndex <= 0) {
         printout.error("Account name in %s is not fully qualified", uri);
@@ -510,12 +510,10 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
           printout.println("resolving secrets in Hadoop configuration class/JCEKS");
           try {
             final Optional<PropVal> password = wrapped.getPasswordString(FS_AZURE_ACCOUNT_KEY);
-            if (password.isPresent()) {
-              printout.println("Secret key for authentication: %s",
-                  password.get().sanitized());
-            } else {
-              printout.error("No shared key found for %s", accountName);
-            }
+            password.orElseThrow(() ->
+                new IllegalArgumentException("No shared key found for " + accountName));
+            printout.println("Secret key for authentication: %s",
+                password.get().sanitized());
           } catch (IOException e) {
             printout.error("Failed to retrieve password configuration option %s: %s",
                 FS_AZURE_ACCOUNT_KEY, e.toString());
@@ -525,17 +523,20 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
       }
     } else if ("sas".equals(authtype)) {
       printout.println("Authentication is SAS");
-      final PropVal tokenProvider = wrapped.get(FS_AZURE_SAS_TOKEN_PROVIDER_TYPE, "");
-      printout.println("Token Provider = %s", tokenProvider.details());
-      if (tokenProvider.value.isEmpty()) {
-        printout.error("No SAS token provider set in %s", FS_AZURE_SAS_TOKEN_PROVIDER_TYPE);
-      }
+    } else if ("oauth".equals(authtype)) {
+      printout.println("OAuth is enabled; HTTPS will be the network protocol");
     } else {
       printout.println("Authentication is custom/delegation tokens");
     }
+    if (requireTokenProvider) {
+      printout.println("Token Provider = %s", tokenProvider.details());
+      if (tokenProvider.value.isEmpty()) {
+        printout.error("No OAuth token provider set in %s", FS_AZURE_SAS_TOKEN_PROVIDER_TYPE);
+      }
+    }
 
-    wrapped.get(FS_AZURE_IDENTITY_TRANSFORMER_CLASS).ifPresent(s ->
-        printout.println("IdentityTransformer = %s", s));
+    wrapped.printIfDefined("IdentityTransformer",
+        FS_AZURE_IDENTITY_TRANSFORMER_CLASS);
   }
 
 
@@ -703,9 +704,17 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
       return get(key).orElseGet(() -> new PropVal(defVal, "default"));
     }
 
-    private void printIfDefined(String key, String text) {
-      get(key).ifPresent(p ->
+    /**
+     * Retrieve a value and print it if found.
+     * @param text text to print
+     * @param key key to resolve
+     * @return the value resolved.
+     */
+    private Optional<PropVal> printIfDefined(String text, String key) {
+      final Optional<PropVal> val = get(key);
+      val.ifPresent(p ->
           printout.println("%s = %s", text, p.details()));
+      return val;
     }
 
     private void print(String key, String defVal) {
@@ -749,7 +758,7 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
     }
 
     private String sanitized() {
-      return String.format("\"%s\" [%s]", sanitize(value, false), origin);
+      return String.format("%s [%s]", sanitize(value, false), origin);
     }
 
     @Override
