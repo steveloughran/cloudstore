@@ -279,6 +279,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
 
       {CHECKSUM_VALIDATION, false, false},
       {CONNECTION_SSL_ENABLED, false, false},
+      {"fs.s3a.connection.keepalive", false, false},
       {FS_S3A_CONNECTION_MAXIMUM, false, false},
       {CONNECTION_ESTABLISH_TIMEOUT, false, false},
       {CONNECTION_REQUEST_TIMEOUT, false, false},
