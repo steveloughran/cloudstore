@@ -35,8 +35,7 @@ mvn clean install -Psdk2
 
 Joint build
 ```bash
-mvn clean install -Pextra
-mvn install -Psdk2
+mvn clean install -Pextra && mvn install -Psdk2
 ```
 
 ## Releasing
