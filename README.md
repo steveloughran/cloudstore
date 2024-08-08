@@ -6,16 +6,13 @@ as it can be released daily, if need be.
 *License*: Apache ASF 2.0
 
 All the implementation classes are under the `org.apache.hadoop.fs` package
-tree with a goal of ultimately moving this into Hadoop itself; it's been
-kept out right now for various reasons
+tree
 
 1. Faster release cycle, so the diagnostics can evolve to track features going
    into Hadoop-trunk.
 2. Fewer test requirements. This is naughty, but...
 3. Ability to compile against older versions. We've currently switched to Hadoop 3.3+
    due to the need to make API calls and operations not in older versions.
- 
-*Author*: Steve Loughran, Hadoop Committer, plus anyone else who has debugging needs.
 
 
 ## Features

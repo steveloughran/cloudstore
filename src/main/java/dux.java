@@ -27,6 +27,6 @@ public class dux extends Command {
   }
 
   public static void help() {
-    printCommand("dux\t\t","extended du");
+    printCommand("dux\t","extended du");
   }
 }

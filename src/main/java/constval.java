@@ -26,6 +26,6 @@ public class constval extends Command {
   }
 
   public static void help() {
-    printCommand("constval\t", "look up a constant value in a class");
+    printCommand("constval", "look up a constant value in a class");
   }
 }
