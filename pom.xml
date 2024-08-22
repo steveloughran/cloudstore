@@ -231,14 +231,20 @@
     <dependency>
       <groupId>com.amazonaws</groupId>
       <artifactId>aws-java-sdk-bundle</artifactId>
-      <version>1.12.565</version>
-      <scope>compile</scope>
+      <version>1.12.720</version>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>software.amazon.awssdk</groupId>
       <artifactId>bundle</artifactId>
-      <version>2.21.21</version>
-      <scope>compile</scope>
+      <version>2.25.53</version>
+      <scope>provided</scope>
+      <exclusions>
+        <exclusion>
+          <groupId>*</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
     </dependency>
     <!--
 
@@ -346,7 +352,15 @@
     <profile>
       <id>latest</id>
       <properties>
-        <hadoop.version>3.3.6</hadoop.version>
+        <hadoop.version>3.4.0</hadoop.version>
+      </properties>
+    </profile>
+
+    <!-- latest hadoop release -->
+    <profile>
+      <id>next</id>
+      <properties>
+        <hadoop.version>3.4.1</hadoop.version>
       </properties>
     </profile>
 
@@ -358,7 +372,7 @@
         </property>
       </activation>
       <properties>
-        <hadoop.version>3.4.0-SNAPSHOT</hadoop.version>
+        <hadoop.version>3.5.0-SNAPSHOT</hadoop.version>
       </properties>
     </profile>
 
