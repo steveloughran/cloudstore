@@ -135,6 +135,17 @@ public class OptionSets {
   };
 
 
+  /** {@value}. */
+  public static final String CLASSPATH = "java.class.path";
+
+  /**
+   * Sysprops to skip.
+   */
+  public static final String[] SYSPROPS_TO_SKIP = {
+      CLASSPATH,
+      "sun.java.command"  // keeps command line secrets out the log
+  };
+
   /**
    * java URL system properties; not used for asf httpclient apps.
    * see {@code sun.net.NetworkClient}.
@@ -193,7 +204,6 @@ public class OptionSets {
   public static final String X509 = "com.sun.security.cert.internal.x509.X509V1CertImpl";
 
   public static final String HADOOP_TMP_DIR = "hadoop.tmp.dir";
-
 
   /**
    * The enhanced {@code openFile()} options.

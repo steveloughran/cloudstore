@@ -27,7 +27,9 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.security.CodeSource;
 import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -39,6 +41,7 @@ import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
 
 import static org.apache.hadoop.fs.store.StoreUtils.checkArgument;
+import static org.apache.hadoop.fs.store.diag.OptionSets.SYSPROPS_TO_SKIP;
 import static org.apache.hadoop.util.VersionInfo.getDate;
 import static org.apache.hadoop.util.VersionInfo.getProtocVersion;
 import static org.apache.hadoop.util.VersionInfo.getSrcChecksum;
@@ -46,9 +49,6 @@ import static org.apache.hadoop.util.VersionInfo.getUser;
 import static org.apache.hadoop.util.VersionInfo.getVersion;
 
 public class DiagnosticsEntryPoint extends StoreEntryPoint  {
-
-  /** {@value}. */
-  public static final String CLASSPATH = "java.class.path";
 
   /** {@value}. */
   public static final String PRINCIPAL = "principal";
@@ -102,17 +102,19 @@ public class DiagnosticsEntryPoint extends StoreEntryPoint  {
     }
   }
 
+
   /**
-   * Print all JVM options.
+   * Print all JVM options except those excluded in the list
+   * {@link OptionSets#SYSPROPS_TO_SKIP}.
    */
   protected final void printJVMOptions() {
     heading("System Properties");
+    final List<String> skipList = Arrays.asList(SYSPROPS_TO_SKIP);
     Properties sysProps = System.getProperties();
     for (String s : DiagnosticsEntryPoint.sortKeys(sysProps.keySet())) {
-      if (CLASSPATH.equals(s)) {
-        continue;
+      if (!skipList.contains(s)) {
+        println("%s = \"%s\"", s, sysProps.getProperty(s));
       }
-      println("%s = \"%s\"", s, sysProps.getProperty(s));
     }
   }
 
@@ -353,7 +355,7 @@ public class DiagnosticsEntryPoint extends StoreEntryPoint  {
    * @return the set of JARs; the iterator will be sorted.
    */
   public Map<String, String> jarsOnClasspath() {
-    final String cp = System.getProperty(CLASSPATH);
+    final String cp = System.getProperty(OptionSets.CLASSPATH);
     final String[] split = cp.split(System.getProperty("path.separator"));
     final Map<String, String> jars = new HashMap<>(split.length);
     final String dir = System.getProperty("file.separator");
