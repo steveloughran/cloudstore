@@ -324,6 +324,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.s3a.proxy.workstation", false, false},
       {"fs.s3a.rename.raises.exceptions", false, false},
       {"fs.s3a.readahead.range", false, false},
+      {"fs.s3a.retry.http.5xx.errors", false, false},
       {"fs.s3a.retry.limit", false, false},
       {"fs.s3a.retry.interval", false, false},
       {"fs.s3a.retry.throttle.limit", false, false},
