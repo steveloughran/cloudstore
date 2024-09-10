@@ -346,6 +346,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.s3a.assumed.role.session.name", false, false},
       {"fs.s3a.assumed.role.session.duration", false, false},
       {"fs.s3a.assumed.role.credentials.provider", false, false},
+      {"fs.s3a.assumed.role.external.id", false, false},
       {"fs.s3a.assumed.role.policy", false, false},
 
       /* committer */
