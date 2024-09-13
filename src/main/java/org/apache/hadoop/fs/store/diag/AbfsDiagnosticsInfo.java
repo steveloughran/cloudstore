@@ -237,6 +237,10 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.azure.objectmapper.threadlocal.enabled", false, false},
       {"fs.azure.read.alwaysReadBufferSize", false, false},
       {"fs.azure.read.optimizefooterread", false, false},
+      {"fs.azure.networking.library", false, false},
+      {"fs.azure.apache.http.client.idle.connection.ttl", false, false},
+      {"fs.azure.apache.http.client.max.cache.connection.size", false, false},
+      {"fs.azure.apache.http.client.max.io.exception.retries", false, false},
       {"fs.azure.read.readahead.blocksize", false, false},
       {"fs.azure.read.request.size", false, false},
       {"fs.azure.read.smallfilescompletely", false, false},
@@ -257,6 +261,7 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.azure.write.max.concurrent.requests", false, false},
       {"fs.azure.write.max.requests.to.queue", false, false},
       {"fs.azure.write.request.size", false, false},
+      {"", false, false},
 
       /* committer */
       {"mapreduce.outputcommitter.factory.scheme.abfs", false, false},
@@ -418,11 +423,31 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
   protected void addAccountOption(
       List<Object[]> list,
       String key,
-      boolean secret, boolean sensitive) {
+      boolean secret,
+      boolean sensitive) {
     if (!key.isEmpty()) {
-      add(list, key + "." + getFsURI().getHost(), secret, sensitive);
+      add(list, abfsContainerKey(key), secret, sensitive);
     }
   }
+
+  /**
+   * Given a property key, determine its resolved value.
+   * @param key key name
+   * @return the property name.
+   */
+  private String abfsContainerKey(final String key) {
+    return key + "." + getFsURI().getHost();
+  }
+
+  /**
+   * Given a property key, resolve to the filesystem and then look up.
+   * @param key key name
+   * @return the property value or null
+   */
+  private String abfsContainerValue(Configuration conf,  final String key) {
+    return conf.get(key + "." + getFsURI().getHost());
+  }
+
 
   @Override
   public String[] getClassnames(final Configuration conf) {
@@ -502,6 +527,16 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
     final String accountName = authorityParts[1];
     printout.println("Filesystem name: %s", fileSystemName);
     printout.println("Account: %s", accountName);
+
+    // look up key value
+    String resolvedAccountKeyName = abfsContainerKey(FS_AZURE_ACCOUNT_KEY);
+    String resolvedAccountKeyValue = conf.get(resolvedAccountKeyName);
+    if (resolvedAccountKeyValue != null) {
+      getOutput().println("Value of %s = %s", resolvedAccountKeyName,
+          sanitize(resolvedAccountKeyValue, false));
+    } else {
+      getOutput().error("No shared key set in %s", resolvedAccountKeyName);
+    }
 
     WrappedConfiguration wrapped = new WrappedConfiguration(conf, accountName, printout);
     final PropVal auth = wrapped.get(FS_AZURE_ACCOUNT_AUTH_TYPE, "SharedKey");
@@ -622,9 +657,9 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
     super.validateFilesystem(printout, path, filesystem);
 
     try (StoreDurationInfo ignored = new StoreDurationInfo(LOG,
-        "Probing for bucket being classic Azure or ADLS Gen 2 Storage")) {
+        "probing for container being classic Azure or ADLS Gen 2 Storage")) {
       filesystem.getAclStatus(new Path("/"));
-      printout.println("FileSystem %s is an ADLS Gen 2 store",
+      printout.println("Container %s is an ADLS Gen 2 store",
           filesystem.getUri());
     } catch (UnsupportedOperationException e) {
 
