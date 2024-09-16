@@ -18,20 +18,32 @@
 
 package org.apache.hadoop.fs.store.logging;
 
+/**
+ * Interface to assist reflection-based control of logger back ends.
+ * An instance of LogControl is able to control the log levels of
+ * loggers for log libraries such as Log4j, yet can be used in
+ * code designed to support multiple back end loggers behind
+ * SLF4J.
+ */
 public interface LogControl {
 
-
+  /**
+   * Enumeration of log levels.
+   * The list is in descending order.
+   */
   enum LogLevel {
     ALL("ALL"),
-    DEBUG("DEBUG"),
-    ERROR("ERROR"),
     FATAL("FATAL"),
+    ERROR("ERROR"),
+    WARN("WARN"),
     INFO("INFO"),
-    OFF("OFF"),
+    DEBUG("DEBUG"),
     TRACE("TRACE"),
-    WARN("WARN");
+    OFF("OFF");
 
-
+    /**
+     * Level name.
+     */
     public final String key;
 
     LogLevel(final String key) {

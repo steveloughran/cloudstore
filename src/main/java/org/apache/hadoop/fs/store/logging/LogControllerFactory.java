@@ -25,11 +25,22 @@ import org.slf4j.LoggerFactory;
 
 import org.apache.hadoop.fs.store.diag.StoreLogExactlyOnce;
 
+/**
+ * Factory for creating controllers.
+ * It currently only supports Log4J as a back end.
+ */
 public final class LogControllerFactory {
   private static final Logger LOG = LoggerFactory.getLogger(LogControllerFactory.class);
   private static final StoreLogExactlyOnce LOG_ONCE = new StoreLogExactlyOnce(LOG);
 
+  /**
+   * Class name of log controller implementation to be loaded
+   * through reflection.
+   */
   public static final String LOG4J = "org.apache.hadoop.fs.store.logging.Log4JController";
+
+  private LogControllerFactory() {
+  }
 
   /**
    * create a controller.
@@ -45,5 +56,6 @@ public final class LogControllerFactory {
       return Optional.empty();
     }
   }
+
 
 }
