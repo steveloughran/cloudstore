@@ -119,6 +119,9 @@ public class OptionSets {
       {"SPARK_CONF_DIR", false},
       {"SPARK_SCALA_VERSION", false},
       {"YARN_CONF_DIR", false},
+      {"http_proxy", false},
+      {"https_proxy", false},
+      {"no_proxy", false},
       {"", false},
       // TODO: add the https proxy vars
   };

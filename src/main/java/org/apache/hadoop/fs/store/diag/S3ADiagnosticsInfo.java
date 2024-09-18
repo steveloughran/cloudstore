@@ -25,7 +25,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-import com.amazonaws.auth.AWSCredentials;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,9 +32,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.fs.s3a.AWSCredentialProviderList;
 import org.apache.hadoop.fs.s3a.S3AFileStatus;
-import org.apache.hadoop.fs.s3a.S3AFileSystem;
 import org.apache.hadoop.fs.store.s3a.S3ASupport;
 import org.apache.hadoop.util.ExitUtil;
 
@@ -57,12 +54,13 @@ import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_DI
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_DIRECTORY_MARKER_POLICY_AUTHORITATIVE;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_DIRECTORY_MARKER_POLICY_DELETE;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_DIRECTORY_MARKER_POLICY_KEEP;
-import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_MULTIPART_UPLOAD_ENABLED;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_MAGIC_COMMITTER;
+import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_MULTIPART_UPLOAD_ENABLED;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_S3_EXPRESS_STORAGE;
 import static org.apache.hadoop.fs.store.diag.DiagUtils.isIpV4String;
 import static org.apache.hadoop.fs.store.diag.HBossConstants.CAPABILITY_HBOSS;
 import static org.apache.hadoop.fs.store.diag.OptionSets.HTTP_CLIENT_RESOURCES;
+import static org.apache.hadoop.fs.store.diag.OptionSets.JAVA_NET_SYSPROPS;
 import static org.apache.hadoop.fs.store.diag.OptionSets.STANDARD_ENV_VARS;
 import static org.apache.hadoop.fs.store.diag.OptionSets.STANDARD_SYSPROPS;
 import static org.apache.hadoop.fs.store.diag.OptionSets.X509;
@@ -86,6 +84,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
   public static final String DEFAULT_ENDPOINT = "";
 
   public static final String REGION = "fs.s3a.endpoint.region";
+
   /**
    * Is the endpoint a FIPS endpoint?
    * Can be queried as a path capability.
@@ -192,6 +191,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
    * The size of a single prefetched block in number of bytes.
    */
   public static final String PREFETCH_BLOCK_SIZE_KEY = "fs.s3a.prefetch.block.size";
+
   /**
    * Maximum number of blocks prefetched at any given time.
    */
@@ -703,7 +703,8 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
 
   @Override
   public Object[][] getSelectedSystemProperties() {
-    return cat(AWS_SYSPROPS, STANDARD_SYSPROPS);
+    return cat(cat(AWS_SYSPROPS, STANDARD_SYSPROPS),
+        JAVA_NET_SYSPROPS);
   }
 
   @Override
@@ -826,7 +827,8 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
         printout.println("*Recommend*: unset the environment variable %s", envVar);
       } else {
         printout.warn("This environment variable will not be passed into launched applications");
-        printout.println("*Recommend*: unset the environment variable %s; set the option \"%s\" instead",
+        printout.println(
+            "*Recommend*: unset the environment variable %s; set the option \"%s\" instead",
             envVar, option);
       }
       printout.println();
@@ -930,23 +932,27 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
     } else if (endpoint.endsWith("amazonaws.cn") || endpoint.endsWith("amazonaws.cn/")) {
       isUsingAws = true;
       printout.println("AWS china is in use");
-    } else if (endpoint.endsWith(".vpce.amazonaws.com") || endpoint.endsWith(".vpce.amazonaws.com/")) {
+    } else if (endpoint.endsWith(".vpce.amazonaws.com") || endpoint.endsWith(
+        ".vpce.amazonaws.com/")) {
       isUsingAws = true;
       privateLink = true;
       printout.println("AWS PrivateLink is being used for a VPN connection to S3");
       printout.warn("You MUST set %s to the region of this store; it is currently \"%s\"",
           REGION, region);
-      printout.println("Note: Hadoop releases without CDPD-26441/HADOOP-17705 do not support this option");
+      printout.println(
+          "Note: Hadoop releases without CDPD-26441/HADOOP-17705 do not support this option");
       printout.println("See https://issues.apache.org/jira/browse/HADOOP-17705 for a workaround");
       printout.println("See also:");
-      printout.println("CDPD-27264. HADOOP-17771. S3AFS creation fails: Unable to find a region via the region provider chain.");
+      printout.println(
+          "CDPD-27264. HADOOP-17771. S3AFS creation fails: Unable to find a region via the region provider chain.");
       if (!endpoint.startsWith("https://bucket.") && !endpoint.startsWith("bucket.")) {
         printout.warn("The endpoint %s hostname does not start with \"bucket.\"", endpoint);
         printout.warn("This is not a valid endpoint for PrivateLink");
       }
     } else if (!endpoint.contains(".amazonaws.")) {
       isUsingAws = false;
-      printout.println("This does not appear to be an amazon endpoint, unless it is a VPN address.");
+      printout.println(
+          "This does not appear to be an amazon endpoint, unless it is a VPN address.");
       isIpv4 = isIpV4String(endpoint);
 
       if (region.isEmpty()) {
@@ -956,7 +962,8 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       printout.println("For third party endpoints, verify the network port"
           + " and http protocol options are valid.");
 
-      printout.warn("If you are trying to connect to a bucket in AWS, this configuration is unlikely to work");
+      printout.warn(
+          "If you are trying to connect to a bucket in AWS, this configuration is unlikely to work");
       if (isIpv4) {
         printout.println("endpoint appears to be an IPv4 network address");
         if (sslConnection) {
@@ -968,7 +975,8 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
         printout.println("- Path style access is enabled;"
             + " this is normally the correct setting for third party stores.");
         if (isUsingAws && !privateLink) {
-          printout.warn("-This is not the recommended setting for AWS S3 except through PrivateLink");
+          printout.warn(
+              "-This is not the recommended setting for AWS S3 except through PrivateLink");
         } else {
           showHowToChange = false;
         }
@@ -1026,9 +1034,13 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
 
     if (isUsingV2Signing) {
       if (isUsingAws) {
-        printout.warn("The signing algorithm is %s; this is not supported on newer AWS buckets or the v2 AWS SDK", SIGNING_V2_ALGORITHM);
+        printout.warn(
+            "The signing algorithm is %s; this is not supported on newer AWS buckets or the v2 AWS SDK",
+            SIGNING_V2_ALGORITHM);
       } else {
-        printout.println("The signing algorithm is %s; this is required for some third-party S3 stores", SIGNING_V2_ALGORITHM);
+        printout.println(
+            "The signing algorithm is %s; this is required for some third-party S3 stores",
+            SIGNING_V2_ALGORITHM);
         printout.warn("The signing algorithm is not available through the v2 AWS SDK");
       }
     }
@@ -1046,7 +1058,8 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
         printout.warn("HTTPS certificate validation will fail unless any private"
             + " TLS certificate includes multiple wildcards");
       }
-      printout.warn("If you are using a fully qualified domain name as the bucket name *this doesn't work");
+      printout.warn(
+          "If you are using a fully qualified domain name as the bucket name *this doesn't work");
       int l = 1;
       printout.println("%d. Set " + ENDPOINT + " to the endpoint/S3 host", l++);
       printout.warn("%d. Use the bucket name in the s3a URL", l++);
@@ -1080,7 +1093,8 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
     String secretKey = accessKeys.getPassword();
     String sessionToken = S3ASupport.lookupPassword(conf, SESSION_TOKEN, "");
     if (accessKey.isEmpty()) {
-      printout.warn("No S3A access key defined; env var or other authentication mechanism must be active");
+      printout.warn(
+          "No S3A access key defined; env var or other authentication mechanism must be active");
     } else {
       printout.println("access key %s",
           sanitize(accessKey, false));
@@ -1214,8 +1228,8 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
             + "set %s to 0", BUCKET_PROBE);
 
     hint(printout, conf.getBoolean(MULTIPART_PURGE, false),
-    "Whenever a filesystem client is created, it prunes the bucket for old uploads.\n"
-        + "Use a store lifecycle rule to do this and set %s to false",
+        "Whenever a filesystem client is created, it prunes the bucket for old uploads.\n"
+            + "Use a store lifecycle rule to do this and set %s to false",
         MULTIPART_PURGE);
 
     hint(printout,
