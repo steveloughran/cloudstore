@@ -41,7 +41,7 @@
     <javac.version>1.8</javac.version>
     <enforced.java.version>${javac.version}</enforced.java.version>
 
-    <hadoop.version>3.3.6</hadoop.version>
+    <hadoop.version>3.4.0</hadoop.version>
     <gcs-connector.version>hadoop3-2.2.4</gcs-connector.version>
 
     <test.build.dir>${project.build.directory}/test-dir</test.build.dir>
