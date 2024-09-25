@@ -39,8 +39,6 @@ import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
  */
 public class BucketMetadata extends StoreEntryPoint {
 
-  private static final Logger LOG = LoggerFactory.getLogger(BucketMetadata.class);
-
   public static final String USAGE
       = "Usage: bucketmetadata [-debug] <path>";
 
@@ -50,11 +48,7 @@ public class BucketMetadata extends StoreEntryPoint {
 
   @Override
   public int run(String[] args) throws Exception {
-    List<String> argList = parseArgs(args);
-    if (argList.isEmpty()) {
-      errorln(USAGE);
-      return E_USAGE;
-    }
+    List<String> argList = processArgs(args, 1, 1, USAGE);
     final Configuration conf = createPreconfiguredConfig();
 
     // path on the CLI
