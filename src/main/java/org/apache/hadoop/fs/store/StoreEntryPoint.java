@@ -381,7 +381,6 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
             log -> c.setLogLevel(log, level)));
   }
 
-
   /**
    * Get the value of a key-val option.
    * @param opt option.

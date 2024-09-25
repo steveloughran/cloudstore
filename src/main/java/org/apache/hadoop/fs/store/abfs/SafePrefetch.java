@@ -76,7 +76,7 @@ public class SafePrefetch extends StoreEntryPoint {
 
     FileSystem fs = path.getFileSystem(conf);
     if (!(fs instanceof AzureBlobFileSystem)) {
-      println("Filesystem for path %s is not to an Azure store; not at risk: %s",
+      println("Filesystem for path %s is not an Azure store; not at risk: %s",
           path, fs);
       return 0;
     }
