@@ -1217,7 +1217,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
         FS_S3A_COMMITTER_THREADS, 256);
 
     long goodTimeout = 60 * 1000;
-    long requestTimeout = 5 * 60 * 1000;
+    long requestTimeout = 15 * 60 * 1000;
     sizeHint(printout, conf, CONNECTION_TIMEOUT, goodTimeout);
     sizeHint(printout, conf, CONNECTION_ESTABLISH_TIMEOUT, goodTimeout);
     sizeHint(printout, conf, CONNECTION_REQUEST_TIMEOUT, requestTimeout);
