@@ -44,7 +44,7 @@ To publish the release use the gui or the github command line through the `fish`
 ```bash
 set -gx now (date '+%Y-%m-%d-%H.%M'); echo [$now]
 git add .; git status
-git commit -S -m "release $now"; git push
+git commit -S --allow-empty -m "release $now"; git push
 gh release create tag-release-$now -t release-$now -n "release of $now" -d target/cloudstore-1.0.jar
 # then go to the web ui to review and finalize the release
 ```
