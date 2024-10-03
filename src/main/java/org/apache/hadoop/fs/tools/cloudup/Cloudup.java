@@ -43,7 +43,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.apache.commons.collections.comparators.ReverseComparator;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
@@ -345,7 +344,7 @@ public class Cloudup extends StoreEntryPoint {
     // upload initial sorted entries.
 
     // reverse sort to get largest first
-    uploadList.sort(new ReverseComparator(new UploadEntry.SizeComparator()));
+    uploadList.sort(new UploadEntry.ReverseSizeComparator());
 
     // select the largest few of them
     final int sortUploadCount = Math.min(largest, uploadCount);

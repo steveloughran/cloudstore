@@ -391,7 +391,8 @@ Seconds per file: 0.153s
 
 ```
 
-The upload bandwidth has topped out at just under 29 Megabits/second; this is clearly the bandwidth between the test hose and the remote S3 store.
+The upload bandwidth has topped out at just under 29 Megabits/second;
+this is clearly the bandwidth between the test host and the remote S3 store.
 
 Asking for more threads simply becomes counterproductive as there is more contention for CPU time on the host, and no more bandwidth.
 
@@ -411,3 +412,24 @@ To minimize/avoid throttling
 * Try to reduce other IO taking place against the same store, *including deletion*
 * Ask for fewer threads.
 * Use the most recent release of hadoop that you can, as speeding up cloud IO is always a focus of the team's work.
+
+# AWS V2 SDK and large S3 File uploads over slow connections.
+
+Hadoop releases without the fix for
+[HADOOP-19295. S3A: fs.s3a.connection.request.timeout too low for large uploads over slow links
+](https://issues.apache.org/jira/browse/HADOOP-19295)
+may time out when uploading a large file to a remote store if the connection is slow, with the
+error message "Client execution did not complete before the specified timeout configuration: 15000 millis"
+
+```
+2024-10-03 12:07:32,246 [s3a-transfer-stevel-london-bounded-pool1-t4] INFO  s3a.WriteOperationHelper (WriteOperationHelper.java:operationRetried(184)) - upload part #4 upload ID s4TDe4.rV1PdcesERDuWAhFeGFdpcaWlEG5Eno3Xpa5YL.CWWJRiSEmuT19Pu.K4dFLvRp18z4cuGJClTc52eKVe3LKzu.MAfWp5qipIgdHqgiUDl68swKeXcEbbvzfS on hadoop-3.4.1.tar.gz: Retried 0: org.apache.hadoop.fs.s3a.AWSApiCallTimeoutException: upload part #4 upload ID s4TDe4.rV1PdcesERDuWAhFeGFdpcaWlEG5Eno3Xpa5YL.CWWJRiSEmuT19Pu.K4dFLvRp18z4cuGJClTc52eKVe3LKzu.MAfWp5qipIgdHqgiUDl68swKeXcEbbvzfS on hadoop-3.4.1.tar.gz: software.amazon.awssdk.core.exception.ApiCallTimeoutException: Client execution did not complete before the specified timeout configuration: 15000 millis
+```
+
+If this occurs, set the property `fs.s3a.connection.request.timeout` to a larger number, such as `15m`.
+We recommend doing this on the command line itself, rather than set it site-wide:
+
+```bash
+bin/hadoop jar cloudstore-1.0.jar cloudup -D fs.s3a.connection.request.timeout=15m -overwrite \
+../releases/hadoop-3.4.1-RC2/hadoop-3.4.1.tar.gz \
+s3a://stevel-london/
+```

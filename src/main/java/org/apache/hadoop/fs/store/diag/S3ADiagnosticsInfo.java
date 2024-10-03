@@ -286,6 +286,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {CONNECTION_TIMEOUT, false, false},
       {"fs.s3a.create.performance", false, false},
       {"fs.s3a.create.storage.class", false, false},
+      {"fs.s3a.cross.region.access.enabled", false, false},
       {"fs.s3a.custom.signers", false, false},
       {DIRECTORY_OPERATIONS_PURGE_UPLOADS, false, false},
       {DIRECTORY_MARKER_RETENTION, false, false},

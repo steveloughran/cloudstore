@@ -226,9 +226,21 @@ final class UploadEntry implements Serializable, Comparable<UploadEntry> {
     @Override
     public int compare(UploadEntry o1, UploadEntry o2) {
       return Long.compare(o1.getSize(), o2.getSize());
-
     }
 
   }
+
+  /**
+   * Compares the values in reverse order: largest comes first.
+   */
+  static final class ReverseSizeComparator implements Comparator<UploadEntry> {
+
+    @Override
+    public int compare(UploadEntry o1, UploadEntry o2) {
+      return Long.compare(o2.getSize(), o1.getSize());
+    }
+
+  }
+
 
 }
