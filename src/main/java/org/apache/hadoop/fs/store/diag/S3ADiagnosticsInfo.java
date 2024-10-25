@@ -70,6 +70,7 @@ import static org.apache.hadoop.fs.store.diag.OptionSets.X509;
  * that the diagnostics will work even if S3AFileSystem or a dependency
  * is not on the classpath.
  */
+@SuppressWarnings("MagicNumber")
 public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
 
   private static final Logger LOG = LoggerFactory.getLogger(
@@ -218,9 +219,13 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
 
   public static final String CONNECTION_ESTABLISH_TIMEOUT = "fs.s3a.connection.establish.timeout";
 
+  public static final String CONNECTION_KEEPALIVE = "fs.s3a.connection.keepalive";
+
   public static final String CONNECTION_REQUEST_TIMEOUT = "fs.s3a.connection.request.timeout";
 
   public static final String CONNECTION_TIMEOUT = "fs.s3a.connection.timeout";
+
+  public static final String CONNECTION_TTL = "fs.s3a.connection.ttl";
 
   /**
    * Should checksums be validated on download?
@@ -279,11 +284,12 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
 
       {CHECKSUM_VALIDATION, false, false},
       {CONNECTION_SSL_ENABLED, false, false},
-      {"fs.s3a.connection.keepalive", false, false},
+      {CONNECTION_KEEPALIVE, false, false},
       {FS_S3A_CONNECTION_MAXIMUM, false, false},
       {CONNECTION_ESTABLISH_TIMEOUT, false, false},
       {CONNECTION_REQUEST_TIMEOUT, false, false},
       {CONNECTION_TIMEOUT, false, false},
+      {CONNECTION_TTL, false, false},
       {"fs.s3a.create.performance", false, false},
       {"fs.s3a.create.storage.class", false, false},
       {"fs.s3a.cross.region.access.enabled", false, false},
@@ -416,27 +422,29 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {ENV_AWS_SECRET_ACCESS_KEY, true},
       {ENV_AWS_SESSION_TOKEN, true},
       {ENV_AWS_REGION, false},
-      {"AWS_S3_US_EAST_1_REGIONAL_ENDPOINT", false},
       {"AWS_CBOR_DISABLE", false},
       {"AWS_CONFIG_FILE", false},
-      {"AWS_CONTAINER_CREDENTIALS_RELATIVE_URI", false},
-      {"AWS_CONTAINER_CREDENTIALS_FULL_URI", false},
       {"AWS_CONTAINER_AUTHORIZATION_TOKEN", true},
+      {"AWS_CONTAINER_CREDENTIALS_FULL_URI", false},
+      {"AWS_CONTAINER_CREDENTIALS_RELATIVE_URI", false},
+      {"AWS_CSM_CLIENT_ID", false},
       {"AWS_CSM_HOST", false},
       {"AWS_CSM_PORT", false},
-      {"AWS_CSM_CLIENT_ID", false},
       {"AWS_EC2_METADATA_DISABLED", false},
       {"AWS_EC2_METADATA_SERVICE_ENDPOINT", false},
-      {"AWS_METADATA_SERVICE_TIMEOUT", false},
-      {"AWS_ENDPOINT_URL_S3", false},
       {"AWS_ENDPOINT_URL", false},
+      {"AWS_ENDPOINT_URL_S3", false},
       {"AWS_IGNORE_CONFIGURED_ENDPOINT_URLS", false},
+      {"AWS_JAVA_V1_DISABLE_DEPRECATION_ANNOUNCEMENT", false},
+      {"AWS_JAVA_V1_PRINT_LOCATION", false},
       {"AWS_MAX_ATTEMPTS", false},
+      {"AWS_METADATA_SERVICE_TIMEOUT", false},
       {"AWS_METADATA_SERVICE_TIMEOUT", false},
       {"AWS_PROFILE", false},
       {"AWS_RETRY_MODE", false},
       {"AWS_ROLE_ARN", false},
       {"AWS_ROLE_SESSION_NAME", false},
+      {"AWS_S3_US_EAST_1_REGIONAL_ENDPOINT", false},
       {"AWS_WEB_IDENTITY_TOKEN_FILE", false},
       {"", false},
       {"", false},
@@ -464,20 +472,20 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"aws.accessKeyId", true},
       {"aws.secretKey", true},
       {"aws.sessionToken", true},
+
       // aws v2 sdk sysprops from software.amazon.awssdk.core.SdkSystemSetting
-      {"aws.secretAccessKey", true},
       {"aws.binaryIonEnabled", false},
-      {"aws.defaultsMode", false},
-      {"aws.disableRequestCompression", false},
-      {"aws.disableS3ExpressAuth", false},
       {"aws.cborEnabled", false},
-      {"aws.containerAuthorizationToken", true},
       {"aws.configFile", false},
+      {"aws.containerAuthorizationToken", true},
       {"aws.containerCredentialsFullUri", false},
       {"aws.containerCredentialsPath", false},
       {"aws.containerServiceEndpoint", false},
+      {"aws.defaultsMode", false},
       {"aws.disableEc2Metadata", false},
       {"aws.disableRequestCompression", false},
+      {"aws.disableRequestCompression", false},
+      {"aws.disableS3ExpressAuth", false},
       {"aws.ec2MetadataServiceEndpoint", false},
       {"aws.ec2MetadataServiceEndpointMode", false},
       {"aws.endpointDiscoveryEnabled", false},
@@ -485,39 +493,44 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"aws.maxAttempts", false},
       {"aws.profile", false},
       {"aws.region", false},
+      {"aws.requestMinCompressionSizeBytes", false},
+      {"aws.retryMode", false},
       {"aws.roleArn", false},
       {"aws.roleSessionName", false},
-      {"aws.retryMode", false},
-      {"aws.requestMinCompressionSizeBytes", false},
       {"aws.s3UseUsEast1RegionalEndpoint", false},
+      {"aws.secretAccessKey", true},
       {"aws.sharedCredentialsFile", false},
       {"aws.useDualstackEndpoint", false},
       {"aws.useFipsEndpoint", false},
       {"aws.webIdentityTokenFile", false},
 
       // v1 options
-
-      {"com.amazonaws.regions.RegionUtils.fileOverride", false},
+      {"aws.java.v1.printLocation", false},
+      {"aws.java.v1.disableDeprecationAnnouncement", false},
       {"com.amazonaws.regions.RegionUtils.disableRemote", false},
+      {"com.amazonaws.regions.RegionUtils.fileOverride", false},
       {"com.amazonaws.sdk.disableCertChecking", false},
+      {"com.amazonaws.sdk.disableEc2Metadata", false},
       {"com.amazonaws.sdk.ec2MetadataServiceEndpointOverride", false},
       {"com.amazonaws.sdk.enableDefaultMetrics", false},
       {"com.amazonaws.sdk.enableInRegionOptimizedMode", false},
-      {"com.amazonaws.sdk.enableThrottledRetry", false},
       {"com.amazonaws.sdk.enableRuntimeProfiling", false},
-      {"com.amazonaws.sdk.disableEc2Metadata", false},
+      {"com.amazonaws.sdk.enableThrottledRetry", false},
       {"com.amazonaws.sdk.maxAttempts", false},
       {"com.amazonaws.sdk.retryMode", false},
       {"com.amazonaws.sdk.s3.defaultStreamBufferSize", false},
-      {"com.amazonaws.services.s3.disableImplicitGlobalClients", false},
       {"com.amazonaws.services.s3.disableGetObjectMD5Validation", false},
+      {"com.amazonaws.services.s3.disableImplicitGlobalClients", false},
       {"com.amazonaws.services.s3.disablePutObjectMD5Validation", false},
       {"com.amazonaws.services.s3.enableV4", false},
       {"com.amazonaws.services.s3.enforceV4", false},
+
       {"org.wildfly.openssl.path", false},
 
+      // v2 options
       {"software.amazon.awssdk.http.service.impl", false},
       {"software.amazon.awssdk.http.async.service.impl", false},
+
       {"", false},
       {"", false},
   };
@@ -1217,11 +1230,13 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
     sizeHint(printout, conf,
         FS_S3A_COMMITTER_THREADS, 256);
 
-    long goodTimeout = 60 * 1000;
-    long requestTimeout = 15 * 60 * 1000;
-    sizeHint(printout, conf, CONNECTION_TIMEOUT, goodTimeout);
-    sizeHint(printout, conf, CONNECTION_ESTABLISH_TIMEOUT, goodTimeout);
-    sizeHint(printout, conf, CONNECTION_REQUEST_TIMEOUT, requestTimeout);
+    sizeHint(printout, conf, CONNECTION_TTL,120);
+
+
+    long requestTimeout = 15 * 60_000;
+    sizeHint(printout, conf, CONNECTION_TIMEOUT, 5_000);
+    sizeHint(printout, conf, CONNECTION_ESTABLISH_TIMEOUT, 1_000);
+    sizeHintWithZeroSpecial(printout, conf, CONNECTION_REQUEST_TIMEOUT, requestTimeout);
 
     int bucketProbe = conf.getInt(BUCKET_PROBE, 0);
     hint(printout, bucketProbe > 0,
@@ -1271,8 +1286,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       printout.println(
           "Stream is optimized for random IO, especially ORC and Parquet files");
       printout.println(
-          "This policy is very bad for sequential datasets (text, CSV, avro, .gzipped");
-      printout.println("And for whole file operations (distcp, fs shell)");
+          "This policy is suboptimal for sequential datasets (text, CSV, avro, .gzipped");
       printout.println("Recommended for ORC, Parquet data");
       break;
     case INPUT_FADV_SEQUENTIAL:

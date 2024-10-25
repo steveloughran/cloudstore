@@ -31,6 +31,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Properties;
 import java.util.Set;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.LogManager;
@@ -61,6 +62,7 @@ import org.apache.hadoop.util.Tool;
 import static java.util.logging.Level.ALL;
 import static org.apache.hadoop.fs.store.CommonParameters.DEBUG;
 import static org.apache.hadoop.fs.store.CommonParameters.DEFINE;
+import static org.apache.hadoop.fs.store.CommonParameters.SYSPROPS;
 import static org.apache.hadoop.fs.store.CommonParameters.TOKENFILE;
 import static org.apache.hadoop.fs.store.CommonParameters.VERBOSE;
 import static org.apache.hadoop.fs.store.CommonParameters.XMLFILE;
@@ -77,7 +79,11 @@ import static org.apache.hadoop.fs.store.diag.S3ADiagnosticsInfo.INPUT_FADV_NORM
 /**
  * Entry point for store applications
  */
-@SuppressWarnings({"UseOfSystemOutOrSystemErr", "SpellCheckingInspection"})
+@SuppressWarnings({
+    "UseOfSystemOutOrSystemErr",
+    "SpellCheckingInspection",
+    "OverloadedVarargsMethod"
+})
 public class StoreEntryPoint extends Configured implements Tool, Closeable, Printout {
 
   protected static final int MB_1 = (1024 * 1024);
@@ -102,16 +108,23 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
 
   private PrintStream out = System.out;
 
-  public static String optusage(String opt) {
-    return "[-" + opt + "] ";
+  /**
+   * Print a usage line for an option without a parameter.
+   * @param opt option option
+   * @param description description
+   */
+  public static String optusage(String opt, String description) {
+    return String.format("\t-%s\t%s%n", opt, description);
   }
 
-  public static String optusage(String opt, String text) {
-    return String.format("\t-%s\t%s%n", opt, text);
-  }
-
-  public static String optusage(String opt, String second, String text) {
-    return String.format("\t-%s <%s>\t%s%n", opt, second, text);
+  /**
+   * Print a usage line for an option with a parameter.
+   * @param opt option option
+   * @param second parameter name
+   * @param description description
+   */
+  public static String optusage(String opt, String second, String description) {
+    return String.format("\t-%s <%s>\t%s%n", opt, second, description);
   }
 
   /**
@@ -286,6 +299,7 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
 
     addValueOptions(
         DEFINE,
+        SYSPROPS,
         TOKENFILE,
         XMLFILE);
   }
@@ -327,6 +341,7 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
     }
     maybeEnableDebugLogging();
     maybeAddTokens(TOKENFILE);
+    maybeAddJvmOptions();
     return parsed;
   }
 
@@ -394,7 +409,7 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
    * Get the value of a key-val option.
    * @param opt option.
    * @param defval default value
-   * @return the value or null
+   * @return the value or the default.
    */
   protected final String getOption(String opt, String defval) {
     return hasOption(opt) ? getCommandFormat().getOptValue(opt) : defval;
@@ -412,7 +427,7 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
   /**
    * Get the value of a key-val option.
    * @param opt option.
-   * @return the value or null
+   * @return the value or the empty option.
    */
   protected final Optional<String> getOptional(String opt) {
     return Optional.ofNullable(getCommandFormat().getOptValue(opt));
@@ -470,15 +485,14 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
   }
 
   protected void maybeAddXMLFileOption(
-      final Configuration conf,
-      final String opt)
+      final Configuration conf)
       throws FileNotFoundException, MalformedURLException {
-    String xmlfile = getOption(opt);
+    String xmlfile = getOption(CommonParameters.XMLFILE);
     if (xmlfile != null) {
       if (xmlfile.isEmpty()) {
         throw new ExitUtil.ExitException(
             StoreExitCodes.E_INVALID_ARGUMENT,
-            "XML file option " + opt
+            "XML file option " + CommonParameters.XMLFILE
             + " found but no value was provided");
       }
       File f = new File(xmlfile);
@@ -508,6 +522,23 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
         println(token.toString());
       }
       UserGroupInformation.getCurrentUser().addCredentials(credentials);
+    }
+  }
+
+  /**
+   * Add read jvm option properties file, set the values.
+   * @throws IOException failures
+   */
+  protected void maybeAddJvmOptions() throws IOException {
+    String propertyFile = getOption(SYSPROPS);
+    if (propertyFile != null) {
+      Properties properties = new Properties();
+      properties.load(FileUtils.openInputStream(new File(propertyFile)));
+      properties.forEach((k, v) -> {
+        System.setProperty((String) k, (String) v);
+        debug("Set system property %s=%s", k, v);
+      });
+
     }
   }
 
@@ -610,7 +641,7 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
 
     final Configuration conf = new Configuration(getConf());
 
-    maybeAddXMLFileOption(conf, XMLFILE);
+    maybeAddXMLFileOption(conf);
     maybePatchDefined(conf, DEFINE);
     conf.set(IOSTATISTICS_LOGGING_LEVEL, "info");
 
@@ -721,7 +752,7 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
    */
   @Override
   public String maybeSanitize(String value, boolean obfuscate) {
-    return obfuscate ? StoreUtils.sanitize(value, hideAllSensitiveChars) :
+    return obfuscate ? StoreUtils.sanitize(value, isHideAllSensitiveChars()) :
         ("\"" + value + "\"");
   }
 
@@ -786,6 +817,18 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
       source = "[" + StringUtils.join(",", origins) + "]";
     }
     return source;
+  }
+
+
+  /**
+   * Hide all sensitive data.
+   */
+  protected boolean isHideAllSensitiveChars() {
+    return hideAllSensitiveChars;
+  }
+
+  protected void setHideAllSensitiveChars(boolean hideAllSensitiveChars) {
+    this.hideAllSensitiveChars = hideAllSensitiveChars;
   }
 
   protected static final class LimitReachedException extends IOException {

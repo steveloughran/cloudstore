@@ -32,10 +32,7 @@ public final class CommonParameters {
   public static final String XMLFILE = "xmlfile";
 
   /** file for system properties {@value}. */
-  public static final String SYSPROPFILE = "syspropfile";
-
-  /** Single system property {@value}. */
-  public static final String SYSPROP = "sysprop";
+  public static final String SYSPROPS = "sysprop";
 
   /** {@value}. */
   public static final String DEFINE = "D";
@@ -43,11 +40,15 @@ public final class CommonParameters {
   /** {@value}. */
   public static final String VERBOSE = "verbose";
 
+  /**
+   * Standard options of all entry points.
+   */
   public static final String STANDARD_OPTS =
-      optusage(DEFINE, "key=value", "Define a property")
+      optusage(DEFINE, "key=value", "Define a single configuration option")
+          + optusage(SYSPROPS, "file", "Property file of system properties")
           + optusage(TOKENFILE, "file", "Hadoop token file to load")
-            + optusage(XMLFILE, "file", "XML config file to load")
-            + optusage(VERBOSE, "verbose output");
+          + optusage(XMLFILE, "file", "XML config file to load")
+          + optusage(VERBOSE, "verbose output");
 
   /**
    * File for log4j properties: {@value}.

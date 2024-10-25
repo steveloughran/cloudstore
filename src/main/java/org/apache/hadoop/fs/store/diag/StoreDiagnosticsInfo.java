@@ -610,6 +610,36 @@ public class StoreDiagnosticsInfo {
   }
 
   /**
+   * Hint when the size is too low/unset, knowing that zero is a special
+   * case which is not hinted on.
+   * @param printout destination
+   * @param conf config to probe
+   * @param option option to resolve
+   * @param recommend recommended value
+   * @return true if a hint was made
+   */
+  protected boolean sizeHintWithZeroSpecial(
+      final Printout printout,
+      final Configuration conf,
+      String option,
+      long recommend) {
+
+    // print a message if unset
+    if (hint(printout,
+        conf.get(option) != null,
+        "Option %s is unset. Recommend a value of at least %d",
+        option, recommend)) {
+      return true;
+    }
+    // if set, check the value
+    long val = conf.getLong(option, 0);
+    return hint(printout,
+        val > 0 && val < recommend,
+        "Option %s has value %d. Recommend a value of zero or >= %d",
+        option, val, recommend);
+  }
+
+  /**
    * Validate an output stream of a file being written to.
    * @param printout
    * @param fs fs

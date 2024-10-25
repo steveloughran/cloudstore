@@ -69,7 +69,6 @@ public class ListFiles extends StoreEntryPoint {
   public int run(String[] args) throws Exception {
     List<String> paths = processArgs(args, 1, 1, USAGE);
 
-    maybeAddTokens(TOKENFILE);
     final Configuration conf = createPreconfiguredConfig();
 
     int limit = getOptional(LIMIT).map(Integer::valueOf).orElse(0);

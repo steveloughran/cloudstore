@@ -63,87 +63,54 @@ primarily due to authentication, classpath and network settings
 * [Security](./SECURITY.md)
 * [Building](./BUILDING.md)
 
-# Command Index
 
-## Command `storediag`
 
-The `storediag` entry point is designed to pick up the FS settings, dump them
-with sanitized secrets, and display their provenance. It then
-bootstraps connectivity with an attempt to initiate (unauthed) HTTP connections
-to the store's endpoints. This should be sufficient to detect proxy and
-endpoint configuration problems.
+# Commands
 
-Then it tries to perform some reads and writes against the store. If these
-fail, then there's clearly a problem. Hopefully though, there's now enough information
-to begin determining what it is.
+## Common arguments
 
-Finally, if things do fail, the printed configuration excludes the login secrets,
-for safer reporting of issues in bug reports.
-
-```bash
-hadoop jar cloudstore-1.0.jar storediag -j -5 s3a://landsat-pds/
-hadoop jar cloudstore-1.0.jar storediag --tokenfile mytokens.bin s3a://my-readwrite-bucket/
-hadoop jar cloudstore-1.0.jar storediag wasb://container@user/subdir
-hadoop jar cloudstore-1.0.jar storediag abfs://container@user/
+There are a set of arguments common to all commands
 ```
- 
-The remote store is required to grant full R/W access to the caller, otherwise
-the creation tests will fail.
+-D <key=value>          Define a property
+-sysprops <file>        Java system properties to set
+-tokenfile <file>       Hadoop token file to load
+-verbose                Verbose output
+-xmlfile <file>         XML config file to load
+```
+
+### `-D &lt;key=value>` Define a single Hadoop configuration option
+
+Define a single hadoop option.
+For defining multiple options, use `-xmlfile`
+
+### -sysprops &lt<file>: Java system properties to set
+
+This loads a Java properties file containing java system
+properties as key=value pairs. Each of these
+sets the named java system property.
+
+Blank lines and comment lines beginning with `#` are ignored.
+
+
+### `-tokenfile -tokenfile &lt;file>` : Load hadoop tokens
 
 The `--tokenfile` option loads tokens saved with `hdfs fetchdt`. It does
 not need Kerberos, though most filesystems expect Kerberos enabled for
 them to pick up tokens (not S3A, potentially other stores).
 
-### Usage
+### -xmlfile &lt<file>: XML configuration file to load
 
-```
-Usage: storediag [options] <filesystem>
-        -D <key=value>  Define a property
-        -e      List the environmment variables. *danger: does not redact secrets*
-        -h      redact all chars in sensitive options
-        -j      List the JARs on the classpath
-        -l      Dump the Log4J settings
-        -o      Downgrade all 'required' classes to optional
-        -principal <principal>  kerberos principal to request a token for
-        -required <file>        text file of extra classes+resources to require
-        -s      List the JVM System Properties
-        -t      Require delegation tokens to be issued
-        -tokenfile <file>       Hadoop token file to load
-        -verbose                Verbose output
-        -w      attempt write operations on the filesystem
-        -xmlfile <file>         XML config file to load
-        -5      Print MD5 checksums of the jars listed (requires -j)
-```
-
-The `-require` option takes a text file where every line is one of
-a #-prefixed comment, a blank line, a classname, a resource (with "/" in).
-These are all loaded
-
-```bash
-hadoop jar cloudstore-1.0.jar storediag -j -5 -required required.txt s3a://something/
-```
-
-and with a `required.txt` listing things you require
-
-```
-# S3A
-org.apache.hadoop.fs.s3a.auth.delegation.S3ADelegationTokens
-# Misc
-org.apache.commons.configuration.Configuration
-org.apache.commons.lang3.StringUtils
-``` 
-
-This is useful to dynamically add some extra mandatory classes to 
-the list of classes you need to work with a store...most useful when either
-you are developing new features and want to verify they are on the classpath,
-or you are working with an unknown object store and just want to check its depencies
-up front.
-
-Missing file or resource will result in an error and the command failing.
-
-The comments are printed too! This means you can use them in the reports.
+This loads a hadoop configuration file and adds its values to
+the Hadoop configuration used in the command.
 
 
+
+## Command `storediag`
+
+Examine store and print diagnostics, including testing read and optionally write
+operations
+
+See [storediag](src/main/site/storediag.md) for details.
 ## Command `bandwidth`
 
 Measure upload/download bandwidth, optionally saving data to a CSV file.
@@ -166,7 +133,6 @@ Tries to instantiate a committer using the Hadoop 3.1+ committer factory mechani
 what committer a specific path will create.
 
 See [committerinfo](src/main/site/committerinfo.md).
-
 
 ## Command `constval`
 

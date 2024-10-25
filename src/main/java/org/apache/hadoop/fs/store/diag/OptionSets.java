@@ -159,6 +159,7 @@ public class OptionSets {
       {"https.nonProxyHosts", false},
       {"https.proxyPassword", true},
       {"http.proxyHost", false},
+      {"http.keepAlive", false},
       {"http.proxyPort", false},
       {"http.proxyPassword", true},
       {"http.nonProxyHosts", false},

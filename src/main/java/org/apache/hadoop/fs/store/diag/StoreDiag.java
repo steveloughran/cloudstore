@@ -80,7 +80,6 @@ import org.apache.hadoop.util.StringUtils;
 import org.apache.hadoop.util.ToolRunner;
 
 import static org.apache.hadoop.fs.store.CommonParameters.STANDARD_OPTS;
-import static org.apache.hadoop.fs.store.CommonParameters.SYSPROP;
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_ERROR;
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_NOT_FOUND;
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_NO_ACCESS;
@@ -133,17 +132,17 @@ public class StoreDiag extends DiagnosticsEntryPoint {
   public static final String USAGE =
       "Usage: storediag [options] <filesystem>\n"
           + STANDARD_OPTS
+          + optusage(DELEGATION, "Require delegation tokens to be issued")
           + optusage(ENVARS, "List the environment variables. *danger: does not redact secrets*")
           + optusage(HIDE, "redact all chars in sensitive options")
           + optusage(JARS, "List the JARs on the classpath")
           + optusage(LOGDUMP, "Dump the Log4J settings")
+          + optusage(MD5, "Print MD5 checksums of the jars listed (requires -j)")
           + optusage(OPTIONAL, "Downgrade all 'required' classes to optional")
           + optusage(PRINCIPAL, "principal", "kerberos principal to request a token for")
           + optusage(REQUIRED, "file", "text file of extra classes+resources to require")
           + optusage(SYSPROPS, "List the JVM System Properties")
-          + optusage(DELEGATION, "Require delegation tokens to be issued")
-          + optusage(WRITE, "attempt write operations on the filesystem")
-          + optusage(MD5, "Print MD5 checksums of the jars listed (requires -j)");
+          + optusage(WRITE, "attempt write operations on the filesystem");
 
   private StoreDiagnosticsInfo storeInfo;
 
@@ -157,13 +156,11 @@ public class StoreDiag extends DiagnosticsEntryPoint {
         MD5,
         OPTIONAL,
         READONLY,
-        SYSPROPS,
         WRITE
     );
     addValueOptions(
         PRINCIPAL,
-        REQUIRED,
-        SYSPROP
+        REQUIRED
     );
   }
 
@@ -1201,14 +1198,4 @@ public class StoreDiag extends DiagnosticsEntryPoint {
     }
   }
 
-  /**
-   * Hide all sensitive data.
-   */
-  protected boolean isHideAllSensitiveChars() {
-    return hideAllSensitiveChars;
-  }
-
-  protected void setHideAllSensitiveChars(boolean hideAllSensitiveChars) {
-    this.hideAllSensitiveChars = hideAllSensitiveChars;
-  }
 }
