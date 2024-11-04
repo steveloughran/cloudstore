@@ -233,6 +233,7 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
     System.err.flush();
   }
 
+  @Override
   public void heading(String format, Object... args) {
     String text = String.format(format, args);
     int l = text.length();
@@ -243,11 +244,17 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
     println("\n%s\n%s\n", text, sb.toString());
   }
 
+  @Override
+  public void subheading(String format, Object... args) {
+    println("\n** " + format + " **", args);
+  }
+
   /**
    * Debug message.
-   * @param format format string
+   * @param format Log4J format string
    * @param args arguments.
    */
+  @Override
   public final void debug(String format, Object... args) {
     LOG.debug(format, args);
 /*

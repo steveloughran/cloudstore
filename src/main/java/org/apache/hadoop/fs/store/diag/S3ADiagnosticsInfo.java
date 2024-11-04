@@ -21,6 +21,7 @@ package org.apache.hadoop.fs.store.diag;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -36,6 +37,8 @@ import org.apache.hadoop.fs.s3a.S3AFileStatus;
 import org.apache.hadoop.fs.store.s3a.S3ASupport;
 import org.apache.hadoop.util.ExitUtil;
 
+import static java.time.Duration.ofMinutes;
+import static java.time.Duration.ofSeconds;
 import static org.apache.hadoop.fs.store.StoreUtils.cat;
 import static org.apache.hadoop.fs.store.StoreUtils.sanitize;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.ABORTABLE_STREAM;
@@ -217,15 +220,29 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
 
   public static final String BUFFER_DIR = "fs.s3a.buffer.dir";
 
+
+  /**
+   * Acquisition timeout for connections from the pool:
+   * {@value}.
+   * Default unit is milliseconds for consistency with other options.
+   */
+  public static final String CONNECTION_ACQUISITION_TIMEOUT =
+      "fs.s3a.connection.acquisition.timeout";
+
   public static final String CONNECTION_ESTABLISH_TIMEOUT = "fs.s3a.connection.establish.timeout";
 
-  public static final String CONNECTION_KEEPALIVE = "fs.s3a.connection.keepalive";
+  public static final String CONNECTION_IDLE_TIME =
+      "fs.s3a.connection.idle.time";
+
+  public static final String CONNECTION_PART_UPLOAD_TIMEOUT = "fs.s3a.connection.part.upload.timeout";
 
   public static final String CONNECTION_REQUEST_TIMEOUT = "fs.s3a.connection.request.timeout";
 
   public static final String CONNECTION_TIMEOUT = "fs.s3a.connection.timeout";
 
   public static final String CONNECTION_TTL = "fs.s3a.connection.ttl";
+
+  public static final String CONNECTION_KEEPALIVE = "fs.s3a.connection.keepalive";
 
   /**
    * Should checksums be validated on download?
@@ -283,10 +300,14 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.s3a.change.detection.version.required", false, false},
 
       {CHECKSUM_VALIDATION, false, false},
+      {"fs.s3a.classloader.isolationq", false, false},
       {CONNECTION_SSL_ENABLED, false, false},
       {CONNECTION_KEEPALIVE, false, false},
       {FS_S3A_CONNECTION_MAXIMUM, false, false},
+      {CONNECTION_ACQUISITION_TIMEOUT, false, false},
       {CONNECTION_ESTABLISH_TIMEOUT, false, false},
+      {CONNECTION_IDLE_TIME, false, false},
+      {CONNECTION_PART_UPLOAD_TIMEOUT, false, false},
       {CONNECTION_REQUEST_TIMEOUT, false, false},
       {CONNECTION_TIMEOUT, false, false},
       {CONNECTION_TTL, false, false},
@@ -1218,6 +1239,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
     printout.heading("Performance Hints");
 
 
+    printout.subheading("Size options");
     hint(printout, conf.getBoolean(DISABLE_CACHE, false),
         "The option " + DISABLE_CACHE + " is true. "
             + "This may result in the creation of many S3A clients, and use up memory and other resources");
@@ -1230,13 +1252,48 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
     sizeHint(printout, conf,
         FS_S3A_COMMITTER_THREADS, 256);
 
-    sizeHint(printout, conf, CONNECTION_TTL,120);
+    printout.subheading("Time options");
+    printout.println("\nReleases before Hadoop 3.4.0 may not support ms/m/h/... units");
+    printout.println("If use of a time unit is rejected: supply a value in milliseconds");
 
+    Duration requestTimeout = ofMinutes(15);
+    Duration aMinute = ofMinutes(1);
+    timeHint(printout, conf,
+        CONNECTION_TIMEOUT, ofSeconds(200),
+        false,
+        "Time limit sending/receiving TCP packet");
+    timeHint(printout, conf,
+        CONNECTION_ESTABLISH_TIMEOUT, aMinute,
+        false,
+        "Time limit establishing a TLS connection to the store");
+    timeHint(printout, conf,
+        CONNECTION_REQUEST_TIMEOUT, requestTimeout,
+        true,
+        "Request timeout:\n"
+            + "Maximum time for a request to return ta 200 response."
+            + "A low value can break uploads");
+    timeHint(printout, conf,
+        CONNECTION_TTL, ofMinutes(5),
+        true,
+        "Maximum HTTP connection duration in the connection pool.\n"
+            + "reduces the risk of broken connections being reused.");
 
-    long requestTimeout = 15 * 60_000;
-    sizeHint(printout, conf, CONNECTION_TIMEOUT, 5_000);
-    sizeHint(printout, conf, CONNECTION_ESTABLISH_TIMEOUT, 1_000);
-    sizeHintWithZeroSpecial(printout, conf, CONNECTION_REQUEST_TIMEOUT, requestTimeout);
+    printout.subheading("On 2024+ releases with HADOOP-18915 (hadoop 3.4.0+/CDP 7.2.18.0+");
+    timeHint(printout, conf, CONNECTION_ACQUISITION_TIMEOUT,
+        aMinute,
+        true,
+        "Maximum wait to acquire a connection from the connection pool.");
+    timeHint(printout, conf, CONNECTION_IDLE_TIME,
+        aMinute,
+        true,
+        "Maximum idle time for connections in the pool");
+
+    printout.subheading("On 2024+ releases with HADOOP-19295 (hadoop 3.4.1+):");
+    timeHint(printout, conf, CONNECTION_PART_UPLOAD_TIMEOUT,
+        requestTimeout,
+        true, "");
+
+    printout.subheading("Other options");
 
     int bucketProbe = conf.getInt(BUCKET_PROBE, 0);
     hint(printout, bucketProbe > 0,
@@ -1252,16 +1309,9 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
         !KEEP.equals(conf.get(DIRECTORY_MARKER_RETENTION, "")),
         "If backwards compatibility is not an issue, set %s to keep",
         DIRECTORY_MARKER_RETENTION);
-    hint(printout,
-        "org.apache.hadoop.fs.s3a.s3guard.DynamoDBMetadataStore"
-            .equals(conf.get("fs.s3a.metadatastore.impl", "")),
-        "S3Guard is no longer needed -decommission it");
-
 
     reviewReadPolicy(printout, conf);
 
-
-    // TODO look at output buffer options
   }
 
   /**
@@ -1300,6 +1350,9 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       printout.println(
           "Recommend: switch to normal for better handling of random IO");
       break;
+    case "avro":
+    case "parquet":
+      printout.println("File Format specific; supported on Hadoop 3.4.1+ only.");
     default:
       printout.warn("unknown seek policy");
     }

@@ -22,6 +22,7 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -30,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataOutputStream;
@@ -40,6 +42,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.store.StoreUtils;
 
 import static org.apache.hadoop.fs.store.StoreEntryPoint.DEFAULT_HIDE_ALL_SENSITIVE_CHARS;
+import static org.apache.hadoop.fs.store.StoreEntryPoint.getOrigins;
 import static org.apache.hadoop.fs.store.StoreUtils.sanitize;
 import static org.apache.hadoop.fs.store.diag.OptionSets.STANDARD_SYSPROPS;
 import static org.apache.hadoop.fs.store.diag.StoreDiag.sortKeys;
@@ -303,7 +306,6 @@ public class StoreDiagnosticsInfo {
   /**
    * Get a list of optional capablities to look for.
    * If any of these are not true.
-   * @param conf config to use in determining their location.
    * @return a possibly empty list of path capabilites.
    */
   public String[] getOptionalPathCapabilites() {
@@ -554,10 +556,14 @@ public class StoreDiagnosticsInfo {
 
   }
 
+  /**
+   * Print any performance hints.
+   * @param printout printout
+   * @param conf config
+   */
   protected void performanceHints(
       Printout printout,
       Configuration conf) {
-
   }
 
   /**
@@ -596,52 +602,78 @@ public class StoreDiagnosticsInfo {
 
     // print a message if unset
     if (hint(printout,
-        conf.get(option) != null,
+        conf.get(option) == null,
         "Option %s is unset. Recommend a value of at least %d",
         option, recommend)) {
       return true;
     }
+    // work out the origin
+
+    String source = getOrigins(conf, option, "");
     // if set, check the value
     long val = conf.getLong(option, 0);
+
     return hint(printout,
         val < recommend,
-        "Option %s has value %d. Recommend a value of at least %d",
-        option, val, recommend);
+        "Option %s (source %s) has value %d. Recommend a value of at least %d",
+        option, source, val, recommend);
   }
 
   /**
-   * Hint when the size is too low/unset, knowing that zero is a special
-   * case which is not hinted on.
+   * Hint when the time is too low/unset, knowing that zero is a special
+   * case which is not hinted on if {@code isZeroSpecial} is set.
+   * <p>
+   * Requires unset values to be milliseconds.
    * @param printout destination
    * @param conf config to probe
    * @param option option to resolve
-   * @param recommend recommended value
+   * @param recommendDuration recommended minimum duration.
+   * @param isZeroSpecial is zero special?
+   * @param description description to print.
    * @return true if a hint was made
    */
-  protected boolean sizeHintWithZeroSpecial(
+  protected boolean timeHint(
       final Printout printout,
       final Configuration conf,
       String option,
-      long recommend) {
+      Duration recommendDuration,
+      boolean isZeroSpecial,
+      String description) {
+    long recommend = recommendDuration.toMillis();
 
+    printout.println("\n%s: %s", option, description);
+    String hintStr;
+    if (isZeroSpecial) {
+      hintStr = String.format("Recommend a value of 0 or at least %dms", recommend);
+    } else {
+      hintStr = String.format("Recommend a value of at least %dms", recommend);
+    }
     // print a message if unset
     if (hint(printout,
         conf.get(option) != null,
-        "Option %s is unset. Recommend a value of at least %d",
+        "Option %s is unset. Recommend a value of at least %dms",
         option, recommend)) {
       return true;
     }
     // if set, check the value
-    long val = conf.getLong(option, 0);
+    long val = conf.getTimeDuration(option, 0, TimeUnit.MILLISECONDS);
+    // work out the origin
+    String source = getOrigins(conf, option, "");
+    boolean shouldRecommend;
+    if (isZeroSpecial) {
+      shouldRecommend = val > 0 && val < recommend;
+    } else {
+      shouldRecommend = val < recommend;
+    }
     return hint(printout,
-        val > 0 && val < recommend,
-        "Option %s has value %d. Recommend a value of zero or >= %d",
-        option, val, recommend);
+        shouldRecommend,
+        "Option %s has value %d (source %s). %s",
+        option, val, source, hintStr);
   }
 
   /**
    * Validate an output stream of a file being written to.
-   * @param printout
+   * @param printout printout
    * @param fs fs
    * @param file path to file
    * @param data output stream

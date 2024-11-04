@@ -73,6 +73,8 @@ public interface Printout {
 
   void heading(String format, Object... args);
 
+  void subheading(String format, Object... args);
+
   /**
    * Debug message.
    * @param format format string
