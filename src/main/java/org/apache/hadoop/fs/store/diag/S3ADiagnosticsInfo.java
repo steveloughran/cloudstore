@@ -636,6 +636,20 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       "org.apache.hadoop.fs.impl.prefetch.PrefetchingStatistics",
       "org.apache.hadoop.fs.s3a.prefetch.S3ACachingBlockManager",
 
+      // s3a store and bulk delete
+      "org.apache.hadoop.fs.s3a.S3AStore",
+      "org.apache.hadoop.fs.BulkDelete",
+
+      // HADOOP-19131. Assist reflection IO with WrappedOperations class (#6686)
+      "org.apache.hadoop.io.wrappedio.WrappedIO",
+      "org.apache.hadoop.io.wrappedio.WrappedStatistics",
+
+      // on demand creation of transfer manager for better
+      // performance
+      "org.apache.hadoop.util.functional.LazyAutoCloseableReference",
+
+      // recovery from multipart uploads
+      "org.apache.hadoop.fs.s3a.impl.UploadContentProviders",
 
       // extra stuff from extension modules
       "org.apache.knox.gateway.cloud.idbroker.s3a.IDBDelegationTokenBinding",

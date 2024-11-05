@@ -42,6 +42,7 @@ mvn clean install -Pextra && mvn install -Psdk2
 To publish the release use the gui or the github command line through the `fish` shell.
 
 ```bash
+mvn clean install -Pextra && mvn install -Psdk2
 set -gx now (date '+%Y-%m-%d-%H.%M'); echo [$now]
 git add .; git status
 git commit -S --allow-empty -m "release $now"; git push
