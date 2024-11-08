@@ -506,7 +506,7 @@ public class StoreDiagnosticsInfo {
           temp.getParentFile());
       temp.delete();
     } else {
-      printout.println("\nInvoke with -w to trigger creation of a temporary file");
+      printout.println("\nRerun storediag with the -w option to test write access to the store");
     }
   }
 
