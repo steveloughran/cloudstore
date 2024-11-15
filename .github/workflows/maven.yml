@@ -21,4 +21,4 @@ jobs:
       with:
         java-version: 1.8
     - name: Build with Maven
-      run: mvn install -Phadoop-3.3 -Pextra
+      run: mvn clean install -Pextra && mvn install -Psdk2
