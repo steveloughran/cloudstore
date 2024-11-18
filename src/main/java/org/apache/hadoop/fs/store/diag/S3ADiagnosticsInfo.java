@@ -60,6 +60,7 @@ import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_DI
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_MAGIC_COMMITTER;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_MULTIPART_UPLOAD_ENABLED;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_S3_EXPRESS_STORAGE;
+import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STREAM_LEAKS;
 import static org.apache.hadoop.fs.store.diag.DiagUtils.isIpV4String;
 import static org.apache.hadoop.fs.store.diag.HBossConstants.CAPABILITY_HBOSS;
 import static org.apache.hadoop.fs.store.diag.OptionSets.HTTP_CLIENT_RESOURCES;
@@ -186,6 +187,12 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
 
   public static final String SERVER_SIDE_ENCRYPTION_KEY = "fs.s3a.server-side-encryption.key";
 
+  public static final String ENCRYPTION_ALGORITHM = "fs.s3a.encryption.algorithm";
+
+  public static final String ENCRYPTION_KEY = "fs.s3a.encryption.key";
+
+  public static final String CLIENT_SIDE_ENCRYPTION_REGION = "fs.s3a.encryption.cse.kms.region";
+
   /**
    * Controls whether the prefetching input stream is enabled.
    */
@@ -269,6 +276,8 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
   /** original constant name. */
   public static final String ORIG_COPY_FROM_LOCAL_ENABLED = "fs.s3a.copy.from.local.enabled";
 
+  public static final String CHANNEL_MODE = "fs.s3a.ssl.channel.mode";
+
   private static final Object[][] options = {
       /* Core auth */
       {ACCESS_KEY, true, true},
@@ -276,8 +285,9 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {SESSION_TOKEN, true, true},
       {SERVER_SIDE_ENCRYPTION_ALGORITHM, true, false},
       {SERVER_SIDE_ENCRYPTION_KEY, true, true},
-      {"fs.s3a.encryption.algorithm", true, false},
-      {"fs.s3a.encryption.key", true, true},
+      {ENCRYPTION_ALGORITHM, true, false},
+      {ENCRYPTION_KEY, true, true},
+      {CLIENT_SIDE_ENCRYPTION_REGION, false, false},
       {AWS_CREDENTIALS_PROVIDER, false, false},
       {ENDPOINT, false, false},
       {REGION, false, false},
@@ -300,7 +310,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.s3a.change.detection.version.required", false, false},
 
       {CHECKSUM_VALIDATION, false, false},
-      {"fs.s3a.classloader.isolationq", false, false},
+      {"fs.s3a.classloader.isolation", false, false},
       {CONNECTION_SSL_ENABLED, false, false},
       {CONNECTION_KEEPALIVE, false, false},
       {FS_S3A_CONNECTION_MAXIMUM, false, false},
@@ -357,7 +367,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.s3a.retry.interval", false, false},
       {"fs.s3a.retry.throttle.limit", false, false},
       {"fs.s3a.retry.throttle.interval", false, false},
-      {"fs.s3a.ssl.channel.mode", false, false},
+      {CHANNEL_MODE, false, false},
       {"fs.s3a.s3.client.factory.impl", false, false},
       {FS_S3A_THREADS_MAX, false, false},
       {"fs.s3a.threads.keepalivetime", false, false},
@@ -670,6 +680,12 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       "software.amazon.awssdk.services.s3.s3express.S3ExpressConfiguration",  // s3 express
       "",
 
+      // HADOOP-19330. Stream Leak reporting.
+      "org.apache.hadoop.fs.impl.LeakReporter",
+
+      // CSE encryption
+      "org.apache.hadoop.fs.s3a.impl.CSEMaterials",
+
   };
 
   /**
@@ -696,6 +712,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       STORE_CAPABILITY_MAGIC_COMMITTER,
       S3_SELECT_CAPABILITY,
       STORE_CAPABILITY_S3_EXPRESS_STORAGE,
+      STREAM_LEAKS,
 
       FS_S3A_CREATE_PERFORMANCE,
       FS_S3A_CREATE_PERFORMANCE + ".enabled",
@@ -720,6 +737,14 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
   public static final String KEEP = "keep";
 
   public static final int SECRET_KEY_EXPECTED_LENGTH = 30;
+
+  public static final String DEFAULT_JSSE = "default_jsse";
+
+  public static final String OPEN_SSL = "openssl";
+
+  public static final String DEFAULT = "default";
+
+  public static final String DEFAULT_JSSE_WITH_GCM = "default_jsse_with_gcm";
 
   public S3ADiagnosticsInfo(final URI fsURI, final Printout output) {
     super(fsURI, output);
@@ -904,8 +929,9 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
     printout.heading("Encryption");
 
     String encryption =
-        conf.get(SERVER_SIDE_ENCRYPTION_ALGORITHM, "").trim();
-    String key = conf.get(SERVER_SIDE_ENCRYPTION_KEY, "").trim();
+        conf.getTrimmed(SERVER_SIDE_ENCRYPTION_ALGORITHM, "");
+    String key = conf.getTrimmed(SERVER_SIDE_ENCRYPTION_KEY, "");
+    String csekey = conf.getTrimmed(SERVER_SIDE_ENCRYPTION_KEY, "");
     boolean hasKey = !key.isEmpty();
     switch (encryption) {
 
@@ -953,12 +979,50 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
     // using https.
     boolean sslConnection = conf.getBoolean(SECURE_CONNECTIONS, true);
     boolean pathStyleAccess = conf.getBoolean(PATH_STYLE_ACCESS, false);
+    String channelMode = conf.getTrimmed(CHANNEL_MODE, DEFAULT_JSSE).toLowerCase(Locale.ROOT);
     printout.println("%s = \"%s\"", ENDPOINT, endpoint);
     printout.println("%s = \"%s\"", REGION, region);
     printout.println("%s = \"%s\"", PATH_STYLE_ACCESS, pathStyleAccess);
     printout.println("%s = \"%s\"", SIGNING_ALGORITHM, signing);
     printout.println("%s = \"%s\"", SECURE_CONNECTIONS, sslConnection);
+    printout.println("%s = \"%s\"", CHANNEL_MODE, channelMode);
     printout.println();
+
+    if (sslConnection) {
+      printout.heading("SSL implementation from %s", CHANNEL_MODE);
+
+      printout.println("This option controls whether the JVM or OpenSSL is used for the TLS channel");
+      printout.println("OpenSSL is faster, but requires the wildfly library and OpenSSL installed");
+      printout.println("It is also somewhat brittle; If HTTPS problems are encountered,"
+          + "%ntry switching to %s", DEFAULT_JSSE);
+
+      printout.println("%nSome third party stores and/or proxies require the GCM ciphers."
+          + "%nThese are disabled for performance reasons."
+          + "%nIf TLS negotation errors surface, try using %s", DEFAULT_JSSE_WITH_GCM);
+
+
+      printout.println("%nSSL Channel Mode set from %s is %s:",
+          CHANNEL_MODE, channelMode);
+      // advise on channel mode
+      switch (channelMode) {
+      case DEFAULT:
+        printout.println("This attempts to use OpenSSL, falling back to the JVM");
+        break;
+      case DEFAULT_JSSE:
+        printout.println("This uses the JVM only, with GCM ciphers disabled");
+        break;
+      case DEFAULT_JSSE_WITH_GCM:
+        printout.println("This Uses the JVM only, with GCM enabled");
+        break;
+      case OPEN_SSL:
+        printout.println("This Uses OpenSSL only. This must be available.");
+        break;
+      default:
+        printout.println("unknown");
+      }
+    }
+
+    printout.heading("Endpoint");
 
     boolean isUsingAws = false;
     boolean isUsingV2Signing = SIGNING_V2_ALGORITHM.equals(signing);
@@ -1168,7 +1232,6 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
           printout.println("Connector has access key, secret key and session token");
         }
       }
-
     }
 
     // now print everything fs.s3a.ext, assuming that
@@ -1308,6 +1371,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
         true, "");
 
     printout.subheading("Other options");
+    printout.println();
 
     int bucketProbe = conf.getInt(BUCKET_PROBE, 0);
     hint(printout, bucketProbe > 0,
