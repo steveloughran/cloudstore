@@ -322,6 +322,11 @@ public final class CapabilityKeys {
 
 
   /**
+   * Stream Leak detection (capability and iostat)
+   */
+  public static String STREAM_LEAKS = "stream_leaks";
+
+  /**
    * Stream setReadahead capability implemented by
    * {@code CanSetReadahead#setReadahead(Long)}.
    */
