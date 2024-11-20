@@ -26,6 +26,6 @@ public class regions2 extends Command {
   }
 
   public static void help() {
-    printCommand("regions", "emulate region lookup of AWS SDK");
+    printCommand("regions2", "emulate region lookup of AWS SDK");
   }
 }

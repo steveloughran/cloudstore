@@ -418,7 +418,7 @@
         </property>
       </activation>
       <properties>
-        <hadoop.version>3.4.0</hadoop.version>
+        <hadoop.version>3.4.1</hadoop.version>
       </properties>
       <build>
 

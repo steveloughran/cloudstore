@@ -21,12 +21,11 @@ import org.apache.hadoop.fs.store.commands.Command;
 
 public class bucketmetadata extends Command {
 
-  public static final String NAME = "bucketmetadata";
   public static void main(String[] args) throws Exception {
     BucketMetadata.main(args);
   }
 
   public static void help() {
-    printCommand("regions", "emulate region lookup of AWS SDK");
+    printCommand("bucketmetadata", "retrieve bucket metadata");
   }
 }

@@ -35,7 +35,7 @@ import org.apache.hadoop.util.ToolRunner;
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
 
 /**
- * Debug buckeck info settings; v2 sdk
+ * Debug bucket settings; v2 sdk
  */
 public class BucketMetadata extends StoreEntryPoint {
 
