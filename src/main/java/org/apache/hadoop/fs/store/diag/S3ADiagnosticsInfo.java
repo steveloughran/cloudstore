@@ -180,6 +180,8 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
 
   public static final String BULK_DELETE_PAGE_SIZE = "fs.s3a.bulk.delete.page.size";
 
+  public static final int BULK_DELETE_PAGE_SIZE_DEFAULT = 250;
+
   public static final String CONNECTION_SSL_ENABLED = "fs.s3a.connection.ssl.enabled";
 
   public static final String SERVER_SIDE_ENCRYPTION_ALGORITHM =
@@ -278,6 +280,8 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
 
   public static final String CHANNEL_MODE = "fs.s3a.ssl.channel.mode";
 
+  public static final String MULTIOBJECTDELETE_ENABLE = "fs.s3a.multiobjectdelete.enable";
+
   private static final Object[][] options = {
       /* Core auth */
       {ACCESS_KEY, true, true},
@@ -340,7 +344,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {DISABLE_CACHE, false, false},
       {"fs.s3a.list.version", false, false},
       {"fs.s3a.max.total.tasks", false, false},
-      {"fs.s3a.multiobjectdelete.enable", false, false},
+      {MULTIOBJECTDELETE_ENABLE, false, false},
       {FS_S3A_MULTIPART_SIZE, false, false},
       {MULTIPART_UPLOADS_ENABLED, false, false},
       {MULTIPART_PURGE, false, false},
@@ -1370,7 +1374,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
         requestTimeout,
         true, "");
 
-    printout.subheading("Other options");
+    printout.subheading("Misc options");
     printout.println();
 
     int bucketProbe = conf.getInt(BUCKET_PROBE, 0);
@@ -1390,6 +1394,23 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
 
     reviewReadPolicy(printout, conf);
 
+    printout.subheading("Bulk Delete behavior");
+    boolean multi = conf.getBoolean(MULTIOBJECTDELETE_ENABLE, true);
+    int pageSize = conf.getInt(BULK_DELETE_PAGE_SIZE, BULK_DELETE_PAGE_SIZE_DEFAULT);
+    printout.println("%s = %s", MULTIOBJECTDELETE_ENABLE, multi);
+    printout.println("%s = %d", BULK_DELETE_PAGE_SIZE, pageSize);
+    printout.println();
+    if (multi) {
+      printout.println("Multi object delete is enabled; page size is %d", pageSize);
+      hint(printout, pageSize > 500,
+          "The page size is > 500. This is dangerous on heavily loaded stores\n"
+              + "See HADOOP-16823. Large DeleteObject requests are their own Thundering Herd");
+      hint(printout, pageSize < 100,
+          "The page size is <100. This will slow down renames, deletes and other bulk operations.");
+    } else {
+      printout.println("Multi object delete is disabled.");
+      printout.println("This should only be done when working with third party stores.");
+    }
   }
 
   /**
@@ -1400,7 +1421,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
     // look at seek policy and warn of risks
     final String fadvise =
         conf.getTrimmed(INPUT_FADVISE, INPUT_FADV_NORMAL);
-    printout.heading("Seek policy: %s", fadvise);
+    printout.subheading("Seek policy: %s", fadvise);
     switch (fadvise) {
     case INPUT_FADV_NORMAL:
     case OptionSets.EnhancedOpenFileOptions.FS_OPTION_OPENFILE_READ_POLICY_ADAPTIVE:

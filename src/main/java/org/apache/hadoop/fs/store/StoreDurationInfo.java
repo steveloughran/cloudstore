@@ -29,7 +29,7 @@ import org.slf4j.Logger;
  * This allows it to be used in a try-with-resources clause, and have the
  * duration automatically logged.
  *
- * Base on the S3A one; adds an empty constructor which doesn't do
+ * Based on the hadoop one; adds an empty constructor which doesn't do
  * any logging.
  */
 public class StoreDurationInfo

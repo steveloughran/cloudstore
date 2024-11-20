@@ -123,6 +123,12 @@ Retrieves metadata from an S3 Bucket (v2 SDK only) by probing the store.
 
 See [bucketmetadata](src/main/site/bucketmetadata.md) for details.
 
+## Command `bulkdelete`
+
+Retrieves metadata from an S3 Bucket (v2 SDK only) by probing the store.
+
+See [bucketmetadata](src/main/site/bulkdelete.md) for details.
+
 ## Command `cloudup` -upload and download files; optimised for cloud storage 
 
 See [cloudup](src/main/site/cloudup.md)

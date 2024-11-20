@@ -67,6 +67,9 @@ public final class CommonParameters {
 
   public static final String CSVFILE = "csv";
 
+  public static final String DEBUG = "debug";
+
+  public static final String DEBUG_USAGE = "debug with extra logging";
   public static final String FLUSH = "flush";
 
   public static final String HFLUSH = "hflush";
@@ -77,11 +80,10 @@ public final class CommonParameters {
 
   public static final String OVERWRITE = "overwrite";
 
+  public static final String PAGE = "page";
+
   public static final String UPDATE = "update";
 
-  public static final String DEBUG = "debug";
-
-  public static final String DEBUG_USAGE = "debug with extra logging";
 
   private CommonParameters() {
   }

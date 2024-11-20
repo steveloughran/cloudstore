@@ -608,7 +608,6 @@ public class StoreDiagnosticsInfo {
       return true;
     }
     // work out the origin
-
     String source = getOrigins(conf, option, "");
     // if set, check the value
     long val = conf.getLong(option, 0);

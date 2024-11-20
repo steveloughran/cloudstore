@@ -20,7 +20,7 @@ package org.apache.hadoop.fs.store.commands;
 
 /**
  * Environment/property entry, with
- * methods to convert to a given format,
+ * methods to convert to a given format.
  */
 public class EnvEntry {
   final String name;

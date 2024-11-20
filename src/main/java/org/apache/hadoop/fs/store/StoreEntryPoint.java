@@ -650,7 +650,7 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
 
     maybeAddXMLFileOption(conf);
     maybePatchDefined(conf, DEFINE);
-    conf.set(IOSTATISTICS_LOGGING_LEVEL, "info");
+    // conf.set(IOSTATISTICS_LOGGING_LEVEL, "info");
 
     return conf;
   }

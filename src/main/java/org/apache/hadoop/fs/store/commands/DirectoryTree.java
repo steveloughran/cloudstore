@@ -77,8 +77,7 @@ public class DirectoryTree extends StoreEntryPoint {
     List<String> paths = processArgs(args, 1, 1, USAGE);
     final Configuration conf = createPreconfiguredConfig();
 
-    int threads = getOptional(THREADS).map(Integer::valueOf).orElse(
-        DEFAULT_THREADS);
+    int threads = getIntOption(THREADS, DEFAULT_THREADS);
 
     final Path source = new Path(paths.get(0));
     heading("Deleting __temporary directories under %s with thread count %d",

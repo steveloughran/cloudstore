@@ -75,6 +75,7 @@ public class help extends Command {
     println("========================");
     println("");
     printCommand("bucketmetadata", "Print bucket metadata from store");
+    printCommand("bulkdelete", "bulk delete objects/files");
     printCommand("regions2", "emulate region lookup of AWS v2 SDK");
     println("");
     println("See https://github.com/steveloughran/cloudstore");

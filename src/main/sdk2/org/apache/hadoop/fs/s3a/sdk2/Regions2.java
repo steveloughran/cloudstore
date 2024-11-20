@@ -53,12 +53,7 @@ public class Regions2 extends StoreEntryPoint {
 
   @Override
   public int run(String[] args) throws Exception {
-    List<String> paths = parseArgs(args);
-    if (!paths.isEmpty()) {
-      errorln(USAGE);
-      return E_USAGE;
-    }
-
+    processArgs(args, 0, 0, USAGE);
     heading("Determining AWS region for SDK clients");
     println("This uses same region resolution chain and ordering as in the AWS client.");
 
