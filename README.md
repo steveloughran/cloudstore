@@ -125,9 +125,11 @@ See [bucketmetadata](src/main/site/bucketmetadata.md) for details.
 
 ## Command `bulkdelete`
 
-Retrieves metadata from an S3 Bucket (v2 SDK only) by probing the store.
+Performs a bulk delete of files from a store, with higher performance
+against some stores (S3).
+Requires hadoop libraries with the 2024 bulk delete API (hadoop 3.4.1+).
 
-See [bucketmetadata](src/main/site/bulkdelete.md) for details.
+See [bulkdelete](src/main/site/bulkdelete.md) for details.
 
 ## Command `cloudup` -upload and download files; optimised for cloud storage 
 
