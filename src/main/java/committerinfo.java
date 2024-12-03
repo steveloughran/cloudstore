@@ -18,7 +18,6 @@
 
 import org.apache.hadoop.fs.store.commands.Command;
 import org.apache.hadoop.fs.store.commands.CommitterInfo;
-import org.apache.hadoop.fs.store.commands.LocateFiles;
 
 public class committerinfo extends Command {
 

@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.apache.hadoop.fs.gs;
 
 import java.io.Reader;
@@ -32,11 +33,7 @@ import org.apache.hadoop.service.launcher.LauncherExitCodes;
 import org.apache.hadoop.util.ToolRunner;
 
 import static com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystemConfiguration.GCS_CONFIG_PREFIX;
-import static org.apache.hadoop.fs.store.CommonParameters.DEFINE;
 import static org.apache.hadoop.fs.store.CommonParameters.STANDARD_OPTS;
-import static org.apache.hadoop.fs.store.CommonParameters.TOKENFILE;
-import static org.apache.hadoop.fs.store.CommonParameters.VERBOSE;
-import static org.apache.hadoop.fs.store.CommonParameters.XMLFILE;
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
 import static org.apache.hadoop.fs.store.diag.GCSDiagnosticsInfo.SERVICE_ACCOUNT_PRIVATE_KEY;
 
@@ -59,6 +56,7 @@ public class GsCredDiag extends StoreEntryPoint {
   /** Manage your data and permissions in Google Cloud Storage. */
   public static final String DEVSTORAGE_FULL_CONTROL
       = "https://www.googleapis.com/auth/devstorage.full_control";
+
   public static final String USAGE
       = "Usage: gcscreds\n"
       + STANDARD_OPTS

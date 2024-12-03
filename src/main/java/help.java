@@ -33,6 +33,7 @@ public class help extends Command {
     println("");
     bandwidth.help();
     cloudup.help();
+    committerinfo.help();
     constval.help();
     distcpdiag.help();
     dux.help();
@@ -57,7 +58,6 @@ public class help extends Command {
     println("%nS3A connector builds using the V2 AWS SDK will fail to load required classes");
     println("");
     printCommand("bucketstate", "prints the AWS bucket state");
-    printCommand("committerinfo", "Print committer information");
     printCommand("deleteobject", "Delete an S3 object");
     printCommand("gcscreds", "credential diagnostics for GCS. Warning: logs secrets");
     printCommand("iampolicy", "generate AWS IAM policy");
