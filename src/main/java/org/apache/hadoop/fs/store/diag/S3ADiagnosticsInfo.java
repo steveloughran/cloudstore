@@ -240,6 +240,15 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
 
   public static final String CONNECTION_ESTABLISH_TIMEOUT = "fs.s3a.connection.establish.timeout";
 
+  /**
+   * Should PUT requests await a 100 CONTINUE responses before uploading
+   * data?
+   * <p>
+   * Value: {@value}.
+   */
+  public static final String CONNECTION_EXPECT_CONTINUE =
+      "fs.s3a.connection.expect.continue";
+
   public static final String CONNECTION_IDLE_TIME =
       "fs.s3a.connection.idle.time";
 
@@ -320,6 +329,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {FS_S3A_CONNECTION_MAXIMUM, false, false},
       {CONNECTION_ACQUISITION_TIMEOUT, false, false},
       {CONNECTION_ESTABLISH_TIMEOUT, false, false},
+      {CONNECTION_EXPECT_CONTINUE, false, false},
       {CONNECTION_IDLE_TIME, false, false},
       {CONNECTION_PART_UPLOAD_TIMEOUT, false, false},
       {CONNECTION_REQUEST_TIMEOUT, false, false},
@@ -481,7 +491,6 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"AWS_ROLE_SESSION_NAME", false},
       {"AWS_S3_US_EAST_1_REGIONAL_ENDPOINT", false},
       {"AWS_WEB_IDENTITY_TOKEN_FILE", false},
-      {"", false},
       {"", false},
   };
 
