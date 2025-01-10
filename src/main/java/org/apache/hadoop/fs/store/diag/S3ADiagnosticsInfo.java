@@ -490,6 +490,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"AWS_ROLE_ARN", false},
       {"AWS_ROLE_SESSION_NAME", false},
       {"AWS_S3_US_EAST_1_REGIONAL_ENDPOINT", false},
+      {"AWS_SHARED_CREDENTIALS_FILE", false},   // supercedes AWS_CONFIG_FILE
       {"AWS_WEB_IDENTITY_TOKEN_FILE", false},
       {"", false},
   };
@@ -570,6 +571,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"com.amazonaws.services.s3.enforceV4", false},
 
       {"org.wildfly.openssl.path", false},
+      {"org.wildfly.openssl.libwfssl.path", false},
 
       // v2 options
       {"software.amazon.awssdk.http.service.impl", false},
@@ -1006,6 +1008,8 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
 
       printout.println("This option controls whether the JVM or OpenSSL is used for the TLS channel");
       printout.println("OpenSSL is faster, but requires the wildfly library and OpenSSL installed");
+      printout.println("See: https://github.com/wildfly-security/wildfly-openssl/blob/main/README.md#installing-the-native-library");
+
       printout.println("It is also somewhat brittle; If HTTPS problems are encountered,"
           + "%ntry switching to %s", DEFAULT_JSSE);
 
