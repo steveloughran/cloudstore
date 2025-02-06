@@ -484,13 +484,13 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"AWS_JAVA_V1_PRINT_LOCATION", false},
       {"AWS_MAX_ATTEMPTS", false},
       {"AWS_METADATA_SERVICE_TIMEOUT", false},
-      {"AWS_METADATA_SERVICE_TIMEOUT", false},
       {"AWS_PROFILE", false},
       {"AWS_RETRY_MODE", false},
       {"AWS_ROLE_ARN", false},
       {"AWS_ROLE_SESSION_NAME", false},
       {"AWS_S3_US_EAST_1_REGIONAL_ENDPOINT", false},
       {"AWS_SHARED_CREDENTIALS_FILE", false},   // supercedes AWS_CONFIG_FILE
+      {"AWS_USE_FIPS_ENDPOINT", false},
       {"AWS_WEB_IDENTITY_TOKEN_FILE", false},
       {"", false},
   };

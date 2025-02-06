@@ -26,7 +26,7 @@ tree but it is not part of the apache hadoop artifacts.
    into Hadoop-trunk.
 2. Fewer test requirements. This is naughty, but as much of this code is written
    in a hurry to diagnose problems on remote sites, problems which are hard to test,
-   it is undertested.
+   it is under-tested.
 3. Ability to compile against older versions. We've currently switched to Hadoop 3.3+
    due to the need to make API calls and operations not in older versions.
 
@@ -64,7 +64,6 @@ primarily due to authentication, classpath and network settings
 * [Building](./BUILDING.md)
 
 
-
 # Commands
 
 ## Common arguments
@@ -78,12 +77,12 @@ There are a set of arguments common to all commands
 -xmlfile <file>         XML config file to load
 ```
 
-### `-D &lt;key=value>` Define a single Hadoop configuration option
+### `-D <key=value>` Define a single Hadoop configuration option
 
 Define a single hadoop option.
 For defining multiple options, use `-xmlfile`
 
-### -sysprops &lt<file>: Java system properties to set
+### `-sysprops <file>`: Java system properties to set
 
 This loads a Java properties file containing java system
 properties as key=value pairs. Each of these
@@ -91,14 +90,13 @@ sets the named java system property.
 
 Blank lines and comment lines beginning with `#` are ignored.
 
-
-### `-tokenfile -tokenfile &lt;file>` : Load hadoop tokens
+### `-tokenfile -tokenfile <file>` : Load hadoop tokens
 
 The `--tokenfile` option loads tokens saved with `hdfs fetchdt`. It does
 not need Kerberos, though most filesystems expect Kerberos enabled for
 them to pick up tokens (not S3A, potentially other stores).
 
-### -xmlfile &lt<file>: XML configuration file to load
+### `-xmlfile <file>`: XML configuration file to load
 
 This loads a hadoop configuration file and adds its values to
 the Hadoop configuration used in the command.
@@ -299,7 +297,7 @@ Probes a filesystem for offering a specific named capability on the given path.
 
 Requires a version of Hadoop with the `PathCapabilities` interface, which includes Hadoop 3.3 onwards.
 
-```
+```bash
 bin/hadoop jar cloudstore-1.0.jar pathcapability
 Usage: pathcapability [options] <capability> <path>
     -D <key=value> Define a property
@@ -390,11 +388,11 @@ Certificates from the default certificate manager
 
 ```
 
-## V1 SDK commands
+## AWS V1 SDK commands
 
 See [Cloudstore support for AWS V1 SDK](src/main/site/sdkv1.md).
 
-## V2 SDK commands
+## AWS V2 SDK commands
 
 See [Cloudstore support for AWS V2 SDK](src/main/site/sdkv2.md).
 
