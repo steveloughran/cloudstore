@@ -74,6 +74,8 @@ There are a set of arguments common to all commands
 -sysprops <file>        Java system properties to set
 -tokenfile <file>       Hadoop token file to load
 -verbose                Verbose output
+-debug                  Extra debug logs (JVM and Log4j overrides)
+-logoverrides <file>    A newline separated list of packages and classes for Log4j overrides
 -xmlfile <file>         XML config file to load
 ```
 
