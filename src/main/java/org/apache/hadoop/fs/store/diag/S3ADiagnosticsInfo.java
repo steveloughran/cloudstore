@@ -291,6 +291,12 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
 
   public static final String MULTIOBJECTDELETE_ENABLE = "fs.s3a.multiobjectdelete.enable";
 
+
+  /**
+   * Input stream type: {@value}.
+   */
+  public static final String INPUT_STREAM_TYPE = "fs.s3a.input.stream.type";
+
   private static final Object[][] options = {
       /* Core auth */
       {ACCESS_KEY, true, true},
@@ -352,6 +358,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {FS_S3A_FAST_UPLOAD_BUFFER, false, false},
       {FS_S3A_FAST_UPLOAD_ACTIVE_BLOCKS, false, false},
       {DISABLE_CACHE, false, false},
+      {INPUT_STREAM_TYPE, false, false},  // stream factory
       {"fs.s3a.list.version", false, false},
       {"fs.s3a.max.total.tasks", false, false},
       {MULTIOBJECTDELETE_ENABLE, false, false},
@@ -735,6 +742,10 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       DIRECTORY_OPERATIONS_PURGE_UPLOADS,
       ENDPOINT_FIPS,
       OPTIMIZED_COPY_FROM_LOCAL,
+
+      INPUT_STREAM_TYPE + ".classic",
+      INPUT_STREAM_TYPE + ".prefetching",
+      INPUT_STREAM_TYPE + ".analytics",
 
       // hboss if wrapped by it
       CAPABILITY_HBOSS
@@ -1254,6 +1265,9 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
     // now print everything fs.s3a.ext, assuming that
     // there are no secrets in it. Don't do that.
     printPrefixedOptions(printout, conf, "fs.s3a.ext.");
+
+    // analytics accelerator options
+    printPrefixedOptions(printout, conf, "fs.s3a.analytics.accelerator.");
   }
 
   @Override

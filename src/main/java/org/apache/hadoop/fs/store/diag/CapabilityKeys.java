@@ -312,48 +312,48 @@ public final class CapabilityKeys {
   /**
    * IOStatisticsSource API.
    */
-  public static String IOSTATISTICS = "iostatistics";
+  public static final String IOSTATISTICS = "iostatistics";
 
   /**
    * Support for vectored IO api.
    * See {@code PositionedReadable#readVectored(List, IntFunction)}.
    */
-  public static String VECTOREDIO = "in:readvectored";
+  public static final String VECTOREDIO = "in:readvectored";
 
 
   /**
    * Stream Leak detection (capability and iostat)
    */
-  public static String STREAM_LEAKS = "stream_leaks";
+  public static final String STREAM_LEAKS = "stream_leaks";
 
   /**
    * Stream setReadahead capability implemented by
    * {@code CanSetReadahead#setReadahead(Long)}.
    */
-  public static String READAHEAD = "in:readahead";
+  public static final String READAHEAD = "in:readahead";
 
   /**
    * Stream setDropBehind capability implemented by
    * {@code CanSetDropBehind#setDropBehind(Boolean)}.
    */
-  public static String DROPBEHIND = "dropbehind";
+  public static final String DROPBEHIND = "dropbehind";
 
   /**
    * Stream unbuffer capability implemented by {@code CanUnbuffer#unbuffer()}.
    */
-  public static String UNBUFFER = "in:unbuffer";
+  public static final String UNBUFFER = "in:unbuffer";
 
   /**
    * Stream read(ByteBuffer) capability implemented by
    * {@code ByteBufferReadable#read(java.nio.ByteBuffer)}.
    */
-  public static String READBYTEBUFFER = "in:readbytebuffer";
+  public static final String READBYTEBUFFER = "in:readbytebuffer";
 
   /**
    * Stream read(long, ByteBuffer) capability implemented by
    * {@code ByteBufferPositionedReadable#read(long, java.nio.ByteBuffer)}.
    */
-  public static String PREADBYTEBUFFER = "in:preadbytebuffer";
+  public static final String PREADBYTEBUFFER = "in:preadbytebuffer";
 
   /**
    * Stream hflush capability implemented by {@code Syncable#hflush()}.
@@ -362,17 +362,17 @@ public final class CapabilityKeys {
    * it's that presence of {@code hsync()} which matters.
    */
   @Deprecated
-  public static String HFLUSH = "hflush";
+  public static final String HFLUSH = "hflush";
 
   /**
    * Stream hsync capability implemented by {@code Syncable#hsync()}.
    */
-  public static String HSYNC = "hsync";
+  public static final String HSYNC = "hsync";
 
   /**
    * Set of input/output stream capabilities to scan for.
    */
-  public static String[] INPUTSTREAM_CAPABILITIES = {
+  public static final String[] INPUTSTREAM_CAPABILITIES = {
       DROPBEHIND,
       IOSTATISTICS,
       IOSTATISTICS_CONTEXT,
@@ -387,7 +387,7 @@ public final class CapabilityKeys {
   /**
    * Set of input/output stream capabilities to scan for.
    */
-  public static String[] OUTPUTSTREAM_CAPABILITIES = {
+  public static final String[] OUTPUTSTREAM_CAPABILITIES = {
       ABORTABLE_STREAM,
       HFLUSH,
       HSYNC,
