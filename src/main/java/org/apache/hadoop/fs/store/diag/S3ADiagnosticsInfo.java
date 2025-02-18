@@ -357,8 +357,8 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.s3a.fast.buffer.size", false, false},
       {FS_S3A_FAST_UPLOAD_BUFFER, false, false},
       {FS_S3A_FAST_UPLOAD_ACTIVE_BLOCKS, false, false},
-      {DISABLE_CACHE, false, false},
-      {INPUT_STREAM_TYPE, false, false},  // stream factory
+      {DISABLE_CACHE, false, false},            // disable filesystem caching
+      {INPUT_STREAM_TYPE, false, false},        // stream factory
       {"fs.s3a.list.version", false, false},
       {"fs.s3a.max.total.tasks", false, false},
       {MULTIOBJECTDELETE_ENABLE, false, false},
@@ -1108,7 +1108,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       if (isIpv4) {
         printout.println("endpoint appears to be an IPv4 network address");
         if (sslConnection) {
-          printout.warn("HTTPS and Dotted network addresses rarely work");
+          printout.warn("HTTPS and dotted network addresses rarely work");
         }
       }
       if (pathStyleAccess) {
@@ -1130,9 +1130,6 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
         printout.warn("Path style access is disabled"
             + " this is not the normal setting for third party stores.");
         printout.println("It requires DNS to resolve all bucket hostnames");
-        if (privateLink) {
-          printout.error("This does not work with AWS PrivateLink");
-        }
         if (isIpv4) {
           printout.warn("As the endpoint is an IP address, constructed hostnames unlikely to work");
         }
@@ -1146,6 +1143,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       if (region.isEmpty()) {
         printout.println("For reliable signing and performance the AWS region SHOULD be set in %s",
             REGION);
+        printout.warn("if the network configuration prevents this client from accessing us-east region, the store will not be accessible");
       }
 
     }
@@ -1200,7 +1198,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
             + " TLS certificate includes multiple wildcards");
       }
       printout.warn(
-          "If you are using a fully qualified domain name as the bucket name *this doesn't work");
+          "If you are using a fully qualified domain name as the bucket name *this doesn't work*");
       int l = 1;
       printout.println("%d. Set " + ENDPOINT + " to the endpoint/S3 host", l++);
       printout.warn("%d. Use the bucket name in the s3a URL", l++);
