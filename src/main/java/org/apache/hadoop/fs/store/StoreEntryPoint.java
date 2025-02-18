@@ -24,6 +24,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.net.MalformedURLException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -35,6 +37,8 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.LogManager;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,7 +70,7 @@ import static org.apache.hadoop.fs.store.CommonParameters.SYSPROPS;
 import static org.apache.hadoop.fs.store.CommonParameters.TOKENFILE;
 import static org.apache.hadoop.fs.store.CommonParameters.VERBOSE;
 import static org.apache.hadoop.fs.store.CommonParameters.XMLFILE;
-import static org.apache.hadoop.fs.store.StoreDiagConstants.IOSTATISTICS_LOGGING_LEVEL;
+import static org.apache.hadoop.fs.store.CommonParameters.LOG_OVERRIDES;
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
 import static org.apache.hadoop.fs.store.StoreUtils.split;
 import static org.apache.hadoop.fs.store.diag.OptionSets.CLOUD_CONNECTOR_LOGS;
@@ -257,12 +261,8 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
   @Override
   public final void debug(String format, Object... args) {
     LOG.debug(format, args);
-/*
-    if (LOG.isDebugEnabled()) {
-      println(format, args);
-    }
-*/
   }
+
   protected static void exit(int status, String text) {
     ExitUtil.terminate(status, text);
   }
@@ -303,12 +303,12 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
    * Add the standard value options; subclasses can remove any.
    */
   protected void addStandardValueOptions() {
-
     addValueOptions(
         DEFINE,
         SYSPROPS,
         TOKENFILE,
-        XMLFILE);
+        XMLFILE,
+        LOG_OVERRIDES);
   }
 
   /**
@@ -374,10 +374,30 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
     if (hasOption(DEBUG)) {
       println("Enabling debug logging");
       enableJvmLogging();
-      enableCloudConnectorLogging(LogControl.LogLevel.DEBUG);
+      enableCloudConnectorLogging(getLogOverrides(), LogControl.LogLevel.DEBUG);
     }
   }
 
+  /**
+   * Reads the logoverrides files if specified, fallbacks to CLOUD_CONNECTOR_LOGS otherwise.
+   *
+   * @return a list of package and class names
+   */
+  protected List<String> getLogOverrides() {
+    String customLogLevelFile = getOption(LOG_OVERRIDES);
+    if (customLogLevelFile != null) {
+      try (Stream<String> stream = Files.lines(Paths.get(customLogLevelFile))) {
+        return stream
+                .map(String::trim)
+                .filter(line -> !line.startsWith("#"))
+                .filter(line -> !line.isEmpty())
+                .collect(Collectors.toList());
+      } catch (IOException e) {
+        println("could not read logoverrides file='%s' error='%s'", customLogLevelFile, e.getMessage());
+      }
+    }
+    return Arrays.asList(CLOUD_CONNECTOR_LOGS);
+  }
 
   /**
    * Enable JVM logging.
@@ -395,12 +415,10 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
    * Enable cloud connector logging.
    * @param level desired level
    */
-  protected void enableCloudConnectorLogging(LogControl.LogLevel level) {
+  protected void enableCloudConnectorLogging(List<String> customLogs, LogControl.LogLevel level) {
     final Optional<LogControl> control =
         LogControllerFactory.createController(LogControllerFactory.LOG4J);
-    control.ifPresent(c ->
-        Arrays.stream(CLOUD_CONNECTOR_LOGS).forEach(
-            log -> c.setLogLevel(log, level)));
+    control.ifPresent(c -> customLogs.forEach(log -> c.setLogLevel(log, level)));
   }
 
   /**

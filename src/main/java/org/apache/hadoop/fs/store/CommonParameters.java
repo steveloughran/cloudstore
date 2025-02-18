@@ -40,6 +40,12 @@ public final class CommonParameters {
   /** {@value}. */
   public static final String VERBOSE = "verbose";
 
+  /** {@value}. */
+  public static final String DEBUG = "debug";
+
+  /** {@value}. */
+  public static final String LOG_OVERRIDES = "logoverrides";
+
   /**
    * Standard options of all entry points.
    */
@@ -48,7 +54,10 @@ public final class CommonParameters {
           + optusage(SYSPROPS, "file", "Property file of system properties")
           + optusage(TOKENFILE, "file", "Hadoop token file to load")
           + optusage(XMLFILE, "file", "XML config file to load")
-          + optusage(VERBOSE, "verbose output");
+          + optusage(VERBOSE, "verbose output")
+          + optusage(DEBUG, "enable JVM logs (ALL) and override log4j levels (DEBUG) on specified packages or classes")
+          + optusage(LOG_OVERRIDES, "file", "A newline separated list of package and class names")
+          ;
 
   /**
    * File for log4j properties: {@value}.
@@ -67,9 +76,6 @@ public final class CommonParameters {
 
   public static final String CSVFILE = "csv";
 
-  public static final String DEBUG = "debug";
-
-  public static final String DEBUG_USAGE = "debug with extra logging";
   public static final String FLUSH = "flush";
 
   public static final String HFLUSH = "hflush";
