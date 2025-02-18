@@ -37,6 +37,8 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.LogManager;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -384,8 +386,11 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
   protected List<String> getLogOverrides() {
     String customLogLevelFile = getOption(LOG_OVERRIDES);
     if (customLogLevelFile != null) {
-      try {
-        return Files.readAllLines(Paths.get(customLogLevelFile));
+      try (Stream<String> stream = Files.lines(Paths.get(customLogLevelFile))) {
+        return stream
+                .map(String::trim)
+                .filter(line -> !line.startsWith("#"))
+                .collect(Collectors.toList());
       } catch (IOException e) {
         println("could not read logoverrides file='%s' error='%s'", customLogLevelFile, e.getMessage());
       }
