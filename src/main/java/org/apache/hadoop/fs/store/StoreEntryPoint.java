@@ -390,6 +390,7 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
         return stream
                 .map(String::trim)
                 .filter(line -> !line.startsWith("#"))
+                .filter(line -> !line.isEmpty())
                 .collect(Collectors.toList());
       } catch (IOException e) {
         println("could not read logoverrides file='%s' error='%s'", customLogLevelFile, e.getMessage());
