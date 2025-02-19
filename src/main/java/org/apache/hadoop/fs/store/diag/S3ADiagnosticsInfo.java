@@ -62,6 +62,7 @@ import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_MU
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_S3_EXPRESS_STORAGE;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STREAM_LEAKS;
 import static org.apache.hadoop.fs.store.diag.DiagUtils.isIpV4String;
+import static org.apache.hadoop.fs.store.diag.DiagnosticsEntryPoint.toURI;
 import static org.apache.hadoop.fs.store.diag.HBossConstants.CAPABILITY_HBOSS;
 import static org.apache.hadoop.fs.store.diag.OptionSets.HTTP_CLIENT_RESOURCES;
 import static org.apache.hadoop.fs.store.diag.OptionSets.JAVA_NET_SYSPROPS;
@@ -297,6 +298,8 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
    */
   public static final String INPUT_STREAM_TYPE = "fs.s3a.input.stream.type";
 
+  public static final String CROSS_REGION_ACCESS_ENABLED = "fs.s3a.cross.region.access.enabled";
+
   private static final Object[][] options = {
       /* Core auth */
       {ACCESS_KEY, true, true},
@@ -343,7 +346,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {CONNECTION_TTL, false, false},
       {"fs.s3a.create.performance", false, false},
       {"fs.s3a.create.storage.class", false, false},
-      {"fs.s3a.cross.region.access.enabled", false, false},
+      {CROSS_REGION_ACCESS_ENABLED, false, false},
       {"fs.s3a.custom.signers", false, false},
       {DIRECTORY_OPERATIONS_PURGE_UPLOADS, false, false},
       {DIRECTORY_MARKER_RETENTION, false, false},
@@ -872,6 +875,8 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
         endpoint.startsWith("http:") || endpoint.startsWith("https:");
     String scheme = secureConnections ? "https" : "http";
     if (pathStyleAccess) {
+      // path style access, so full bucket url is a path under
+      // the endpoint.
       getOutput().println("Enabling path style access");
       if (endpointIsUrl) {
         bucketURI = String.format("%s/%s", endpoint, bucket);
@@ -879,6 +884,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
         bucketURI = String.format("%s://%s/%s", scheme, endpoint, bucket);
       }
     } else {
+      // virtual host access
       if (endpointIsUrl) {
         getOutput().warn(
             "Endpoint %s is a URL; using bucket-hostname access isn't going to work"
@@ -890,24 +896,34 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       bucketURI = String.format("%s://%s/", scheme, fqdn);
     }
     List<URI> uris = new ArrayList<>(3);
-    uris.add(StoreDiag.toURI("Bucket URI", bucketURI));
+    uris.add(toURI("Bucket URI", bucketURI));
+
+
     // If the STS endpoints is set, work out the URI
     final String sts = conf.get(ASSUMED_ROLE_STS_ENDPOINT, "");
     if (!sts.isEmpty()) {
-      uris.add(StoreDiag.toURI(ASSUMED_ROLE_STS_ENDPOINT,
+      uris.add(toURI(ASSUMED_ROLE_STS_ENDPOINT,
           String.format("https://%s/", sts)));
     }
     return uris;
   }
 
-/*  @Override
   public List<URI> listOptionalEndpointsToProbe(final Configuration conf)
       throws IOException, URISyntaxException {
-    List<URI> l = new ArrayList<>(0);
-    l.add(new URI("http://169.254.169.254"));
-    return l;
+    List<URI> uris = new ArrayList<>(0);
+
+    if (conf.getTrimmed(ENDPOINT, "").isEmpty()
+        && conf.getTrimmed(REGION, "").isEmpty()
+        && conf.getBoolean(CROSS_REGION_ACCESS_ENABLED, true)) {
+
+      // the region is not known, so will hit us central
+      // add that
+      uris.add(toURI("cross resolution endpoint",
+          "https://us-east-1.s3.amazonaws.com//"));
+    }
+
+    return uris;
   }
-  */
 
   private boolean warnIfOptionAlsoSetInEnvVar(
       final Printout printout,
@@ -1005,9 +1021,11 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
     // using https.
     boolean sslConnection = conf.getBoolean(SECURE_CONNECTIONS, true);
     boolean pathStyleAccess = conf.getBoolean(PATH_STYLE_ACCESS, false);
+    boolean crossRegionAccess = conf.getBoolean(CROSS_REGION_ACCESS_ENABLED, true);
     String channelMode = conf.getTrimmed(CHANNEL_MODE, DEFAULT_JSSE).toLowerCase(Locale.ROOT);
     printout.println("%s = \"%s\"", ENDPOINT, endpoint);
     printout.println("%s = \"%s\"", REGION, region);
+    printout.println("%s = \"%s\"", CROSS_REGION_ACCESS_ENABLED, crossRegionAccess);
     printout.println("%s = \"%s\"", PATH_STYLE_ACCESS, pathStyleAccess);
     printout.println("%s = \"%s\"", SIGNING_ALGORITHM, signing);
     printout.println("%s = \"%s\"", SECURE_CONNECTIONS, sslConnection);
@@ -1040,10 +1058,10 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
         printout.println("This uses the JVM only, with GCM ciphers disabled");
         break;
       case DEFAULT_JSSE_WITH_GCM:
-        printout.println("This Uses the JVM only, with GCM enabled");
+        printout.println("This uses the JVM only, with GCM enabled");
         break;
       case OPEN_SSL:
-        printout.println("This Uses OpenSSL only. This must be available.");
+        printout.println("This uses OpenSSL only. This must be available.");
         break;
       default:
         printout.println("unknown");
@@ -1058,14 +1076,22 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
     if (endpoint.isEmpty()) {
       isUsingAws = true;
       if (region.isEmpty()) {
-        printout.println("- Central us-east endpoint will be used. "
-            + "When not executing within EC2, this is less efficient for buckets in other regions");
+        printout.println(
+              "Central/us-east endpoint will be used first.\n"
+            + "  -This is inefficient for buckets in other regions.\n"
+            + "  -If network rules prevent access to the central endpoint,\n"
+            + "   operations may fail");
+        if (!crossRegionAccess) {
+          printout.println(
+                    "Cross-region access is disabled\n"
+                  + " -redirection to other regions may fail");
+        }
       } else {
-        printout.println("-AWS Endpoint is not declared, but the region is defined"
-            + " -the S3 client will use the region-specific endpoint");
+        printout.println("AWS Endpoint is not declared, but the region is defined.\n"
+            + "  -the S3 client will use the region-specific endpoint");
       }
       if (bucket.contains(".")) {
-        printout.warn("The S3 bucket looks like a domain name but the client is using AWS us-east");
+        printout.warn("The S3 bucket looks like a domain name -but the client is using AWS us-east-1");
         printout.warn("Set " + ENDPOINT + " to the endpoint,"
             + " tune " + PATH_STYLE_ACCESS
             + " and " + SECURE_CONNECTIONS + " as appropriate");
