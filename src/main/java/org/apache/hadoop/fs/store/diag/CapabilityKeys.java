@@ -277,7 +277,7 @@ public final class CapabilityKeys {
    * Streams that support IOStatistics context and capture thread-level
    * IOStatistics.
    */
-  public static String IOSTATISTICS_CONTEXT = "fs.capability.iocontext.supported";
+  public static final String IOSTATISTICS_CONTEXT = "fs.capability.iocontext.supported";
 
   /**
    * Is the higher performance copy from local file to S3 enabled?
@@ -379,6 +379,7 @@ public final class CapabilityKeys {
       PREADBYTEBUFFER,
       READAHEAD,
       READBYTEBUFFER,
+      STREAM_LEAKS,
       UNBUFFER,
       VECTOREDIO,
       FS_AZURE_CAPABILITY_READAHEAD_SAFE

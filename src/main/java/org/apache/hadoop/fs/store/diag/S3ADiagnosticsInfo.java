@@ -41,29 +41,14 @@ import static java.time.Duration.ofMinutes;
 import static java.time.Duration.ofSeconds;
 import static org.apache.hadoop.fs.store.StoreUtils.cat;
 import static org.apache.hadoop.fs.store.StoreUtils.sanitize;
-import static org.apache.hadoop.fs.store.diag.CapabilityKeys.ABORTABLE_STREAM;
-import static org.apache.hadoop.fs.store.diag.CapabilityKeys.DIRECTORY_LISTING_INCONSISTENT;
-import static org.apache.hadoop.fs.store.diag.CapabilityKeys.DIRECTORY_OPERATIONS_PURGE_UPLOADS;
-import static org.apache.hadoop.fs.store.diag.CapabilityKeys.ETAGS_AVAILABLE;
-import static org.apache.hadoop.fs.store.diag.CapabilityKeys.FS_CHECKSUMS;
-import static org.apache.hadoop.fs.store.diag.CapabilityKeys.FS_MULTIPART_UPLOADER;
-import static org.apache.hadoop.fs.store.diag.CapabilityKeys.FS_S3A_CREATE_HEADER;
-import static org.apache.hadoop.fs.store.diag.CapabilityKeys.FS_S3A_CREATE_PERFORMANCE;
-import static org.apache.hadoop.fs.store.diag.CapabilityKeys.S3_SELECT_CAPABILITY;
-import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_AWS_V2;
-import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_DIRECTORY_MARKER_ACTION_DELETE;
-import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_DIRECTORY_MARKER_ACTION_KEEP;
-import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_DIRECTORY_MARKER_AWARE;
-import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_DIRECTORY_MARKER_POLICY_AUTHORITATIVE;
-import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_DIRECTORY_MARKER_POLICY_DELETE;
-import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_DIRECTORY_MARKER_POLICY_KEEP;
-import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_MAGIC_COMMITTER;
-import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_MULTIPART_UPLOAD_ENABLED;
-import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STORE_CAPABILITY_S3_EXPRESS_STORAGE;
-import static org.apache.hadoop.fs.store.diag.CapabilityKeys.STREAM_LEAKS;
+import static org.apache.hadoop.fs.store.diag.CapabilityKeys.*;
 import static org.apache.hadoop.fs.store.diag.DiagUtils.isIpV4String;
 import static org.apache.hadoop.fs.store.diag.DiagnosticsEntryPoint.toURI;
 import static org.apache.hadoop.fs.store.diag.HBossConstants.CAPABILITY_HBOSS;
+import static org.apache.hadoop.fs.store.diag.OptionSets.EnhancedOpenFileOptions.FS_OPTION_OPENFILE_READ_POLICY_ADAPTIVE;
+import static org.apache.hadoop.fs.store.diag.OptionSets.EnhancedOpenFileOptions.FS_OPTION_OPENFILE_READ_POLICY_DEFAULT;
+import static org.apache.hadoop.fs.store.diag.OptionSets.EnhancedOpenFileOptions.FS_OPTION_OPENFILE_READ_POLICY_VECTOR;
+import static org.apache.hadoop.fs.store.diag.OptionSets.EnhancedOpenFileOptions.FS_OPTION_OPENFILE_READ_POLICY_WHOLE_FILE;
 import static org.apache.hadoop.fs.store.diag.OptionSets.HTTP_CLIENT_RESOURCES;
 import static org.apache.hadoop.fs.store.diag.OptionSets.JAVA_NET_SYSPROPS;
 import static org.apache.hadoop.fs.store.diag.OptionSets.STANDARD_ENV_VARS;
@@ -477,7 +462,13 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {ENV_AWS_SECRET_ACCESS_KEY, true},
       {ENV_AWS_SESSION_TOKEN, true},
       {ENV_AWS_REGION, false},
+      {"AWS_CA_BUNDLE", false},
       {"AWS_CBOR_DISABLE", false},
+      {"AWS_CLI_AUTO_PROMPT", true},
+      {"AWS_CLI_FILE_ENCODING", true},
+      {"AWS_CLI_S3_MV_VALIDATE_SAME_S3_PATHS", true},
+      {"", true},
+      {"", true},
       {"AWS_CONFIG_FILE", false},
       {"AWS_CONTAINER_AUTHORIZATION_TOKEN", true},
       {"AWS_CONTAINER_CREDENTIALS_FULL_URI", false},
@@ -485,6 +476,10 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"AWS_CSM_CLIENT_ID", false},
       {"AWS_CSM_HOST", false},
       {"AWS_CSM_PORT", false},
+      {"AWS_DATA_PATH", false},
+      {"AWS_DEFAULT_OUTPUT", false},
+      {"AWS_DEFAULT_REGION", false},
+      {"AWS_DEFAULTS_MODE", false},
       {"AWS_EC2_METADATA_DISABLED", false},
       {"AWS_EC2_METADATA_SERVICE_ENDPOINT", false},
       {"AWS_ENDPOINT_URL", false},
@@ -495,11 +490,15 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"AWS_MAX_ATTEMPTS", false},
       {"AWS_METADATA_SERVICE_TIMEOUT", false},
       {"AWS_PROFILE", false},
+      {"AWS_RESPONSE_CHECKSUM_VALIDATION", false},
       {"AWS_RETRY_MODE", false},
       {"AWS_ROLE_ARN", false},
       {"AWS_ROLE_SESSION_NAME", false},
+      {"AWS_SDK_UA_APP_ID", false},
       {"AWS_S3_US_EAST_1_REGIONAL_ENDPOINT", false},
       {"AWS_SHARED_CREDENTIALS_FILE", false},   // supercedes AWS_CONFIG_FILE
+      {"AWS_SIGV4A_SIGNING_REGION_SET", false},
+      {"AWS_USE_DUALSTACK_ENDPOINT", false},
       {"AWS_USE_FIPS_ENDPOINT", false},
       {"AWS_WEB_IDENTITY_TOKEN_FILE", false},
       {"", false},
@@ -711,18 +710,32 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       // CSE encryption
       "org.apache.hadoop.fs.s3a.impl.CSEMaterials",
 
+      // stream factory
+      "org.apache.hadoop.fs.s3a.impl.streams.ClassicObjectInputStreamFactory",
+      // and analytics stream to match
+      "software.amazon.s3.analyticsaccelerator.S3SeekableInputStreamFactory"
+
   };
+
+  public static final String CLASSIC_STREAM = "classic";
+
+  public static final String PREFETCHING_STREAM = "prefetching";
+
+  public static final String ANALYTICS_STREAM = "analytics";
+
+  public static final String CUSTOM_STREAM = "custom";
 
   /**
    * Path Capabilities different versions of the store may
    * support.
    */
   public static final String[] OPTIONAL_CAPABILITIES = {
+      ABORTABLE_STREAM,
       DIRECTORY_LISTING_INCONSISTENT,
       ETAGS_AVAILABLE,
       FS_CHECKSUMS,
       FS_MULTIPART_UPLOADER,
-      ABORTABLE_STREAM,
+      STREAM_LEAKS,
 
       // s3 specific
       STORE_CAPABILITY_AWS_V2,
@@ -735,20 +748,19 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       STORE_CAPABILITY_DIRECTORY_MARKER_ACTION_DELETE,
       STORE_CAPABILITY_MULTIPART_UPLOAD_ENABLED,
       STORE_CAPABILITY_MAGIC_COMMITTER,
-      S3_SELECT_CAPABILITY,
       STORE_CAPABILITY_S3_EXPRESS_STORAGE,
-      STREAM_LEAKS,
 
       FS_S3A_CREATE_PERFORMANCE,
       FS_S3A_CREATE_PERFORMANCE + ".enabled",
       FS_S3A_CREATE_HEADER,
       DIRECTORY_OPERATIONS_PURGE_UPLOADS,
       ENDPOINT_FIPS,
-      OPTIMIZED_COPY_FROM_LOCAL,
 
-      INPUT_STREAM_TYPE + ".classic",
-      INPUT_STREAM_TYPE + ".prefetching",
-      INPUT_STREAM_TYPE + ".analytics",
+      INPUT_STREAM_TYPE + "." + CLASSIC_STREAM,
+      INPUT_STREAM_TYPE + "." + PREFETCHING_STREAM,
+      INPUT_STREAM_TYPE + "." + ANALYTICS_STREAM,
+
+      OPTIMIZED_COPY_FROM_LOCAL,
 
       // hboss if wrapped by it
       CAPABILITY_HBOSS
@@ -1039,8 +1051,9 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       printout.println("OpenSSL is faster, but requires the wildfly library and OpenSSL installed");
       printout.println("See: https://github.com/wildfly-security/wildfly-openssl/blob/main/README.md#installing-the-native-library");
 
-      printout.println("It is also somewhat brittle; If HTTPS problems are encountered,"
-          + "%ntry switching to %s", DEFAULT_JSSE);
+      printout.println("It is also somewhat brittle;\n"
+          + "If HTTPS problems are encountered, try switching to %s",
+          DEFAULT_JSSE);
 
       printout.println("%nSome third party stores and/or proxies require the GCM ciphers."
           + "%nThese are disabled for performance reasons."
@@ -1305,23 +1318,6 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       // possible if there are things in front, so don't fail.
       printout.warn("The filesystem class %s is not the S3AFileSystem",
           filesystem.getClass());
-    } else {
-      // it is s3afs, so review the auth chain
-      // cut out as it doesn't compile with 3.4.0+
-/*      S3AFileSystem s3aFs = (S3AFileSystem) filesystem;
-      final AWSCredentialProviderList credentials = s3aFs.shareCredentials("diagnostics");
-      try {
-        final AWSCredentials liveCredentials = credentials.getCredentials();
-        final String keyId = liveCredentials.getAWSAccessKeyId();
-        printout.heading("Credential review");
-        printout.println("AWS Credentials retrieved from class of type %s: %s",
-            liveCredentials.getClass().getCanonicalName(),
-            liveCredentials);
-        printout.println("Access key: %s", sanitize(keyId, false));
-        printout.println();
-      } catch (NoSuchMethodError e) {
-        // this is a v2 filesystem; ignore
-      }*/
     }
 
   }
@@ -1469,20 +1465,43 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
    */
   private void reviewReadPolicy(final Printout printout,
       final Configuration conf) {
+
+    boolean isClassicStream;
+
+    final String streamType = conf.getTrimmed(INPUT_STREAM_TYPE, "").toLowerCase(Locale.ROOT);
+    if (!streamType.isEmpty()) {
+      printout.println("Stream type is %s", streamType);
+    }
+    switch (streamType) {
+    case ANALYTICS_STREAM:
+    case CUSTOM_STREAM:
+    case PREFETCHING_STREAM:
+      isClassicStream = false;
+      break;
+    case "":
+    case CLASSIC_STREAM:
+    default:
+      isClassicStream = true;
+    }
+    if (!isClassicStream) {
+      printout.println("Data is being read through a more advanced stream than the classic S3AInputStream");
+      printout.println("The stream options analyzed next may not apply");
+    }
+
     // look at seek policy and warn of risks
     final String fadvise =
         conf.getTrimmed(INPUT_FADVISE, INPUT_FADV_NORMAL);
-    printout.subheading("Seek policy: %s", fadvise);
+    printout.subheading("Read policy: %s", fadvise);
     switch (fadvise) {
     case INPUT_FADV_NORMAL:
-    case OptionSets.EnhancedOpenFileOptions.FS_OPTION_OPENFILE_READ_POLICY_ADAPTIVE:
-    case OptionSets.EnhancedOpenFileOptions.FS_OPTION_OPENFILE_READ_POLICY_DEFAULT:
+    case FS_OPTION_OPENFILE_READ_POLICY_ADAPTIVE:
+    case FS_OPTION_OPENFILE_READ_POLICY_DEFAULT:
       printout.println("Policy starts 'sequential' and switches to 'random' on"
           + " a backwards seek");
       printout.println("This is adaptive and suitable for most workloads");
       break;
     case INPUT_FADV_RANDOM:
-    case OptionSets.EnhancedOpenFileOptions.FS_OPTION_OPENFILE_READ_POLICY_VECTOR:
+    case FS_OPTION_OPENFILE_READ_POLICY_VECTOR:
       printout.println(
           "Stream is optimized for random IO, especially ORC and Parquet files");
       printout.println(
@@ -1490,7 +1509,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       printout.println("Recommended for ORC, Parquet data");
       break;
     case INPUT_FADV_SEQUENTIAL:
-    case OptionSets.EnhancedOpenFileOptions.FS_OPTION_OPENFILE_READ_POLICY_WHOLE_FILE:
+    case FS_OPTION_OPENFILE_READ_POLICY_WHOLE_FILE:
       printout.println("This is the initial state of the %s policy",
           INPUT_FADV_NORMAL);
       printout.println(

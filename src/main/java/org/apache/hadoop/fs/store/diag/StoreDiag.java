@@ -765,7 +765,6 @@ public class StoreDiag extends DiagnosticsEntryPoint {
         }
         println();
       }
-
     }
 
     storeInfo.validateFilesystem(this, baseDir, fs);
@@ -1023,7 +1022,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
           "Reading file %s", file)) {
         in = fs.open(file);
         printStreamCapabilities(in, CapabilityKeys.INPUTSTREAM_CAPABILITIES);
-
+        storeInfo.validateInputStream(this, fs, file, in.getWrappedStream());
         String utf = in.readUTF();
         in.close();
         println("input stream summary: %s", in);

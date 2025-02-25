@@ -20,6 +20,7 @@ package org.apache.hadoop.fs.store.diag;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.Duration;
@@ -688,10 +689,27 @@ public class StoreDiagnosticsInfo {
 
 
   /**
+   * Validate an open input stream.
+   * The stream is the wrapped stream from FSDataInputStream;
+   * its type can be validated, cast to the fs-specific value, etc.
+   * @param printout printout
+   * @param fs filesystem
+   * @param file filename
+   * @param in wrapped stream from FSDataInputStream
+   */
+  void validateInputStream(final Printout printout,
+      final FileSystem fs,
+      final Path file,
+      final InputStream in) {
+
+  }
+
+  /**
    * should a deep tree list take place?
    * @return false by default
    */
   public boolean deepTreeList() {
     return false;
   }
+
 }
