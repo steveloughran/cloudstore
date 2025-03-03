@@ -29,6 +29,7 @@ import java.io.InterruptedIOException;
 import java.io.PrintStream;
 import java.net.HttpURLConnection;
 import java.net.InetAddress;
+import java.net.NoRouteToHostException;
 import java.net.Proxy;
 import java.net.ProxySelector;
 import java.net.URI;
@@ -426,14 +427,18 @@ public class StoreDiag extends DiagnosticsEntryPoint {
 
       println("- If the request fails with any network error it is likely");
 
-      println("  to be configuration problem with address, proxy, etc");
+      println("  to be configuration problem with address, proxy, etc.");
 
-      println("- If it is some authentication error, then don't worry so much\n"
-          + "    -look for the results of the filesystem operations");
+      println("- If it is some authentication error, then don't worry:\n"
+          + "    the results of the filesystem operations are what really matters");
 
       for (URI endpoint : endpoints) {
         try {
           probeOneEndpoint(endpoint);
+        } catch (UnknownHostException | NoRouteToHostException e) {
+          errorln("Major connectivity problem connecting to: %s: %s", endpoint, e);
+          errorln("Check definition of endpoints and network status");
+          LOG.warn("Stack trace", e);
         } catch (IOException e) {
           LOG.warn("Failed to probe {}", endpoint, e);
         }

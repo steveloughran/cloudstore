@@ -111,6 +111,7 @@ public class StoreDiagnosticsInfo {
       store = new HDFSDiagnosticsInfo(fsURI, output);
       break;
     case "s3a":
+    case "s3":
       store = new S3ADiagnosticsInfo(fsURI, output);
       break;
     case "adl":
@@ -130,7 +131,6 @@ public class StoreDiagnosticsInfo {
       store = new GCSDiagnosticsInfo(fsURI, output);
       break;
 
-    case "s3":
     case "s3n":
       // fail on s3n and s3a. Yes, this breaks AWS S3 connector. 
       // No, I don't care about this. Not my problem.
