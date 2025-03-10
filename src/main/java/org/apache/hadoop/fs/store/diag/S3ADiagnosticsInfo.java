@@ -439,6 +439,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {HBossConstants.ZK_BASE_SLEEP_MS, false, false},
       {HBossConstants.ZK_MAX_RETRIES, false, false},
 
+      {"test.fs.s3.bucket", false, false}, // print some of the test setups.
       {"", false, false},
 
   };
@@ -490,6 +491,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"AWS_MAX_ATTEMPTS", false},
       {"AWS_METADATA_SERVICE_TIMEOUT", false},
       {"AWS_PROFILE", false},
+      {"AWS_REQUEST_CHECKSUM_CALCULATION", false},
       {"AWS_RESPONSE_CHECKSUM_VALIDATION", false},
       {"AWS_RETRY_MODE", false},
       {"AWS_ROLE_ARN", false},
@@ -547,6 +549,8 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"aws.maxAttempts", false},
       {"aws.profile", false},
       {"aws.region", false},
+      {"aws.requestChecksumCalculation", false},
+      {"aws.responseChecksumValidation", false},
       {"aws.requestMinCompressionSizeBytes", false},
       {"aws.retryMode", false},
       {"aws.roleArn", false},
@@ -585,7 +589,6 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       // v2 options
       {"software.amazon.awssdk.http.service.impl", false},
       {"software.amazon.awssdk.http.async.service.impl", false},
-
       {"", false},
       {"", false},
   };
@@ -606,46 +609,12 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
    * Optional classes.
    */
   public static final String[] OPTIONAL_CLASSNAMES = {
-      // v1 sdk
-      "com.amazonaws.services.s3.AmazonS3",
-      "com.amazonaws.ClientConfiguration",
-      "com.amazonaws.auth.EnvironmentVariableCredentialsProvider",
-      // AWS features outwith the aws-s3-sdk JAR and needed for later releases.
-      // STS
-      "com.amazonaws.services.securitytoken.AWSSecurityTokenServiceClient",
-
-      // region support
-      "com.amazonaws.regions.AwsRegionProvider",
-      "com.amazonaws.regions.AwsEnvVarOverrideRegionProvider",
-      "com.amazonaws.regions.AwsSystemPropertyRegionProvider",
-      "com.amazonaws.regions.InstanceMetadataRegionProvider",
-      "com.amazonaws.internal.TokenBucket",
 
 
       /* Jackson stuff */
       "com.fasterxml.jackson.annotation.JacksonAnnotation",
       "com.fasterxml.jackson.core.JsonParseException",
       "com.fasterxml.jackson.databind.ObjectMapper",
-
-      // Committers
-      "org.apache.hadoop.fs.s3a.commit.staging.StagingCommitter",
-      "org.apache.hadoop.fs.s3a.commit.magic.MagicS3GuardCommitter",
-      "org.apache.hadoop.fs.s3a.Invoker",
-
-      // Assumed Role credential provider (Hadoop 3.1)
-      "org.apache.hadoop.fs.s3a.auth.AssumedRoleCredentialProvider",
-
-
-      // Delegation Tokens
-      "org.apache.hadoop.fs.s3a.auth.delegation.S3ADelegationTokens",
-
-      // S3 Select: HADOOP-15229
-      "com.amazonaws.services.s3.model.SelectObjectContentRequest",
-      "org.apache.hadoop.fs.s3a.select.SelectInputStream",
-
-      // rename extensions
-      "org.apache.hadoop.fs.s3a.impl.RenameOperation",
-      "org.apache.hadoop.fs.s3a.impl.NetworkBinding",
 
       // dir markers
       "org.apache.hadoop.fs.s3a.impl.DirectoryPolicy",
@@ -672,7 +641,6 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
 
       // s3a store and bulk delete
       "org.apache.hadoop.fs.s3a.S3AStore",
-      "org.apache.hadoop.fs.BulkDelete",
 
       // HADOOP-19131. Assist reflection IO with WrappedOperations class (#6686)
       "org.apache.hadoop.io.wrappedio.WrappedIO",
@@ -702,6 +670,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       "software.amazon.eventstream.MessageDecoder",
       "software.amazon.awssdk.transfer.s3.progress.TransferListener",
       "software.amazon.awssdk.services.s3.s3express.S3ExpressConfiguration",  // s3 express
+      "software.amazon.awssdk.core.checksums.RequestChecksumCalculation",
       "",
 
       // HADOOP-19330. Stream Leak reporting.
