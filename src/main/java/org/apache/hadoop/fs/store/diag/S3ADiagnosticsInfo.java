@@ -682,7 +682,10 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       // stream factory
       "org.apache.hadoop.fs.s3a.impl.streams.ClassicObjectInputStreamFactory",
       // and analytics stream to match
-      "software.amazon.s3.analyticsaccelerator.S3SeekableInputStreamFactory"
+      "software.amazon.s3.analyticsaccelerator.S3SeekableInputStreamFactory",
+
+      // see if this is coming from the "unshaded" sdk or elsewhere
+      "org/reactivestreams/Processor"
 
   };
 
