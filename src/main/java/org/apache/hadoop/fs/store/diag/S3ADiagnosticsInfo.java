@@ -1342,7 +1342,10 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
     printout.subheading("Size options");
     hint(printout, conf.getBoolean(DISABLE_CACHE, false),
         "The option " + DISABLE_CACHE + " is true. "
-            + "This may result in the creation of many S3A clients, and use up memory and other resources");
+            + "This may: result in the creation of many S3A clients, with consequences:\n"
+            + "- add startup overhead to all uses\n"
+            + "- use up memory, threads and other limited resources\n"
+            + "- leak filesystem instances");
 
     int threads = 512;
     sizeHint(printout, conf,
