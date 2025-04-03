@@ -329,6 +329,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {CONNECTION_REQUEST_TIMEOUT, false, false},
       {CONNECTION_TIMEOUT, false, false},
       {CONNECTION_TTL, false, false},
+      {"fs.s3a.create.checksum.algorithm", false, false},
       {"fs.s3a.create.performance", false, false},
       {"fs.s3a.create.storage.class", false, false},
       {CROSS_REGION_ACCESS_ENABLED, false, false},
@@ -1154,11 +1155,9 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       if (region.isEmpty()) {
         printout.println("For reliable signing and performance the AWS region SHOULD be set in %s",
             REGION);
-        printout.warn("if the network configuration prevents this client from accessing us-east region, the store will not be accessible");
+        printout.warn("If the network configuration prevents this client from accessing us-east region, the store will not be accessible");
       }
-
     }
-
 
     final boolean httpsUrl = endpoint.startsWith("https:");
     final boolean httpURL = endpoint.startsWith("http:");
@@ -1291,9 +1290,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       printout.warn("The filesystem class %s is not the S3AFileSystem",
           filesystem.getClass());
     }
-
   }
-
 
   @Override
   public void validateFile(
@@ -1324,12 +1321,8 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
         printout.println("directory marker retention is enabled, so performance will suffer less");
       }
       printout.println("");
-
     }
-
-
   }
-
 
   @Override
   protected void performanceHints(
@@ -1337,8 +1330,6 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       final Configuration conf) {
 
     printout.heading("Performance Hints");
-
-
     printout.subheading("Size options");
     hint(printout, conf.getBoolean(DISABLE_CACHE, false),
         "The option " + DISABLE_CACHE + " is true. "
