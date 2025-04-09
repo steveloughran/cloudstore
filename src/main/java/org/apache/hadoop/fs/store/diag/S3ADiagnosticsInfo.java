@@ -285,6 +285,22 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
 
   public static final String CROSS_REGION_ACCESS_ENABLED = "fs.s3a.cross.region.access.enabled";
 
+
+  /**
+   * Is the create overwrite feature enabled or not?
+   * A configuration option and a path status probe.
+   * Value {@value}.
+   */
+  public static final String CONDITIONAL_CREATE_ENABLED =
+      "fs.s3a.create.conditional.enabled";
+
+  public static final String OPTION_CREATE_CONDITIONAL_OVERWRITE = "fs.option.create.conditional.overwrite";
+
+  public static final String OPTION_CREATE_CONDITIONAL_OVERWRITE_ETAG =
+      "fs.option.create.conditional.overwrite.etag";
+
+  public static final String OPTION_CREATE_IN_CLOSE = "fs.option.create.in.close";
+
   private static final Object[][] options = {
       /* Core auth */
       {ACCESS_KEY, true, true},
@@ -330,6 +346,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {CONNECTION_TIMEOUT, false, false},
       {CONNECTION_TTL, false, false},
       {"fs.s3a.create.checksum.algorithm", false, false},
+      {CONDITIONAL_CREATE_ENABLED, false, false},
       {"fs.s3a.create.performance", false, false},
       {"fs.s3a.create.storage.class", false, false},
       {CROSS_REGION_ACCESS_ENABLED, false, false},
@@ -657,6 +674,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       // extra stuff from extension modules
       "org.apache.knox.gateway.cloud.idbroker.s3a.IDBDelegationTokenBinding",
       "org.apache.ranger.raz.hook.s3.RazS3ADelegationTokenIdentifier",
+      "org.apache.ranger.raz.hook.s3.RazAnonymousAWSCredentialsProvider",
 
       // HBase HBoss
       "org.apache.hadoop.hbase.oss.HBaseObjectStoreSemantics",
@@ -708,6 +726,9 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       ETAGS_AVAILABLE,
       FS_CHECKSUMS,
       FS_MULTIPART_UPLOADER,
+      OPTION_CREATE_CONDITIONAL_OVERWRITE,
+      OPTION_CREATE_CONDITIONAL_OVERWRITE_ETAG,
+      OPTION_CREATE_IN_CLOSE,
       STREAM_LEAKS,
 
       // s3 specific
@@ -725,6 +746,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
 
       FS_S3A_CREATE_PERFORMANCE,
       FS_S3A_CREATE_PERFORMANCE + ".enabled",
+      CONDITIONAL_CREATE_ENABLED,
       FS_S3A_CREATE_HEADER,
       DIRECTORY_OPERATIONS_PURGE_UPLOADS,
       ENDPOINT_FIPS,
