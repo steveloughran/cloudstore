@@ -488,8 +488,8 @@ public class StoreDiagnosticsInfo {
 
       // at this point the dir is good
       printout.println("\t* exists and is writable");
-      printout.println("Free space on device %d", absDir.getFreeSpace());
-      printout.println("Usable space on device %d", absDir.getUsableSpace());
+      printout.println("\t* Free space on device %d", absDir.getFreeSpace());
+      printout.println("\t* Usable space on device %d", absDir.getUsableSpace());
       // how much data is in it?
       long count = 0;
       long size = 0;
