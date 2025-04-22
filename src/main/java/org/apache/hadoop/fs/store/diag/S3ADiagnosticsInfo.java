@@ -33,7 +33,6 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.fs.s3a.S3AFileStatus;
 import org.apache.hadoop.fs.store.s3a.S3ASupport;
 import org.apache.hadoop.util.ExitUtil;
 
@@ -108,6 +107,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
    * Value: {@value}.
    */
   public static final String MULTIPART_UPLOADS_ENABLED = "fs.s3a.multipart.uploads.enabled";
+  public static final long DEFAULT_MIN_MULTIPART_THRESHOLD = 134217728; // 128M
 
 
   public static final String FS_S3A_FAST_UPLOAD_BUFFER =
@@ -116,6 +116,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
   public static final String FS_S3A_FAST_UPLOAD_ACTIVE_BLOCKS =
       "fs.s3a.fast.upload.active.blocks";
 
+  public static final String FS_S3A_FAST_UPLOAD_BUFFER_DISK = "disk";
 
   /**
    * Which input strategy to use for buffering, seeking and similar when
@@ -972,15 +973,28 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
     }
 
     printout.heading("Output Buffering");
-    validateBufferDir(printout, conf, BUFFER_DIR, OptionSets.HADOOP_TMP_DIR,
-        writeOperations);
+    long multiPartThreshold = conf.getLongBytes(
+        MIN_MULTIPART_THRESHOLD, DEFAULT_MIN_MULTIPART_THRESHOLD);
+    String buffer = conf.getTrimmed(FS_S3A_FAST_UPLOAD_BUFFER, FS_S3A_FAST_UPLOAD_BUFFER_DISK);
+    if (FS_S3A_FAST_UPLOAD_BUFFER_DISK.equals(buffer)) {
+      printout.println("File Output is buffered to disk.");
+
+      printout.println("The maximum file size of a single buffered block is %d bytes",
+          multiPartThreshold);
+      printout.println("Note that many blocks may be queued for upload");
+
+      validateBufferDir(printout, conf, BUFFER_DIR, OptionSets.HADOOP_TMP_DIR,
+          writeOperations, 0);
+    } else {
+      printout.println("Output is buffered in memory (%s)", buffer);
+      printout.println("As many blocks may be queued for upload, this may use a lot of memory");
+    }
 
     printout.heading("Encryption");
 
     String encryption =
         conf.getTrimmed(SERVER_SIDE_ENCRYPTION_ALGORITHM, "");
     String key = conf.getTrimmed(SERVER_SIDE_ENCRYPTION_KEY, "");
-    String csekey = conf.getTrimmed(SERVER_SIDE_ENCRYPTION_KEY, "");
     boolean hasKey = !key.isEmpty();
     switch (encryption) {
 
@@ -1322,12 +1336,13 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       final FileStatus status) throws IOException {
 
     printout.heading("Reviewing bucket versioning");
-    if (!(status instanceof S3AFileStatus)) {
+    // using full import of S3AFileStatus to ensure it doesn't get used earlier on.
+    if (!(status instanceof org.apache.hadoop.fs.s3a.S3AFileStatus)) {
       printout.warn("The file status for path %s is not an S3AFileStatus: %s%n",
           path, status);
       return;
     }
-    S3AFileStatus st = (S3AFileStatus) status;
+    org.apache.hadoop.fs.s3a.S3AFileStatus st = (org.apache.hadoop.fs.s3a.S3AFileStatus) status;
     final String versionId = st.getVersionId();
     if (versionId == null) {
       printout.warn("The bucket does not have versioning enabled;"
@@ -1519,6 +1534,5 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
   public boolean deepTreeList() {
     return true;
   }
-
 
 }

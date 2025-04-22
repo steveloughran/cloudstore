@@ -42,6 +42,7 @@ import org.apache.hadoop.fs.LocalDirAllocator;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.store.StoreUtils;
 
+import static java.util.Objects.requireNonNull;
 import static org.apache.hadoop.fs.store.StoreEntryPoint.DEFAULT_HIDE_ALL_SENSITIVE_CHARS;
 import static org.apache.hadoop.fs.store.StoreEntryPoint.getOrigins;
 import static org.apache.hadoop.fs.store.StoreUtils.sanitize;
@@ -428,11 +429,22 @@ public class StoreDiagnosticsInfo {
   }
 
 
+  /**
+   * Validate the buffer dir, up to and including creating a temp file
+   * of the chosen size.
+   * @param printout output
+   * @param conf configutation
+   * @param bufferDirKey key for buffer directory
+   * @param fallbackDirKey key for fallback
+   * @param createTempFile create a temp file?
+   * @param fileSize file size if a temp dir is to be created.
+   */
   protected static void validateBufferDir(final Printout printout,
       final Configuration conf,
       final String bufferDirKey,
       final String fallbackDirKey,
-      final boolean createTempFile) throws IOException {
+      final boolean createTempFile,
+      final long fileSize) throws IOException {
     String bufferOption = conf.get(bufferDirKey) != null
         ? bufferDirKey : fallbackDirKey;
 
@@ -473,12 +485,15 @@ public class StoreDiagnosticsInfo {
         failureLikely = true;
         continue;
       }
+
       // at this point the dir is good
       printout.println("\t* exists and is writable");
+      printout.println("Free space on device %d", absDir.getFreeSpace());
+      printout.println("Usable space on device %d", absDir.getUsableSpace());
       // how much data is in it?
       long count = 0;
       long size = 0;
-      for (File file : absDir.listFiles()) {
+      for (File file : requireNonNull(absDir.listFiles())) {
         if (file.isFile()) {
           count++;
           size += file.length();
@@ -501,7 +516,9 @@ public class StoreDiagnosticsInfo {
       final LocalDirAllocator directoryAllocator = new LocalDirAllocator(
           bufferOption);
 
-      File temp = directoryAllocator.createTmpFileForWrite("temp", 1, conf);
+      File temp = directoryAllocator.createTmpFileForWrite("temp",
+          fileSize > 0 ? fileSize : 1,
+          conf);
 
       printout.println("\nTemporary file successfully created in %s",
           temp.getParentFile());

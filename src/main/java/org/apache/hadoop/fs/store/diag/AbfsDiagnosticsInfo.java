@@ -486,7 +486,7 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
         buffering, activeBlocks);
     if ("disk".equals(buffering)) {
       validateBufferDir(printout, conf, FS_AZURE_BLOCK_UPLOAD_BUFFER_DIR, HADOOP_TMP_DIR,
-          writeOperations);
+          writeOperations, 0);
     }
     int leaseThreads;
     final String leaseDirs = conf.getTrimmed(FS_AZURE_INFINITE_LEASE_DIRECTORIES, "");
