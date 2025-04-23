@@ -41,6 +41,14 @@ hadoop jar cloudstore-1.0.jar storediag abfs://container@user/
 The remote store is required to grant read access to the caller.
 If the `-w` option is provided, the caller must have write permission for the target directory.
 
+## Important: storediag does not collect information across the entire cluster.
+
+The `storediag` command only collects and reports the connectivity status *on the host it is running on*.
+
+It doesn't run across the cluster, therefore *must be executed on the host which is exhibiting problems*
+
+Running it on a different host will report the configuration details, but otherwise is not very informative.
+
 ### Usage
 
 ```
@@ -905,8 +913,8 @@ Output Buffering
 Buffer configuration option fs.s3a.buffer.dir = /tmp/hadoop-stevel/s3a
 Number of buffer directories: 1
 Buffer path /tmp/hadoop-stevel/s3a:
-	* exists and is writable
-	* contains 0 file(s) with total size 0 bytes
+    * exists and is writable
+    * contains 0 file(s) with total size 0 bytes
 
 Attempting to create a temporary file
 
@@ -1192,8 +1200,8 @@ means=((action_http_get_request.failures.mean=(samples=0, sum=0, mean=0.0000)) (
 }}
 Duration of Reading file s3a://stevel-london/temp/subdir/dir-026f7908-5ca2-4df7-8c26-4bb76c345eac/file: 0:00:00.173
 File modtime after creation = 862 millis,
-	after close invoked = 795 millis
-	after close completed = 635 millis
+    after close invoked = 795 millis
+    after close completed = 635 millis
 Timestamp of created file is 862 milliseconds after the local clock
 The file timestamp is closer to the write completion time.
 If the store is an object store, the object is

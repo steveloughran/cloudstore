@@ -506,7 +506,6 @@ public class StoreDiagnosticsInfo {
       printout.warn("\nOutput buffer issues identified; data uploads may fail");
     }
 
-
     if (dirsToCreate > 0) {
       printout.println("Directories to be created: %d", dirsToCreate);
     }

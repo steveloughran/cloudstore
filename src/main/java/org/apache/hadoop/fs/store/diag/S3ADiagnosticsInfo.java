@@ -979,7 +979,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
     if (FS_S3A_FAST_UPLOAD_BUFFER_DISK.equals(buffer)) {
       printout.println("File Output is buffered to disk.");
 
-      printout.println("The maximum file size of a single buffered block is %d bytes",
+      printout.println("The maximum file size of a single buffered block is %,3d bytes",
           multiPartThreshold);
       printout.println("Note that many blocks may be queued for upload");
 
