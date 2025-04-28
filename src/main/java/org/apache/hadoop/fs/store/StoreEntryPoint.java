@@ -793,7 +793,9 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
     }
     String source = "";
     String option;
+    String suffix = "";
     if (secret) {
+      // secret: look up the password.
       try {
         final char[] password = conf.getPassword(key);
         if (password != null) {
@@ -809,7 +811,12 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
         obfuscate = false;
       }
     } else {
+      // not secret. Simple get and look for and print the raw value if different.
       option = conf.get(key);
+      final String raw = conf.getRaw(key);
+      if (option != null && !option.equals(raw)) {
+        suffix = String.format("; (\"%s\")", raw);
+      }
     }
     String full;
     if (option == null) {
@@ -825,7 +832,7 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
     if (finalParameters.contains(key)) {
       full = full + "[final]";
     }
-    println("[%03d]  %s = %s", index, key, full);
+    println("[%03d]  %s = %s%s", index, key, full, suffix);
   }
 
   /**
