@@ -217,7 +217,6 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
 
   public static final String BUFFER_DIR = "fs.s3a.buffer.dir";
 
-
   /**
    * Acquisition timeout for connections from the pool:
    * {@value}.
@@ -991,8 +990,6 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
           multiPartThreshold);
       printout.println("Note that many blocks may be queued for upload");
 
-      validateBufferDir(printout, conf, BUFFER_DIR, OptionSets.HADOOP_TMP_DIR,
-          writeOperations, 0);
     } else {
       printout.println("Output is buffered to %s memory", buffer);
       // max memory use; first multipart plus blocks plus one being created
@@ -1002,6 +999,9 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
           activeBlocks, partSize, multiPartThreshold);
       printout.println("    Maximum block memory consumption is %,d bytes", totalMemory);
     }
+
+    validateBufferDir(printout, conf, BUFFER_DIR, OptionSets.HADOOP_TMP_DIR,
+        writeOperations, 0);
 
     if (!conf.getBoolean(FS_S3A_DOWNGRADE_SYNCABLE_EXCEPTIONS, true)) {
       printout.warn("Output streams reject calls to hsync/hflush");

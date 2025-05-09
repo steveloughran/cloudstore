@@ -66,11 +66,11 @@ import org.apache.hadoop.util.Tool;
 import static java.util.logging.Level.ALL;
 import static org.apache.hadoop.fs.store.CommonParameters.DEBUG;
 import static org.apache.hadoop.fs.store.CommonParameters.DEFINE;
+import static org.apache.hadoop.fs.store.CommonParameters.LOG_OVERRIDES;
 import static org.apache.hadoop.fs.store.CommonParameters.SYSPROPS;
 import static org.apache.hadoop.fs.store.CommonParameters.TOKENFILE;
 import static org.apache.hadoop.fs.store.CommonParameters.VERBOSE;
 import static org.apache.hadoop.fs.store.CommonParameters.XMLFILE;
-import static org.apache.hadoop.fs.store.CommonParameters.LOG_OVERRIDES;
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
 import static org.apache.hadoop.fs.store.StoreUtils.split;
 import static org.apache.hadoop.fs.store.diag.OptionSets.CLOUD_CONNECTOR_LOGS;
@@ -229,6 +229,13 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
 
   public final void error(String format, Object... args) {
     errorln("ERROR: " + format, args);
+  }
+
+  @Override
+  public final void exception(Throwable thrown, String format, Object... args) {
+    String message = String.format(format, args);
+    errorln("EXCEPTION: " + message + "; %s%n", thrown);
+    LOG.error(message, thrown);
   }
 
   public static void errorln(String format, Object... args) {

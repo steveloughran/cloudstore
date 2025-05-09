@@ -1007,6 +1007,12 @@ public class StoreDiag extends DiagnosticsEntryPoint {
         data.writeUTF(HELLO);
 
         try {
+          data.hflush();
+          println("Stream does not reject hflush() calls");
+        } catch (Exception e) {
+          println("Stream rejects hflush() calls: %s", e);
+        }
+        try {
           data.hsync();
           println("Stream does not reject hsync() calls");
         } catch (Exception e) {

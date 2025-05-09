@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import org.apache.hadoop.conf.Configuration;
@@ -438,6 +439,7 @@ public class StoreDiagnosticsInfo {
    * @param fallbackDirKey key for fallback
    * @param createTempFile create a temp file?
    * @param fileSize file size if a temp dir is to be created.
+   * @throws IOException
    */
   protected static void validateBufferDir(final Printout printout,
       final Configuration conf,
@@ -445,51 +447,89 @@ public class StoreDiagnosticsInfo {
       final String fallbackDirKey,
       final boolean createTempFile,
       final long fileSize) throws IOException {
+
+    printout.heading("Validating buffer directories");
     String bufferOption = conf.get(bufferDirKey) != null
         ? bufferDirKey : fallbackDirKey;
 
-    printout.println("Buffer configuration option %s = %s",
-        bufferOption, conf.get(bufferOption));
+    final String bufferOptionUntrimmed = conf.get(bufferOption);
+    final String bufferOptionRaw = conf.getRaw(bufferOption);
+    printout.println("Buffer configuration option %s = \"%s\"",
+        bufferOption, bufferOptionUntrimmed);
+    if (!bufferOptionRaw.equals(bufferOptionUntrimmed)) {
+      printout.println("Raw configuration option \"%s\"", bufferOptionRaw);
+    }
     final Collection<String> directories = conf.getTrimmedStringCollection(bufferOption);
     printout.println("Number of buffer directories: %d", directories.size());
-    boolean failureLikely = false;
     int dirsToCreate = 0;
+    int failures = 0;
+    int successes = 0;
+
     Queue<String> dirQueue = new LinkedList<>(directories);
     while (!dirQueue.isEmpty()) {
       String directory = dirQueue.poll();
       final File dir = new File(directory);
+      final File absDir = dir.getAbsoluteFile();
+      printout.println("Buffer path \"%s\":", absDir);
       if (!dir.isAbsolute()) {
-        printout.warn("Directory option %s is not absolute", dir);
-        failureLikely = true;
+        printout.println("\t*Directory option %s is not absolute", dir);
+        failures++;
         continue;
       }
-      final File absDir = dir.getAbsoluteFile();
-      printout.println("Buffer path %s:", absDir);
+
       if (!absDir.exists()) {
-        printout.println("\t* does not exist: expect it to be created");
+        printout.println("\t* Does not exist");
         dirsToCreate++;
         // scan the parent now too
-        final File parentFile = absDir.getParentFile();
+/*        final File parentFile = absDir.getParentFile();
         if (parentFile != null && !parentFile.getCanonicalPath().equals("/")) {
           dirQueue.add(parentFile.getAbsolutePath());
         }
-        continue;
+        continue;*/
+
+        if (!absDir.mkdirs()) {
+          printout.println("\t* Failed to create directory %s", absDir);
+          failures++;
+          continue;
+        } else {
+          printout.println("\t* Successfully created directory as current user");
+        }
       }
       if (!absDir.isDirectory()) {
-        printout.warn("\t* is a file");
-        failureLikely = true;
+        printout.println("\t* Is a not a directory file");
+        failures++;
         continue;
       }
       if (!absDir.canWrite()) {
-        printout.warn("\t* is not writable by the current user");
-        failureLikely = true;
+        printout.println("\t* Is not writable by the current user");
+        failures++;
+        continue;
+      }
+      // now attempt to create a file underneath.
+      File tempFile = null;
+      try {
+        tempFile = new File(absDir, UUID.randomUUID().toString());
+        if (!tempFile.createNewFile()) {
+          // failed to create the file.
+          // this shouldn't happen because a UUID has been used for the filename,
+          // but check and handle anyway
+          printout.println("\t* Could not create temp file %s", tempFile);
+          failures++;
+          continue;
+        }
+        tempFile.delete();
+        printout.println("\t* Supports creating temporary files");
+
+      } catch (IOException e) {
+        printout.exception(e, "\t* Could not create temp file %s", tempFile);
+        failures++;
         continue;
       }
 
       // at this point the dir is good
-      printout.println("\t* exists and is writable");
-      printout.println("\t* Free space on device %d", absDir.getFreeSpace());
-      printout.println("\t* Usable space on device %d", absDir.getUsableSpace());
+      printout.println("\t* Exists and is writable");
+      printout.println("\t* Free space on device %,d", absDir.getFreeSpace());
+      printout.println("\t* Usable space on device %,d", absDir.getUsableSpace());
       // how much data is in it?
       long count = 0;
       long size = 0;
@@ -499,11 +539,19 @@ public class StoreDiagnosticsInfo {
           size += file.length();
         }
       }
-      printout.println("\t* contains %d file(s) with total size %,d bytes", count, size);
+      printout.println("\t* Contains %d file(s) with total size %,d bytes", count, size);
+
+      successes++;
     }
 
-    if (failureLikely) {
-      printout.warn("\nOutput buffer issues identified; data uploads may fail");
+    if (failures > 0) {
+      printout.println("\nOutput buffer issues identified");
+      printout.println("Successes: %d, Failures: %d", successes, failures);
+      if (successes > 0) {
+        printout.println("At least one buffer appears usable");
+      }
+    } else {
+      printout.println("\nNot output buffer issues identified");
     }
 
     if (dirsToCreate > 0) {
@@ -511,7 +559,7 @@ public class StoreDiagnosticsInfo {
     }
 
     if (createTempFile) {
-      printout.println("\nAttempting to create a temporary file");
+      printout.println("\nAttempting to create a temporary file through the allocator");
       final LocalDirAllocator directoryAllocator = new LocalDirAllocator(
           bufferOption);
 
