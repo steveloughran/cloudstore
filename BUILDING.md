@@ -19,22 +19,10 @@ With maven, with profiles for AWS java v1 and v2 SDK.
 To build a production release
 1. Use java8
 2. compile against a shipping hadoop version (see the profiles)
-3. Use with `-Pextra` for the AWS v1 SDK integration
-4. Build with `-Psdk2` for the aws sdk v2.
-
-V1 SDK build
-```bash
-mvn clean install -Pextra
-```
-
-V2 SDK build
-```bash
-mvn clean install -Psdk2
-```
 
 Joint build
 ```bash
-mvn clean install -Pextra && mvn install -Psdk2
+mvn clean install
 ```
 
 ## Releasing
@@ -42,7 +30,7 @@ mvn clean install -Pextra && mvn install -Psdk2
 To publish the release use the gui or the github command line through the `fish` shell.
 
 ```bash
-mvn clean install -Pextra && mvn install -Psdk2
+mvn clean install
 set -gx now (date '+%Y-%m-%d-%H.%M'); echo [$now]
 git add .; git status
 git commit -S --allow-empty -m "release $now"; git push

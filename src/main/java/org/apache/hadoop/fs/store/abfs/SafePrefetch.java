@@ -37,9 +37,7 @@ import org.apache.hadoop.util.ToolRunner;
 
 import static org.apache.hadoop.fs.store.CommonParameters.LOGFILE;
 import static org.apache.hadoop.fs.store.CommonParameters.STANDARD_OPTS;
-import static org.apache.hadoop.fs.store.CommonParameters.TOKENFILE;
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_ERROR;
-import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
 import static org.apache.hadoop.fs.store.diag.AbfsDiagnosticsInfo.FS_AZURE_ENABLE_READAHEAD;
 import static org.apache.hadoop.fs.store.diag.AbfsDiagnosticsInfo.FS_AZURE_ENABLE_READAHEAD_V2;
 import static org.apache.hadoop.fs.store.diag.AbfsDiagnosticsInfo.FS_AZURE_READAHEADQUEUE_DEPTH;

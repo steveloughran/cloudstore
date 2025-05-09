@@ -29,8 +29,6 @@ import org.apache.hadoop.fs.store.StoreEntryPoint;
 import org.apache.hadoop.util.ToolRunner;
 
 import static org.apache.hadoop.fs.store.CommonParameters.STANDARD_OPTS;
-import static org.apache.hadoop.fs.store.CommonParameters.VERBOSE;
-import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
 import static org.apache.hadoop.net.NetUtils.getCanonicalUri;
 import static org.apache.hadoop.net.NetUtils.getLocalInetAddress;
 

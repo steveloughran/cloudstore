@@ -42,8 +42,6 @@ import org.apache.hadoop.util.ExitUtil;
 import org.apache.hadoop.util.ToolRunner;
 
 import static org.apache.hadoop.fs.store.CommonParameters.STANDARD_OPTS;
-import static org.apache.hadoop.fs.store.CommonParameters.VERBOSE;
-import static org.apache.hadoop.fs.store.CommonParameters.XMLFILE;
 import static org.apache.hadoop.yarn.client.util.YarnClientUtils.getRmPrincipal;
 
 /**

@@ -39,9 +39,6 @@ import org.apache.hadoop.util.ToolRunner;
 import static org.apache.commons.io.FileUtils.byteCountToDisplaySize;
 import static org.apache.hadoop.fs.store.CommonParameters.LIMIT;
 import static org.apache.hadoop.fs.store.CommonParameters.STANDARD_OPTS;
-import static org.apache.hadoop.fs.store.CommonParameters.TOKENFILE;
-import static org.apache.hadoop.fs.store.CommonParameters.VERBOSE;
-import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
 
 /**
  * ListFiles recursive scan of a directory tree, with some

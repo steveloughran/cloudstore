@@ -18,7 +18,6 @@
 
 import org.apache.hadoop.fs.store.commands.Command;
 import org.apache.hadoop.fs.store.commands.ExtendedDu;
-import org.apache.hadoop.fs.tools.cloudup.Cloudup;
 
 public class dux extends Command {
 

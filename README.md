@@ -390,14 +390,9 @@ Certificates from the default certificate manager
 
 ```
 
-## AWS V1 SDK commands
+## AWS SDK commands
 
-See [Cloudstore support for AWS V1 SDK](src/main/site/sdkv1.md).
-
-## AWS V2 SDK commands
-
-See [Cloudstore support for AWS V2 SDK](src/main/site/sdkv2.md).
-
+See [S3 operations through the AWS V2 SDK](src/main/site/sdk.md).
 
 ## Development and Future Work
 

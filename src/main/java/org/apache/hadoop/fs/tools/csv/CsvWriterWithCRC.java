@@ -25,8 +25,6 @@ import java.io.Writer;
 import java.nio.charset.StandardCharsets;
 import java.util.zip.CRC32;
 
-import static java.util.Objects.requireNonNull;
-
 /**
  * This is a small utility class to write out rows to a CSV/TSV file.
  * It does not do any escaping of written text, so don't write entries

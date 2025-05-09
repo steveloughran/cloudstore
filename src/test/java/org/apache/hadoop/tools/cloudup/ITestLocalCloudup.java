@@ -47,7 +47,12 @@ import org.apache.hadoop.fs.RemoteIterator;
 import org.apache.hadoop.fs.tools.cloudup.Cloudup;
 
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
-import static org.apache.hadoop.tools.store.StoreTestUtils.*;
+import static org.apache.hadoop.tools.store.StoreTestUtils.createTestDir;
+import static org.apache.hadoop.tools.store.StoreTestUtils.createTestFiles;
+import static org.apache.hadoop.tools.store.StoreTestUtils.expectException;
+import static org.apache.hadoop.tools.store.StoreTestUtils.expectOutcome;
+import static org.apache.hadoop.tools.store.StoreTestUtils.expectSuccess;
+import static org.apache.hadoop.tools.store.StoreTestUtils.mkdirs;
 
 public class ITestLocalCloudup extends Assert {
 

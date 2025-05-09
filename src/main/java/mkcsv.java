@@ -17,7 +17,6 @@
  */
 
 import org.apache.hadoop.fs.store.commands.Command;
-import org.apache.hadoop.fs.store.commands.ListFiles;
 import org.apache.hadoop.fs.tools.csv.MkCSV;
 
 public class mkcsv extends Command {

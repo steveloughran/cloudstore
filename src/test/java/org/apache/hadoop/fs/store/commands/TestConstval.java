@@ -35,10 +35,7 @@ package org.apache.hadoop.fs.store.commands;/*
  */
 
 import org.assertj.core.api.Assertions;
-import org.junit.Assert;
 import org.junit.Test;
-
-import org.apache.hadoop.fs.store.diag.StoreDiagException;
 
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_NOT_FOUND;
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_NOT_FOUND2;
@@ -46,7 +43,6 @@ import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
 import static org.apache.hadoop.fs.store.commands.Constval.lookupFieldValue;
 import static org.apache.hadoop.fs.store.commands.FieldsForTesting.FIELDS;
 import static org.apache.hadoop.tools.store.StoreTestUtils.expectExitException;
-import static org.apache.hadoop.tools.store.StoreTestUtils.intercept;
 
 public class TestConstval {
 

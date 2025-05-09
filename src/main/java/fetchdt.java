@@ -16,8 +16,8 @@
  * limitations under the License.
  */
 
-import org.apache.hadoop.fs.store.commands.FetchTokens;
 import org.apache.hadoop.fs.store.commands.Command;
+import org.apache.hadoop.fs.store.commands.FetchTokens;
 
 public class fetchdt extends Command {
 

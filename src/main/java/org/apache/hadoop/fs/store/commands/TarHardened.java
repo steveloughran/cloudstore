@@ -28,8 +28,6 @@ import org.apache.hadoop.fs.FileUtil;
 import org.apache.hadoop.fs.store.diag.DiagnosticsEntryPoint;
 import org.apache.hadoop.util.ToolRunner;
 
-import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
-
 /**
  * Checks to see if the tar command is hardened by taking a command line param and trying
  * to untar it.

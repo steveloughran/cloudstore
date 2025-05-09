@@ -34,7 +34,9 @@ import org.apache.hadoop.fs.tools.cloudup.Cloudup;
 import org.apache.hadoop.tools.store.StoreTestUtils;
 
 import static org.apache.hadoop.fs.contract.ContractTestUtils.cleanup;
-import static org.apache.hadoop.tools.store.StoreTestUtils.*;
+import static org.apache.hadoop.tools.store.StoreTestUtils.createTestDir;
+import static org.apache.hadoop.tools.store.StoreTestUtils.createTestFiles;
+import static org.apache.hadoop.tools.store.StoreTestUtils.expectSuccess;
 
 /**
  * As the S3A test base isn't available, do enough to make it look

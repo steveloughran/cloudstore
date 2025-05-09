@@ -19,7 +19,6 @@
 package org.apache.hadoop.fs.store;
 
 import java.io.PrintStream;
-import java.util.ArrayList;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -30,8 +29,6 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.shell.CommandFormat;
 import org.apache.hadoop.util.ToolRunner;
-
-import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
 
 public class CheckStoreProperty extends StoreEntryPoint {
 

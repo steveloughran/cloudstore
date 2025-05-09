@@ -32,6 +32,7 @@ public class help extends Command {
     println("==========");
     println("");
     bandwidth.help();
+    bulkdelete.help();
     cloudup.help();
     committerinfo.help();
     constval.help();
@@ -52,31 +53,23 @@ public class help extends Command {
     // extras must not refer to the optional classes.
     println("");
     println("");
-    println("AWS V1 SDK-only Commands");
-    println("========================");
-
-    println("%nS3A connector builds using the V2 AWS SDK will fail to load required classes");
-    println("");
-    printCommand("bucketstate", "prints the AWS bucket state");
-    printCommand("deleteobject", "Delete an S3 object");
-    printCommand("gcscreds", "credential diagnostics for GCS. Warning: logs secrets");
-    printCommand("iampolicy", "generate AWS IAM policy");
-    printCommand("listobjects", "list S3 objects and their translated statuses");
-    printCommand("listversions", "list all versions of S3 objects under a path");
-    printCommand("mkbucket", "Create an S3 bucket");
-    printCommand("regions\t", "emulate region lookup of AWS SDK");
-    printCommand("restore\t", "Restore a versioned S3 object");
-    printCommand("sessionkeys", "generate AWS session keys from a long-lived login");
-
-
-    println("");
-    println("");
     println("AWS V2 SDK-only Commands");
     println("========================");
+
+    println("%nRequires an S3A connector built with the V2 AWS SDK");
     println("");
-    printCommand("bucketmetadata", "Print bucket metadata from store");
-    printCommand("bulkdelete", "bulk delete objects/files");
-    printCommand("regions2", "emulate region lookup of AWS v2 SDK");
+    bucketmetadata.help();
+    bucketstate.help();
+    deleteobject.help();
+    gcscreds.help();
+    iampolicy.help();
+    listobjects.help();
+    listversions.help();
+    mkbucket.help();
+    regions.help();
+    restore.help();
+    sessionkeys.help();
+
     println("");
     println("See https://github.com/steveloughran/cloudstore");
 

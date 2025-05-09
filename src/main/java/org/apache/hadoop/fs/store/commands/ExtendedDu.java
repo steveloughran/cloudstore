@@ -56,9 +56,6 @@ import static org.apache.hadoop.fs.store.CommonParameters.BFS;
 import static org.apache.hadoop.fs.store.CommonParameters.LIMIT;
 import static org.apache.hadoop.fs.store.CommonParameters.STANDARD_OPTS;
 import static org.apache.hadoop.fs.store.CommonParameters.THREADS;
-import static org.apache.hadoop.fs.store.CommonParameters.TOKENFILE;
-import static org.apache.hadoop.fs.store.CommonParameters.VERBOSE;
-import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
 import static org.apache.hadoop.util.StringUtils.TraditionalBinaryPrefix.long2String;
 
 /**

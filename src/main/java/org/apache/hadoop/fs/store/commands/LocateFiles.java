@@ -36,9 +36,6 @@ import org.apache.hadoop.mapred.LocatedFileStatusFetcher;
 import org.apache.hadoop.util.ToolRunner;
 
 import static org.apache.hadoop.fs.store.CommonParameters.STANDARD_OPTS;
-import static org.apache.hadoop.fs.store.CommonParameters.TOKENFILE;
-import static org.apache.hadoop.fs.store.CommonParameters.VERBOSE;
-import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
 import static org.apache.hadoop.mapreduce.lib.input.FileInputFormat.LIST_STATUS_NUM_THREADS;
 
 /**

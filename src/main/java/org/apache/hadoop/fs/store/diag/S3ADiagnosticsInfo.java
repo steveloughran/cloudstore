@@ -97,6 +97,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       "fs.s3a.committer.threads";
 
   public static final String FS_S3A_MULTIPART_SIZE = "fs.s3a.multipart.size";
+  public static final long DEFAULT_MULTIPART_SIZE = 67108864; // 64M
 
   // minimum size in bytes before we start a multipart uploads or copy
   public static final String MIN_MULTIPART_THRESHOLD =
@@ -302,6 +303,9 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
 
   public static final String OPTION_CREATE_IN_CLOSE = "fs.option.create.in.close";
 
+  public static final String FS_S3A_DOWNGRADE_SYNCABLE_EXCEPTIONS =
+      "fs.s3a.downgrade.syncable.exceptions";
+
   private static final Object[][] options = {
       /* Core auth */
       {ACCESS_KEY, true, true},
@@ -354,7 +358,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.s3a.custom.signers", false, false},
       {DIRECTORY_OPERATIONS_PURGE_UPLOADS, false, false},
       {DIRECTORY_MARKER_RETENTION, false, false},
-      {"fs.s3a.downgrade.syncable.exceptions", false, false},
+      {FS_S3A_DOWNGRADE_SYNCABLE_EXCEPTIONS, false, false},
       {"fs.s3a.etag.checksum.enabled", false, false},
       {"fs.s3a.executor.capacity", false, false},
       {INPUT_FADVISE, false, false},
@@ -972,10 +976,14 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
           entry[2], entry[1], entry[0]);
     }
 
-    printout.heading("Output Buffering");
+    printout.heading("Output Buffering and performance ");
+    String buffer = conf.getTrimmed(FS_S3A_FAST_UPLOAD_BUFFER, FS_S3A_FAST_UPLOAD_BUFFER_DISK);
+    final int activeBlocks = conf.getInt(FS_S3A_FAST_UPLOAD_ACTIVE_BLOCKS, 4);
     long multiPartThreshold = conf.getLongBytes(
         MIN_MULTIPART_THRESHOLD, DEFAULT_MIN_MULTIPART_THRESHOLD);
-    String buffer = conf.getTrimmed(FS_S3A_FAST_UPLOAD_BUFFER, FS_S3A_FAST_UPLOAD_BUFFER_DISK);
+    long partSize = conf.getLongBytes(FS_S3A_MULTIPART_SIZE, DEFAULT_MULTIPART_SIZE);
+
+    printout.println("%s = %s", FS_S3A_FAST_UPLOAD_BUFFER, buffer);
     if (FS_S3A_FAST_UPLOAD_BUFFER_DISK.equals(buffer)) {
       printout.println("File Output is buffered to disk.");
 
@@ -986,8 +994,19 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       validateBufferDir(printout, conf, BUFFER_DIR, OptionSets.HADOOP_TMP_DIR,
           writeOperations, 0);
     } else {
-      printout.println("Output is buffered in memory (%s)", buffer);
-      printout.println("As many blocks may be queued for upload, this may use a lot of memory");
+      printout.println("Output is buffered to %s memory", buffer);
+      // max memory use; first multipart plus blocks plus one being created
+      long totalMemory = activeBlocks * partSize + multiPartThreshold;
+      printout.println("Memory consumption of each write stream:");
+      printout.println("    %d blocks of %,d bytes, plus an initial threshold block of %,d bytes",
+          activeBlocks, partSize, multiPartThreshold);
+      printout.println("    Maximum block memory consumption is %,d bytes", totalMemory);
+    }
+
+    if (!conf.getBoolean(FS_S3A_DOWNGRADE_SYNCABLE_EXCEPTIONS, true)) {
+      printout.warn("Output streams reject calls to hsync/hflush");
+      printout.println("This is not recommneded in production systems");
+      printout.println("Recommend setting " + FS_S3A_DOWNGRADE_SYNCABLE_EXCEPTIONS + " to true");
     }
 
     printout.heading("Encryption");

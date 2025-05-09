@@ -71,6 +71,16 @@ public interface Printout {
     warn(format, args);
   }
 
+  /**
+   * handle an exception by printing formatted message and
+   * toString value of the exception, then log
+   * at error.
+   * @param thrown exception.
+   * @param format format string
+   * @param args varargs.
+   */
+  void exception(Throwable thrown, String format, Object... args);
+
   void heading(String format, Object... args);
 
   void subheading(String format, Object... args);

@@ -38,9 +38,6 @@ import org.apache.hadoop.fs.store.StoreEntryPoint;
 import static org.apache.hadoop.fs.store.CommonParameters.LIMIT;
 import static org.apache.hadoop.fs.store.CommonParameters.STANDARD_OPTS;
 import static org.apache.hadoop.fs.store.CommonParameters.THREADS;
-import static org.apache.hadoop.fs.store.CommonParameters.TOKENFILE;
-import static org.apache.hadoop.fs.store.CommonParameters.VERBOSE;
-import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
 
 /**
  * Directory Tree scan with

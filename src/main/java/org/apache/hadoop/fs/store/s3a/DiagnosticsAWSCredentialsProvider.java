@@ -25,17 +25,17 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
 import javax.xml.bind.DatatypeConverter;
 
-import com.amazonaws.auth.AWSCredentials;
-import com.amazonaws.auth.AWSCredentialsProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.s3a.auth.NoAwsCredentialsException;
 import org.apache.hadoop.util.StringUtils;
 
 public class DiagnosticsAWSCredentialsProvider implements
-    AWSCredentialsProvider {
+    AwsCredentialsProvider {
 
   private static final Logger LOG = LoggerFactory.getLogger(
       DiagnosticsAWSCredentialsProvider.class);
@@ -74,14 +74,8 @@ public class DiagnosticsAWSCredentialsProvider implements
   }
 
   @Override
-  public AWSCredentials getCredentials() {
-
+  public AwsCredentials resolveCredentials() {
     throw new NoAwsCredentialsException("No credentials");
-  }
-
-  @Override
-  public void refresh() {
-
   }
 
   /**

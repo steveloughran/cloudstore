@@ -18,9 +18,7 @@
 
 package org.apache.hadoop.fs.store.logging;
 
-import org.apache.hadoop.fs.statistics.IOStatistics;
 import org.apache.hadoop.fs.store.shim.impl.Invocation;
-import org.apache.hadoop.fs.store.shim.impl.ShimReflectionSupport;
 
 import static org.apache.hadoop.fs.store.shim.impl.Invocation.unavailable;
 import static org.apache.hadoop.fs.store.shim.impl.ShimReflectionSupport.loadClass;
