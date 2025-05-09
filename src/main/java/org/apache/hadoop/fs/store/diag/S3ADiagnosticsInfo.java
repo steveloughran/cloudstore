@@ -1364,7 +1364,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
     org.apache.hadoop.fs.s3a.S3AFileStatus st = (org.apache.hadoop.fs.s3a.S3AFileStatus) status;
     final String versionId = st.getVersionId();
     if (versionId == null) {
-      printout.warn("The bucket does not have versioning enabled;"
+      printout.println("The bucket does not have versioning enabled;"
           + " another backup strategy is needed");
     } else {
       printout.println("The bucket is using versioning.");
@@ -1374,7 +1374,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
         printout.warn("To avoid performance penalties, set %s to %s",
             DIRECTORY_MARKER_RETENTION, KEEP);
       } else {
-        printout.println("directory marker retention is enabled, so performance will suffer less");
+        printout.println("Directory marker retention is enabled, so performance will suffer less");
       }
       printout.println("");
     }

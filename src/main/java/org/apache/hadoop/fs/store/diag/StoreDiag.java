@@ -90,6 +90,7 @@ import static org.apache.hadoop.fs.store.diag.OptionSets.HADOOP_TOKEN;
 import static org.apache.hadoop.fs.store.diag.OptionSets.HADOOP_TOKEN_FILE_LOCATION;
 import static org.apache.hadoop.fs.store.diag.OptionSets.SECURITY_OPTIONS;
 import static org.apache.hadoop.fs.store.diag.OptionSets.TLS_SYSPROPS;
+import static org.apache.hadoop.io.IOUtils.closeStream;
 
 @SuppressWarnings({"UseOfSystemOutOrSystemErr", "CharsetObjectCanBeUsed"})
 public class StoreDiag extends DiagnosticsEntryPoint {
@@ -997,9 +998,11 @@ public class StoreDiag extends DiagnosticsEntryPoint {
       long creationTime = System.currentTimeMillis();
       long closeTime;
       long completionTime;
+      FSDataOutputStream data = null;
       try (StoreDurationInfo ignored = new StoreDurationInfo(getOut(),
           "Creating file %s", file)) {
-        FSDataOutputStream data = fs.create(file, true);
+        data = fs.create(file, true);
+
         printStreamCapabilities(data, CapabilityKeys.OUTPUTSTREAM_CAPABILITIES);
         storeInfo.validateOutputStream(this, fs, file, data);
 
@@ -1022,6 +1025,8 @@ public class StoreDiag extends DiagnosticsEntryPoint {
         data.close();
         completionTime = System.currentTimeMillis();
         println("Output stream summary: %s", data);
+      } finally {
+        closeStream(data);
       }
 
       try (StoreDurationInfo ignored = new StoreDurationInfo(getOut(),
@@ -1043,7 +1048,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
               HELLO, file, utf);
         }
       } finally {
-        IOUtils.closeStream(in);
+        closeStream(in);
       }
       final FileStatus status = fs.getFileStatus(file);
       final String userName = UserGroupInformation.getCurrentUser().getShortUserName();
