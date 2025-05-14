@@ -680,10 +680,6 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       "org.apache.ranger.raz.hook.s3.RazS3ADelegationTokenIdentifier",
       "org.apache.ranger.raz.hook.s3.RazAnonymousAWSCredentialsProvider",
 
-      // HBase HBoss
-      "org.apache.hadoop.hbase.oss.HBaseObjectStoreSemantics",
-      "org.apache.hadoop.fs.store.s3a.DiagnosticsAWSCredentialsProvider",
-
 
       // v2 SDK
       "software.amazon.awssdk.auth.credentials.AwsCredentialsProvider",
@@ -1152,7 +1148,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       printout.println("See https://issues.apache.org/jira/browse/HADOOP-17705 for a workaround");
       printout.println("See also:");
       printout.println(
-          "CDPD-27264. HADOOP-17771. S3AFS creation fails: Unable to find a region via the region provider chain.");
+          "\tHADOOP-17771. S3AFS creation fails: Unable to find a region via the region provider chain.");
       if (!endpoint.startsWith("https://bucket.") && !endpoint.startsWith("bucket.")) {
         printout.warn("The endpoint %s hostname does not start with \"bucket.\"", endpoint);
         printout.warn("This is not a valid endpoint for PrivateLink");
@@ -1266,9 +1262,9 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
           "If you are using a fully qualified domain name as the bucket name *this doesn't work*");
       int l = 1;
       printout.println("%d. Set " + ENDPOINT + " to the endpoint/S3 host", l++);
-      printout.warn("%d. Use the bucket name in the s3a URL", l++);
+      printout.println("%d. WARNING: Use the bucket name in the s3a URL", l++);
       if (!pathStyleAccess) {
-        printout.warn("%d. Consider setting " + PATH_STYLE_ACCESS + " to true", l++);
+        printout.println("%d. WARNING: Consider setting " + PATH_STYLE_ACCESS + " to true", l++);
       }
       if (sslConnection) {
         printout.println("%d. To disable HTTPS, set %s to true/use http",
