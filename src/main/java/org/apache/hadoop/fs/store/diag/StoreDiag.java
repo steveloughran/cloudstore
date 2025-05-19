@@ -742,6 +742,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
 
     FileSystem fs;
 
+    subheading("Filesystem client Instantiation");
     try (StoreDurationInfo ignored = new StoreDurationInfo(
         LOG, "Creating filesystem for %s", baseDir)) {
       fs = FileSystem.newInstance(baseDir.toUri(), conf);
@@ -776,6 +777,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
     storeInfo.validateFilesystem(this, baseDir, fs);
 
 
+    subheading("Reading root path");
     Path root = fs.makeQualified(new Path("/"));
     String operation = "Examine root path";
     try (StoreDurationInfo ignored = new StoreDurationInfo(getOut(),
@@ -805,11 +807,12 @@ public class StoreDiag extends DiagnosticsEntryPoint {
       println("  - the store has been deleted: check console for history");
       println("There's nothing else which can be done here");
 
-      throw (StoreDiagException)(new StoreDiagException(E_NOT_FOUND,
+      throw new StoreDiagException(E_NOT_FOUND,
           "Store not found %s: %s", root, e.toString())
-          .initCause(e));
+          .initCause(e);
     }
 
+    subheading("Listing %s", baseDir);
 
     FileStatus firstFile = null;
     int limit = LIST_LIMIT;
@@ -839,14 +842,16 @@ public class StoreDiag extends DiagnosticsEntryPoint {
       baseDirFound = false;
     }
 
-    heading("Listing the directory %s has succeeded", baseDir);
+    println("Listing the directory %s has succeeded", baseDir);
     println("The store is reachable and the client has list permissions");
 
-    heading("Attempt to read a file");
+
     // =======================================
 
     if (firstFile != null) {
+
       // found a file to read
+      subheading("Reading file %s", firstFile);
       accessDenied = readFile(fs, firstFile);
     } else {
       println("no file found to attempt to read");
@@ -855,7 +860,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
     // should we do a deep or shallow tree list.
     final boolean deepTreeList = storeInfo.deepTreeList();
 
-    heading("listfiles(%s, %s)", baseDir, deepTreeList);
+    subheading("listfiles(%s, %s)", baseDir, deepTreeList);
     // =======================================
 
     // now work with the full path
@@ -880,7 +885,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
     }
 
 
-    heading("Security and Delegation Tokens");
+    subheading("Security and Delegation Tokens");
     // =======================================
 
     boolean requireToken = hasOption(DELEGATION);
@@ -948,7 +953,9 @@ public class StoreDiag extends DiagnosticsEntryPoint {
 
 
     // now create a directory
+
     Path dir = new Path(baseDir, "dir-" + UUID.randomUUID());
+    subheading("Directory Creation: initial probe for %s", dir);
 
     try (StoreDurationInfo ignored = new StoreDurationInfo(getOut(),
         "probe for a directory which does not yet exist %s", dir)) {
@@ -963,7 +970,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
       return false;
     }
     if (!attempWriteOperations) {
-      heading("All read operations succeeded: client has read access");
+      subheading("All read operations succeeded: client has read access");
       println("Tests are read only; to test write permissions rerun with -%s", WRITE);
       return true;
     }
@@ -999,6 +1006,8 @@ public class StoreDiag extends DiagnosticsEntryPoint {
       long closeTime;
       long completionTime;
       FSDataOutputStream data = null;
+      subheading("Creating file %s", file);
+
       try (StoreDurationInfo ignored = new StoreDurationInfo(getOut(),
           "Creating file %s", file)) {
         data = fs.create(file, true);
@@ -1006,7 +1015,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
         printStreamCapabilities(data, CapabilityKeys.OUTPUTSTREAM_CAPABILITIES);
         storeInfo.validateOutputStream(this, fs, file, data);
 
-        heading("Writing data to %s", file);
+        subheading("Writing data to %s", file);
         data.writeUTF(HELLO);
 
         try {
@@ -1029,10 +1038,29 @@ public class StoreDiag extends DiagnosticsEntryPoint {
         closeStream(data);
       }
 
+      subheading("Listing %s", dir);
+
       try (StoreDurationInfo ignored = new StoreDurationInfo(getOut(),
-          "Listing  %s", dir)) {
-        fs.listFiles(dir, false);
+          "ListFiles(%s)", dir)) {
+        final RemoteIterator<LocatedFileStatus> listing =
+            fs.listFiles(dir, false);
+        boolean found = false;
+        FileStatus stat = null;
+        while (listing.hasNext()) {
+          final LocatedFileStatus next = listing.next();
+          println(" %s", next.getPath());
+          if (file.equals(next.getPath())) {
+            found = true;
+            stat = next;
+          }
+        }
+        if (!found) {
+          error("listFiles(%s) failed to find created file %s", dir, file);
+        }
       }
+
+      subheading("Reading file %s", file);
+
       FSDataInputStream in = null;
       try (StoreDurationInfo ignored = new StoreDurationInfo(getOut(),
           "Reading file %s", file)) {
@@ -1084,7 +1112,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
       storeInfo.validateFile(this, fs, file, status);
 
 
-      heading("Renaming");
+      subheading("Renaming");
 
       // move the file into a subdir
       Path subdir = new Path(dir, "subdir");
@@ -1098,15 +1126,14 @@ public class StoreDiag extends DiagnosticsEntryPoint {
       }
       verifyPathNotFound(fs, subfile);
       // delete the file
-      try (StoreDurationInfo ignored = new StoreDurationInfo(getOut(),
-          "delete dir %s", subdir2)) {
-        fs.delete(subdir2, true);
-      }
+      subheading("Deleting dir %s", subdir2);
+      deleteDir(fs, subdir2);
       verifyPathNotFound(fs, subdir2);
 
-      heading("All read and write operations succeeded: good to go");
+      println("All read and write operations succeeded: good to go");
     } finally {
       // teardown: attempt to delete the directory
+      subheading("Deleting directory %s", dir);
       deleteDir(fs, dir);
       if (!baseDirFound) {
         deleteDir(fs, baseDir);

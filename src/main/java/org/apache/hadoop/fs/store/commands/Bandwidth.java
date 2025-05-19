@@ -370,6 +370,8 @@ public class Bandwidth extends StoreEntryPoint {
       try (StoreDurationInfo ignored = new StoreDurationInfo(out, "delete file %s", uploadPath)) {
         fs.delete(uploadPath, false);
         fs.delete(downloadPath, false);
+      } catch (IOException e) {
+        warn("Failed to delete uploaded file: %s", uploadPath, e);
       }
     }
 

@@ -1350,7 +1350,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       final Path path,
       final FileStatus status) throws IOException {
 
-    printout.heading("Reviewing bucket versioning");
+    printout.subheading("Reviewing bucket versioning");
     // using full import of S3AFileStatus to ensure it doesn't get used earlier on.
     if (!(status instanceof org.apache.hadoop.fs.s3a.S3AFileStatus)) {
       printout.warn("The file status for path %s is not an S3AFileStatus: %s%n",

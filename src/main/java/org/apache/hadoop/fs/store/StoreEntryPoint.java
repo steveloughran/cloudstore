@@ -35,6 +35,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.LogManager;
 import java.util.stream.Collectors;
@@ -111,6 +112,9 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
   protected CommandFormat commandFormat;
 
   private PrintStream out = System.out;
+
+  private final AtomicInteger headingCounter = new AtomicInteger(1);
+  private final AtomicInteger subheadingCounter = new AtomicInteger(1);
 
   /**
    * Print a usage line for an option without a parameter.
@@ -246,18 +250,36 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
 
   @Override
   public void heading(String format, Object... args) {
-    String text = String.format(format, args);
-    int l = text.length();
-    StringBuilder sb = new StringBuilder(l);
-    for (int i = 0; i < l; i++) {
-      sb.append("=");
+
+    final int hc = headingCounter.getAndIncrement();
+    subheadingCounter.set(1);
+    String text = String.format("%d. ", hc) + String.format(format, args);
+    println();
+    println(text);
+    println(underline('-', text.length()));;
+    println();
+  }
+
+  protected static String underline(final char c, final int len) {
+    StringBuilder sb = new StringBuilder(len);
+    for (int i = 0; i < len; i++) {
+      sb.append(c);
     }
-    println("\n%s\n%s\n", text, sb.toString());
+    return sb.toString();
   }
 
   @Override
   public void subheading(String format, Object... args) {
-    println("\n** " + format + " **", args);
+    // the current heading number, not the next one
+    final int hc = headingCounter.get() -1;
+    final int shc = subheadingCounter.getAndIncrement();
+
+    String prefix = String.format("%d.%d ", hc, shc);
+    final String text = String.format(prefix + format, args);
+
+    println();
+    println(text);
+    println(underline('-', text.length()));;
   }
 
   /**
