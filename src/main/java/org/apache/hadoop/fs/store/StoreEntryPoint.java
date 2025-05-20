@@ -256,7 +256,7 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
     String text = String.format("%d. ", hc) + String.format(format, args);
     println();
     println(text);
-    println(underline('-', text.length()));;
+    println(underline('=', text.length()));;
     println();
   }
 
