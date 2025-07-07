@@ -181,6 +181,7 @@ public class OptionSets {
   public static final Object[][] TLS_SYSPROPS = {
       {"java.version", false},
       {"java.library.path", false},
+      {"com.sun.net.ssl.checkRevocation", false},
       {"https.protocols", false},
       {"javax.net.ssl.keyStore", false},
       {"javax.net.ssl.keyStorePassword", true},
@@ -191,7 +192,7 @@ public class OptionSets {
       {"jdk.tls.client.protocols", false},
       {"jdk.tls.disabledAlgorithms", false},
       {"jdk.tls.legacyAlgorithms", false},
-      {"com.sun.net.ssl.checkRevocation", false},
+      {"jsse.enableSNIExtension", false},
       {"", false},
   };
 
