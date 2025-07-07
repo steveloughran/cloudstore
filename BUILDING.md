@@ -30,6 +30,9 @@ mvn clean install
 To publish the release use the gui or the github command line through the `fish` shell.
 
 ```bash
+# if you need to switch java versions and hava "java8" as the bash command to do tihs
+java8  
+# actual build
 mvn clean install
 set -gx now (date '+%Y-%m-%d-%H.%M'); echo [$now]
 git add .; git status
