@@ -68,7 +68,7 @@ public class TLSInfo extends DiagnosticsEntryPoint {
         System::getProperty);
     println();
     tlsInfo(this);
-    certInfo(this,
+    final int matches = certInfo(this,
         "Certificates from the default certificate manager",
         null,
         alias,
@@ -81,6 +81,17 @@ public class TLSInfo extends DiagnosticsEntryPoint {
 
     keyStoreInfo(keyStore, alias);*/
 
+    if (alias != null) {
+      if (matches > 0) {
+        println("Number of certificates matching the string \"%s\" :%d",
+            alias, matches);
+      } else {
+        // error condition
+        println("No certificates found matching the string \"%s\"",
+            alias);
+        return -1;
+      }
+    }
     return 0;
   }
 
@@ -139,8 +150,9 @@ public class TLSInfo extends DiagnosticsEntryPoint {
    * @param keyStore nullable keystore
    * @param alias
    * @param verbose verbose output
+   * @return
    */
-  public static void certInfo(
+  public static int certInfo(
       final Printout printout,
       String heading,
       KeyStore keyStore,
@@ -148,6 +160,7 @@ public class TLSInfo extends DiagnosticsEntryPoint {
       final boolean verbose) {
 
     String match = alias != null ? alias.toLowerCase(Locale.ROOT) : "";
+    int counter = 0;
     try {
       TrustManagerFactory trustManagerFactory =
           TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
@@ -157,22 +170,23 @@ public class TLSInfo extends DiagnosticsEntryPoint {
           .forEach(t ->
               x509Certificates.addAll(asList(((X509TrustManager) t).getAcceptedIssuers())));
       printout.heading(heading);
-      int counter = 1;
       for (X509Certificate cert : x509Certificates) {
         final X500Principal principal = cert.getSubjectX500Principal();
         if (!match.isEmpty() && !principal.getName().toLowerCase(Locale.ROOT).contains(match)) {
           continue;
         }
+        counter++;
         printout.println("[%03d] %s: %s",
             counter,
             principal.toString(),
             verbose ? cert.toString() : "");
-        counter++;
       }
     } catch (Exception e) {
       printout.warn("Failed to retrieve keystore %s", e.toString());
       LOG.warn("Stack trace", e);
     }
+
+    return counter;
   }
 
   /**

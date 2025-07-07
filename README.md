@@ -338,57 +338,9 @@ See [tarhardened](src/main/site/tarhardened.md)
 
 ## Command `tlsinfo`
 
-Print out tls information, and X509 certificates.
-```
-Usage: tlsinfo [-verbose] [-debug] [<match>]
-```
+Print out TLS information including X509 certificates.
 
-* The `-verbose` option prints the full details about each CA, rather than just their principals' names.
-* If a string is passed in, only certificates whose name contains that string (case independent) are logged.  
-
-```
-> hadoop jar cloudstore-1.0 tlsinfo amazon
-
-TLS System Properties
-=====================
-
-[001]  java.version = "17.0.8"
-[002]  java.library.path = "/Users/stevel/Library/Java/Extensions:/Library/Java/Extensions:/Network/Library/Java/Extensions:/System/Library/Java/Extensions:/usr/lib/java:."
-[003]  https.protocols = (unset)
-[004]  javax.net.ssl.keyStore = (unset)
-[005]  javax.net.ssl.keyStorePassword = (unset)
-[006]  javax.net.ssl.trustStore = (unset)
-[007]  javax.net.ssl.trustStorePassword = (unset)
-[008]  jdk.certpath.disabledAlgorithms = (unset)
-[009]  jdk.tls.client.cipherSuites = (unset)
-[010]  jdk.tls.client.protocols = (unset)
-[011]  jdk.tls.disabledAlgorithms = (unset)
-[012]  jdk.tls.legacyAlgorithms = (unset)
-[013]  com.sun.net.ssl.checkRevocation = (unset)
-
-
-HTTPS supported protocols
-=========================
-
-    TLSv1.3
-    TLSv1.2
-    TLSv1.1
-    TLSv1
-    SSLv3
-    SSLv2Hello
-
-See https://www.java.com/en/configure_crypto.html
-
-
-Certificates from the default certificate manager
-=================================================
-
-[001] CN=Amazon Root CA 4, O=Amazon, C=US: 
-[002] CN=Amazon Root CA 3, O=Amazon, C=US: 
-[003] CN=Amazon Root CA 1, O=Amazon, C=US: 
-[004] CN=Amazon Root CA 2, O=Amazon, C=US: 
-
-```
+See [tlsinfo](src/main/site/tlsinfo.md)
 
 ## AWS SDK commands
 
