@@ -114,6 +114,10 @@ public class OptionSets {
       {"LD_LIBRARY_PATH", false},
       {"LOCAL_DIRS", false},
       {"OPENSSL_ROOT_DIR", false},
+      {"OPENSSL_CONF", false},
+      {"OPENSSL_CONF_INCLUDE", false},
+      {"OPENSSL_MODULES", false},
+      {"OPENSSL_TRACE", false},
       {"PYSPARK_DRIVER_PYTHON", false},
       {"SPARK_HOME", false},
       {"SPARK_CONF_DIR", false},
@@ -122,6 +126,21 @@ public class OptionSets {
       {"http_proxy", false},
       {"https_proxy", false},
       {"no_proxy", false},
+      {"", false},
+      // TODO: add the https proxy vars
+  };
+
+  /**
+   * TLS related env vars.
+   */
+  public static final Object[][] TLS_ENV_VARS = {
+      {"PATH", false},
+      {"LD_LIBRARY_PATH", false},
+      {"OPENSSL_ROOT_DIR", false},
+      {"OPENSSL_CONF", false},
+      {"OPENSSL_CONF_INCLUDE", false},
+      {"OPENSSL_MODULES", false},
+      {"OPENSSL_TRACE", false},
       {"", false},
       // TODO: add the https proxy vars
   };

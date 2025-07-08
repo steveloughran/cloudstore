@@ -41,6 +41,8 @@ import org.apache.hadoop.util.ToolRunner;
 
 import static java.util.Arrays.asList;
 import static org.apache.hadoop.fs.store.CommonParameters.STANDARD_OPTS;
+import static org.apache.hadoop.fs.store.diag.OptionSets.STANDARD_ENV_VARS;
+import static org.apache.hadoop.fs.store.diag.OptionSets.TLS_ENV_VARS;
 import static org.apache.hadoop.fs.store.diag.OptionSets.TLS_SYSPROPS;
 
 /**
@@ -66,6 +68,9 @@ public class TLSInfo extends DiagnosticsEntryPoint {
     lookupAndPrintSanitizedValues(TLS_SYSPROPS,
         "TLS System Properties",
         System::getProperty);
+
+    printEnvVars(TLS_ENV_VARS);
+
     println();
     tlsInfo(this);
     final int matches = certInfo(this,
