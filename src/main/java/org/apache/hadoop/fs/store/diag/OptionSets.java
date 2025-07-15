@@ -156,6 +156,20 @@ public class OptionSets {
       {"", false},
   };
 
+  /**
+   * Standard security properties.
+   */
+  public static final String[] STANDARD_SECURITY_PROPS = {
+      "jdk.certpath.disabledAlgorithms",
+      "jdk.tls.disabledAlgorithm",
+      "jdk.tls.keyLimits",
+      "networkaddress.cache.ttl",
+      "ssl.KeyManagerFactory",
+      "ssl.KeyManagerFactory.algorithm",
+      "ssl.TrustManagerFactory",
+      "",
+  };
+
 
   /** {@value}. */
   public static final String CLASSPATH = "java.class.path";
@@ -184,6 +198,7 @@ public class OptionSets {
       {"http.nonProxyHosts", false},
       {"java.net.preferIPv4Stack", false},
       {"java.net.preferIPv6Addresses", false},
+      {"jsse.enableSNIExtension", false},
       {"networkaddress.cache.ttl", false},
       {"networkaddress.cache.negative.ttl", false},
       {"socksProxyHost", false},
@@ -194,26 +209,36 @@ public class OptionSets {
       {"sun.net.inetaddr.negative.ttl", false},
   };
 
+  public static final String JAVAX_NET_DEBUG = "javax.net.debug";
+
+  public static final String JDK_TLS_CLIENT_PROTOCOLS = "jdk.tls.client.protocols";
+
   /**
    * TLS System properties.
+   * See https://www.java.com/en/configure_crypto.html
    */
   public static final Object[][] TLS_SYSPROPS = {
       {"java.version", false},
       {"java.library.path", false},
       {"com.sun.net.ssl.checkRevocation", false},
       {"https.protocols", false},
+      {JAVAX_NET_DEBUG, false},
       {"javax.net.ssl.keyStore", false},
       {"javax.net.ssl.keyStorePassword", true},
       {"javax.net.ssl.trustStore", false},
       {"javax.net.ssl.trustStorePassword", true},
       {"jdk.certpath.disabledAlgorithms", false},
       {"jdk.tls.client.cipherSuites", false},
-      {"jdk.tls.client.protocols", false},
+      {JDK_TLS_CLIENT_PROTOCOLS, false},
       {"jdk.tls.disabledAlgorithms", false},
       {"jdk.tls.legacyAlgorithms", false},
       {"jsse.enableSNIExtension", false},
       {"", false},
   };
+
+  public static final String NET_DEBUG_SSL_HANDSHAKE = "ssl:handshake";
+
+  public static final String NET_DEBUG_ALL = "all";
 
   public static final String MOZILLA_PUBLIC_SUFFIX_LIST =
       "mozilla/public-suffix-list.txt";

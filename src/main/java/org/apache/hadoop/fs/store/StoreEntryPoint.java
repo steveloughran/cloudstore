@@ -75,6 +75,8 @@ import static org.apache.hadoop.fs.store.CommonParameters.XMLFILE;
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
 import static org.apache.hadoop.fs.store.StoreUtils.split;
 import static org.apache.hadoop.fs.store.diag.OptionSets.CLOUD_CONNECTOR_LOGS;
+import static org.apache.hadoop.fs.store.diag.OptionSets.JAVAX_NET_DEBUG;
+import static org.apache.hadoop.fs.store.diag.OptionSets.NET_DEBUG_SSL_HANDSHAKE;
 import static org.apache.hadoop.fs.store.diag.S3ADiagnosticsInfo.DIRECTORY_MARKER_RETENTION;
 import static org.apache.hadoop.fs.store.diag.S3ADiagnosticsInfo.FS_S3A_CONNECTION_MAXIMUM;
 import static org.apache.hadoop.fs.store.diag.S3ADiagnosticsInfo.FS_S3A_THREADS_MAX;
@@ -403,6 +405,7 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
     if (hasOption(DEBUG)) {
       println("Enabling debug logging");
       enableJvmLogging();
+      enableSSLLogging();
       enableCloudConnectorLogging(getLogOverrides(), LogControl.LogLevel.DEBUG);
     }
   }
@@ -438,6 +441,11 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
     java.util.logging.Logger log = LogManager.getLogManager().getLogger("");
     log.addHandler(handler);
     log.setLevel(ALL);
+  }
+
+  protected void enableSSLLogging() {
+    // javax.net.debug=ssl:handshake
+    System.setProperty(JAVAX_NET_DEBUG, NET_DEBUG_SSL_HANDSHAKE);
   }
 
   /**

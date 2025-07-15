@@ -47,6 +47,7 @@ import static java.util.Objects.requireNonNull;
 import static org.apache.hadoop.fs.store.StoreEntryPoint.DEFAULT_HIDE_ALL_SENSITIVE_CHARS;
 import static org.apache.hadoop.fs.store.StoreEntryPoint.getOrigins;
 import static org.apache.hadoop.fs.store.StoreUtils.sanitize;
+import static org.apache.hadoop.fs.store.diag.OptionSets.STANDARD_SECURITY_PROPS;
 import static org.apache.hadoop.fs.store.diag.OptionSets.STANDARD_SYSPROPS;
 import static org.apache.hadoop.fs.store.diag.StoreDiag.sortKeys;
 
@@ -56,6 +57,9 @@ import static org.apache.hadoop.fs.store.diag.StoreDiag.sortKeys;
  */
 public class StoreDiagnosticsInfo {
 
+  /**
+   * Empty set for {@link #getFilesystemOptions()}.
+   */
   protected static final Object[][] EMPTY_OPTIONS = {};
 
   protected static final String[] EMPTY_CLASSNAMES = {};
@@ -213,6 +217,14 @@ public class StoreDiagnosticsInfo {
    */
   public Object[][] getSelectedSystemProperties() {
     return STANDARD_SYSPROPS;
+  }
+
+  /**
+   * Get security properties to log.
+   * @return an array of security properties.
+   */
+  public String[] getSecurityProperties() {
+    return STANDARD_SECURITY_PROPS;
   }
 
   /**

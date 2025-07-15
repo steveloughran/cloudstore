@@ -28,12 +28,14 @@ import java.net.URL;
 import java.security.CodeSource;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 import com.google.common.base.Function;
 
@@ -177,20 +179,49 @@ public class DiagnosticsEntryPoint extends StoreEntryPoint  {
   }
 
   /**
+   * Print security properties (no obfuscation).
+   * @param properties properties.
+   */
+  public final void printSecurityProperties(final String[] properties) {
+
+    final List<Object[]> list = Arrays.stream(properties).sorted()
+        .map(k -> new Object[]{k, false})
+        .collect(Collectors.toList());
+
+    lookupAndPrint("JVM Security Properties", list, java.security.Security::getProperty);
+  }
+
+  /**
    * Resolve and print values.
    * This is an array of (name, obfuscate) entries.
    * @param vars variables/properties.
    * @param section section name
    * @param lookup lookup function
    */
-  public final void lookupAndPrintSanitizedValues(Object[][] vars,
+  public final void lookupAndPrintSanitizedValues(
+      Object[][] vars,
       String section,
       Function<String, String> lookup) {
-    int index = 0;
 
-    if (vars.length > 0) {
+    lookupAndPrint(section, Arrays.asList(vars), lookup);
+  }
+
+  /**
+   * Resolve and print values.
+   * Takes a collection off (name, obfuscate) tuples..
+   * @param entries variables/properties.
+   * @param section section name
+   * @param lookup lookup function
+   */
+  private void lookupAndPrint(
+      final String section,
+      final Collection<Object[]> entries,
+      final Function<String, String> lookup) {
+
+    int index = 0;
+    if (!entries.isEmpty()) {
       heading(section);
-      for (final Object[] option : vars) {
+      for (final Object[] option : entries) {
         String var = (String) option[0];
         if (var == null || var.isEmpty()) {
           continue;

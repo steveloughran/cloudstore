@@ -201,6 +201,9 @@ public class StoreDiag extends DiagnosticsEntryPoint {
       // only print selected ones
       printSystemProperties(storeInfo.getSelectedSystemProperties());
     }
+
+    printSecurityProperties(storeInfo.getSecurityProperties());
+
     if (hasOption(ENVARS)) {
       dumpEnvVars();
     }

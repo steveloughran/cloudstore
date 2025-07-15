@@ -42,6 +42,7 @@ import org.apache.hadoop.util.ToolRunner;
 import static java.util.Arrays.asList;
 import static org.apache.hadoop.fs.store.CommonParameters.STANDARD_OPTS;
 import static org.apache.hadoop.fs.store.diag.OptionSets.STANDARD_ENV_VARS;
+import static org.apache.hadoop.fs.store.diag.OptionSets.STANDARD_SECURITY_PROPS;
 import static org.apache.hadoop.fs.store.diag.OptionSets.TLS_ENV_VARS;
 import static org.apache.hadoop.fs.store.diag.OptionSets.TLS_SYSPROPS;
 
@@ -57,7 +58,7 @@ public class TLSInfo extends DiagnosticsEntryPoint {
       + STANDARD_OPTS;
 
   public TLSInfo() {
-    createCommandFormat(1,1);
+    createCommandFormat(0,1);
   }
 
   @Override
@@ -70,6 +71,7 @@ public class TLSInfo extends DiagnosticsEntryPoint {
         System::getProperty);
 
     printEnvVars(TLS_ENV_VARS);
+    printSecurityProperties(STANDARD_SECURITY_PROPS);
 
     println();
     tlsInfo(this);
@@ -177,7 +179,7 @@ public class TLSInfo extends DiagnosticsEntryPoint {
       printout.heading(heading);
       for (X509Certificate cert : x509Certificates) {
         final X500Principal principal = cert.getSubjectX500Principal();
-        if (!match.isEmpty() && !principal.getName().toLowerCase(Locale.ROOT).contains(match)) {
+        if (!verbose && !match.isEmpty() && !principal.getName().toLowerCase(Locale.ROOT).contains(match)) {
           continue;
         }
         counter++;

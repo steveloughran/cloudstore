@@ -305,7 +305,11 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
   public static final String FS_S3A_DOWNGRADE_SYNCABLE_EXCEPTIONS =
       "fs.s3a.downgrade.syncable.exceptions";
 
-  private static final Object[][] options = {
+  /**
+   * Each option is a triple of
+   * (key, secure, obfuscate)
+   */
+  private static final Object[][] S3A_OPTIONS = {
       /* Core auth */
       {ACCESS_KEY, true, true},
       {SECRET_KEY, true, true},
@@ -803,7 +807,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
 
   @Override
   public Object[][] getFilesystemOptions() {
-    return options;
+    return S3A_OPTIONS;
   }
 
   @Override
