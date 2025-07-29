@@ -113,7 +113,9 @@ public class StoreDurationInfo
     this.logAtInfo = false;
 
     if (out != null) {
-      out.printf("Starting: %s%n", getFormattedText());
+      out.printf("[%s] Starting: %s%n",
+          humanTime(started),
+          getFormattedText());
     }
   }
 
@@ -153,10 +155,15 @@ public class StoreDurationInfo
   }
 
   public static String humanTime(long time) {
+    long millis = time % 1000;
     long seconds = (time / 1000);
     long minutes = (seconds / 60);
     long hours = (minutes / 60);
-    return String.format("%d:%02d:%02d.%03d", hours, minutes % 60, seconds % 60, time % 1000);
+    return String.format("%02d:%02d:%02d.%03d",
+        hours %24,
+        minutes % 60,
+        seconds % 60,
+        millis);
   }
 
   /**

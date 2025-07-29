@@ -524,7 +524,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"AWS_ROLE_SESSION_NAME", false},
       {"AWS_SDK_UA_APP_ID", false},
       {"AWS_S3_US_EAST_1_REGIONAL_ENDPOINT", false},
-      {"AWS_SHARED_CREDENTIALS_FILE", false},   // supercedes AWS_CONFIG_FILE
+      {"AWS_SHARED_CREDENTIALS_FILE", false},   // was AWS_CONFIG_FILE
       {"AWS_SIGV4A_SIGNING_REGION_SET", false},
       {"AWS_USE_DUALSTACK_ENDPOINT", false},
       {"AWS_USE_FIPS_ENDPOINT", false},
