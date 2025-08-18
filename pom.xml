@@ -277,7 +277,15 @@
     <profile>
       <id>next</id>
       <properties>
-        <hadoop.version>3.4.2-SNAPSHOT</hadoop.version>
+        <hadoop.version>3.4.3-SNAPSHOT</hadoop.version>
+      </properties>
+    </profile>
+
+    <!-- 7.3.2 -->
+    <profile>
+      <id>7.3.2</id>
+      <properties>
+        <hadoop.version>3.4.1.7.3.2.0-SNAPSHOT</hadoop.version>
       </properties>
     </profile>
 

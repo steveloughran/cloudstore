@@ -75,12 +75,17 @@ public class GsCredDiag extends StoreEntryPoint {
     }
 
     final Configuration conf = createPreconfiguredConfig();
-    String key = conf.get(SERVICE_ACCOUNT_PRIVATE_KEY);
+    String key;
+    final char[] password = conf.getPassword(SERVICE_ACCOUNT_PRIVATE_KEY);
+    if (password != null) {
+      key = new String(password).trim();
+    } else {
+      key = null;
+    }
     if (key != null) {
       if (isVerbose()) {
 
         // insecure
-
         println("private key is <%s>", key);
       }
       if (key.contains("\\n")) {
