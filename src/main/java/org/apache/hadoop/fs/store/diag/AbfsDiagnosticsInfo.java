@@ -41,6 +41,7 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.azurebfs.services.AbfsOutputStream;
 import org.apache.hadoop.fs.store.StoreDurationInfo;
 
+import static java.util.Objects.requireNonNull;
 import static org.apache.hadoop.fs.azurebfs.constants.ConfigurationKeys.AZURE_KEY_ACCOUNT_KEYPROVIDER;
 import static org.apache.hadoop.fs.store.StoreUtils.cat;
 import static org.apache.hadoop.fs.store.StoreUtils.checkArgument;
@@ -625,7 +626,10 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
     List<URI> uris = new ArrayList<>(2);
     addUriOption(uris, conf, "fs.azure.account.oauth2.refresh.token.endpoint", "",
         "https://login.microsoftonline.com/Common/oauth2/token");
+    String store = requireNonNull(getFsURI().getHost());
+    uris.add(new URI("https", store, "/", null));
     return uris;
+
   }
 
   /**

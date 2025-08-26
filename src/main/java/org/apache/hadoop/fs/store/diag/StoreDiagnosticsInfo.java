@@ -589,6 +589,7 @@ public class StoreDiagnosticsInfo {
 
   /**
    * Any preflight checks of the filesystem config/url etc.
+   * Happens before the endpoint checks -which are the first network operations.
    * @param printout output
    * @param path path which will be used
    * @throws IOException failure.

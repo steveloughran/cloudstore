@@ -225,8 +225,11 @@ public class StoreDiag extends DiagnosticsEntryPoint {
     if (storeInfo.printTLSInfo()) {
       tlsInfo();
     }
-    probeAllEndpoints();
+
     storeInfo.preflightFilesystemChecks(this, path);
+
+    // look at endpoints
+    probeAllEndpoints();
 
     // and the filesystem operations
     final boolean completed = executeFileSystemOperations(path, writeOperations);
