@@ -28,7 +28,6 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
 import java.util.Optional;
 
 import org.slf4j.Logger;
@@ -115,6 +114,21 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
 
   public static final String FS_AZURE_ACCOUNT_KEY = "fs.azure.account.key";
 
+  public static final String ACCESS_TOKEN_PROVIDER =
+      "org.apache.hadoop.fs.azurebfs.oauth2.AccessTokenProvider";
+
+  public static final String CREDENTIALS_TOKEN_PROVIDER =
+      "org.apache.hadoop.fs.azurebfs.oauth2.ClientCredsTokenProvider";
+
+  public static final String MSI_TOKEN_PROVIDER =
+      "org.apache.hadoop.fs.azurebfs.oauth2.MsiTokenProvider";
+
+  public static final String REFRESH_BASED_TOKEN_PROVIDER =
+      "org.apache.hadoop.fs.azurebfs.oauth2.RefreshTokenBasedTokenProvider";
+
+  public static final String USER_PASSWORD_TOKEN_PROVIDER =
+      "org.apache.hadoop.fs.azurebfs.oauth2.UserPasswordTokenProvider";
+
   @Override
   public Object[][] getEnvVars() {
     return cat(ENV_VARS, STANDARD_ENV_VARS);
@@ -147,6 +161,41 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
 
   public static final String FS_AZURE_SAS_TOKEN_PROVIDER_TYPE = "fs.azure.sas.token.provider.type";
 
+  public static final String FS_AZURE_ACCOUNT_OAUTH2_CLIENT_ENDPOINT =
+      "fs.azure.account.oauth2.client.endpoint";
+
+  public static final String FS_AZURE_ACCOUNT_OAUTH2_CLIENT_ID =
+      "fs.azure.account.oauth2.client.id";
+
+  public static final String FS_AZURE_ACCOUNT_OAUTH2_CLIENT_SECRET =
+      "fs.azure.account.oauth2.client.secret";
+
+  public static final String FS_AZURE_ACCOUNT_OAUTH2_MSI_AUTHORITY =
+      "fs.azure.account.oauth2.msi.authority";
+
+  public static final String FS_AZURE_ACCOUNT_OAUTH2_MSI_ENDPOINT =
+      "fs.azure.account.oauth2.msi.endpoint";
+
+  public static final String FS_AZURE_ACCOUNT_OAUTH2_MSI_TENANT =
+      "fs.azure.account.oauth2.msi.tenant";
+
+  public static final String FS_AZURE_ACCOUNT_OAUTH2_REFRESH_TOKEN =
+      "fs.azure.account.oauth2.refresh.token";
+
+  public static final String FS_AZURE_ACCOUNT_OAUTH2_REFRESH_TOKEN_ENDPOINT =
+      "fs.azure.account.oauth2.refresh.token.endpoint";
+
+  public static final String FS_AZURE_ACCOUNT_OAUTH2_TOKEN_FILE =
+      "fs.azure.account.oauth2.token.file";
+
+  public static final String FS_AZURE_ACCOUNT_OAUTH2_USER_NAME =
+      "fs.azure.account.oauth2.user.name";
+
+  public static final String FS_AZURE_ACCOUNT_OAUTH2_USER_PASSWORD =
+      "fs.azure.account.oauth2.user.password";
+
+  public static final String FS_AZURE_ACCOUNT_HNS_ENABLED = "fs.azure.account.hns.enabled";
+
   /**
    * Configuration options for the Abfs Client.
    */
@@ -158,21 +207,20 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.azure.abfs.endpoint", false, false},
       {"fs.azure.abfs.latency.track", false, false},
       {FS_AZURE_ACCOUNT_AUTH_TYPE, false, false},
-      {"fs.azure.account.hns.enabled", false, false},
+      {FS_AZURE_ACCOUNT_HNS_ENABLED, false, false},
       {FS_AZURE_ACCOUNT_KEYPROVIDER, false, false},
       {FS_AZURE_ACCOUNT_OAUTH_PROVIDER_TYPE, false, false},
-      {"fs.azure.account.oauth2.client.endpoint", false, false},
-      {"fs.azure.account.oauth2.client.id", false, false},
-      {"fs.azure.account.oauth2.client.secret", true, true},
-      {"fs.azure.account.oauth2.msi.authority", false, false},
-      {"fs.azure.account.oauth2.msi.endpoint", false, false},
-      {"fs.azure.account.oauth2.msi.tenant", false, false},
-      {"fs.azure.account.oauth2.refresh.token", true, true},
-      {"fs.azure.account.oauth2.refresh.token.endpoint", true, true},
-      {"fs.azure.account.oauth2.token.file", true, true},
-      {"fs.azure.account.oauth2.user.name", false, false},
-      {"fs.azure.account.oauth2.user.name", false, false},
-      {"fs.azure.account.oauth2.user.password", true, true},
+      {FS_AZURE_ACCOUNT_OAUTH2_CLIENT_ENDPOINT, false, false},
+      {FS_AZURE_ACCOUNT_OAUTH2_CLIENT_ID, false, false},
+      {FS_AZURE_ACCOUNT_OAUTH2_CLIENT_SECRET, true, true},
+      {FS_AZURE_ACCOUNT_OAUTH2_MSI_AUTHORITY, false, false},
+      {FS_AZURE_ACCOUNT_OAUTH2_MSI_ENDPOINT, false, false},
+      {FS_AZURE_ACCOUNT_OAUTH2_MSI_TENANT, false, false},
+      {FS_AZURE_ACCOUNT_OAUTH2_REFRESH_TOKEN, true, true},
+      {FS_AZURE_ACCOUNT_OAUTH2_REFRESH_TOKEN_ENDPOINT, true, true},
+      {FS_AZURE_ACCOUNT_OAUTH2_TOKEN_FILE, true, true},
+      {FS_AZURE_ACCOUNT_OAUTH2_USER_NAME, false, false},
+      {FS_AZURE_ACCOUNT_OAUTH2_USER_PASSWORD, true, true},
       {"fs.azure.account.operation.idle.timeout", false, false},
       {"fs.azure.account.throttling.enabled", false, false},
       {"fs.azure.analysis.period", false, false},
@@ -356,33 +404,18 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
     String account = getFsURI().getHost();
     addAccountOption(optionList, FS_AZURE_ACCOUNT_KEY,
         true, true);
-    addAccountOption(optionList,
-        "fs.azure.account.auth.type",
-        false, false);
-    addAccountOption(optionList,
-        "fs.azure.account.oauth2.user.password",
-        true, true);
-    addAccountOption(optionList,
-        "fs.azure.account.oauth2.refresh.token",
-        true, true);
-    addAccountOption(optionList,
-        "fs.azure.account.oauth2.user.name",
-        true, false);
-    addAccountOption(optionList,
-        "fs.azure.account.oauth2.msi.tenant",
-        true, false);
-    addAccountOption(optionList,
-        "fs.azure.account.oauth2.client.endpoint",
-        false, false);
-    addAccountOption(optionList,
-        "fs.azure.account.oauth2.client.id",
-        true, false);
-    addAccountOption(optionList,
-        "fs.azure.account.oauth2.client.secret",
-        true, true);
-    addAccountOption(optionList,
-        "fs.azure.account.oauth.provider.type",
-        false, false);
+    addAccountOption(optionList, FS_AZURE_ACCOUNT_OAUTH_PROVIDER_TYPE, false, false);
+    addAccountOption(optionList, FS_AZURE_ACCOUNT_OAUTH2_CLIENT_ENDPOINT, false, false);
+    addAccountOption(optionList, FS_AZURE_ACCOUNT_OAUTH2_CLIENT_ID, true, false);
+    addAccountOption(optionList, FS_AZURE_ACCOUNT_OAUTH2_CLIENT_SECRET, true, true);
+    addAccountOption(optionList, FS_AZURE_ACCOUNT_OAUTH2_MSI_AUTHORITY, true, false);
+    addAccountOption(optionList, FS_AZURE_ACCOUNT_OAUTH2_MSI_ENDPOINT, true, false);
+    addAccountOption(optionList, FS_AZURE_ACCOUNT_OAUTH2_MSI_TENANT, true, false);
+    addAccountOption(optionList, FS_AZURE_ACCOUNT_OAUTH2_USER_NAME, true, true);
+    addAccountOption(optionList, FS_AZURE_ACCOUNT_OAUTH2_REFRESH_TOKEN, true, true);
+    addAccountOption(optionList, FS_AZURE_ACCOUNT_OAUTH2_TOKEN_FILE, true, false);
+    addAccountOption(optionList, FS_AZURE_ACCOUNT_OAUTH2_USER_NAME, true, false);
+    addAccountOption(optionList, FS_AZURE_ACCOUNT_OAUTH2_USER_PASSWORD, true, true);
 
     addAccountOption(optionList,
         "fs.azure.account.keyprovider",
@@ -493,7 +526,8 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
     final String leaseDirs = conf.getTrimmed(FS_AZURE_INFINITE_LEASE_DIRECTORIES, "");
     if (!leaseDirs.isEmpty()) {
       leaseThreads = conf.getInt(FS_AZURE_LEASE_THREADS, 0);
-      printout.println("Filesystem has directory leasing for directories %s with lease thread count of %,d",
+      printout.println(
+          "Filesystem has directory leasing for directories %s with lease thread count of %,d",
           leaseDirs, leaseThreads);
 
       if (leaseThreads == 0) {
@@ -529,27 +563,16 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
     printout.println("Filesystem name: %s", fileSystemName);
     printout.println("Account: %s", accountName);
 
-    // look up key value
-    String resolvedAccountKeyName = abfsContainerKey(FS_AZURE_ACCOUNT_KEY);
-    String resolvedAccountKeyValue = conf.get(resolvedAccountKeyName);
-    if (resolvedAccountKeyValue != null) {
-      getOutput().println("Value of %s = %s", resolvedAccountKeyName,
-          sanitize(resolvedAccountKeyValue, false));
-    } else {
-      getOutput().error("No shared key set in %s", resolvedAccountKeyName);
-    }
-
     WrappedConfiguration wrapped = new WrappedConfiguration(conf, accountName, printout);
     final PropVal auth = wrapped.get(FS_AZURE_ACCOUNT_AUTH_TYPE, "SharedKey");
     printout.println("Authentication type in %s is %s",
         FS_AZURE_ACCOUNT_AUTH_TYPE, auth.details());
-    String authtype = auth.value.toLowerCase(Locale.ROOT);
-    final PropVal tokenProvider = wrapped.get(FS_AZURE_SAS_TOKEN_PROVIDER_TYPE, "");
-    boolean requireTokenProvider = true;
     // look at auth info
-    if ("sharedkey".equals(authtype)) {
+    switch (auth.value) {
+    case "SharedKey": {
+
+      // shared key auth
       printout.println("Authentication is SharedKey");
-      requireTokenProvider = false;
       int dotIndex = accountName.indexOf(".");
       if (dotIndex <= 0) {
         printout.error("Account name in %s is not fully qualified", uri);
@@ -561,13 +584,17 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
               keyProvider.get().details());
         } else {
           // using SimpleKeyProvider.java
-          printout.println("resolving secrets in Hadoop configuration class/JCEKS");
+          printout.println("Resolving secrets in Hadoop configuration class/JCEKS");
           try {
             final Optional<PropVal> password = wrapped.getPasswordString(FS_AZURE_ACCOUNT_KEY);
-            password.orElseThrow(() ->
-                new IllegalArgumentException("No shared key found for " + accountName));
-            printout.println("Secret key for authentication: %s",
-                password.get().sanitized());
+            if (password.isPresent()) {
+              final PropVal val = password.get();
+              printout.println("Secret key for authentication: %s",
+                  val.sanitized());
+            } else {
+              getOutput().error("No shared key set in %s or %s",
+                  FS_AZURE_ACCOUNT_KEY, abfsContainerKey(FS_AZURE_ACCOUNT_KEY));
+            }
           } catch (Exception e) {
             printout.error("Failed to retrieve password configuration option %s: %s",
                 FS_AZURE_ACCOUNT_KEY, e.toString());
@@ -575,18 +602,75 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
           }
         }
       }
-    } else if ("sas".equals(authtype)) {
-      printout.println("Authentication is SAS");
-    } else if ("oauth".equals(authtype)) {
-      printout.println("OAuth is enabled; HTTPS will be the network protocol");
-    } else {
-      printout.println("Authentication is custom/delegation tokens");
     }
-    if (requireTokenProvider) {
+    break;
+    case "OAuth":
+      printout.println("OAuth2 is used for authentication enabled");
+
+      // For the various OAuth options use the config `fs.azure.account
+      //.oauth.provider.type`. Following are the implementations supported
+      //ClientCredsTokenProvider, UserPasswordTokenProvider, MsiTokenProvider and
+      //RefreshTokenBasedTokenProvider.
+      final PropVal provider = wrapped.get(FS_AZURE_ACCOUNT_OAUTH_PROVIDER_TYPE)
+          .orElse(new PropVal("unset", ""));
+      printout.println("Token provider %s", provider);
+      List<String> passwordStrings;
+      String providerType = provider.value();
+      switch (providerType) {
+      case CREDENTIALS_TOKEN_PROVIDER:
+        passwordStrings = Arrays.asList(
+            FS_AZURE_ACCOUNT_OAUTH2_CLIENT_ENDPOINT,
+            FS_AZURE_ACCOUNT_OAUTH2_CLIENT_ID,
+            FS_AZURE_ACCOUNT_OAUTH2_CLIENT_SECRET);
+        break;
+      case MSI_TOKEN_PROVIDER:
+        passwordStrings = Arrays.asList(
+            FS_AZURE_ACCOUNT_OAUTH2_CLIENT_ID,
+            FS_AZURE_ACCOUNT_OAUTH2_MSI_ENDPOINT,
+            FS_AZURE_ACCOUNT_OAUTH2_MSI_TENANT);
+        break;
+      case REFRESH_BASED_TOKEN_PROVIDER:
+        passwordStrings = Arrays.asList(
+            FS_AZURE_ACCOUNT_OAUTH2_CLIENT_ID,
+            FS_AZURE_ACCOUNT_OAUTH2_REFRESH_TOKEN_ENDPOINT,
+            FS_AZURE_ACCOUNT_OAUTH2_REFRESH_TOKEN);
+        break;
+      case USER_PASSWORD_TOKEN_PROVIDER:
+        passwordStrings = Arrays.asList(
+            FS_AZURE_ACCOUNT_OAUTH2_CLIENT_ENDPOINT,
+            FS_AZURE_ACCOUNT_OAUTH2_USER_NAME,
+            FS_AZURE_ACCOUNT_OAUTH2_USER_PASSWORD
+        );
+        break;
+      default:
+        printout.error("Provider type %s is not recognized", provider);
+        passwordStrings = Arrays.asList();
+      }
+      // go through each value and just print whether set or unset
+      for (String passwordString : passwordStrings) {
+        Optional<PropVal> pv = wrapped.get(passwordString);
+        if (pv.isPresent()) {
+          printout.println("%s: %s", passwordString, pv.get().sanitized());
+        } else {
+          printout.warn("Property not defined %s", passwordString);
+        }
+      }
+
+      break;
+    case "SAS":
+      printout.println("Authentication is SAS");
+      final PropVal tokenProvider = wrapped.get(FS_AZURE_SAS_TOKEN_PROVIDER_TYPE, "");
       printout.println("Token Provider = %s", tokenProvider.details());
       if (tokenProvider.value.isEmpty()) {
         printout.error("No OAuth token provider set in %s", FS_AZURE_SAS_TOKEN_PROVIDER_TYPE);
       }
+      break;
+    case "Custom":
+      printout.println("Custom authentication.l");
+      break;
+    default:
+      printout.warn("Authentication mechanism %s is not recognized: ", auth.value);
+      printout.warn("Must be one of: SharedKey, SAS, OAuth, Custom");
     }
 
     wrapped.printIfDefined("IdentityTransformer",
@@ -624,7 +708,7 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
   public List<URI> listEndpointsToProbe(final Configuration conf)
       throws IOException, URISyntaxException {
     List<URI> uris = new ArrayList<>(2);
-    addUriOption(uris, conf, "fs.azure.account.oauth2.refresh.token.endpoint", "",
+    addUriOption(uris, conf, FS_AZURE_ACCOUNT_OAUTH2_REFRESH_TOKEN_ENDPOINT, "",
         "https://login.microsoftonline.com/Common/oauth2/token");
     String store = requireNonNull(getFsURI().getHost());
     uris.add(new URI("https", store, "/", null));
@@ -810,12 +894,20 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
       this.origin = origin;
     }
 
+    private String getOrigin() {
+      return origin;
+    }
+
+    private String value() {
+      return value;
+    }
+
     private String details() {
       return String.format("\"%s\" [%s]", value, origin);
     }
 
     private String sanitized() {
-      return String.format("%s [%s]", sanitize(value, false), origin);
+      return String.format("%s (source %s)", sanitize(value, false), origin);
     }
 
     @Override
