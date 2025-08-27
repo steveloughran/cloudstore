@@ -568,7 +568,7 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
                 new IllegalArgumentException("No shared key found for " + accountName));
             printout.println("Secret key for authentication: %s",
                 password.get().sanitized());
-          } catch (IOException e) {
+          } catch (Exception e) {
             printout.error("Failed to retrieve password configuration option %s: %s",
                 FS_AZURE_ACCOUNT_KEY, e.toString());
             LOG.error("error string", e);
