@@ -34,7 +34,6 @@ import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.store.s3a.S3ASupport;
-import org.apache.hadoop.util.ExitUtil;
 
 import static java.time.Duration.ofMinutes;
 import static java.time.Duration.ofSeconds;
@@ -863,21 +862,25 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
    * {@inheritDoc}
    */
   @Override
-  public List<URI> listEndpointsToProbe(final Configuration conf)
+  public List<EndpointProbe> listEndpointsToProbe(final Printout printout, final Configuration conf)
       throws IOException, URISyntaxException {
     String endpoint = conf.getTrimmed(ENDPOINT, "s3.amazonaws.com");
     String bucketURI;
     String bucket = getFsURI().getHost();
     String fqdn;
+    String origin;
     if (bucket.contains(".")) {
-      LOG.info("URI appears to be FQDN; using {} as endpoint", bucket);
+      printout.println("Filesystem appears to be FQDN; using %s as endpoint", bucket);
       fqdn = bucket;
+      origin = "filesystem URL";
     } else if (endpoint.contains("://")) {
-      LOG.info("endpoint is URI {}", endpoint);
+      printout.println("Endpoint is URI %s", endpoint);
       URI uri = new URI(endpoint);
       fqdn = uri.getHost();
+      origin = "Configuration option " + ENDPOINT;
     } else {
       fqdn = bucket + "." + endpoint;
+      origin = "virtual hostname prepended to endpoint";
     }
     final boolean pathStyleAccess = conf.getBoolean(PATH_STYLE_ACCESS, false);
     boolean secureConnections =
@@ -888,40 +891,44 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
     if (pathStyleAccess) {
       // path style access, so full bucket url is a path under
       // the endpoint.
-      getOutput().println("Enabling path style access");
+      printout.println("Enabling path style access");
       if (endpointIsUrl) {
         bucketURI = String.format("%s/%s", endpoint, bucket);
       } else {
         bucketURI = String.format("%s://%s/%s", scheme, endpoint, bucket);
       }
+      origin = "S3 store with path style access";
     } else {
       // virtual host access
       if (endpointIsUrl) {
-        getOutput().warn(
+        printout.error("Inconsistent endpoint and path access settings");
+        printout.error(
             "Endpoint %s is a URL; using bucket-hostname access isn't going to work"
                 + "\nset %s to true",
             endpoint, PATH_STYLE_ACCESS);
-        throw new ExitUtil.ExitException(-1,
-            "Inconsistent endpoint and path access settings");
+        // stop with probes
+        return EMPTY_ENDPOINTS;
       }
       bucketURI = String.format("%s://%s/", scheme, fqdn);
     }
-    List<URI> uris = new ArrayList<>(3);
-    uris.add(toURI("Bucket URI", bucketURI));
-
+    List<EndpointProbe> uris = new ArrayList<>(3);
+    uris.add(new EndpointProbe(bucketURI, "S3 store for bucket", origin, false));
 
     // If the STS endpoints is set, work out the URI
     final String sts = conf.get(ASSUMED_ROLE_STS_ENDPOINT, "");
     if (!sts.isEmpty()) {
-      uris.add(toURI(ASSUMED_ROLE_STS_ENDPOINT,
-          String.format("https://%s/", sts)));
+      uris.add(new EndpointProbe(String.format("https://%s/", sts),
+          "Endpoint of STS Service",
+          ASSUMED_ROLE_STS_ENDPOINT,
+          true));
     }
     return uris;
   }
 
-  public List<URI> listOptionalEndpointsToProbe(final Configuration conf)
-      throws IOException, URISyntaxException {
-    List<URI> uris = new ArrayList<>(0);
+  public List<EndpointProbe> listOptionalEndpointsToProbe(final Printout printout, final Configuration conf)
+      throws IOException {
+
+    List<EndpointProbe> uris = new ArrayList<>(0);
 
     if (conf.getTrimmed(ENDPOINT, "").isEmpty()
         && conf.getTrimmed(REGION, "").isEmpty()
@@ -929,8 +936,11 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
 
       // the region is not known, so will hit us central
       // add that
-      uris.add(toURI("cross resolution endpoint",
-          "https://us-east-1.s3.amazonaws.com//"));
+      uris.add(new EndpointProbe("https://us-east-1.s3.amazonaws.com/",
+          "S3 cross resolution endpoint",
+          "Needed as endpoint and origin are unset and "
+              + CROSS_REGION_ACCESS_ENABLED + " is not false",
+          true));
     }
 
     return uris;

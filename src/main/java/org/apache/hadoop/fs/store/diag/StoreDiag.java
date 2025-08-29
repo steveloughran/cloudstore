@@ -33,7 +33,6 @@ import java.net.NoRouteToHostException;
 import java.net.Proxy;
 import java.net.ProxySelector;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.nio.charset.Charset;
@@ -226,10 +225,10 @@ public class StoreDiag extends DiagnosticsEntryPoint {
       tlsInfo();
     }
 
-    storeInfo.preflightFilesystemChecks(this, path);
-
     // look at endpoints
     probeAllEndpoints();
+
+    storeInfo.preflightFilesystemChecks(this, path);
 
     // and the filesystem operations
     final boolean completed = executeFileSystemOperations(path, writeOperations);
@@ -253,10 +252,10 @@ public class StoreDiag extends DiagnosticsEntryPoint {
     heading("Endpoints");
 
     try {
-      probeEndpoints(storeInfo.listEndpointsToProbe(getConf()));
-      probeOptionalEndpoints(storeInfo.listOptionalEndpointsToProbe(getConf()));
-    } catch (URISyntaxException e) {
-      LOG.warn("Bad URI", e);
+      probeEndpoints(storeInfo.listEndpointsToProbe(this, getConf()));
+      probeOptionalEndpoints(storeInfo.listOptionalEndpointsToProbe(this, getConf()));
+    } catch (Exception e) {
+      LOG.warn("Probe failureI", e);
     }
   }
 
@@ -420,12 +419,12 @@ public class StoreDiag extends DiagnosticsEntryPoint {
 
   /**
    * Probe the list of endpoints.
-   * @param endpoints list to probe (unauthed)
+   * @param probes list to probe (unauthed)
    * @throws IOException IO Failure
    */
-  public void probeEndpoints(final List<URI> endpoints)
+  public void probeEndpoints(final List<EndpointProbe> probes)
       throws IOException {
-    if (endpoints.isEmpty()) {
+    if (probes.isEmpty()) {
       println("No endpoints determined for this filesystem");
     } else {
       println("Attempting to list and connect to public service endpoints,");
@@ -439,32 +438,39 @@ public class StoreDiag extends DiagnosticsEntryPoint {
       println("- If it is some authentication error, then don't worry:\n"
           + "    the results of the filesystem operations are what really matters");
 
-      for (URI endpoint : endpoints) {
+      int successCount = 0;
+      for (EndpointProbe probe : probes) {
         try {
-          probeOneEndpoint(endpoint);
+          probeOneEndpoint(probe);
+          if (probe.isSuccess()) {
+            successCount++;
+          }
         } catch (UnknownHostException | NoRouteToHostException e) {
-          errorln("Major connectivity problem connecting to: %s: %s", endpoint, e);
+          errorln("Major connectivity problem connecting to: %s: %s", probe.endpoint, e);
           errorln("Check definition of endpoints and network status");
           LOG.warn("Stack trace", e);
-        } catch (IOException e) {
-          LOG.warn("Failed to probe {}", endpoint, e);
+        } catch (Exception e) {
+          LOG.warn("Failed to probe {}", probe.endpoint, e);
         }
+      }
+      if (successCount == probes.size()) {
+        println("All endpoint probes successful");
       }
     }
   }
 
   /**
    * Probe the list of endpoints.
-   * @param endpoints list to probe (unauthed)
+   * @param probes list to probe (unauthed)
    * @throws IOException IO Failure
    */
-  public void probeOptionalEndpoints(final List<URI> endpoints)
+  public void probeOptionalEndpoints(final List<EndpointProbe> probes)
       throws IOException {
-    for (URI endpoint : endpoints) {
+    for (EndpointProbe probe : probes) {
       try {
-        probeOneEndpoint(endpoint);
-      } catch (IOException e) {
-        LOG.info("Connecting to {}", endpoint, e);
+        probeOneEndpoint(probe);
+      } catch (Exception e) {
+        LOG.info("Connecting to {}", probe, e);
       }
     }
   }
@@ -472,76 +478,91 @@ public class StoreDiag extends DiagnosticsEntryPoint {
   /**
    * Probe one endpoint, print proxy values, etc. No auth.
    * Ignores "0.0.0.0" addresses as they are silly.
-   * @param endpoint endpoint
+   * @param probe proble. This will be updated.
    * @throws IOException network problem
    */
-  public void probeOneEndpoint(URI endpoint)
+  public void probeOneEndpoint(EndpointProbe probe)
       throws IOException {
+    URI endpoint = probe.endpoint;
     final String host = endpoint.getHost();
 
-    heading("Endpoint: %s", endpoint);
+    subheading("Endpoint: %s", endpoint);
+    println(probe.description);
+    println(probe.origin);
+
+    if ("0.0.0.0".equals(host)) {
+      probe.failed("Host 0.0.0 is an unreachable host");
+      return;
+    }
+
     try {
       printCanonicalHostname(this, host);
     } catch (UnknownHostException e) {
       warn("Host %s unknown", endpoint);
+      probe.failed("Unknown host " + endpoint);
       return;
     }
 
-    if ("0.0.0.0".equals(host)) {
-      return;
-    }
     URL url = endpoint.toURL();
 
     List<Proxy> proxies = ProxySelector.getDefault()
         .select(toURI(url));
     if (proxies.isEmpty() ||
         Proxy.Type.DIRECT == proxies.get(0).type()) {
-      println("Proxy: none");
+      println("Proxy: DIRECT");
     } else {
       println("Proxy defined:");
       for (Proxy proxy : proxies) {
         println("   %s", proxy);
       }
     }
-    println("%nConnecting to %s%n", url);
-
-
     HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+    int responseCode;
+    boolean success;
     conn.setConnectTimeout(1_000);
     conn.setReadTimeout(1_000);
-    conn.connect();
-    int responseCode = conn.getResponseCode();
-    String responseMessage = conn.getResponseMessage();
-    println("Response: %d : %s", responseCode, responseMessage);
-    boolean success = responseCode == 200;
-    println("HTTP response %d from %s: %s",
-        responseCode, url, responseMessage);
-    println("Using proxy: %s ", conn.usingProxy());
-    Map<String, List<String>> headerFields = conn.getHeaderFields();
-    if (headerFields != null) {
-      for (String header : headerFields.keySet()) {
-        println("%s: %s", header,
-            StringUtils.join(",", headerFields.get(header)));
+    try (StoreDurationInfo d = new StoreDurationInfo(getOut(),
+         "GET %s", url)) {
+      conn.connect();
+      responseCode = conn.getResponseCode();
+      String responseMessage = conn.getResponseMessage();
+      println("Response: %d : %s", responseCode, responseMessage);
+      success = responseCode == 200;
+      println("HTTP response %d from %s: %s",
+          responseCode, url, responseMessage);
+      probe.setSuccess(success);
+      probe.setUsedProxy(conn.usingProxy());
+      println("Using proxy: %s ", conn.usingProxy());
+      Map<String, List<String>> headerFields = conn.getHeaderFields();
+      if (headerFields != null) {
+        for (String header : headerFields.keySet()) {
+          println("%s: %s", header,
+              StringUtils.join(",", headerFields.get(header)));
+        }
       }
-    }
-    String body;
-    InputStream in = success ? conn.getInputStream() : conn.getErrorStream();
-    if (in != null) {
-      ByteArrayOutputStream out = new ByteArrayOutputStream();
-      IOUtils.copyBytes(
-          in,
-          out, 4096, true);
-      body = out.toString();
-    } else {
-      body = "(empty response)";
-    }
+      String body;
+      InputStream in = success ? conn.getInputStream() : conn.getErrorStream();
+      if (in != null) {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        IOUtils.copyBytes(
+            in,
+            out, 4096, true);
+        body = out.toString();
+        probe.setBody(body);
+      } else {
+        body = "(empty response)";
+      }
 
-    println("%n%s%n",
-        body.substring(0, Math.min(1024, body.length())));
-    if (success) {
-      println("WARNING: this unauthenticated operation was not rejected.%n "
-          + "This may mean the store is world-readable.%n "
-          + "Check this by pasting %s into your browser", url);
+      println("%n%s%n",
+          body.substring(0, Math.min(1024, body.length())));
+      if (success && !probe.isExpectWorldReadable()) {
+        println("An unauthenticated GET request to this endpoint was not rejected.%n "
+            + "This may mean the store is world-readable.%n "
+            + "Check this by pasting %s into your browser", url);
+      }
+    } catch (IOException e) {
+      probe.failed(e.getMessage());
+      throw e;
     }
   }
 

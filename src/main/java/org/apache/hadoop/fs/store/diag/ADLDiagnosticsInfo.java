@@ -77,12 +77,19 @@ public class ADLDiagnosticsInfo extends StoreDiagnosticsInfo {
   }
 
   @Override
-  public List<URI> listEndpointsToProbe(final Configuration conf)
+  public List<EndpointProbe> listEndpointsToProbe(final Printout printout, final Configuration conf)
       throws IOException {
-    List<URI> uris = new ArrayList<>(2);
-    addUriOption(uris, conf, "fs.adl.oauth2.refresh.url", "", "");
+    List<EndpointProbe> uris = new ArrayList<>(2);
+    addProbeFromOption(uris, conf, "fs.adl.oauth2.refresh.url", "",
+        "Oauth refresh token endpoint",
+        "",
+        true);
     String bucket = getFsURI().getHost();
-    uris.add(StoreDiag.toURI("host", String.format("https://%s", bucket)));
+    uris.add(new EndpointProbe(
+        String.format("https://%s/", bucket),
+        "Store",
+        "Determined from filesystem URL",
+        false));
     return uris;
   }
 

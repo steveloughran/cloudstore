@@ -40,7 +40,6 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.azurebfs.services.AbfsOutputStream;
 import org.apache.hadoop.fs.store.StoreDurationInfo;
 
-import static java.util.Objects.requireNonNull;
 import static org.apache.hadoop.fs.azurebfs.constants.ConfigurationKeys.AZURE_KEY_ACCOUNT_KEYPROVIDER;
 import static org.apache.hadoop.fs.store.StoreUtils.cat;
 import static org.apache.hadoop.fs.store.StoreUtils.checkArgument;
@@ -128,6 +127,9 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
 
   public static final String USER_PASSWORD_TOKEN_PROVIDER =
       "org.apache.hadoop.fs.azurebfs.oauth2.UserPasswordTokenProvider";
+
+  public static final String ABFS_URL_FORM =
+      "ABFS URLs takes the form abfs://container@account.dfs.core.windows.net/";
 
   @Override
   public Object[][] getEnvVars() {
@@ -605,7 +607,7 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
     }
     break;
     case "OAuth":
-      printout.println("OAuth2 is used for authentication enabled");
+      printout.println("OAuth2 is used for authentication");
 
       // For the various OAuth options use the config `fs.azure.account
       //.oauth.provider.type`. Following are the implementations supported
@@ -679,16 +681,21 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
 
 
   /**
-   * Splut a URI into a tuple of (fileSystemName, accountName)
+   * Splut a URI into a tuple of (fileSystemName, accountName).
    * @param uri uri
    * @return auth info
    * @throws IllegalArgumentException if invalid
    */
   private String[] authorityParts(URI uri) {
-    final String uritext = uri.toString();
+    final String uriText = uri.toString();
     final String authority = uri.getRawAuthority();
-    checkArgument(authority != null, "Authority is null in " + uritext);
-    checkArgument(authority.contains("@"), "Authority has no @ splitter " + uritext);
+    checkArgument(authority != null,
+        "Authority is null in \"" + uriText + "\""
+            + " Make sure there are exactly two / symbols after abfs. "
+            + ABFS_URL_FORM);
+    checkArgument(authority.contains("@"),
+        "Authority has no @ splitter \"" + uriText + "\". "
+        + ABFS_URL_FORM);
 
     final String[] authorityParts = authority.split("@", 2);
 
@@ -696,24 +703,34 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
         && authorityParts[0].isEmpty()) {
       final String errMsg = String
               .format("'%s' has a malformed authority, expected container name. "
-                      + "Authority takes the form "
-                      + "abfs" + "://[<container name>@]<account name>",
-                  uritext);
+                      + ABFS_URL_FORM,
+                  uriText);
       checkArgument(false, errMsg);
     }
     return authorityParts;
   }
 
   @Override
-  public List<URI> listEndpointsToProbe(final Configuration conf)
+  public List<EndpointProbe> listEndpointsToProbe(final Printout printout, final Configuration conf)
       throws IOException, URISyntaxException {
-    List<URI> uris = new ArrayList<>(2);
-    addUriOption(uris, conf, FS_AZURE_ACCOUNT_OAUTH2_REFRESH_TOKEN_ENDPOINT, "",
-        "https://login.microsoftonline.com/Common/oauth2/token");
-    String store = requireNonNull(getFsURI().getHost());
-    uris.add(new URI("https", store, "/", null));
-    return uris;
+    List<EndpointProbe> uris = new ArrayList<>(2);
 
+    String store = getFsURI().getHost();
+    if (store != null) {
+      uris.add(new EndpointProbe(
+          String.format("https://%s/", store),
+          "Store",
+          "Determined from filesystem URL",
+          true
+      ));
+    } else {
+      printout.error("no host declared in filesystem URI %s", getFsURI());
+    }
+    addProbeFromOption(uris, conf, FS_AZURE_ACCOUNT_OAUTH2_REFRESH_TOKEN_ENDPOINT, "",
+        "Oauth refresh token endpoint",
+        "https://login.microsoftonline.com/Common/oauth2/token",
+        true);
+    return uris;
   }
 
   /**

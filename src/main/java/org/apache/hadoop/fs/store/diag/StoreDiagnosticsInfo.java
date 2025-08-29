@@ -47,6 +47,7 @@ import static java.util.Objects.requireNonNull;
 import static org.apache.hadoop.fs.store.StoreEntryPoint.DEFAULT_HIDE_ALL_SENSITIVE_CHARS;
 import static org.apache.hadoop.fs.store.StoreEntryPoint.getOrigins;
 import static org.apache.hadoop.fs.store.StoreUtils.sanitize;
+import static org.apache.hadoop.fs.store.diag.DiagnosticsEntryPoint.toURI;
 import static org.apache.hadoop.fs.store.diag.OptionSets.STANDARD_SECURITY_PROPS;
 import static org.apache.hadoop.fs.store.diag.OptionSets.STANDARD_SYSPROPS;
 import static org.apache.hadoop.fs.store.diag.StoreDiag.sortKeys;
@@ -72,7 +73,7 @@ public class StoreDiagnosticsInfo {
       "log4j.properties"
   };
 
-  protected static final List<URI> EMPTY_ENDPOINTS = new ArrayList<>(0);
+  protected static final List<EndpointProbe> EMPTY_ENDPOINTS = new ArrayList<>(0);
 
   private final URI fsURI;
 
@@ -297,11 +298,13 @@ public class StoreDiagnosticsInfo {
 
   /**
    * List the endpoints to probe for (auth, REST, etc).
+   * @param printout
    * @param conf configuration to use, will already have been patched.
    * @return a possibly empty ist of endpoints for DNS lookup and HTTP
    * connections.
    */
-  public List<URI> listEndpointsToProbe(Configuration conf)
+  public List<EndpointProbe> listEndpointsToProbe(
+      final Printout printout, Configuration conf)
       throws IOException, URISyntaxException {
     return EMPTY_ENDPOINTS;
   }
@@ -309,11 +312,13 @@ public class StoreDiagnosticsInfo {
   /**
    * List optional endpoints to probe; its not an error if these aren't
    * reachable.
+   * @param printout
    * @param conf configuration to use, will already have been patched.
    * @return a possibly empty ist of endpoints for DNS lookup and HTTP
    * connections.
    */
-  public List<URI> listOptionalEndpointsToProbe(Configuration conf)
+  public List<EndpointProbe> listOptionalEndpointsToProbe(
+      final Printout printout, Configuration conf)
       throws IOException, URISyntaxException {
     return EMPTY_ENDPOINTS;
   }
@@ -328,30 +333,37 @@ public class StoreDiagnosticsInfo {
   }
 
   /**
-   * Look up an option; if not empty add it as a URI.
+   * Look up an option; if not empty add it as a probe.
    * @param uris URI list to add to
    * @param conf config
    * @param key key to check
    * @param uriPrefix any prefix to add to build the URI, e.g "https:"
-   * @param defVal
+   * @param description description
+   * @param defVal default value.
+   * @param expectWorldReadable
    * @return true iff there was a URI
    * @throws IOException parsing problem
    */
-  protected boolean addUriOption(final List<URI> uris,
+  protected boolean addProbeFromOption(final List<EndpointProbe> uris,
       final Configuration conf,
       final String key,
       final String uriPrefix,
-      final String defVal) throws IOException {
+      final String description,
+      final String defVal,
+      boolean expectWorldReadable) throws IOException {
     String endpoint = conf.getTrimmed(key, defVal);
     if (!endpoint.isEmpty()) {
-      uris.add(StoreDiag.toURI(
+      uris.add(new EndpointProbe(
+          uriPrefix + endpoint,
+          description,
           "From configuration key " + key,
-          uriPrefix + endpoint));
+          expectWorldReadable));
       return true;
     } else {
       return false;
     }
   }
+
 
   /**
    * Override point: any store-specific config validation.

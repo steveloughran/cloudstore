@@ -202,14 +202,14 @@ public class HDFSDiagnosticsInfo extends StoreDiagnosticsInfo {
   }
 
   @Override
-  public List<URI> listEndpointsToProbe(final Configuration conf)
+  public List<EndpointProbe> listEndpointsToProbe(final Printout printout, final Configuration conf)
       throws IOException {
-    List<URI> uris = new ArrayList<>(2);
+    List<EndpointProbe> uris = new ArrayList<>(2);
     boolean isHttps = conf.getBoolean("dfs.http.policy", false);
     if (isHttps) {
-      addUriOption(uris, conf, "dfs.namenode.https-address", "https://", "");
+      addProbeFromOption(uris, conf, "dfs.namenode.https-address", "https://", "Namenode", "", true);
     } else {
-      addUriOption(uris, conf, "dfs.namenode.http-address", "http://", "");
+      addProbeFromOption(uris, conf, "dfs.namenode.http-address", "http://", "Namenode", "", true);
     }
     return uris;
   }
