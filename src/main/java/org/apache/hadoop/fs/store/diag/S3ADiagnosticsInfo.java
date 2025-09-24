@@ -88,6 +88,10 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       "fs.s3a.directory.marker.retention";
 
   public static final String FS_S3A_THREADS_MAX = "fs.s3a.threads.max";
+  /**
+   * Default value of {@link #FS_S3A_THREADS_MAX}: {@value}.
+   */
+  public static final int FS_S3A_THREADS_MAX_DEFAULT = 96;
 
   public static final String FS_S3A_CONNECTION_MAXIMUM =
       "fs.s3a.connection.maximum";
@@ -304,6 +308,8 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
   public static final String FS_S3A_DOWNGRADE_SYNCABLE_EXCEPTIONS =
       "fs.s3a.downgrade.syncable.exceptions";
 
+  public static final String FS_S3A_EXECUTOR_CAPACITY = "fs.s3a.executor.capacity";
+
   /**
    * Each option is a triple of
    * (key, secure, obfuscate)
@@ -358,11 +364,13 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.s3a.create.storage.class", false, false},
       {CROSS_REGION_ACCESS_ENABLED, false, false},
       {"fs.s3a.custom.signers", false, false},
+      {"fs.s3a.http.signer.enabled", false, false},
+      {"fs.s3a.http.signer.class", false, false},
       {DIRECTORY_OPERATIONS_PURGE_UPLOADS, false, false},
       {DIRECTORY_MARKER_RETENTION, false, false},
       {FS_S3A_DOWNGRADE_SYNCABLE_EXCEPTIONS, false, false},
       {"fs.s3a.etag.checksum.enabled", false, false},
-      {"fs.s3a.executor.capacity", false, false},
+      {FS_S3A_EXECUTOR_CAPACITY, false, false},
       {INPUT_FADVISE, false, false},
       {ASYNC_DRAIN_THRESHOLD, false, false},
       {"fs.s3a.experimental.aws.s3.throttling", false, false},
@@ -1015,7 +1023,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
 
     if (!conf.getBoolean(FS_S3A_DOWNGRADE_SYNCABLE_EXCEPTIONS, true)) {
       printout.warn("Output streams reject calls to hsync/hflush");
-      printout.println("This is not recommneded in production systems");
+      printout.println("This is not recommended in production systems as it may overreact");
       printout.println("Recommend setting " + FS_S3A_DOWNGRADE_SYNCABLE_EXCEPTIONS + " to true");
     }
 
@@ -1066,7 +1074,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
     String signing = conf.getTrimmed(SIGNING_ALGORITHM, "");
     String bucket = getFsURI().getHost();
     boolean privateLink = false;
-    boolean isIpv4 = false;
+    boolean isIpv4;
 
     // using https.
     boolean sslConnection = conf.getBoolean(SECURE_CONNECTIONS, true);
@@ -1095,8 +1103,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
 
       printout.println("%nSome third party stores and/or proxies require the GCM ciphers."
           + "%nThese are disabled for performance reasons."
-          + "%nIf TLS negotation errors surface, try using %s", DEFAULT_JSSE_WITH_GCM);
-
+          + "%nIf TLS negotiation errors surface, try using %s", DEFAULT_JSSE_WITH_GCM);
 
       printout.println("%nSSL Channel Mode set from %s is %s:",
           CHANNEL_MODE, channelMode);
@@ -1121,7 +1128,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
 
     printout.heading("Endpoint");
 
-    boolean isUsingAws = false;
+    boolean isUsingAws;
     boolean isUsingV2Signing = SIGNING_V2_ALGORITHM.equals(signing);
 
     if (endpoint.isEmpty()) {
@@ -1189,12 +1196,13 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
         }
       }
       if (pathStyleAccess) {
-        boolean showHowToChange = true;
+        boolean showHowToChange;
         printout.println("- Path style access is enabled;"
             + " this is normally the correct setting for third party stores.");
         if (isUsingAws && !privateLink) {
           printout.warn(
               "-This is not the recommended setting for AWS S3 except through PrivateLink");
+          showHowToChange = true;
         } else {
           showHowToChange = false;
         }
@@ -1396,6 +1404,13 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       final Configuration conf) {
 
     printout.heading("Performance Hints");
+
+    printout.subheading("CPUs/cores");
+    int cpus = Runtime.getRuntime().availableProcessors();
+    printout.println("\nThis diagnostics process was launched with %d cores", cpus);
+    printout.println("Processes interacting with cloud stores generally benefit from having as many cores as possible");
+    printout.println("That is: for applications such as distcp, it is better to have fewer processes with more cores");
+
     printout.subheading("Size options");
     hint(printout, conf.getBoolean(DISABLE_CACHE, false),
         "The option " + DISABLE_CACHE + " is true. "
@@ -1404,13 +1419,18 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
             + "- use up memory, threads and other limited resources\n"
             + "- leak filesystem instances");
 
-    int threads = 512;
+    int threadsMaxAdvised = 512;
     sizeHint(printout, conf,
-        FS_S3A_THREADS_MAX, threads);
+        FS_S3A_THREADS_MAX, threadsMaxAdvised);
     sizeHint(printout, conf,
-        FS_S3A_CONNECTION_MAXIMUM, threads * 2);
+        FS_S3A_CONNECTION_MAXIMUM, threadsMaxAdvised * 2);
     sizeHint(printout, conf,
         FS_S3A_COMMITTER_THREADS, 256);
+
+    if (sizeHint(printout, conf, FS_S3A_EXECUTOR_CAPACITY, 64)) {
+      printout.println("This controls the amount of parallel operations during directory delete and renames.\n"
+          + "Larger values may make these slightly faster, especially rename.");
+    }
 
     printout.subheading("Time options");
     printout.println("\nReleases before Hadoop 3.4.0 may not support ms/m/h/... units");
@@ -1430,15 +1450,15 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
         CONNECTION_REQUEST_TIMEOUT, requestTimeout,
         true,
         "Request timeout:\n"
-            + "Maximum time for a request to return ta 200 response."
-            + "A low value can break uploads");
+            + "Maximum time for an HTTP request to return a 200 response."
+            + "A low value can cause slow uploads to fail.");
     timeHint(printout, conf,
         CONNECTION_TTL, ofMinutes(5),
         true,
         "Maximum HTTP connection duration in the connection pool.\n"
             + "reduces the risk of broken connections being reused.");
 
-    printout.subheading("On 2024+ releases with HADOOP-18915 (hadoop 3.4.0+/CDP 7.2.18.0+");
+    printout.subheading("On 2024+ releases with HADOOP-18915 (hadoop 3.4.0+/CDP 7.2.18.0+)");
     timeHint(printout, conf, CONNECTION_ACQUISITION_TIMEOUT,
         aMinute,
         true,
@@ -1453,7 +1473,9 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
         requestTimeout,
         true, "");
 
-    printout.subheading("Misc options");
+    reviewReadPolicy(printout, conf);
+
+    printout.subheading("Miscellaneous options");
     printout.println();
 
     int bucketProbe = conf.getInt(BUCKET_PROBE, 0);
@@ -1468,10 +1490,9 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
 
     hint(printout,
         !KEEP.equals(conf.get(DIRECTORY_MARKER_RETENTION, "")),
-        "If backwards compatibility is not an issue, set %s to keep",
+        "If backwards compatibility is not an issue, set %s to \"keep\"",
         DIRECTORY_MARKER_RETENTION);
 
-    reviewReadPolicy(printout, conf);
 
     printout.subheading("Bulk Delete behavior");
     boolean multi = conf.getBoolean(MULTIOBJECTDELETE_ENABLE, true);
@@ -1483,7 +1504,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       printout.println("Multi object delete is enabled; page size is %d", pageSize);
       hint(printout, pageSize > 500,
           "The page size is > 500. This is dangerous on heavily loaded stores\n"
-              + "See HADOOP-16823. Large DeleteObject requests are their own Thundering Herd");
+              + "See HADOOP-16823. Large DeleteObject requests are their own Thundering Herd.");
       hint(printout, pageSize < 100,
           "The page size is <100. This will slow down renames, deletes and other bulk operations.");
     } else {
@@ -1498,11 +1519,12 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
   private void reviewReadPolicy(final Printout printout,
       final Configuration conf) {
 
+    printout.subheading("Input stream type and read policy");
     boolean isClassicStream;
 
     final String streamType = conf.getTrimmed(INPUT_STREAM_TYPE, "").toLowerCase(Locale.ROOT);
     if (!streamType.isEmpty()) {
-      printout.println("Stream type is %s", streamType);
+      printout.println("Stream type set in %s: %s", INPUT_STREAM_TYPE, streamType);
     }
     switch (streamType) {
     case ANALYTICS_STREAM:
@@ -1521,42 +1543,60 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
     }
 
     // look at seek policy and warn of risks
-    final String fadvise =
-        conf.getTrimmed(INPUT_FADVISE, INPUT_FADV_NORMAL);
-    printout.subheading("Read policy: %s", fadvise);
+    final String fadvise = conf.getTrimmed(INPUT_FADVISE, INPUT_FADV_NORMAL);
+
+    printout.subheading("Read policy set by %s: %s", INPUT_FADVISE, fadvise);
+
     switch (fadvise) {
+
     case INPUT_FADV_NORMAL:
     case FS_OPTION_OPENFILE_READ_POLICY_ADAPTIVE:
     case FS_OPTION_OPENFILE_READ_POLICY_DEFAULT:
-      printout.println("Policy starts 'sequential' and switches to 'random' on"
-          + " a backwards seek");
+      printout.println("Adaptive: Reads start 'sequential' but switch to 'random' if"
+          + " backward/random IO is detected");
       printout.println("This is adaptive and suitable for most workloads");
       break;
+
     case INPUT_FADV_RANDOM:
-    case FS_OPTION_OPENFILE_READ_POLICY_VECTOR:
-      printout.println(
-          "Stream is optimized for random IO, especially ORC and Parquet files");
-      printout.println(
-          "This policy is suboptimal for sequential datasets (text, CSV, avro, .gzipped");
-      printout.println("Recommended for ORC, Parquet data");
+      printout.println("Stream is optimized for random IO, such as HBase, ORC and Parquet files");
+      printout.println("This policy is suboptimal for sequential datasets (text, CSV, avro, .gzipped");
+      printout.println("Recommended for ORC, Parquet data, HBase");
       break;
+
+      // unlikely, just maps to random.
+    case FS_OPTION_OPENFILE_READ_POLICY_VECTOR:
+      printout.println("Stream is optimized for vector IO, especially ORC and Parquet files with libraries"
+          + " using the Vector IO API for parallel reads");
+      printout.println("All other read operations will be treated as random IO");
+
+      // shouldn't be used for cluster configs.
     case INPUT_FADV_SEQUENTIAL:
     case FS_OPTION_OPENFILE_READ_POLICY_WHOLE_FILE:
-      printout.println("This is the initial state of the %s policy",
-          INPUT_FADV_NORMAL);
-      printout.println(
-          "This policy is very bad for ORC and Parquet files which seek around");
-      printout.println(
-          "As seeks will break the active HTTP request and force a renegotiaton");
-      printout.println(
-          "Recommend: switch to normal for better handling of random IO");
+      printout.println("The whole file is to be read.");
+      printout.println("This policy is VERY BAD for ORC and Parquet files which seek around,"
+          + "as unlike the %s policy, it doesn't recognize and adapt to their use patterns",
+          FS_OPTION_OPENFILE_READ_POLICY_ADAPTIVE );
+      printout.println("* seek() operations may abort the active HTTP request and require a new connection to be set up");
+      printout.println("* HTTP connections may be kept too long");
+      printout.println("    UNLESS USED FOR A SPECIFIC PURPOSE, ADVISE IMMEDIATE CHANGE"
+              + "\n    %s = %s",
+          INPUT_FADVISE, FS_OPTION_OPENFILE_READ_POLICY_ADAPTIVE);
       break;
+
     case "avro":
+    case "csv":
+    case "json":
+      printout.println("File-Format specific; supported on Hadoop 3.4.1+ only: sequential IO optimized");
+
+    case "hbase":
     case "parquet":
-      printout.println("File Format specific; supported on Hadoop 3.4.1+ only.");
+      printout.println("File-Format specific; supported on Hadoop 3.4.1+ only: random IO optimized");
+
     default:
-      printout.warn("unknown seek policy");
+      printout.warn("Unrecognized policy for %s", INPUT_FADVISE);
     }
+
+    printout.println("\nNote that recent versions of Parquet know to ask for the Parquet read policy, while distcp always asks uses whole-file reads.");
   }
 
   @Override
