@@ -62,6 +62,8 @@ public interface Printout {
   void warn(String format, Object... args);
 
 
+  void advise(String format, Object... args);
+
   /**
    * Print an error. unless overridden, this forwards to warn.
    * @param format format string

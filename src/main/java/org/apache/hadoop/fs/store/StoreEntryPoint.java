@@ -233,6 +233,13 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
     println("WARNING: " + String.format(format, args));
   }
 
+  @Override
+  public final void advise(String format, Object... args) {
+    println();
+    println("ADVISE: " + String.format(format, args));
+    println();
+  }
+
   public final void error(String format, Object... args) {
     errorln("ERROR: " + format, args);
   }

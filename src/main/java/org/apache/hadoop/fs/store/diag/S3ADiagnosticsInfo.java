@@ -1456,7 +1456,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
         CONNECTION_TTL, ofMinutes(5),
         true,
         "Maximum HTTP connection duration in the connection pool.\n"
-            + "reduces the risk of broken connections being reused.");
+            + "Reduces the risk of broken connections being reused.");
 
     printout.subheading("On 2024+ releases with HADOOP-18915 (hadoop 3.4.0+/CDP 7.2.18.0+)");
     timeHint(printout, conf, CONNECTION_ACQUISITION_TIMEOUT,
@@ -1510,6 +1510,9 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
     } else {
       printout.println("Multi object delete is disabled.");
       printout.println("This should only be done when working with third party stores.");
+
+      printout.advise("When using AWS S3 stores, set %s = %s", MULTIOBJECTDELETE_ENABLE, true);
+
     }
   }
 
@@ -1578,8 +1581,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
           FS_OPTION_OPENFILE_READ_POLICY_ADAPTIVE );
       printout.println("* seek() operations may abort the active HTTP request and require a new connection to be set up");
       printout.println("* HTTP connections may be kept too long");
-      printout.println("    UNLESS USED FOR A SPECIFIC PURPOSE, ADVISE IMMEDIATE CHANGE"
-              + "\n    %s = %s",
+      printout.advise("unless used for a specific purpose, change %s to %s",
           INPUT_FADVISE, FS_OPTION_OPENFILE_READ_POLICY_ADAPTIVE);
       break;
 
@@ -1596,7 +1598,6 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       printout.warn("Unrecognized policy for %s", INPUT_FADVISE);
     }
 
-    printout.println("\nNote that recent versions of Parquet know to ask for the Parquet read policy, while distcp always asks uses whole-file reads.");
   }
 
   @Override

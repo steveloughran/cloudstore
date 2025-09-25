@@ -418,17 +418,21 @@ public class StoreDiagnosticsInfo {
   protected void printPrefixedOptions(final Printout printout,
       final Configuration conf,
       final String prefix) {
-    printout.heading("Configuration options with prefix %s", prefix);
+    printout.heading("Configuration options with prefix \"%s\" :", prefix);
     Map<String, String> propsWithPrefix = conf.getPropsWithPrefix(prefix);
-    Set<String> sorted = sortKeys(propsWithPrefix.keySet());
-    for (String key : sorted) {
-      final String propertyVal = propsWithPrefix.get(key);
-      final String propertyName = prefix + key;
-      String value = "\"" + propertyVal +  "\"";
-      if (propertyName.contains(".secret.") || propertyName.contains(".pass")) {
-        value = sanitize(propertyVal, DEFAULT_HIDE_ALL_SENSITIVE_CHARS);
+    if (!propsWithPrefix.isEmpty()) {
+      Set<String> sorted = sortKeys(propsWithPrefix.keySet());
+      for (String key : sorted) {
+        final String propertyVal = propsWithPrefix.get(key);
+        final String propertyName = prefix + key;
+        String value = "\"" + propertyVal + "\"";
+        if (propertyName.contains(".secret.") || propertyName.contains(".pass")) {
+          value = sanitize(propertyVal, DEFAULT_HIDE_ALL_SENSITIVE_CHARS);
+        }
+        printout.println("%s=%s", propertyName, value);
       }
-      printout.println("%s=%s", propertyName, value);
+    } else {
+      printout.println("No configuration options with prefix \"%s\"", prefix);
     }
   }
 
@@ -575,7 +579,7 @@ public class StoreDiagnosticsInfo {
         printout.println("At least one buffer appears usable");
       }
     } else {
-      printout.println("\nNot output buffer issues identified");
+      printout.println("\nNo output buffer issues identified");
     }
 
     if (dirsToCreate > 0) {
@@ -671,6 +675,7 @@ public class StoreDiagnosticsInfo {
       Object... args) {
     if (condition) {
       printout.println(text, args);
+      printout.println();
       return true;
     }
     return false;
