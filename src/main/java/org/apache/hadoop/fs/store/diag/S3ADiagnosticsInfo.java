@@ -1456,7 +1456,8 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
         CONNECTION_TTL, ofMinutes(5),
         true,
         "Maximum HTTP connection duration in the connection pool.\n"
-            + "Reduces the risk of broken connections being reused.");
+            + "Reduces the risk of broken connections being reused.\n"
+            + "Only available in later versions.");
 
     printout.subheading("On 2024+ releases with HADOOP-18915 (hadoop 3.4.0+/CDP 7.2.18.0+)");
     timeHint(printout, conf, CONNECTION_ACQUISITION_TIMEOUT,

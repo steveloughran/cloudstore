@@ -34,6 +34,9 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.StorageUnit;
 import org.apache.hadoop.util.ExitUtil;
 
+import static org.apache.hadoop.fs.statistics.IOStatisticsLogging.ioStatisticsToPrettyString;
+import static org.apache.hadoop.fs.statistics.IOStatisticsSupport.retrieveIOStatistics;
+
 public class StoreUtils {
 
   /** {@value}. */
@@ -201,6 +204,15 @@ public class StoreUtils {
       safe = stars(HIDE_THRESHOLD);
     }
     return String.format("\"%s\" [%d]", safe, len);
+  }
+
+  /**
+   * Get any IOStatistics from an object.
+   * @param source source
+   * @return any IOStats, prettified -else ""
+   */
+  public static String prettyIOStatistics(final Object source) {
+    return ioStatisticsToPrettyString(retrieveIOStatistics(source));
   }
 
   public static final class StringPair implements Map.Entry<String, String> {

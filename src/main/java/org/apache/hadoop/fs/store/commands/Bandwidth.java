@@ -18,6 +18,7 @@
 
 package org.apache.hadoop.fs.store.commands;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.security.MessageDigest;
@@ -38,6 +39,7 @@ import org.apache.hadoop.conf.StorageUnit;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
 import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.FutureDataInputStreamBuilder;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.store.MinMeanMax;
 import org.apache.hadoop.fs.store.StoreDurationInfo;
@@ -57,6 +59,7 @@ import static org.apache.hadoop.fs.store.CommonParameters.FLUSH;
 import static org.apache.hadoop.fs.store.CommonParameters.HFLUSH;
 import static org.apache.hadoop.fs.store.CommonParameters.STANDARD_OPTS;
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_INVALID_ARGUMENT;
+import static org.apache.hadoop.fs.store.StoreUtils.prettyIOStatistics;
 
 /**
  * Bandwidth test of upload/download capacity.
@@ -79,7 +82,7 @@ public class Bandwidth extends StoreEntryPoint {
       + optusage(HFLUSH, "hflush() the output after writing each block")
       + optusage(KEEP, "do not delete the file")
       + optusage(RENAME, "rename file to suffix .renamed")
-      + optusage(POLICY, "policy", "read policy for file (whole-file, sequential, random...)")
+      + optusage(POLICY, "policy", "read policy for file (whole-file, sequential, random...). use \"none\" to use whatever is set for the store")
       ;
 
   private static final int BUFFER_SIZE = 32 * 1024;
@@ -97,6 +100,8 @@ public class Bandwidth extends StoreEntryPoint {
   public static final String DEFAULT_READ_POLICY = "whole-file, sequential";
 
   public static final String DIGEST_ALGORITHM = "SHA-256";
+
+  public static final String NONE = "none";
 
   public Bandwidth() {
     createCommandFormat(2, 2,
@@ -121,7 +126,7 @@ public class Bandwidth extends StoreEntryPoint {
     final boolean keep = hasOption(KEEP);
     final boolean rename = hasOption(RENAME);
     final String csvFile = getOption(CSVFILE);
-    final String readPolicy = getOption(POLICY, DEFAULT_READ_POLICY)
+    final String readPolicy = getOption(POLICY, NONE)
         .trim()
         .toLowerCase(Locale.ENGLISH);
     int blockSizeMB = getIntOption(BLOCK, UPLOAD_BUFFER_SIZE_MB);
@@ -199,13 +204,11 @@ public class Bandwidth extends StoreEntryPoint {
     // buffer of randomness
     byte[] dataBuffer = new byte[blockSize];
     new Random().nextBytes(dataBuffer);
-
+    final IOStatisticsIntegration ios = new IOStatisticsIntegration();
 
     // progress callback counts #of invocations
     AtomicLong progressCount = new AtomicLong();
-    Progressable progress = () -> {
-      progressCount.incrementAndGet();
-    };
+    Progressable progress = progressCount::incrementAndGet;
 
     // total duration tracker.
     final StoreDurationInfo uploadDurationTracker = new StoreDurationInfo();
@@ -283,7 +286,7 @@ public class Bandwidth extends StoreEntryPoint {
       println("Progress callbacks %d; in close %d",
           totalProgress, totalProgress - progressInUpload);
     } finally {
-      printIfVerbose("Upload Stream: %s", upload);
+      printIfVerbose("Upload Stream: %s", prettyIOStatistics(upload));
     }
     // upload is done, print some statistics
     uploadDurationTracker.finished();
@@ -317,8 +320,12 @@ public class Bandwidth extends StoreEntryPoint {
     final FSDataInputStream download;
     final StoreDurationInfo openDuration = new StoreDurationInfo(out, "open %s", downloadPath);
     try {
-      download = fs.openFile(downloadPath)
-          .opt("fs.option.openfile.read.policy", readPolicy)
+      final FutureDataInputStreamBuilder builder = fs.openFile(downloadPath);
+      if (!NONE.equals(readPolicy)) {
+        println("Read policy %s", readPolicy);
+        builder.opt("fs.option.openfile.read.policy", readPolicy);
+      }
+      download = builder
           .opt("fs.option.openfile.length", Long.toString(fileSizeBytes))
           .build().get();
     } finally {
@@ -327,6 +334,7 @@ public class Bandwidth extends StoreEntryPoint {
     }
     final MinMeanMax blockDownload = new MinMeanMax("block read duration");
 
+    BlockRead blockRead = new ReadBlockByByte();
     try {
       long pos = 0;
       long total = 0;
@@ -334,7 +342,7 @@ public class Bandwidth extends StoreEntryPoint {
       for (int i = 0; i < numberOfBuffersToUpload; i++) {
         print("Read block %,d", i);
         StoreDurationInfo duration = new StoreDurationInfo();
-        download.readFully(pos, dataBuffer);
+        blockRead.readBlock(download, pos, dataBuffer);
         downloadDigest.update(dataBuffer);
 
         pos += blockSize;
@@ -344,12 +352,14 @@ public class Bandwidth extends StoreEntryPoint {
         row(csvWriter, "download-block", i + 1, blockSize, total += blockSize, duration);
       }
       println();
-      try (StoreDurationInfo d = new StoreDurationInfo(out, "download stream close()")) {
+      try (StoreDurationInfo d = new StoreDurationInfo(out, "Close download stream")) {
         download.close();
       }
+
       downloadDurationTracker.finished();
       row(csvWriter, "download", 1, fileSizeBytes, fileSizeBytes, downloadDurationTracker);
     } finally {
+      printIfVerbose("Download Stream: %s", prettyIOStatistics(download));
       if (csvWriter != null) {
         try {
           csvWriter.flush();
@@ -359,7 +369,6 @@ public class Bandwidth extends StoreEntryPoint {
           LOG.debug("Failed to close CSV writer: %s", e);
         }
       }
-      printIfVerbose("Download Stream: %s", download);
     }
 
 
@@ -375,7 +384,6 @@ public class Bandwidth extends StoreEntryPoint {
       }
     }
 
-    final IOStatisticsIntegration ios = new IOStatisticsIntegration();
     if (ios.available()) {
       final String prettyString = ios.ioStatisticsToPrettyString(fs);
       if (!prettyString.isEmpty()) {
@@ -431,6 +439,7 @@ public class Bandwidth extends StoreEntryPoint {
 
   }
 
+
   /**
    * write a row to the CSV file.
    * @param writer file to write to
@@ -480,5 +489,56 @@ public class Bandwidth extends StoreEntryPoint {
       exitOnThrowable(e);
     }
   }
+
+  private interface BlockRead {
+    void readBlock(FSDataInputStream download,
+          long pos,
+          byte[] dataBuffer) throws IOException;
+  }
+
+  private static final class ReadBlockFully implements BlockRead{
+
+    @Override
+    public void readBlock(final FSDataInputStream download, final long pos, final byte[] dataBuffer)
+        throws IOException {
+      download.readFully(pos, dataBuffer);
+    }
+  }
+
+  private static final class ReadBlockByByte implements BlockRead{
+
+    @Override
+    public void readBlock(final FSDataInputStream download, final long pos, final byte[] dataBuffer)
+        throws IOException {
+      download.seek(pos);
+      int remaining = dataBuffer.length;
+      int index = 0;
+      while (remaining > 0) {
+        final int read = download.read();
+        if (read == -1) {
+          throw new EOFException("EOF exception reading block at offset " + index);
+        }
+        dataBuffer[index++] = (byte) read;
+        remaining--;
+      }
+      download.readFully(pos, dataBuffer);
+    }
+  }
+
+
+  private enum ReadMechanism {
+    Readfully("readfully"),
+    Byteread("byte"),
+    Buffer("buffer"),
+    ByteBufferReadable("bytebufferreadable"),
+    ByteBufferPositionedReadable("bytebufferpositionedreadable"),
+    VectorIO("vectorio")
+    ;
+    String value;
+    ReadMechanism(String value) {
+      this.value = value;
+    }
+  }
+
 
 }

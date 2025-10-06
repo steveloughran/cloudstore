@@ -41,7 +41,7 @@
     <javac.version>1.8</javac.version>
     <enforced.java.version>${javac.version}</enforced.java.version>
 
-    <hadoop.version>3.4.1</hadoop.version>
+    <hadoop.version>3.4.2</hadoop.version>
     <gcs-connector.version>hadoop3-2.2.4</gcs-connector.version>
 
     <test.build.dir>${project.build.directory}/test-dir</test.build.dir>
@@ -269,7 +269,7 @@
     <profile>
       <id>latest</id>
       <properties>
-        <hadoop.version>3.4.1</hadoop.version>
+        <hadoop.version>3.4.2</hadoop.version>
       </properties>
     </profile>
 
@@ -288,6 +288,7 @@
         <hadoop.version>3.4.1.7.3.2.0-SNAPSHOT</hadoop.version>
       </properties>
     </profile>
+
 
     <profile>
       <id>trunk</id>
