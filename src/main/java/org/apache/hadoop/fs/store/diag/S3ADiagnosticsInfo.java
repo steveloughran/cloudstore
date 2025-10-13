@@ -666,11 +666,9 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
 
       // SSL stuff
       "org.wildfly.openssl.OpenSSLProvider",
+      " org.wildfly.openssl.OpenSSLContextSPI$OpenSSLTLSContextSpi",
       X509,
 
-      // prefetch
-      "org.apache.hadoop.fs.impl.prefetch.PrefetchingStatistics",
-      "org.apache.hadoop.fs.s3a.prefetch.S3ACachingBlockManager",
 
       // s3a store and bulk delete
       "org.apache.hadoop.fs.s3a.S3AStore",
@@ -1113,7 +1111,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
         printout.println("This attempts to use OpenSSL, falling back to the JVM");
         break;
       case DEFAULT_JSSE:
-        printout.println("This uses the JVM only, with GCM ciphers disabled");
+        printout.println("This uses the JVM only, with GCM ciphers disabled on Java 8; on Java 11+ GCM is re-enabled");
         break;
       case DEFAULT_JSSE_WITH_GCM:
         printout.println("This uses the JVM only, with GCM enabled");
