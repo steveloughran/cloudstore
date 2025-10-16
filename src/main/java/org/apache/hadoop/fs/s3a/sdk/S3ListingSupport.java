@@ -18,9 +18,6 @@
 
 package org.apache.hadoop.fs.s3a.sdk;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.s3.model.ListObjectVersionsRequest;
@@ -38,8 +35,6 @@ import static org.apache.hadoop.fs.store.StoreUtils.checkArgument;
 public class S3ListingSupport {
 
   private static final Logger LOG = LoggerFactory.getLogger(S3ListingSupport.class);
-
-  private static final DateFormat df = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
 
   public static final int MAX_KEYS = 5000;
 
@@ -134,15 +129,13 @@ public class S3ListingSupport {
   public static String stringify(S3Object summary) {
     return String.format("\"%s\"\tsize: [%d]\t%s\ttag: %s", summary.key(),
         summary.size(),
-        df.format(summary.lastModified()),
+        summary.lastModified().toString(),
         summary.eTag());
   }
 
   static boolean isDirMarker(final ObjectVersion summary) {
     return objectRepresentsDirectory(summary.key(), summary.size());
   }
-
-
 
   static int result(boolean b) {
     return b ? 1 : 0;

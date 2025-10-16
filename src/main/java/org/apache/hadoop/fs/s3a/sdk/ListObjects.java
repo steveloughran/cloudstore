@@ -76,7 +76,7 @@ public class ListObjects extends StoreEntryPoint {
 
   @Override
   public int run(String[] args) throws Exception {
-    List<String> paths = processArgs(args, 2, -1, USAGE);
+    List<String> paths = processArgs(args, 1, 1, USAGE);
 
     final Configuration conf = createPreconfiguredConfig();
     // stop auditing rejecting client direct calls.
@@ -106,6 +106,9 @@ public class ListObjects extends StoreEntryPoint {
       String bucket = fs.getBucket();
       final S3Client s3 = fs.getS3AInternals().getAmazonS3Client("listobjects");
       String key = S3ListingSupport.pathToKey(source);
+      if (!key.endsWith("/")) {
+        key += "/";
+      }
       ListObjectsV2Request request = S3ListingSupport.createListObjectsRequest(
           source.toUri().getHost(), key, null);
 
@@ -116,7 +119,7 @@ public class ListObjects extends StoreEntryPoint {
       List<ObjectIdentifier> objectsToDelete =
           new ArrayList<>(deletePageSize);
 
-      heading("Listing objects under %s", source);
+      heading("Listing Objects under %s", source);
       boolean finished = false;
       while (!finished && objects.hasNext()) {
         final ListObjectsV2Response page = objects.next();
@@ -168,16 +171,14 @@ public class ListObjects extends StoreEntryPoint {
       String action = delete ? "Deleted" : "Found";
       println("%s %d objects with total size %d bytes", action, objectCount, size);
       if (!prefixes.isEmpty()) {
-        println("");
         heading("%s prefixes", prefixes.size());
         for (String prefix : prefixes) {
           println(prefix);
         }
       }
       if (!markers.isEmpty()) {
-        println("");
         int markerCount = markers.size();
-        heading("marker count: %d", markerCount);
+        heading("Marker count: %d", markerCount);
         if (purge) {
           println("Purging all directory markers");
         }
