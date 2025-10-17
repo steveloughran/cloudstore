@@ -23,7 +23,7 @@ Usage: tlsinfo [-verbose] [-debug] [<match>]
 * If a string is passed in, only certificates whose name contains that string (case independent) are logged.  
 
 ```
-> hadoop jar cloudstore-1.0.jar tlsinfo
+> hadoop jar cloudstore-1.1.jar tlsinfo
 
 1. TLS System Properties
 ========================
@@ -223,7 +223,7 @@ See https://www.java.com/en/configure_crypto.html
 
 Print certificates containing a specific string, here everything with the string "amazon" in it.
 ```
-> hadoop jar cloudstore-1.0.jar tlsinfo amazon
+> hadoop jar cloudstore-1.1.jar tlsinfo amazon
 
 1. TLS System Properties
 ========================
@@ -269,7 +269,7 @@ Number of certificates matching the string "amazon" :4
 A full dump of the details of matching certificates
 
 ```
-> hadoop jar cloudstore-1.0.jar tlsinfo -verbose amazon
+> hadoop jar cloudstore-1.1.jar tlsinfo -verbose amazon
 
 
 1. TLS System Properties
@@ -543,7 +543,7 @@ KeyIdentifier [
 
 Failure to find any match returns an exit code of -1
 ```
-hadoop jar cloudstore-1.0.jar tlsinfo unknown 
+hadoop jar cloudstore-1.1.jar tlsinfo unknown 
 
 1. TLS System Properties
 ========================

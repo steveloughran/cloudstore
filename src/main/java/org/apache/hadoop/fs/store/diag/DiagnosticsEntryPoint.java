@@ -64,6 +64,8 @@ public class DiagnosticsEntryPoint extends StoreEntryPoint  {
   /** {@value}. */
   public static final String JARS = "j";
 
+  public static final String COUNTER = "[%03d]";
+
   /**
    * Sort the keys.
    * @param keys keys to sort.
@@ -208,12 +210,14 @@ public class DiagnosticsEntryPoint extends StoreEntryPoint  {
 
   /**
    * Resolve and print values.
-   * Takes a collection off (name, obfuscate) tuples..
+   * Takes a collection of (name, obfuscate) tuples.
+   * The transformation can be things like option lookup,
    * @param entries variables/properties.
    * @param section section name
    * @param lookup lookup function
+   * @return count of entries.
    */
-  private void lookupAndPrint(
+  private int lookupAndPrint(
       final String section,
       final Collection<Object[]> entries,
       final Function<String, String> lookup) {
@@ -232,9 +236,10 @@ public class DiagnosticsEntryPoint extends StoreEntryPoint  {
         } else {
           value = "(unset)";
         }
-        println("[%03d]  %s = %s", ++index, var, value);
+        println(COUNTER + "  %s = %s", ++index, var, value);
       }
     }
+    return index;
   }
 
   /**

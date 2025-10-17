@@ -187,6 +187,13 @@ This is harmless; it comes from the SDK thread pool being closed while
 a list page prefetch is in progress.
 
 
+##  Command `etag`
+
+Prints the etag of an object, when implemented by the filesystem
+and returned by the object store.
+
+See [etag](src/main/site/etag.md)
+
 ##  Command `fetchdt`
 
 This is an extension of `hdfs fetchdt` which collects delegation tokens
@@ -204,7 +211,7 @@ Also prints the time to execute each operation (including instantiating the stor
 and with the `-verbose` option, the store statistics.
 
 ```
-hadoop jar  cloudstore-1.0.jar \
+hadoop jar  cloudstore-1.1.jar \
             filestatus  \
             s3a://guarded-table/example
 
@@ -226,7 +233,7 @@ it does ths with some better diagnostics of parsing problems.
 warning: at -verbose, this prints your private key
 
 ```
-hadoop jar cloudstore-1.0.jar gcscreds gs://bucket/
+hadoop jar cloudstore-1.1.jar gcscreds gs://bucket/
 
 key uses \n for separator -gs connector must convert to line endings
 2022-01-19 17:55:51,016 [main] INFO  gs.PemReader (PemReader.java:readNextSection(86)) - title match  at line 1
@@ -252,7 +259,7 @@ Usage: list
 Example: list some of the AWS public landsat store.
 
 ```bash
-> bin/hadoop jar cloudstore-1.0.jar list -limit 10 s3a://landsat-pds/
+> bin/hadoop jar cloudstore-1.1.jar list -limit 10 s3a://landsat-pds/
 
 Listing up to 10 files under s3a://landsat-pds/
 2019-04-05 21:32:14,523 [main] INFO  tools.ListFiles (StoreDurationInfo.java:<init>(53)) - Starting: Directory list
@@ -300,7 +307,7 @@ Probes a filesystem for offering a specific named capability on the given path.
 Requires a version of Hadoop with the `PathCapabilities` interface, which includes Hadoop 3.3 onwards.
 
 ```bash
-bin/hadoop jar cloudstore-1.0.jar pathcapability
+bin/hadoop jar cloudstore-1.1.jar pathcapability
 Usage: pathcapability [options] <capability> <path>
     -D <key=value> Define a property
     -tokenfile <file> Hadoop token file to load
@@ -309,7 +316,7 @@ Usage: pathcapability [options] <capability> <path>
 ```
 
 ```bash
-hadoop jar cloudstore-1.0.jar pathcapability fs.s3a.capability.select.sql s3a://landsat-pds/
+hadoop jar cloudstore-1.1.jar pathcapability fs.s3a.capability.select.sql s3a://landsat-pds/
 
 Using filesystem s3a://landsat-pds
 Path s3a://landsat-pds/ has capability fs.s3a.capability.select.sql

@@ -25,7 +25,7 @@ run against doesn't have this new API. The committer is therefore explicitly the
 
 ```
 
-hadoop jar cloudstore-1.0.jar committerinfo abfs://testing@ukwest.dfs.core.windows.net/
+hadoop jar cloudstore-1.1.jar committerinfo abfs://testing@ukwest.dfs.core.windows.net/
 
 2021-09-16 19:42:59,731 [main] INFO commands.CommitterInfo (StoreDurationInfo.java:<init>(53)) - Starting: Create committer Committer factory for path abfs://testing@ukwest.dfs.core.windows.net/ is org.apache.hadoop.mapreduce.lib.output.committer.manifest.ManifestCommitterFactory@3315d2d7
 (classname org.apache.hadoop.mapreduce.lib.output.committer.manifest.ManifestCommitterFactory)
@@ -53,7 +53,7 @@ supports this committer, do try it.
 *Danger*: S3A Bucket with the classic `FileOutputCommitter`
 
 ```
-> hadoop jar cloudstore-1.0.jar committerinfo s3a://landsat-pds/
+> hadoop jar cloudstore-1.1.jar committerinfo s3a://landsat-pds/
   2019-08-05 17:38:38,213 [main] INFO  commands.CommitterInfo (DurationInfo.java:<init>(53)) - Starting: Create committer
   2019-08-05 17:38:40,968 [main] WARN  commit.AbstractS3ACommitterFactory (S3ACommitterFactory.java:createTaskCommitter(90)) - Using standard FileOutputCommitter to commit work. This is slow and potentially unsafe.
   2019-08-05 17:38:40,968 [main] INFO  output.FileOutputCommitter (FileOutputCommitter.java:<init>(141)) - File Output Committer Algorithm version is 2
@@ -67,7 +67,7 @@ supports this committer, do try it.
 *Good* : S3A bucket with a staging committer:
 
 ```
->  hadoop jar  cloudstore-1.0.jar committerinfo s3a://hwdev-steve-ireland-new/
+>  hadoop jar  cloudstore-1.1.jar committerinfo s3a://hwdev-steve-ireland-new/
   2019-08-05 17:42:53,563 [main] INFO  commands.CommitterInfo (DurationInfo.java:<init>(53)) - Starting: Create committer
   Committer factory for path s3a://hwdev-steve-ireland-new/ is org.apache.hadoop.fs.s3a.commit.S3ACommitterFactory@3088660d (classname org.apache.hadoop.fs.s3a.commit.S3ACommitterFactory)
   2019-08-05 17:42:55,433 [main] INFO  output.FileOutputCommitter (FileOutputCommitter.java:<init>(141)) - File Output Committer Algorithm version is 1
@@ -86,7 +86,7 @@ The classic filesystem committer v1 is used because it works well here: the file
 *Good* : S3A bucket with a magic committer:
 
 ```
-> hadoop jar cloudstore-1.0.jar committerinfo s3a://hwdev-steve-ireland-new/
+> hadoop jar cloudstore-1.1.jar committerinfo s3a://hwdev-steve-ireland-new/
 
 2019-08-05 17:37:42,615 [main] INFO  commands.CommitterInfo (DurationInfo.java:<init>(53)) - Starting: Create committer
 2019-08-05 17:37:44,462 [main] INFO  commit.AbstractS3ACommitterFactory (S3ACommitterFactory.java:createTaskCommitter(83)) - Using committer magic to output data to s3a://hwdev-steve-ireland-new/

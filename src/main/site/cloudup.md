@@ -86,7 +86,7 @@ All those limits could be addressed, along with some other optional features
 
 Download logs from `s3a://bucket/qelogs` and save to the local (relative) path `localquelogs`
 ```bash
-hadoop jar cloudstore-1.0.jar cloudup \
+hadoop jar cloudstore-1.1.jar cloudup \
  -threads 32 -update s3a://bucket/qelogs/  localqelogs
 ```
 
@@ -94,7 +94,7 @@ And the other way, only updating new files, and uploading the largest 16 files f
 Use a block size of 16 MB.
 
 ```bash
-hadoop jar cloudstore-1.0.jar cloudup \
+hadoop jar cloudstore-1.1.jar cloudup \
  -threads 32 -update -largest 16 -block 8 localqelogs s3a://bucket/qelogs/  
 ```
 
@@ -102,14 +102,14 @@ From HDFS to google GCS. All data is downloaded from HDFS and then uploaded to G
 there is no buffering to local disk.
 
 ```bash
- hadoop jar cloudstore-1.0.jar  cloudup -threads 60 -largest 16 -update -hflush -verbose \
+ hadoop jar cloudstore-1.1.jar  cloudup -threads 60 -largest 16 -update -hflush -verbose \
    hdfs://tmp/share/hadoop/common  gs://stevel-london/share/common 
 ```
 
 Then download to the local fs
 
 ```
-hadoop jar cloudstore-1.0.jar  cloudup -threads 60 -largest 16 -update -block 32  gs://stevel-london/share/common ./scratch/gcs
+hadoop jar cloudstore-1.1.jar  cloudup -threads 60 -largest 16 -update -block 32  gs://stevel-london/share/common ./scratch/gcs
 
 ...
 
@@ -127,7 +127,7 @@ Seconds per file: 0.377s
 
 ```bash
 
-hadoop jar cloudstore-1.0.jar cloudup -threads 60 -largest 32 -block 64 -update share/hadoop/common  s3a://stevel-london/share/common
+hadoop jar cloudstore-1.1.jar cloudup -threads 60 -largest 32 -block 64 -update share/hadoop/common  s3a://stevel-london/share/common
 
 Summary of copy from file:/Users/stevel/Projects/Releases/cdp-7.1.9/share/hadoop/common to s3a://stevel-london/share/common
 ===========================================================================================================================
@@ -193,7 +193,7 @@ editing the `core-site.xml` settings of your deployment
 ```
 
 ```bash
-hadoop jar cloudstore-1.0.jar cloudup -threads 60 -largest 32 -block 64 -update share/hadoop/common  s3a://stevel-london/share/common
+hadoop jar cloudstore-1.1.jar cloudup -threads 60 -largest 32 -block 64 -update share/hadoop/common  s3a://stevel-london/share/common
 
 Copying from file:/Users/stevel/Projects/Releases/cdp-7.1.9/share/hadoop/common to s3a://stevel-london/share/common; threads=60; large files=32; block size=67108864n; overwrite=false; update=true verbose=false; ignore failures=false
 Listing source files under file:/Users/stevel/Projects/Releases/cdp-7.1.9/share/hadoop/common
@@ -255,7 +255,7 @@ Here, no copies took place at all. The IOStatistics report 151 HEAD requests aga
 
 And download it
 ```bash
-hadoop jar cloudstore-1.0.jar cloudup -threads 60 -largest 16 -update -block 32 s3a://stevel-london/share/common ./scratch/s3a
+hadoop jar cloudstore-1.1.jar cloudup -threads 60 -largest 16 -update -block 32 s3a://stevel-london/share/common ./scratch/s3a
 
 Copying from s3a://stevel-london/share/common to file:/Users/stevel/Projects/Releases/cdp-7.1.9/scratch/s3a; threads=60; large files=16; block size=33554432n; overwrite=false; update=true verbose=false; ignore failures=false
 Listing source files under s3a://stevel-london/share/common
@@ -332,7 +332,7 @@ A larger block size `-block` can be more efficient when reading data, especially
 This is because it avoids the need of the store to guess how much data to prefetch.
 
 ```bash
-hadoop jar cloudstore-1.0.jar cloudup \
+hadoop jar cloudstore-1.1.jar cloudup \
  -threads 32 -update -largest 16 -block 32 s3a://bucket/qelogs/ ./scratch  
 ```
 
@@ -351,7 +351,7 @@ Smaller files are slower to upload.
 Increasing the number of threads copying files with the `-threads` offers speedup when there are many small files
 
 ```bash
- hadoop jar cloudstore-1.0.jar cloudup -threads 100 -largest 32 -block 64 -update share/hadoop/common  s3a://stevel-london/share/common
+ hadoop jar cloudstore-1.1.jar cloudup -threads 100 -largest 32 -block 64 -update share/hadoop/common  s3a://stevel-london/share/common
 
 ...
 
@@ -373,7 +373,7 @@ Seconds per file: 0.155s
 And with 120 threads
 
 ```bash
- hadoop jar cloudstore-1.0.jar cloudup -threads 120 -largest 32 -block 64 -update share/hadoop/common  s3a://stevel-london/share/common
+ hadoop jar cloudstore-1.1.jar cloudup -threads 120 -largest 32 -block 64 -update share/hadoop/common  s3a://stevel-london/share/common
 
 ...
 
@@ -429,7 +429,7 @@ If this occurs, set the property `fs.s3a.connection.request.timeout` to a larger
 We recommend doing this on the command line itself, rather than set it site-wide:
 
 ```bash
-bin/hadoop jar cloudstore-1.0.jar cloudup -D fs.s3a.connection.request.timeout=15m -overwrite \
+bin/hadoop jar cloudstore-1.1.jar cloudup -D fs.s3a.connection.request.timeout=15m -overwrite \
 ../releases/hadoop-3.4.1-RC2/hadoop-3.4.1.tar.gz \
 s3a://stevel-london/
 ```

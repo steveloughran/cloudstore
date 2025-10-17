@@ -19,7 +19,7 @@
 Measure upload/download bandwidth; support different read policies, and optionally save the output to a CSV file.
 
 ```
-> hadoop jar cloudstore-1.0.jar bandwidth
+> hadoop jar cloudstore-1.1.jar bandwidth
 
 Usage: bandwidth [options] size <path>
         -D <key=value>  Define a property
@@ -42,7 +42,7 @@ Upload 128M of data to s3 with a block size of 8 megabytes; use `-verbose` outpu
 statistics. Save the summary to a CSV file for review.
 
 ```
-> hadoop jar cloudstore-1.0.jar bandwidth -csv tmp/s3a128m.csv -block 8 -verbose -policy whole-file 128m s3a://stevel-london/tmp
+> hadoop jar cloudstore-1.1.jar bandwidth -csv tmp/s3a128m.csv -block 8 -verbose -policy whole-file 128m s3a://stevel-london/tmp
 
 Bandwidth test against s3a://stevel-london/tmp with data size 128m
 ==================================================================
@@ -285,7 +285,7 @@ Here's the experiment repeated with prefetching enabled and changes to block upl
 
 ```
 ```bash
-bin/hadoop jar cloudstore-1.0.jar  bandwidth -D fs.s3a.prefetch.enabled=true -csv tmp/s3a128mp.csv -block 8 -verbose -policy whole-file 128m s3a://stevel-london
+bin/hadoop jar cloudstore-1.1.jar  bandwidth -D fs.s3a.prefetch.enabled=true -csv tmp/s3a128mp.csv -block 8 -verbose -policy whole-file 128m s3a://stevel-london
 
 Upload Summary
 ==============

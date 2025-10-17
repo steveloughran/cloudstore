@@ -56,7 +56,7 @@ to remap the request to the Access Point.
 The response indicates that this is mapped to an S3 Standard bucket.
 
 ```
-bin/hadoop jar cloudstore-1.0.jar bucketmetadata s3a://example-ap
+bin/hadoop jar cloudstore-1.1.jar bucketmetadata s3a://example-ap
 
 Getting bucket info for s3a://example-ap
 ========================================
@@ -74,7 +74,7 @@ Location Type null
 When probing an S3 Express bucket, the location type and name is returned.
 
 ```
-hadoop jar cloudstore-1.0.jar bucketmetadata s3a://example--usw2-az1--x-s3
+hadoop jar cloudstore-1.1.jar bucketmetadata s3a://example--usw2-az1--x-s3
 
 Getting bucket info for s3a://example--usw2-az1--x-s3
 =====================================================
@@ -92,7 +92,7 @@ The result of the probe against third party stores is undefined, and will vary w
 Here is an example response from a probe of a Dell ECS store:
 
 ```
-bin/hadoop jar cloudstore-1.0.jar bucketmetadata s3a://ecsbucket/
+bin/hadoop jar cloudstore-1.1.jar bucketmetadata s3a://ecsbucket/
 
 Getting bucket info for s3a://ecsbucket/
 =========================================

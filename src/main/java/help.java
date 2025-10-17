@@ -38,6 +38,7 @@ public class help extends Command {
     constval.help();
     distcpdiag.help();
     dux.help();
+    etag.help();
     fetchdt.help();
     filestatus.help();
     jobtokens.help();

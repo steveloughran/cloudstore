@@ -19,13 +19,13 @@ Loads a class, resolves a constant/static final field and prints its value.
 
 ```bash
 
-hadoop jar cloudstore-1.0.jar constval org.apache.hadoop.fs.s3a.Constants REQUEST_TIMEOUT
+hadoop jar cloudstore-1.1.jar constval org.apache.hadoop.fs.s3a.Constants REQUEST_TIMEOUT
 Value of org.apache.hadoop.fs.s3a.Constants.REQUEST_TIMEOUT = "fs.s3a.connection.request.timeout"
 
-hadoop jar cloudstore-1.0.jar constval org.apache.hadoop.fs.s3a.Constants DEFAULT_REQUEST_TIMEOUT_DURATION
+hadoop jar cloudstore-1.1.jar constval org.apache.hadoop.fs.s3a.Constants DEFAULT_REQUEST_TIMEOUT_DURATION
 Value of org.apache.hadoop.fs.s3a.Constants.DEFAULT_REQUEST_TIMEOUT_DURATION = "PT0S"
 
-hadoop jar cloudstore-1.0.jar constval org.apache.hadoop.fs.s3a.Constants DEFAULT_REQUEST_TIMEOUT
+hadoop jar cloudstore-1.1.jar constval org.apache.hadoop.fs.s3a.Constants DEFAULT_REQUEST_TIMEOUT
 Value of org.apache.hadoop.fs.s3a.Constants.DEFAULT_REQUEST_TIMEOUT = "0"
 
 ```

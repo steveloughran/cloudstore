@@ -36,7 +36,7 @@ Usage: fetchdt <file> [-renewer <renewer>] [-r] [-p] <url1> ... <url999>
 Successful query of an S3A session delegation token.
 
 ```bash
-> bin/hadoop jar cloudstore-1.0.jar fetchdt -p -r file:/tmp/secrets.bin s3a://landsat-pds/
+> bin/hadoop jar cloudstore-1.1.jar fetchdt -p -r file:/tmp/secrets.bin s3a://landsat-pds/
   Collecting tokens for 1 filesystem to to file:/tmp/secrets.bin
   2018-12-05 17:50:44,276 INFO fs.FetchTokens: Starting: Fetching token for s3a://landsat-pds/
   2018-12-05 17:50:44,399 INFO impl.MetricsConfig: Loaded properties from hadoop-metrics2.properties
@@ -63,7 +63,7 @@ Successful query of an S3A session delegation token.
 Failure to get anything from fs, with `-r` option to require them
 
 ```bash
-> hadoop jar cloudstore-1.0.jar fetchdt -p -r file:/tmm/secrets.bin file:///
+> hadoop jar cloudstore-1.1.jar fetchdt -p -r file:/tmm/secrets.bin file:///
 
 Collecting tokens for 1 filesystem to to file:/tmm/secrets.bin
 2018-12-05 17:47:00,970 INFO fs.FetchTokens: Starting: Fetching token for file:/
@@ -75,7 +75,7 @@ No token for file:/
 Same command, without the -r. 
 
 ```bash
-> hadoop jar cloudstore-1.0.jar fetchdt -p file:/tmm/secrets.bin file:///
+> hadoop jar cloudstore-1.1.jar fetchdt -p file:/tmm/secrets.bin file:///
 Collecting tokens for 1 filesystem to to file:/tmp/secrets.bin
 2018-12-05 17:54:26,776 INFO fs.FetchTokens: Starting: Fetching token for file:/tmp
 No token for file:/tmp

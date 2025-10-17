@@ -32,10 +32,10 @@ and any other property considered sensitive.
 This is to supprt for safer reporting of issues in bug reports.
 
 ```bash
-hadoop jar cloudstore-1.0.jar storediag -j -5 s3a://landsat-pds/
-hadoop jar cloudstore-1.0.jar storediag -w --tokenfile mytokens.bin s3a://my-readwrite-bucket/subdirectory
-hadoop jar cloudstore-1.0.jar storediag -w --tokenfile mytokens.bin hdfs://namenode/user/alice/subdir
-hadoop jar cloudstore-1.0.jar storediag abfs://container@user/
+hadoop jar cloudstore-1.1.jar storediag -j -5 s3a://landsat-pds/
+hadoop jar cloudstore-1.1.jar storediag -w --tokenfile mytokens.bin s3a://my-readwrite-bucket/subdirectory
+hadoop jar cloudstore-1.1.jar storediag -w --tokenfile mytokens.bin hdfs://namenode/user/alice/subdir
+hadoop jar cloudstore-1.1.jar storediag abfs://container@user/
 ```
 
 The remote store is required to grant read access to the caller.
@@ -76,7 +76,7 @@ a #-prefixed comment, a blank line, a classname, a resource (with "/" in).
 These are all loaded
 
 ```bash
-hadoop jar cloudstore-1.0.jar storediag -5 -required required.txt s3a://something/
+hadoop jar cloudstore-1.1.jar storediag -5 -required required.txt s3a://something/
 ```
 
 and with a `required.txt` listing extra classes which must be on the classpath

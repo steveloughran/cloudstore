@@ -63,7 +63,7 @@ It will only delete files at the target path; if there
 is a directory there it will be ignored.
 
 ```
- bin/hadoop jar cloudstore-1.0.jar bulkdelete -page 4 -verbose s3a://stevel-london/ delete.txt
+ bin/hadoop jar cloudstore-1.1.jar bulkdelete -page 4 -verbose s3a://stevel-london/ delete.txt
 Bulk delete under s3a://stevel-london/
 ======================================
 
@@ -135,7 +135,7 @@ deleted per batch
 ```
 
 ```
- > hadoop jar cloudstore-1.0.jar bulkdelete -Dfs.s3a.multiobjectdelete.enable=false -page 4 -verbose s3a://stevel-london/ delete.txt
+ > hadoop jar cloudstore-1.1.jar bulkdelete -Dfs.s3a.multiobjectdelete.enable=false -page 4 -verbose s3a://stevel-london/ delete.txt
 
 
 Bulk delete under s3a://stevel-london/

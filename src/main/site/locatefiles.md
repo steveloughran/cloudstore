@@ -28,7 +28,7 @@ jobs, set the value in the configuration option
 Usage:
 
 ```
-hadoop jar cloudstore-1.0.jar locatefiles
+hadoop jar cloudstore-1.1.jar locatefiles
 Usage: locatefiles
   -D <key=value>    Define a property
   -tokenfile <file> Hadoop token file to load
@@ -41,7 +41,7 @@ Usage: locatefiles
 Example
 
 ```
-> hadoop jar cloudstore-1.0.jar locatefiles \
+> hadoop jar cloudstore-1.1.jar locatefiles \
  -threads 8 -verbose \
  s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/
 

@@ -47,7 +47,6 @@ import static java.util.Objects.requireNonNull;
 import static org.apache.hadoop.fs.store.StoreEntryPoint.DEFAULT_HIDE_ALL_SENSITIVE_CHARS;
 import static org.apache.hadoop.fs.store.StoreEntryPoint.getOrigins;
 import static org.apache.hadoop.fs.store.StoreUtils.sanitize;
-import static org.apache.hadoop.fs.store.diag.DiagnosticsEntryPoint.toURI;
 import static org.apache.hadoop.fs.store.diag.OptionSets.STANDARD_SECURITY_PROPS;
 import static org.apache.hadoop.fs.store.diag.OptionSets.STANDARD_SYSPROPS;
 import static org.apache.hadoop.fs.store.diag.StoreDiag.sortKeys;
@@ -87,7 +86,7 @@ public class StoreDiagnosticsInfo {
   /**
    * Bind the diagnostics to a store.
    * @param fsURI filesystem URI
-   * @param output
+   * @param output output.
    * @return the diagnostics info provider.
    */
   public static StoreDiagnosticsInfo bindToStore(URI fsURI,
@@ -418,9 +417,10 @@ public class StoreDiagnosticsInfo {
   protected void printPrefixedOptions(final Printout printout,
       final Configuration conf,
       final String prefix) {
-    printout.heading("Configuration options with prefix \"%s\" :", prefix);
     Map<String, String> propsWithPrefix = conf.getPropsWithPrefix(prefix);
+    printout.heading("Configuration options with prefix \"%s\" :", prefix);
     if (!propsWithPrefix.isEmpty()) {
+      int index = 0;
       Set<String> sorted = sortKeys(propsWithPrefix.keySet());
       for (String key : sorted) {
         final String propertyVal = propsWithPrefix.get(key);
@@ -429,7 +429,8 @@ public class StoreDiagnosticsInfo {
         if (propertyName.contains(".secret.") || propertyName.contains(".pass")) {
           value = sanitize(propertyVal, DEFAULT_HIDE_ALL_SENSITIVE_CHARS);
         }
-        printout.println("%s=%s", propertyName, value);
+        printout.println(DiagnosticsEntryPoint.COUNTER +
+            " %s=%s", ++index, propertyName, value);
       }
     } else {
       printout.println("No configuration options with prefix \"%s\"", prefix);

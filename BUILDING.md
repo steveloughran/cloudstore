@@ -14,7 +14,9 @@
 
 # Building
 
-With maven, with profiles for AWS java v1 and v2 SDK.
+## Compiling
+
+With maven
 
 To build a production release
 1. Use java8
@@ -24,6 +26,26 @@ Joint build
 ```bash
 mvn clean install
 ```
+## Updating cloudstore release versions
+
+For a long time the version was fixed at 1.0 so that curl and other tools could retrieve it
+This was convenient for some use cases, but has led to a condition where the JAR downloaded
+for support calls was never updated, even after new releases were made, because without
+a version change this wasn't apparent.
+
+Therefore release number increments are required for anything other than a rapid-iteration multiple-releases-in-a-day workflow.
+
+Update the version, for example from 1.0 to 1.1:
+```bash
+mvn versions:set -DnewVersion=1.1
+```
+
+Search and replace all uses of `cloudstore-1.0.jar` with the new version of the artifact.
+
+*Note:* there's currently no use of the `-SNAPSHOT` suffix, used in downstream builds for the tools
+to recognise this should be updated nightly.
+This artifact is not currently intended for such use.
+
 
 ## Releasing
 
@@ -38,12 +60,13 @@ mvn clean install
 set -gx now (date '+%Y-%m-%d-%H.%M'); echo [$now]
 git add .; git status
 git commit -S --allow-empty -m "release $now"; git push
-gh release create tag-release-$now -t release-$now -n "release of $now" -d target/cloudstore-1.0.jar
+gh release create tag-release-$now -t release-$now -n "release of $now" -d target/cloudstore-1.1.jar
 # then go to the web ui to review and finalize the release
 ```
 
 * If a new release is made the same day, remember to create a new tag.
-* The version `cloudstore-1.0.jar` is always used, not just from laziness but because it allows
-for bash scripts to always be able to fetch the latest version through curl then execute it.
+* If you have an env var pointing to the cloudstore JAR, update it!
+
+
 
 

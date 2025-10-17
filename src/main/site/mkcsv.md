@@ -17,7 +17,7 @@
 Creates a CSV file with a given path; useful for scale testing CSV processing.
 
 ```bash
-hadoop jar cloudstore-1.0.jar mkcsv  -header -quote -verbose  10000 s3a://bucket/file.csv
+hadoop jar cloudstore-1.1.jar mkcsv  -header -quote -verbose  10000 s3a://bucket/file.csv
 ```
 
 The format is a variable width sequence, with entries cross referencing each other for validation.

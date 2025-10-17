@@ -36,7 +36,7 @@ Lists all versions of files under a path.
 ## Usage
 
 ```
-hadoop jar cloudstore-1.0.jar listversions
+hadoop jar cloudstore-1.1.jar listversions
 Usage: listversions <path>
         -D <key=value>  Define a property
         -deleted        include delete markers
@@ -57,7 +57,7 @@ Usage: listversions <path>
 ## list to a file
 
 ```bash
-hadoop jar cloudstore-1.0.jar listversions -out out.tsv -limit 10  s3a://stevel-london/
+hadoop jar cloudstore-1.1.jar listversions -out out.tsv -limit 10  s3a://stevel-london/
 ```
 
 Exports a version listing as a tab separated file. Any hadoop filesystem URI is supported as a destination.
@@ -100,7 +100,7 @@ The `-q` option scans a bucket but only prints the summary
 
 ```
 
-hadoop jar cloudstore-1.0.jar listversions -q  s3a://stevel-london/
+hadoop jar cloudstore-1.1.jar listversions -q  s3a://stevel-london/
 2023-03-01 17:37:43,931 [main] INFO  extra.ListVersions (StoreDurationInfo.java:<init>(56)) - Starting: listversions
 2023-03-01 17:37:44,622 [main] WARN  s3a.S3AFileSystem (S3AFileSystem.java:getAmazonS3ClientForTesting(1221)) - Access to S3A client requested, reason listversions
 
@@ -139,7 +139,7 @@ A single file can be restored using the `restore` command, which will take a fil
 and create a new copy in a different location in the same bucket.
 
 ```bash
-> hadoop jar cloudstore-1.0.jar restore s3a://stevel-london/FileSystemContractBaseTest "zn8c734o2CaH2ZfsS.I7_mpDl6kgh63O" /restored.txt
+> hadoop jar cloudstore-1.1.jar restore s3a://stevel-london/FileSystemContractBaseTest "zn8c734o2CaH2ZfsS.I7_mpDl6kgh63O" /restored.txt
 
 restoring s3a://stevel-london/FileSystemContractBaseTest @ zn8c734o2CaH2ZfsS.I7_mpDl6kgh63O to s3a://stevel-london/restored.txt
 Starting: restore
@@ -178,7 +178,7 @@ Preparation: create then delete a file
 Deleted s3a://stevel-london/undelete.txt
 
 # list versions including tombstones
-bin/hadoop jar cloudstore-1.0.jar listversions -deleted s3a://stevel-london/undelete.txt
+bin/hadoop jar cloudstore-1.1.jar listversions -deleted s3a://stevel-london/undelete.txt
 Starting: listversions
 2023-03-03 15:28:16,552 [main] WARN  s3a.S3AFileSystem (S3AFileSystem.java:getAmazonS3ClientForTesting(1216)) - Access to S3A client requested, reason listversions
 
@@ -203,7 +203,7 @@ The object `s3a://stevel-london/undelete.txt` at version "ZJMKH.5PrEwiy9z1HbDqPH
 Calling the undelete command will remove the tombstone
 
 ```bash
-hadoop jar cloudstore-1.0.jar undelete s3a://stevel-london/undelete.txt
+hadoop jar cloudstore-1.1.jar undelete s3a://stevel-london/undelete.txt
 
 2023-03-03 15:30:59,755 [main] WARN  s3a.S3AFileSystem (S3AFileSystem.java:getAmazonS3ClientForTesting(1216)) - Access to S3A client requested, reason undelete
 Starting: undelete
@@ -240,7 +240,7 @@ must have been created on or after (hint: there are web pages to calculate this)
   of the command. 
 
 ```bash
-> hadoop jar cloudstore-1.0.jar undelete -age 24000 -limit 10 s3a://stevel-london/
+> hadoop jar cloudstore-1.1.jar undelete -age 24000 -limit 10 s3a://stevel-london/
 
 2023-03-03 15:39:18,964 [main] WARN  s3a.S3AFileSystem (S3AFileSystem.java:getAmazonS3ClientForTesting(1216)) - Access to S3A client requested, reason undelete
 Starting: undelete

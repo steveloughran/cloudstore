@@ -22,7 +22,7 @@ Usage: mkbucket <region> <S3A path>
 ```
 
 ```bash
-hadoop jar cloudstore-1.0.jar mkbucket us-east-2 s3a://new-bucket-name/
+hadoop jar cloudstore-1.1.jar mkbucket us-east-2 s3a://new-bucket-name/
 ```
 
 The per-bucket settings of the target bucket name are used to create the bucket,
