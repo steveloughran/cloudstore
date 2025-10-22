@@ -59,6 +59,7 @@ import org.slf4j.LoggerFactory;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FSDataInputStream;
 import org.apache.hadoop.fs.FSDataOutputStream;
+import org.apache.hadoop.fs.FSDataOutputStreamBuilder;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.LocatedFileStatus;
@@ -89,6 +90,7 @@ import static org.apache.hadoop.fs.store.diag.OptionSets.HADOOP_TOKEN;
 import static org.apache.hadoop.fs.store.diag.OptionSets.HADOOP_TOKEN_FILE_LOCATION;
 import static org.apache.hadoop.fs.store.diag.OptionSets.SECURITY_OPTIONS;
 import static org.apache.hadoop.fs.store.diag.OptionSets.TLS_SYSPROPS;
+import static org.apache.hadoop.fs.store.diag.S3ADiagnosticsInfo.OPTION_CREATE_IN_CLOSE;
 import static org.apache.hadoop.io.IOUtils.closeStream;
 
 @SuppressWarnings({"UseOfSystemOutOrSystemErr", "CharsetObjectCanBeUsed"})
@@ -1137,6 +1139,40 @@ public class StoreDiag extends DiagnosticsEntryPoint {
 
       // ask the fs for any validation here
       storeInfo.validateFile(this, fs, file, status);
+
+      subheading("Checking overwrite detection behaviors");
+      // now see if we can overwrite it with overwrite=false.
+      final FSDataOutputStreamBuilder builder = fs.createFile(file);
+      builder.overwrite(false);
+      FSDataOutputStream out = null;
+      try {
+        try {
+          out = builder.build();
+          errorln("Store is performing late checks for overwrite; s3a can do do this");
+          errorln("Not all applications will report inconsistencies here");
+          if (!out.hasCapability(OPTION_CREATE_IN_CLOSE)) {
+            errorln("The stream does not declare that it supports %s for write to %s", OPTION_CREATE_IN_CLOSE, out);
+          }
+          out.writeUTF("Expecting the close() operation to fail");
+          try {
+            out.close();
+            errorln("The overwrite was not rejected");
+          } catch (IOException e) {
+            println("The overwrite attempt was rejected *as expected* in close: %s", e.getMessage());
+            LOG.debug("error", e);
+          }
+        } catch (IOException e) {
+          println("Store performs normal overwrite checks during creation");
+        }
+      } finally {
+        if (out != null) {
+          try {
+            out.close();
+          } catch (IOException e) {
+            LOG.warn("Error closing stream for file {}", file, e);
+          }
+        }
+      }
 
 
       subheading("Renaming");

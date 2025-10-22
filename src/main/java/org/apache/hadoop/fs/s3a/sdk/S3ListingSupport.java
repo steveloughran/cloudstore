@@ -21,6 +21,7 @@ package org.apache.hadoop.fs.s3a.sdk;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.s3.model.ListObjectVersionsRequest;
+import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.ObjectVersion;
 import software.amazon.awssdk.services.s3.model.S3Object;
@@ -68,7 +69,7 @@ public class S3ListingSupport {
    * @param delimiter any delimiter
    * @return the request
    */
-  public static ListObjectsV2Request createListObjectsRequest(final String bucket,
+  public static ListObjectsV2Request createListObjectsV2Request(final String bucket,
       String key,
       String delimiter) {
     ListObjectsV2Request.Builder request = ListObjectsV2Request.builder()
@@ -80,6 +81,19 @@ public class S3ListingSupport {
     }
     return request.build();
   }
+    public static ListObjectsRequest createListObjectsV1Request(final String bucket,
+      String key,
+      String delimiter) {
+    ListObjectsRequest.Builder request = ListObjectsRequest.builder()
+        .bucket(bucket)
+        .maxKeys(MAX_KEYS)
+        .prefix(key);
+    if (delimiter != null) {
+      request.delimiter(delimiter);
+    }
+    return request.build();
+  }
+
 
   /**
    * Create a {@code ListObjectsRequest} request against this bucket.

@@ -19,6 +19,9 @@
 package org.apache.hadoop.fs.store.diag;
 
 
+import static org.apache.hadoop.fs.store.diag.S3ADiagnosticsInfo.OPTION_CREATE_CONDITIONAL_OVERWRITE;
+import static org.apache.hadoop.fs.store.diag.S3ADiagnosticsInfo.OPTION_CREATE_CONDITIONAL_OVERWRITE_ETAG;
+import static org.apache.hadoop.fs.store.diag.S3ADiagnosticsInfo.OPTION_CREATE_IN_CLOSE;
 
 /**
  * Common path capabilities.
@@ -394,6 +397,9 @@ public final class CapabilityKeys {
       HSYNC,
       IOSTATISTICS,
       IOSTATISTICS_CONTEXT,
+      OPTION_CREATE_CONDITIONAL_OVERWRITE,
+      OPTION_CREATE_CONDITIONAL_OVERWRITE_ETAG,
+      OPTION_CREATE_IN_CLOSE,
       STREAM_CAPABILITY_MAGIC_OUTPUT,
   };
 
