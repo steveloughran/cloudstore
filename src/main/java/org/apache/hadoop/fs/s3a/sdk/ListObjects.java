@@ -109,7 +109,7 @@ public class ListObjects extends StoreEntryPoint {
       if (!key.endsWith("/")) {
         key += "/";
       }
-      ListObjectsV2Request request = S3ListingSupport.createListObjectsRequest(
+      ListObjectsV2Request request = S3ListingSupport.createListObjectsV2Request(
           source.toUri().getHost(), key, null);
 
       final ObjectListingIterator objects = new ObjectListingIterator(s3, source, request);

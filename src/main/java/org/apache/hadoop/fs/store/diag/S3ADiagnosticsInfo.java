@@ -310,6 +310,13 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
 
   public static final String FS_S3A_EXECUTOR_CAPACITY = "fs.s3a.executor.capacity";
 
+  public static final String FS_S3A_CREATE_CHECKSUM_ALGORITHM = "fs.s3a.create.checksum.algorithm";
+
+  public static final String FS_S3A_CHECKSUM_GENERATION =
+      "fs.s3a.checksum.generation";
+
+  public static final String FS_S3A_READAHEAD_RANGE = "fs.s3a.readahead.range";
+
   /**
    * Each option is a triple of
    * (key, secure, obfuscate)
@@ -344,7 +351,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.s3a.change.detection.source", false, false},
       {"fs.s3a.change.detection.mode", false, false},
       {"fs.s3a.change.detection.version.required", false, false},
-
+      {FS_S3A_CHECKSUM_GENERATION, false, false},
       {CHECKSUM_VALIDATION, false, false},
       {"fs.s3a.classloader.isolation", false, false},
       {CONNECTION_SSL_ENABLED, false, false},
@@ -358,7 +365,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {CONNECTION_REQUEST_TIMEOUT, false, false},
       {CONNECTION_TIMEOUT, false, false},
       {CONNECTION_TTL, false, false},
-      {"fs.s3a.create.checksum.algorithm", false, false},
+      {FS_S3A_CREATE_CHECKSUM_ALGORITHM, false, false},
       {CONDITIONAL_CREATE_ENABLED, false, false},
       {"fs.s3a.create.performance", false, false},
       {"fs.s3a.create.storage.class", false, false},
@@ -403,7 +410,8 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.s3a.proxy.domain", false, false},
       {"fs.s3a.proxy.workstation", false, false},
       {"fs.s3a.rename.raises.exceptions", false, false},
-      {"fs.s3a.readahead.range", false, false},
+      {FS_S3A_READAHEAD_RANGE, false, false},
+      {"fs.s3a.request.md5.header", false, false},
       {"fs.s3a.retry.http.5xx.errors", false, false},
       {"fs.s3a.retry.limit", false, false},
       {"fs.s3a.retry.interval", false, false},
@@ -1448,7 +1456,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
         CONNECTION_REQUEST_TIMEOUT, requestTimeout,
         true,
         "Request timeout:\n"
-            + "Maximum time for an HTTP request to return a 200 response."
+            + "Maximum time for an HTTP request to return a 200 response.\n"
             + "A low value can cause slow uploads to fail.");
     timeHint(printout, conf,
         CONNECTION_TTL, ofMinutes(5),
@@ -1595,6 +1603,15 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
 
     default:
       printout.warn("Unrecognized policy for %s", INPUT_FADVISE);
+    }
+
+    printout.println();
+    final int readaheadRange = (int) conf.getLongBytes(FS_S3A_READAHEAD_RANGE, 64 * 1024);
+    printout.println("%s = %d", FS_S3A_READAHEAD_RANGE, readaheadRange);
+    if (readaheadRange == 0) {
+      printout.advise("Read ahead range set in %s is 0.\n"
+              + "This ensures that no streams are retained, but at a performance penalty",
+          FS_S3A_READAHEAD_RANGE);
     }
 
   }
