@@ -571,23 +571,27 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"aws.sessionToken", true},
 
       // aws v2 sdk sysprops from software.amazon.awssdk.core.SdkSystemSetting
+      {"aws.accountIdEndpointMode", false},
       {"aws.binaryIonEnabled", false},
       {"aws.cborEnabled", false},
       {"aws.configFile", false},
       {"aws.containerAuthorizationToken", true},
+      {"aws.containerAuthorizationTokenFile", false},
       {"aws.containerCredentialsFullUri", false},
       {"aws.containerCredentialsPath", false},
       {"aws.containerServiceEndpoint", false},
       {"aws.defaultsMode", false},
       {"aws.disableEc2Metadata", false},
-      {"aws.disableRequestCompression", false},
+      {"aws.disableEc2MetadataV1", false},
       {"aws.disableRequestCompression", false},
       {"aws.disableS3ExpressAuth", false},
       {"aws.ec2MetadataServiceEndpoint", false},
       {"aws.ec2MetadataServiceEndpointMode", false},
+      {"aws.ec2MetadataServiceTimeout", false},
       {"aws.endpointDiscoveryEnabled", false},
       {"aws.executionEnvironment", false},
       {"aws.maxAttempts", false},
+      {"aws.partitionsFile", false},
       {"aws.profile", false},
       {"aws.region", false},
       {"aws.requestChecksumCalculation", false},
@@ -602,6 +606,8 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"aws.useDualstackEndpoint", false},
       {"aws.useFipsEndpoint", false},
       {"aws.webIdentityTokenFile", false},
+      {"", false},
+      {"", false},
 
       // v1 options
       {"aws.java.v1.printLocation", false},
@@ -628,9 +634,9 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"org.wildfly.openssl.libwfssl.path", false},
 
       // v2 options
+      {"sdk.ua.appId", false},
       {"software.amazon.awssdk.http.service.impl", false},
       {"software.amazon.awssdk.http.async.service.impl", false},
-      {"", false},
       {"", false},
   };
 
