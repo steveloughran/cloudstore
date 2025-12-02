@@ -22,7 +22,7 @@ To build a production release
 1. Use java8
 2. compile against a shipping hadoop version (see the profiles)
 
-Joint build
+
 ```bash
 mvn clean install
 ```
