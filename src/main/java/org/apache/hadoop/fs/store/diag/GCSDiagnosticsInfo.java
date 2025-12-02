@@ -61,23 +61,19 @@ public class GCSDiagnosticsInfo extends StoreDiagnosticsInfo {
    */
   private static final Object[][] options = {
 
+      {"fs.gs.auth.type", true, false},
+
       {"fs.gs.client.id", true, false},
       {"fs.gs.client.secret", true, true},
       {"fs.gs.application.name.suffix", false, false},
 
       {"fs.gs.auth.client.id", true, false},
+      {"fs.gs.auth.client.secret", true, true},
+      {"fs.gs.auth.refresh.token", true, true},
+      {"", true, false},
 
       {"fs.gs.auth.impersonation.service.account", true, false},
       {"fs.gs.auth.access.token.provider.impl", false, false},
-      {"fs.gs.auth.service.account.email", true, false},
-      {"fs.gs.auth.service.account.private.key.id", true, false},
-      {SERVICE_ACCOUNT_PRIVATE_KEY, true, true},
-      {"fs.gs.auth.service.account.json.keyfile", true, false},
-      {"fs.gs.auth.service.account.enable", true, false},
-      {"fs.gs.auth.service.account.keyfile", true, false},
-      {"fs.gs.authorization.handler.impl", false, false},
-      {"fs.gs.authorization.handler.properties", false, false},
-
 
       {"fs.gs.batch.threads", false, false},
       {"fs.gs.block.size", false, false},
@@ -121,7 +117,6 @@ public class GCSDiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.gs.outputstream.pipe.buffer.size", false, false},
       {"fs.gs.outputstream.pipe.type", false, false},
       {"fs.gs.outputstream.sync.min.interval.ms", false, false},
-      {"fs.gs.outputstream.type", false, false},
       {"fs.gs.outputstream.upload.cache.size", false, false},
       {"fs.gs.outputstream.upload.chunk.size", false, false},
       {"fs.gs.project.id", false, false},
@@ -132,6 +127,7 @@ public class GCSDiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.gs.requester.pays.buckets", false, false},
       {"fs.gs.requester.pays.mode", false, false},
       {"fs.gs.requester.pays.project.id", false, false},
+      {"fs.gs.rewrite.max.chunk.size", false, false},
       {"fs.gs.service.account.auth.email", false, false},
       {"fs.gs.service.account.auth.keyfile", false, false},
       {"fs.gs.status.parallel.enable", false, false},
@@ -159,11 +155,37 @@ public class GCSDiagnosticsInfo extends StoreDiagnosticsInfo {
       {"mapreduce.manifest.committer.delete.target.files", false, false},
       {"mapreduce.manifest.committer.summary.report.directory", false, false},
 
+      /* obsolete stuff */
+      {"fs.gs.auth.service.account.email", true, false},
+      {"fs.gs.auth.service.account.private.key.id", true, false},
+      {SERVICE_ACCOUNT_PRIVATE_KEY, true, true},
+
+      {"fs.gs.auth.service.account.json.keyfile", true, false},
+      {"fs.gs.auth.service.account.enable", true, false},
+      {"fs.gs.auth.service.account.keyfile", true, false},
+      {"fs.gs.authorization.handler.impl", false, false},
+      {"fs.gs.authorization.handler.properties", false, false},
+      {"fs.gs.outputstream.type", false, false},
+
+
+      /* google cloud settings. */
+      {"google.cloud.auth.type", true, false},
+      {"google.cloud.auth.service.account.json.keyfile", true, false},
+      {"google.cloud.auth.workload.identity.federation.credential.config.file", true, false},
+      {"google.cloud.auth.access.token.provider", true, false},
+      {"google.cloud.auth.impersonation.service.account", true, false},
+      {"google.cloud.token.server.url", true, false},
+      //{"google.cloud.", true, false},
+
+      {"fs.gs.bucket.delete.enable", false, false},
+      {"fs.gs.implicit.dir.repair.enable", false, false},
+      {"", false, false},
+
 
   };
   protected static final Object[][] ENV_VARS = {
       {"GOOGLE_APPLICATION_CREDENTIALS", false},
-      {"", false},
+      {"SUPPRESS_GCLOUD_CREDS_WARNING", false},
   };
   public GCSDiagnosticsInfo(final URI fsURI, final Printout output) {
     super(fsURI, output);
