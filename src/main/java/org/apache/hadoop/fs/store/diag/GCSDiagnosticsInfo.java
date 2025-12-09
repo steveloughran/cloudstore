@@ -65,28 +65,26 @@ public class GCSDiagnosticsInfo extends StoreDiagnosticsInfo {
 
 
       /* original hadoopp options */
+      {"fs.gs.auth.service.account.enable", true, false},
       {"fs.gs.auth.service.account.email", true, false},
-      {"fs.gs.auth.service.account.private.key.id", true, false},
+      {"fs.gs.auth.service.account.private.key.id", true, true},
       {SERVICE_ACCOUNT_PRIVATE_KEY, true, true},
+      {"fs.gs.auth.service.account.keyfile", true, false},
+      {"fs.gs.auth.service.account.json.keyfile", true, false},
 
       {"fs.gs.client.id", true, false},
       {"fs.gs.client.secret", true, true},
       {"fs.gs.application.name.suffix", false, false},
-
       {"fs.gs.auth.client.id", false, false},
       {"fs.gs.auth.client.secret", true, true},
       {"fs.gs.auth.refresh.token", true, true},
-      {"", true, false},
 
-      {"fs.gs.auth.impersonation.service.account", true, false},
       {"fs.gs.auth.access.token.provider.impl", false, false},
+      {"fs.gs.auth.impersonation.service.account", true, false},
 
-      {"fs.gs.auth.service.account.json.keyfile", true, false},
-      {"fs.gs.auth.service.account.enable", true, false},
-      {"fs.gs.auth.service.account.keyfile", true, false},
+      {"fs.gs.auth.workload.identity.federation.credential.config.file", false, false},
       {"fs.gs.authorization.handler.impl", false, false},
       {"fs.gs.authorization.handler.properties", false, false},
-      {"fs.gs.outputstream.type", false, false},
 
       {"fs.gs.batch.threads", false, false},
       {"fs.gs.block.size", false, false},
@@ -130,6 +128,7 @@ public class GCSDiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.gs.outputstream.pipe.buffer.size", false, false},
       {"fs.gs.outputstream.pipe.type", false, false},
       {"fs.gs.outputstream.sync.min.interval.ms", false, false},
+      {"fs.gs.outputstream.type", false, false},
       {"fs.gs.outputstream.upload.cache.size", false, false},
       {"fs.gs.outputstream.upload.chunk.size", false, false},
       {"fs.gs.project.id", false, false},
