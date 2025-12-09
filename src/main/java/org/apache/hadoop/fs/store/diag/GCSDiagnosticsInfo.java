@@ -61,19 +61,32 @@ public class GCSDiagnosticsInfo extends StoreDiagnosticsInfo {
    */
   private static final Object[][] options = {
 
-      {"fs.gs.auth.type", true, false},
+      {"fs.gs.auth.type", false, false},
+
+
+      /* original hadoopp options */
+      {"fs.gs.auth.service.account.email", true, false},
+      {"fs.gs.auth.service.account.private.key.id", true, false},
+      {SERVICE_ACCOUNT_PRIVATE_KEY, true, true},
 
       {"fs.gs.client.id", true, false},
       {"fs.gs.client.secret", true, true},
       {"fs.gs.application.name.suffix", false, false},
 
-      {"fs.gs.auth.client.id", true, false},
+      {"fs.gs.auth.client.id", false, false},
       {"fs.gs.auth.client.secret", true, true},
       {"fs.gs.auth.refresh.token", true, true},
       {"", true, false},
 
       {"fs.gs.auth.impersonation.service.account", true, false},
       {"fs.gs.auth.access.token.provider.impl", false, false},
+
+      {"fs.gs.auth.service.account.json.keyfile", true, false},
+      {"fs.gs.auth.service.account.enable", true, false},
+      {"fs.gs.auth.service.account.keyfile", true, false},
+      {"fs.gs.authorization.handler.impl", false, false},
+      {"fs.gs.authorization.handler.properties", false, false},
+      {"fs.gs.outputstream.type", false, false},
 
       {"fs.gs.batch.threads", false, false},
       {"fs.gs.block.size", false, false},
@@ -155,19 +168,6 @@ public class GCSDiagnosticsInfo extends StoreDiagnosticsInfo {
       {"mapreduce.manifest.committer.delete.target.files", false, false},
       {"mapreduce.manifest.committer.summary.report.directory", false, false},
 
-      /* obsolete stuff */
-      {"fs.gs.auth.service.account.email", true, false},
-      {"fs.gs.auth.service.account.private.key.id", true, false},
-      {SERVICE_ACCOUNT_PRIVATE_KEY, true, true},
-
-      {"fs.gs.auth.service.account.json.keyfile", true, false},
-      {"fs.gs.auth.service.account.enable", true, false},
-      {"fs.gs.auth.service.account.keyfile", true, false},
-      {"fs.gs.authorization.handler.impl", false, false},
-      {"fs.gs.authorization.handler.properties", false, false},
-      {"fs.gs.outputstream.type", false, false},
-
-
       /* google cloud settings. */
       {"google.cloud.auth.type", true, false},
       {"google.cloud.auth.service.account.json.keyfile", true, false},
@@ -187,6 +187,15 @@ public class GCSDiagnosticsInfo extends StoreDiagnosticsInfo {
       {"GOOGLE_APPLICATION_CREDENTIALS", false},
       {"SUPPRESS_GCLOUD_CREDS_WARNING", false},
   };
+
+  /**
+   * Standard System properties.
+   */
+  public static final Object[][] SYSPROPS = {
+      {"flogger.backend_factory", false},
+      {"", false},
+  };
+
   public GCSDiagnosticsInfo(final URI fsURI, final Printout output) {
     super(fsURI, output);
   }
@@ -231,7 +240,11 @@ public class GCSDiagnosticsInfo extends StoreDiagnosticsInfo {
     return cat(ENV_VARS, STANDARD_ENV_VARS);
   }
 
- /* @Override
+  @Override
+  public Object[][] getSelectedSystemProperties() {
+    return cat(SYSPROPS, super.getSelectedSystemProperties());
+  }
+/* @Override
   public List<URI> listOptionalEndpointsToProbe(final Configuration conf)
       throws IOException, URISyntaxException {
     List<URI> l = new ArrayList<>(0);
