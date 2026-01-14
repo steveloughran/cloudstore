@@ -31,6 +31,7 @@ public class help extends Command {
     println("Cloudstore");
     println("==========");
     println("");
+    auditlogs.help();
     bandwidth.help();
     bulkdelete.help();
     cloudup.help();
@@ -41,6 +42,7 @@ public class help extends Command {
     etag.help();
     fetchdt.help();
     filestatus.help();
+    gcscreds.help();
     jobtokens.help();
     list.help();
     locatefiles.help();
@@ -62,7 +64,6 @@ public class help extends Command {
     bucketmetadata.help();
     bucketstate.help();
     deleteobject.help();
-    gcscreds.help();
     iampolicy.help();
     listobjects.help();
     listversions.help();

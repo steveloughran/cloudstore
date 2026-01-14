@@ -16,16 +16,16 @@
  * limitations under the License.
  */
 
-import org.apache.hadoop.fs.s3a.sdk.Regions;
+import org.apache.hadoop.fs.store.audit.AuditTool;
 import org.apache.hadoop.fs.store.commands.Command;
 
-public class regions extends Command {
+public class auditlogs extends Command {
 
   public static void main(String[] args) throws Exception {
-    Regions.main(args);
+    AuditTool.main(args);
   }
 
   public static void help() {
-    printCommand("regions", "\tEmulate region lookup of AWS SDK");
+    printCommand("auditlogs", "Audit log processings");
   }
 }

@@ -48,6 +48,8 @@
     <test.build.data>${test.build.dir}</test.build.data>
     <assertj.version>3.12.2</assertj.version>
     <buildhelper.version>3.3.0</buildhelper.version>
+    <!-- avro version -->
+    <avro.version>1.11.4</avro.version>
 
   </properties>
 
@@ -421,6 +423,7 @@
           </configuration>
         </plugin>
 
+
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-jar-plugin</artifactId>
@@ -464,5 +467,47 @@
 
 
     </pluginManagement>
+    <plugins>
+
+      <plugin>
+        <groupId>org.apache.avro</groupId>
+        <artifactId>avro-maven-plugin</artifactId>
+        <version>${avro.version}</version>
+        <executions>
+          <execution>
+            <id>generate-avro-sources</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>schema</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <sourceDirectory>src/main/avro</sourceDirectory>
+          <outputDirectory>${project.build.directory}/generated-sources/avro</outputDirectory>
+        </configuration>
+      </plugin>
+
+      <!-- Build helper: add generated directory to compile source roots -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>build-helper-maven-plugin</artifactId>
+        <version>3.4.0</version>
+        <executions>
+          <execution>
+            <id>add-generated-sources</id>
+            <phase>generate-sources</phase>
+            <goals>
+              <goal>add-source</goal>
+            </goals>
+            <configuration>
+              <sources>
+                <source>${project.build.directory}/generated-sources/avro</source>
+              </sources>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
   </build>
 </project>

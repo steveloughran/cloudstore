@@ -258,4 +258,8 @@ public class StoreUtils {
     }
     return lines;
   }
+
+  public static boolean isNullOrEmpty(CharSequence seq) {
+    return seq == null || seq.length() == 0;
+  }
 }

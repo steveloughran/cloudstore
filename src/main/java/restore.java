@@ -26,6 +26,6 @@ public class restore extends Command {
   }
 
   public static void help() {
-    printCommand("restore", "Restore a versioned S3 object");
+    printCommand("restore", "\tRestore a versioned S3 object");
   }
 }
