@@ -40,7 +40,7 @@ import org.apache.hadoop.util.ToolRunner;
 
 import static org.apache.hadoop.fs.s3a.audit.S3LogParser.BUCKET_GROUP;
 import static org.apache.hadoop.fs.s3a.audit.S3LogParser.REMOTEIP_GROUP;
-import static org.apache.hadoop.fs.store.audit.TestAuditLogProcessor.SAMPLE_LOG_ENTRY;
+import static org.apache.hadoop.fs.store.audit.TestAuditLogProcessor.SAMPLE_LOG_ENTRY_1;
 
 /**
  * AuditTool tests.
@@ -84,7 +84,7 @@ public class TestAuditTool {
     sampleDir = Files.createTempDirectory("sampleDir").toFile();
     sampleFile = File.createTempFile("sampleFile", ".txt", sampleDir);
     try (FileWriter fw = new FileWriter(sampleFile)) {
-      fw.write(SAMPLE_LOG_ENTRY);
+      fw.write(SAMPLE_LOG_ENTRY_1);
       fw.flush();
     }
     sampleDestDir = Files.createTempDirectory("sampleDestDir").toFile();

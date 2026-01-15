@@ -22,6 +22,8 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.time.Instant;
+import java.time.format.DateTimeParseException;
 import java.util.Map;
 
 import org.assertj.core.api.AbstractStringAssert;
@@ -42,6 +44,10 @@ import org.apache.hadoop.util.Preconditions;
 import static org.apache.hadoop.fs.audit.AuditConstants.PARAM_PATH;
 import static org.apache.hadoop.fs.audit.AuditConstants.PARAM_PRINCIPAL;
 import static org.apache.hadoop.fs.store.audit.AuditLogProcessor.parseAuditHeader;
+import static org.apache.hadoop.fs.store.audit.AuditLogProcessor.parseToEpochMillis;
+import static org.apache.hadoop.fs.store.audit.AuditLogProcessor.parseToInstant;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 /**
  * Unit tests on {@link AuditLogProcessor} class.
@@ -68,6 +74,8 @@ public class TestAuditLogProcessor {
     return methodName.getMethodName();
   }
 
+  public static final String TIMESTAMP_1 =  "13/May/2021:11:26:06 +0000";
+
   /**
    * A real log entry.
    * This is derived from a real log entry on a test run.
@@ -75,7 +83,7 @@ public class TestAuditLogProcessor {
    * Splitting this up across lines has a tendency to break things, so
    * be careful making changes.
    */
-  static final String SAMPLE_LOG_ENTRY =
+  static final String SAMPLE_LOG_ENTRY_1 =
       "183c9826b45486e485693808f38e2c4071004bf5dfd4c3ab210f0a21a4000000"
           + " bucket-london"
           + " [13/May/2021:11:26:06 +0000]"
@@ -109,10 +117,12 @@ public class TestAuditLogProcessor {
           + " bucket-london.s3.eu-west-2.amazonaws.com"
           + " TLSv1.2" + "\n";
 
-  static final String SAMPLE_LOG_ENTRY_1 =
+  public static final String TIMESTAMP_2 =  "13/May/2024:11:26:12 +0000";
+
+  static final String SAMPLE_LOG_ENTRY_2 =
       "01234567890123456789"
           + " bucket-london1"
-          + " [13/May/2021:11:26:06 +0000]"
+          + " [" + TIMESTAMP_2 + "]"
           + " 109.157.171.174"
           + " arn:aws:iam::152813717700:user/dev"
           + " M7ZB7C4RTKXJKTM9"
@@ -150,7 +160,7 @@ public class TestAuditLogProcessor {
    * Splitting this up across lines has a tendency to break things, so
    * be careful making changes.
    */
-  private final String sampleReferrerHeader =
+  static final String SAMPLE_REFERRER_HEADER =
       "\"https://audit.example.org/hadoop/1/op_create/"
           + "e8ede3c7-8506-4a43-8268-fe8fcbb510a4-00000278/?"
           + "op=op_create"
@@ -163,7 +173,7 @@ public class TestAuditLogProcessor {
 
   private File sampleDir;
 
-  private AuditLogProcessor auditLogProcessor =
+  private final AuditLogProcessor auditLogProcessor =
       new AuditLogProcessor(new Configuration(), 1);
 
 
@@ -172,18 +182,28 @@ public class TestAuditLogProcessor {
    * entry and checks if the log is parsed correctly.
    */
   @Test
-  public void testParseAuditLog() {
+  public void testParseAuditLogEntry() {
     Map<String, String> parseAuditLogResult =
-        auditLogProcessor.parseAuditLog(SAMPLE_LOG_ENTRY);
-    Assertions.assertThat(parseAuditLogResult)
-        .describedAs("the result of parseAuditLogResult of %s; %s", SAMPLE_LOG_ENTRY, auditLogProcessor)
+        auditLogProcessor.parseAuditLog(SAMPLE_LOG_ENTRY_1);
+    assertThat(parseAuditLogResult)
+        .describedAs("the result of parseAuditLogResult of %s; %s", SAMPLE_LOG_ENTRY_1, auditLogProcessor)
         .isNotNull();
 
     //verifying the bucket from parsed audit log
-    assertFieldValue(parseAuditLogResult, "bucket", "bucket-london");
+    final String bucket = "bucket-london";
+    assertFieldValue(parseAuditLogResult, "bucket", bucket);
 
     //verifying the remoteip from parsed audit log
-    assertFieldValue(parseAuditLogResult, "remoteip", "109.157.171.174");
+    final String ip = "109.157.171.174";
+    assertFieldValue(parseAuditLogResult, "remoteip", ip);
+
+    AvroS3LogEntryRecord record = auditLogProcessor.buildLogRecord(parseAuditLogResult);
+    assertThat(record.getBucket())
+        .isEqualTo(bucket);
+    assertThat(record.getRemoteip()).isEqualTo(ip);
+    assertThat(record.getEvent())
+        .describedAs("Event timestamp calculated from '%s'", record.getTstamp())
+        .isEqualTo(parseToInstant(TIMESTAMP_1));
   }
 
   /**
@@ -196,7 +216,7 @@ public class TestAuditLogProcessor {
   private static AbstractStringAssert<?> assertFieldValue(final Map<String, String> parseAuditLogResult,
       final String field,
       final String expected) {
-    return Assertions.assertThat(parseAuditLogResult.get(field))
+    return assertThat(parseAuditLogResult.get(field))
         .describedAs("Mismatch in the field %s parsed from the audit", field)
         .isEqualTo(expected);
   }
@@ -209,12 +229,12 @@ public class TestAuditLogProcessor {
   public void testParseAuditLogEmptyAndNull() {
     Map<String, String> parseAuditLogResultEmpty =
         auditLogProcessor.parseAuditLog("");
-    Assertions.assertThat(parseAuditLogResultEmpty)
+    assertThat(parseAuditLogResultEmpty)
         .describedAs("Audit log map should be empty")
         .isEmpty();
     Map<String, String> parseAuditLogResultNull =
         auditLogProcessor.parseAuditLog(null);
-    Assertions.assertThat(parseAuditLogResultNull)
+    assertThat(parseAuditLogResultNull)
         .describedAs("Audit log map of null record should be empty from %s", auditLogProcessor)
         .isEmpty();
   }
@@ -227,9 +247,9 @@ public class TestAuditLogProcessor {
   @Test
   public void testParseAuditHeader() {
     Map<String, String> parseReferrerHeaderResult =
-        parseAuditHeader(sampleReferrerHeader);
+        parseAuditHeader(SAMPLE_REFERRER_HEADER);
     //verifying the path 'p1' from parsed referrer header
-    Assertions.assertThat(parseReferrerHeaderResult)
+    assertThat(parseReferrerHeaderResult)
         .describedAs("Mismatch in the path parsed from the referrer")
         .isNotNull()
         .containsEntry(PARAM_PATH, "fork-0001/test/testParseBrokenCSVFile")
@@ -244,9 +264,9 @@ public class TestAuditLogProcessor {
    */
   @Test
   public void testParseAuditEmptyAndNull() {
-    Assertions.assertThat(parseAuditHeader(""))
+    assertThat(parseAuditHeader(""))
         .isEmpty();
-    Assertions.assertThat(parseAuditHeader(null))
+    assertThat(parseAuditHeader(null))
         .isEmpty();
   }
 
@@ -273,18 +293,18 @@ public class TestAuditLogProcessor {
         auditLogProcessor.mergeAndParseAuditLogFiles(
             auditDirPath, destPath, true,
             org.apache.hadoop.fs.store.audit.AuditLogProcessor.PROCESS_ALL);
-    Assertions.assertThat(mergeAndParseResult)
+    assertThat(mergeAndParseResult)
         .describedAs("The merge and parse failed for the audit log by %s", auditLogProcessor)
         .isGreaterThan(0)
         .isEqualTo(auditLogProcessor.getLogRecordsProcessed());
     // 36 audit logs with referrer in each of the 2 sample files.
-    Assertions.assertThat(auditLogProcessor.getLogRecordsProcessed())
+    assertThat(auditLogProcessor.getLogRecordsProcessed())
         .describedAs("Mismatch in the number of audit logs parsed by %s", auditLogProcessor)
         .isEqualTo(36 + 36);
-    Assertions.assertThat(auditLogProcessor.getReferrerHeadersParsed())
+    assertThat(auditLogProcessor.getReferrerHeadersParsed())
         .describedAs("Mismatch in the number of referrer headers parsed by %s", auditLogProcessor)
         .isEqualTo(36 + 36);
-    Assertions.assertThat(auditLogProcessor.getLogFilesParsed())
+    assertThat(auditLogProcessor.getLogFilesParsed())
         .describedAs("log files parsed by %s", auditLogProcessor)
         .isEqualTo(2);
 
@@ -311,19 +331,43 @@ public class TestAuditLogProcessor {
     try (FileWriter fw = new FileWriter(firstSampleFile);
          FileWriter fw1 = new FileWriter(secondSampleFile);
          FileWriter fw2 = new FileWriter(thirdSampleFile)) {
-      fw.write(SAMPLE_LOG_ENTRY);
-      fw1.write(SAMPLE_LOG_ENTRY);
-      fw2.write(SAMPLE_LOG_ENTRY_1);
+      fw.write(SAMPLE_LOG_ENTRY_1);
+      fw1.write(SAMPLE_LOG_ENTRY_1);
+      fw2.write(SAMPLE_LOG_ENTRY_2);
     }
     Path logsPath = new Path(sampleDir.toURI());
     Path destPath = tempAvroPath();
     auditLogProcessor.mergeAndParseAuditLogFiles(
         logsPath, destPath, true,
         org.apache.hadoop.fs.store.audit.AuditLogProcessor.PROCESS_ALL);
-    Assertions.assertThat(auditLogProcessor.getLogRecordsProcessed())
+    assertThat(auditLogProcessor.getLogRecordsProcessed())
         .describedAs("Mismatch in the number of audit logs parsed")
         .isEqualTo(3);
-    Assertions.assertThat(auditLogProcessor.getLogFilesParsed())
+    assertThat(auditLogProcessor.getLogFilesParsed())
         .isEqualTo(3);
+  }
+
+  @Test
+  public void parsesUtcStringToInstant() {
+    String s = "13/May/2021:11:26:06 +0000";
+    Instant expected = Instant.parse("2021-05-13T11:26:06Z");
+    assertThat(parseToInstant(s))
+        .describedAs("parsing of %s", s)
+        .isEqualTo(expected);
+  }
+
+  @Test
+  public void parsesOffsetAndConvertsToUtc() {
+    String s = "13/May/2021:13:26:06 +0200"; // same instant as 11:26:06Z
+    long expectedMillis = Instant.parse("2021-05-13T11:26:06Z").toEpochMilli();
+    assertThat(AuditLogProcessor.parseToEpochMillis(s))
+        .describedAs("parse to millis of %s", s)
+        .isEqualTo(expectedMillis);
+  }
+
+  @Test
+  public void invalidStringThrowsDateTimeParseException() {
+    Assertions.assertThatThrownBy(() -> parseToInstant("not a date"))
+        .isInstanceOf(DateTimeParseException.class);
   }
 }

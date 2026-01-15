@@ -18,6 +18,8 @@
     "type" : "record", "name" : "AvroS3LogEntryRecord",
     "namespace" : "org.apache.hadoop.fs.store.audit",
     "fields" : [
+      { "name" : "event", "type" :
+        { "type" : "long", "logicalType": "timestamp-micros" }},
       { "name" : "owner", "type" : "string" },
       { "name" : "bucket", "type" : "string" },
       { "name" : "tstamp", "type" : "string" },

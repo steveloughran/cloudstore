@@ -111,6 +111,14 @@ Examine store and print diagnostics, including testing read and optionally write
 operations
 
 See [storediag](src/main/site/storediag.md) for details.
+
+## Command `auditlogs`
+
+Parse AWS S3 Server logs into avro files, extracting http referrer-encoded
+audit information where found.
+
+See [auditlogs](src/main/site/auditlogs.md) for details.
+
 ## Command `bandwidth`
 
 Measure upload/download bandwidth, optionally saving data to a CSV file.

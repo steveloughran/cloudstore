@@ -19,9 +19,14 @@
 package org.apache.hadoop.fs.store.audit;
 
 import java.io.IOException;
+import java.time.Instant;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Matcher;
 
@@ -84,6 +89,12 @@ public class AuditLogProcessor {
   private static final String REFERRER_HEADER_KEY = "referrer";
 
   /**
+   * Timestamp key.
+   */
+  private static final String TIMESTAMP_KEY = "timestamp";
+  private static final String AVRO_TIMESTAMP_KEY = "tstamp";
+
+  /**
    * Value to use when a long value cannot be parsed: {@value}.
    */
   public static final long FAILED_TO_PARSE_LONG = -1L;
@@ -92,6 +103,14 @@ public class AuditLogProcessor {
    * Key for the referrer map in the Avro record: {@value}.
    */
   public static final String REFERRER_MAP = "audit";
+
+  /**
+   * Format of S3 log timestamps like "13/May/2021:11:26:06 +0000"
+   */
+  private static final DateTimeFormatter TS_FORMATTER =
+      DateTimeFormatter.ofPattern("dd/MMM/yyyy:HH:mm:ss Z", Locale.ENGLISH);
+
+  public static final Instant EPOCH_START = Instant.ofEpochMilli(0);
 
   private final Configuration conf;
 
@@ -321,13 +340,25 @@ public class AuditLogProcessor {
 
     // Instantiating generated AvroDataRecord class
     AvroS3LogEntryRecord avroDataRecord = new AvroS3LogEntryRecord();
+
+    // special timestamp handling
+    String timestamp = auditLogMap.get(TIMESTAMP_KEY);
+    timestamp = timestamp.substring(1, timestamp.length() - 1);
+    try {
+      avroDataRecord.setEvent(parseToInstant(timestamp));
+    } catch (DateTimeParseException e) {
+      avroDataRecord.setEvent(EPOCH_START);
+    }
+    avroDataRecord.setTstamp(timestamp);
+
     for (Map.Entry<String, String> entry : auditLogMap.entrySet()) {
       String key = entry.getKey();
       String value = entry.getValue().trim();
 
       // fixup
-      if ("timestamp" .equals(key)) {
-        key = "tstamp";
+      if (TIMESTAMP_KEY .equals(key)) {
+        // timestamp handler.
+        continue;
       }
 
       // if value == '-' and key is not in arraylist then put '-' or else '-1'
@@ -359,7 +390,11 @@ public class AuditLogProcessor {
     HashMap<String, String> referrerHeaderMap =
         parseAuditHeader(auditLogMap.get(REFERRER_HEADER_KEY));
     avroDataRecord.put(REFERRER_MAP, referrerHeaderMap);
+
     return avroDataRecord;
+
+    // build the event header
+
   }
 
   @Override
@@ -371,6 +406,28 @@ public class AuditLogProcessor {
     sb.append(", recordsSkipped=").append(recordsSkipped);
     sb.append('}');
     return sb.toString();
+  }
+
+  /**
+   * Parse the input string to an Instant (UTC).
+   * @throws DateTimeParseException if the input cannot be parsed.
+   */
+  public static Instant parseToInstant(String input) {
+    OffsetDateTime odt = OffsetDateTime.parse(input, TS_FORMATTER);
+    return odt.toInstant();
+  }
+
+  /**
+   * Parse the input string to the epoch millis; fallback is 0.
+   * @param input input string.
+   * @return parsed value or 0 on a failure.
+   */
+  public static long parseToEpochMillis(String input) {
+    try {
+      return parseToInstant(input).toEpochMilli();
+    } catch (DateTimeParseException e) {
+      return 0;
+    }
   }
 
   @FunctionalInterface

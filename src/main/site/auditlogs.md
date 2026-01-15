@@ -146,6 +146,8 @@ Saved output to 2026-stevel.avro
     "type" : "record", "name" : "AvroS3LogEntryRecord",
     "namespace" : "org.apache.hadoop.fs.store.audit",
     "fields" : [
+      { "name" : "event", "type" :
+        { "type" : "long", "logicalType": "timestamp-micros" }},
       { "name" : "owner", "type" : "string" },
       { "name" : "bucket", "type" : "string" },
       { "name" : "tstamp", "type" : "string" },
@@ -175,12 +177,71 @@ Saved output to 2026-stevel.avro
     ]
 }
 ```
+All the base values are those from the record, except for
+* `event`: parsed timestamp converted to UTC microseconds since the epoch
+* `audit`: the map of audit key-value pairs.
 
-### Spark SQL Schema
+### Spark dataframe and SQL
+
+Spark can load the files, print the dataframe and generate the SQL
+schema needed for a `CREATE TABLE` operation.
+
+```scala
+
+> val df = spark.read.format("avro").load("path to log.avro) 
+> df.printSchema()
+root
+ |-- event: timestamp (nullable = true)
+ |-- owner: string (nullable = true)
+ |-- bucket: string (nullable = true)
+ |-- tstamp: string (nullable = true)
+ |-- remoteip: string (nullable = true)
+ |-- requester: string (nullable = true)
+ |-- requestid: string (nullable = true)
+ |-- verb: string (nullable = true)
+ |-- key: string (nullable = true)
+ |-- requesturi: string (nullable = true)
+ |-- http: string (nullable = true)
+ |-- awserrorcode: string (nullable = true)
+ |-- bytessent: long (nullable = true)
+ |-- objectsize: long (nullable = true)
+ |-- totaltime: long (nullable = true)
+ |-- turnaroundtime: long (nullable = true)
+ |-- referrer: string (nullable = true)
+ |-- useragent: string (nullable = true)
+ |-- version: string (nullable = true)
+ |-- hostid: string (nullable = true)
+ |-- sigv: string (nullable = true)
+ |-- cypher: string (nullable = true)
+ |-- auth: string (nullable = true)
+ |-- endpoint: string (nullable = true)
+ |-- tls: string (nullable = true)
+ |-- tail: string (nullable = true)
+ |-- audit: map (nullable = true)
+ |    |-- key: string
+ |    |-- value: string (valueContainsNull = true)
+
+
+
+> val ddl = df.schema.toDDL
+
+val ddl: String = event TIMESTAMP,owner STRING,bucket STRING,tstamp STRING,remoteip STRING,
+    requester STRING,requestid STRING,verb STRING,key STRING,requesturi STRING,
+    http STRING,awserrorcode STRING,bytessent BIGINT,objectsize BIGINT,totaltime BIGINT,
+    turnaroundtime BIGINT,referrer STRING,useragent STRING,version STRING,hostid STRING,
+    sigv STRING,cypher STRING,auth STRING,endpoint STRING,tls STRING,tail STRING,
+    audit MAP<STRING, STRING>
+    
+> println(s"CREATE TABLE avro_table (${ddl}) USING avro LOCATION '${path}'")
+CREATE TABLE avro_table (owner STRING,bucket STRING,timestamp STRING,remoteip STRING,requester STRING,requestid STRING,verb STRING,key STRING,requesturi STRING,http STRING,awserrorcode STRING,bytessent BIGINT,objectsize BIGINT,totaltime BIGINT,turnaroundtime BIGINT,referrer STRING,useragent STRING,version STRING,hostid STRING,sigv STRING,cypher STRING,auth STRING,endpoint STRING,tls STRING,tail STRING,audit MAP<STRING, STRING>) USING avro LOCATION '/Users/stevel/Projects/Misc/warehouse/incoming/2026-stevel.avro'   
+```
+
+With a bit of cleanup, this is your SQL table.
 
 ```sql
 CREATE TABLE avro_table
-    (owner STRING,
+    (event TIMESTAMP,
+     owner STRING,
      bucket STRING,
      tstamp STRING,
      remoteip STRING,
@@ -218,7 +279,3 @@ is for simplicity and to guarantee the generated file is a concatenation of the 
 If anyone has large amounts of data, converting the processing
 to a spark job would be straightforward.
 
-### Importing the records to a database
-
-The `audit` column is a map of arbitrary data; this is where the `VARIANT` type
-of Apache Iceberg excels.
