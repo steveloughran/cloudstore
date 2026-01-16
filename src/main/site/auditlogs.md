@@ -52,6 +52,12 @@ Saved output to 2026-stevel.avro
   "name" : "AvroS3LogEntryRecord",
   "namespace" : "org.apache.hadoop.fs.store.audit",
   "fields" : [ {
+    "name" : "event",
+    "type" : {
+      "type" : "long",
+      "logicalType" : "timestamp-micros"
+    }
+  }, {
     "name" : "owner",
     "type" : "string"
   }, {
@@ -135,12 +141,16 @@ Saved output to 2026-stevel.avro
   } ]
 }
 
+
 > java -jar avro-tools-1.13.0-SNAPSHOT.jar count 2026-stevel.avro 
 64765
 
 ```
 
 ## Avro Record Schema
+
+See [AvroDataSchema.avsc](../avro/AvroDataSchema.avsc).
+
 ```json
 {
     "type" : "record", "name" : "AvroS3LogEntryRecord",
