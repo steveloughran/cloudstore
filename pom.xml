@@ -46,10 +46,10 @@
 
     <test.build.dir>${project.build.directory}/test-dir</test.build.dir>
     <test.build.data>${test.build.dir}</test.build.data>
-    <assertj.version>3.12.2</assertj.version>
+    <assertj.version>3.27.7</assertj.version>
     <buildhelper.version>3.3.0</buildhelper.version>
     <!-- avro version -->
-    <avro.version>1.11.4</avro.version>
+    <avro.version>1.12.1</avro.version>
 
   </properties>
 
