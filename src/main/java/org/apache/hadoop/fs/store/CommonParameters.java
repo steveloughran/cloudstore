@@ -68,6 +68,9 @@ public final class CommonParameters {
   public static final String LIMIT = "limit";
 
   /** {@value}. */
+  public static final String OPTIONS = "options";
+
+  /** {@value}. */
   public static final String THREADS = "threads";
 
   public static final String BFS = "bfs";

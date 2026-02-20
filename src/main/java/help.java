@@ -49,6 +49,7 @@ public class help extends Command {
     localhost.help();
     mkcsv.help();
     pathcapability.help();
+    put.help();
     storediag.help();
     tarhardened.help();
     tlsinfo.help();

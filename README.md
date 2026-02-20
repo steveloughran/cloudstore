@@ -335,6 +335,12 @@ The exit code of the command is 0 if the capability is present, -1 if absent, an
  
 As it is in Hadoop 3.3, all APIs new to that release (including `openFile()`) can absolutely be probed for. Otherwise, the 55 response may mean "an API is implemented, just not the probe". 
 
+## Command `put`
+
+Uploads/copies a file, with the ability to set `createFile()` parameters.
+
+See [put](src/main/site/put.md)
+
 ## Command `safeprefetch`
 
 Probes an abfs store for being vulnerable to
