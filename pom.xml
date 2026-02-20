@@ -49,7 +49,7 @@
     <assertj.version>3.27.7</assertj.version>
     <buildhelper.version>3.3.0</buildhelper.version>
     <!-- avro version -->
-    <avro.version>1.12.1</avro.version>
+    <avro.version>1.11.5</avro.version>
 
   </properties>
 
