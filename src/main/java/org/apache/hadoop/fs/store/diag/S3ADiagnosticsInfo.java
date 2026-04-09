@@ -680,7 +680,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
 
       // SSL stuff
       "org.wildfly.openssl.OpenSSLProvider",
-      " org.wildfly.openssl.OpenSSLContextSPI$OpenSSLTLSContextSpi",
+      "org.wildfly.openssl.OpenSSLContextSPI$OpenSSLTLSContextSpi",
       X509,
 
 

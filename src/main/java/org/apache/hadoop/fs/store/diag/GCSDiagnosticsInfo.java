@@ -185,8 +185,14 @@ public class GCSDiagnosticsInfo extends StoreDiagnosticsInfo {
 
   };
   protected static final Object[][] ENV_VARS = {
-      {"GOOGLE_APPLICATION_CREDENTIALS", false},
+      {"DEVSHELL_CLIENT_POR", false},
+      {"GCE_METADATA_HOST", false},
+      {"GOOGLE_APPLICATION_CREDENTIALS", true},
+      {"GOOGLE_APPLICATION_CREDENTIALS_SKIP_APP_ENGINE", false},
+      {"GOOGLE_CLOUD_QUOTA_PROJECT", false},
+      {"NO_GCE_CHECK", false},
       {"SUPPRESS_GCLOUD_CREDS_WARNING", false},
+      {"", false},
   };
 
   /**
