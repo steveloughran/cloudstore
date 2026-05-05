@@ -56,7 +56,6 @@ To publish the release use the gui or the github command line through the `fish`
 java -version
 
 # actual build
-mvn clean install
 set -gx now (date '+%Y-%m-%d-%H.%M'); echo [$now]
 git add .; git status
 git commit -S --allow-empty -m "release $now"; git push
