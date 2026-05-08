@@ -83,9 +83,9 @@ public final class EndpointProbe {
     return success;
   }
 
-  public void failed(String message) {
+  public void failed(String reason) {
     this.success = false;
-    this.message = message;
+    this.message = reason;
   }
 
   public void setSuccess(final boolean success) {

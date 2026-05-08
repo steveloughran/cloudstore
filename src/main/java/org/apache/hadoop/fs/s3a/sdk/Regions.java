@@ -28,7 +28,7 @@ import software.amazon.awssdk.regions.providers.InstanceProfileRegionProvider;
 import software.amazon.awssdk.regions.providers.SystemSettingsRegionProvider;
 
 /**
- * Debug region settings; v2 sdk
+ * Debug region settings; v2 sdk.
  */
 public class Regions extends StoreEntryPoint {
 

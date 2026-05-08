@@ -35,7 +35,10 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.StorageUnit;
 import org.apache.hadoop.util.ExitUtil;
 
-public class StoreUtils {
+public final class StoreUtils {
+
+  private StoreUtils() {}
+
 
   /** {@value}. */
   protected static final int HIDE_PREFIX = 2;
@@ -140,8 +143,8 @@ public class StoreUtils {
   }
 
   /**
-   * get the storage size from a string, uses M, G, T etc
-   * 
+   * Get the storage size from a string, uses M, G, T etc.
+   *
    * @param size data size
    * @param storageUnit desired size unit.
    * @return size as a double.
@@ -234,9 +237,9 @@ public class StoreUtils {
     }
 
     @Override
-    public String setValue(final String value) {
-      this.value = value;
-      return value;
+    public String setValue(String newValue) {
+      this.value = newValue;
+      return newValue;
     }
   }
 

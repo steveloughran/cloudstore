@@ -30,7 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Deletes the objects on the command line
+ * Deletes the objects on the command line.
  */
 public class RestoreObject extends StoreEntryPoint {
 

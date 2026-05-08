@@ -371,7 +371,7 @@ public class DiagnosticsEntryPoint extends StoreEntryPoint {
   }
 
   /**
-   * Get a sorted list of all the JARs on the classpath
+   * Get a sorted list of all the JARs on the classpath.
    * 
    * @return the set of JARs; the iterator will be sorted.
    */

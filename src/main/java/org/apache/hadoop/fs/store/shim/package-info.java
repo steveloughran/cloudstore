@@ -13,4 +13,7 @@
  * the License.
  */
 
+/**
+ * Reflection shims for invoking optional Hadoop APIs across release lines.
+ */
 package org.apache.hadoop.fs.store.shim;

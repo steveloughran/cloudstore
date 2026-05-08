@@ -66,7 +66,7 @@ final class UploadEntry implements Serializable, Comparable<UploadEntry> {
    */
   private Exception exception;
 
-  public UploadEntry(FileStatus status) {
+  UploadEntry(FileStatus status) {
     this.sourceStatus = status;
     this.source = status.getPath();
     this.size = status.getLen();
@@ -98,8 +98,8 @@ final class UploadEntry implements Serializable, Comparable<UploadEntry> {
     this.state = state;
   }
 
-  public boolean inState(State state) {
-    return this.state == state;
+  public boolean inState(State expected) {
+    return this.state == expected;
   }
 
   /**

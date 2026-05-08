@@ -14,4 +14,7 @@
  */
 
 /* CSV support. */
+/**
+ * CSV writer utilities for the cloudstore CLI commands.
+ */
 package org.apache.hadoop.fs.tools.csv;

@@ -13,4 +13,7 @@
  * the License.
  */
 
+/**
+ * ABFS-specific diagnostics support for the cloudstore CLI commands.
+ */
 package org.apache.hadoop.fs.store.abfs;

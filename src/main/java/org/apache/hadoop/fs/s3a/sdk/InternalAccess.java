@@ -23,7 +23,7 @@ import org.apache.hadoop.fs.s3a.S3AFileSystem;
 import software.amazon.awssdk.services.s3.S3Client;
 
 /**
- * Internal accessor to S3 state
+ * Internal accessor to S3 state.
  */
 public class InternalAccess {
 

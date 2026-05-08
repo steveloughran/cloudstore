@@ -25,8 +25,7 @@ import software.amazon.awssdk.services.s3.model.ObjectVersion;
 
 interface SummaryProcessor extends Closeable {
 
-  boolean process(ObjectVersion summary, Path path, final boolean isDeleteMarker)
-      throws IOException;
+  boolean process(ObjectVersion summary, Path path, boolean isDeleteMarker) throws IOException;
 
   default boolean processTombstone(Path path, DeleteMarkerEntry tombstone) throws IOException {
     return false;

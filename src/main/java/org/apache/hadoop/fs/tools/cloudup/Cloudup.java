@@ -468,7 +468,7 @@ public class Cloudup extends StoreEntryPoint {
   }
 
   /**
-   * Callable to prepare destination;
+   * Callable to prepare destination;.
    * 
    * @return a string for logging.
    */
@@ -825,7 +825,7 @@ public class Cloudup extends StoreEntryPoint {
    * @throws Exception failure
    */
   public static int exec(String... args) throws Exception {
-    try (final Cloudup tool = new Cloudup()) {
+    try (Cloudup tool = new Cloudup()) {
       return ToolRunner.run(tool, args);
     }
   }

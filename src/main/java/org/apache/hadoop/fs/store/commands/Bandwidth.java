@@ -75,8 +75,9 @@ public class Bandwidth extends StoreEntryPoint {
       + optusage(FLUSH, "flush the output after writing each block")
       + optusage(HFLUSH, "hflush() the output after writing each block")
       + optusage(KEEP, "do not delete the file")
-      + optusage(RENAME, "rename file to suffix .renamed") + optusage(POLICY, "policy",
-          "read policy for file (whole-file, sequential, random...). use \"none\" to use whatever is set for the store");
+      + optusage(RENAME, "rename file to suffix .renamed")
+      + optusage(POLICY, "policy", "read policy for file (whole-file, sequential, random...)."
+          + " use \"none\" to use whatever is set for the store");
 
   private static final int BUFFER_SIZE = 32 * 1024;
 
@@ -239,7 +240,8 @@ public class Bandwidth extends StoreEntryPoint {
         duration.finished();
         blockUploads.add(duration.value());
         println(" in %.3f seconds", duration.value() / 1000.0);
-        row(csvWriter, "upload-block", i + 1, blockSize, total += blockSize, duration);
+        total += blockSize;
+        row(csvWriter, "upload-block", i + 1, blockSize, total, duration);
       }
       println();
 
@@ -320,7 +322,8 @@ public class Bandwidth extends StoreEntryPoint {
         duration.finished();
         blockDownload.add(duration.value());
         println(" in %.3f seconds", duration.value() / 1000.0);
-        row(csvWriter, "download-block", i + 1, blockSize, total += blockSize, duration);
+        total += blockSize;
+        row(csvWriter, "download-block", i + 1, blockSize, total, duration);
       }
       println();
       try (StoreDurationInfo d = new StoreDurationInfo(out, "Close download stream")) {

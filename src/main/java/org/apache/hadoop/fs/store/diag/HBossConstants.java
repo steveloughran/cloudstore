@@ -20,7 +20,10 @@ package org.apache.hadoop.fs.store.diag;
 /**
  * HBoss support. From {@code org.apache.hadoop.hbase.oss.Constants}
  */
-public class HBossConstants {
+public final class HBossConstants {
+
+  private HBossConstants() {}
+
   public static final String DATA_URI = "fs.hboss.data.uri";
   public static final String SYNC_IMPL = "fs.hboss.sync.impl";
 

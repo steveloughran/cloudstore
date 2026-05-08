@@ -81,7 +81,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Entry point for store applications
+ * Entry point for store applications.
  */
 @SuppressWarnings({"UseOfSystemOutOrSystemErr", "SpellCheckingInspection",
     "OverloadedVarargsMethod"})
@@ -98,7 +98,7 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
 
   public static final boolean DEFAULT_HIDE_ALL_SENSITIVE_CHARS = false;
 
-  private final StoreLogExactlyOnce LogJceksFailureOnce = new StoreLogExactlyOnce(LOG);
+  private final StoreLogExactlyOnce logJceksFailureOnce = new StoreLogExactlyOnce(LOG);
 
   /**
    * Hide all sensitive data.
@@ -134,7 +134,7 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
   }
 
   /**
-   * Dump token info from the credentials, with resilience to failure
+   * Dump token info from the credentials, with resilience to failure.
    * 
    * @param cred credentials
    * @return the tokens
@@ -211,7 +211,7 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
   }
 
   /**
-   * Print a formatted string without any newline
+   * Print a formatted string without any newline.
    * 
    * @param format format string
    * @param args optional arguments
@@ -261,7 +261,7 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
     String text = String.format("%d. ", hc) + String.format(format, args);
     println();
     println(text);
-    println(underline('=', text.length()));;
+    println(underline('=', text.length()));
     println();
   }
 
@@ -284,7 +284,7 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
 
     println();
     println(text);
-    println(underline('-', text.length()));;
+    println(underline('-', text.length()));
   }
 
   /**
@@ -810,7 +810,7 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
         }
       } catch (IOException e) {
         // can be triggered by jceks
-        LogJceksFailureOnce.warn("Failed to read key {}", key, e);
+        logJceksFailureOnce.warn("Failed to read key {}", key, e);
         option = "failed: " + e;
         obfuscate = false;
       }

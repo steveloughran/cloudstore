@@ -13,4 +13,7 @@
  * the License.
  */
 
+/**
+ * Log4j / SLF4J configuration helpers used by the diagnostics commands.
+ */
 package org.apache.hadoop.fs.store.logging;

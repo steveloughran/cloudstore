@@ -13,4 +13,7 @@
  * the License.
  */
 
+/**
+ * Reflection-based shim implementation classes.
+ */
 package org.apache.hadoop.fs.store.shim.impl;

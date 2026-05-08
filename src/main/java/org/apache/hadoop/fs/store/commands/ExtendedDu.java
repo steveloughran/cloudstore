@@ -56,7 +56,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Use the mapreduce LocateFiles class
+ * Use the mapreduce LocateFiles class.
  */
 public class ExtendedDu extends StoreEntryPoint {
 
@@ -164,13 +164,13 @@ public class ExtendedDu extends StoreEntryPoint {
         s -> println("%s\t%d\t%s", s.path, s.count, long2String(s.size, "", DECIMAL_PLACES)));
     long files = fileCount.get();
     double millisPerFile = files > 0 ? (((float) duration.value()) / files) : 0;
-    long totalSize = this.totalSize.get();
-    long bytesPerFile = (files > 0 ? totalSize / files : 0);
+    long total = this.totalSize.get();
+    long bytesPerFile = (files > 0 ? total / files : 0);
     println("");
     heading("Disk usage of %s", source);
     println("Found %s files, time taken %,.2f, %,.2f milliseconds per file", files,
         (float) duration.value(), millisPerFile);
-    println("Data size %siB (%,d bytes)", long2String(totalSize, "", DECIMAL_PLACES), totalSize);
+    println("Data size %siB (%,d bytes)", long2String(total, "", DECIMAL_PLACES), total);
     println("Average file size %siB (%,d bytes)", long2String(bytesPerFile, "", DECIMAL_PLACES),
         bytesPerFile);
     println("");

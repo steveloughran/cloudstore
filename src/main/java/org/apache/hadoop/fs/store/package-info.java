@@ -14,6 +14,8 @@
  */
 
 /**
- * Top-level cloudstore command implementations.
+ * Shared infrastructure for the cloudstore CLI commands: the
+ * {@link org.apache.hadoop.fs.store.StoreEntryPoint} base class, common argument-parsing helpers,
+ * exit codes, and other cross-command utilities.
  */
-package org.apache.hadoop.fs.store.commands;
+package org.apache.hadoop.fs.store;

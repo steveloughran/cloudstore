@@ -101,7 +101,7 @@ public class AuditLogProcessor {
   public static final String REFERRER_MAP = "audit";
 
   /**
-   * Format of S3 log timestamps like "13/May/2021:11:26:06 +0000"
+   * Format of S3 log timestamps like "13/May/2021:11:26:06 +0000".
    */
   private static final DateTimeFormatter TS_FORMATTER =
       DateTimeFormatter.ofPattern("dd/MMM/yyyy:HH:mm:ss Z", Locale.ENGLISH);
@@ -421,5 +421,5 @@ public class AuditLogProcessor {
     boolean processed(AvroS3LogEntryRecord record);
   }
 
-  public static Processed PROCESS_ALL = (record -> true);
+  public static final Processed PROCESS_ALL = record -> true;
 }

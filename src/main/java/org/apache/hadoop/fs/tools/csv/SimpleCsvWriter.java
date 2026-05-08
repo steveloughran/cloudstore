@@ -62,7 +62,7 @@ public class SimpleCsvWriter implements Closeable {
   private boolean isStartOfLine = true;
 
   /**
-   * construct
+   * construct.
    * 
    * @param out output writer
    * @param separator separator string

@@ -23,7 +23,10 @@ import java.util.List;
 import org.apache.hadoop.fs.LocatedFileStatus;
 import org.apache.hadoop.fs.RemoteIterator;
 
-public class StoreLambda {
+public final class StoreLambda {
+
+  private StoreLambda() {}
+
 
   /**
    * An interface for use in lambda-expressions working with directory tree listings.

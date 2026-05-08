@@ -29,7 +29,10 @@ import org.apache.hadoop.conf.Configuration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class S3ASupport {
+public final class S3ASupport {
+
+  private S3ASupport() {}
+
 
   private static final Logger LOG = LoggerFactory.getLogger(S3ASupport.class);
 

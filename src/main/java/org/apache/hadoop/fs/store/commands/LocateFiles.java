@@ -37,7 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Use the mapreduce LocateFiles class
+ * Use the mapreduce LocateFiles class.
  */
 public class LocateFiles extends StoreEntryPoint {
 

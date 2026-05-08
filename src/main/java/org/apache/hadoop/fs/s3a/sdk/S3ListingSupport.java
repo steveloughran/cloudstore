@@ -31,11 +31,13 @@ import software.amazon.awssdk.services.s3.model.S3Object;
 /**
  * Listing support for {@link ListObjects} and others.
  */
-public class S3ListingSupport {
+public final class S3ListingSupport {
 
   private static final Logger LOG = LoggerFactory.getLogger(S3ListingSupport.class);
 
   public static final int MAX_KEYS = 5000;
+
+  private S3ListingSupport() {}
 
   /**
    * Turns a path (relative or otherwise) into an S3 key.

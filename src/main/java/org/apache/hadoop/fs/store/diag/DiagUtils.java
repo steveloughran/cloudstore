@@ -20,7 +20,10 @@ package org.apache.hadoop.fs.store.diag;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Pattern;
 
-public class DiagUtils {
+public final class DiagUtils {
+
+  private DiagUtils() {}
+
 
   public static Pattern ipV4pattern() {
     return Pattern

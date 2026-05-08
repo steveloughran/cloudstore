@@ -61,7 +61,6 @@
     <maven-project-info-reports-plugin.version>3.5.0</maven-project-info-reports-plugin.version>
     <maven-site-plugin.version>3.12.1</maven-site-plugin.version>
     <maven-source-plugin.version>3.3.0</maven-source-plugin.version>
-    <palantir-java-format.version>2.50.0</palantir-java-format.version>
     <spotless-maven-plugin.version>2.43.0</spotless-maven-plugin.version>
 
     <awsv2sdk.version>2.29.52</awsv2sdk.version>
@@ -580,6 +579,9 @@
             <exclude>src/test/resources/TestAuditLogs/**</exclude>
             <!-- Releases artefacts checked in for archival -->
             <exclude>releases/**</exclude>
+            <!-- Third-party formatter profile from google/styleguide (Apache 2.0
+                 licensed but not ASF-headered). Used by Spotless. -->
+            <exclude>dev-support/eclipse-formatter.xml</exclude>
           </excludes>
         </configuration>
       </plugin>

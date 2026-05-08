@@ -123,7 +123,10 @@ public class StoreDurationInfo implements AutoCloseable {
   }
 
   private String getFormattedText() {
-    return (textStr == null) ? (textStr = text.get()) : textStr;
+    if (textStr == null) {
+      textStr = text.get();
+    }
+    return textStr;
   }
 
   private long time() {
@@ -184,7 +187,7 @@ public class StoreDurationInfo implements AutoCloseable {
     finished();
     if (log != null) {
       if (logAtInfo) {
-        log.info("Duration of {}: {}", getFormattedText(), this);;
+        log.info("Duration of {}: {}", getFormattedText(), this);
       } else {
         log.debug("Duration of {}: {}", getFormattedText(), this);
       }

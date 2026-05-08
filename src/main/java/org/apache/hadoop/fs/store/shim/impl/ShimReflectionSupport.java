@@ -37,6 +37,8 @@ public final class ShimReflectionSupport {
 
   private static final Logger LOG = LoggerFactory.getLogger(ShimReflectionSupport.class);
 
+  private ShimReflectionSupport() {}
+
   /**
    * convert any wrapped exception to an IOE. If there is no cause, convert the supplied exception
    * instead.

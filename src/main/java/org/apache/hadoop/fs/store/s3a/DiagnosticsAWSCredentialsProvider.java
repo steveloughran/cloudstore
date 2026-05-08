@@ -36,7 +36,7 @@ public class DiagnosticsAWSCredentialsProvider implements AwsCredentialsProvider
   private static final Logger LOG =
       LoggerFactory.getLogger(DiagnosticsAWSCredentialsProvider.class);
 
-  private static final String[] secrets =
+  private static final String[] SECRETS =
       {"fs.s3a.access.key", "fs.s3a.secret.key", "fs.s3a.session.token"};
 
   protected static final String[] ENV_VARS = {"AWS_ACCESS_KEY_ID", "AWS_ACCESS_KEY",
@@ -54,7 +54,7 @@ public class DiagnosticsAWSCredentialsProvider implements AwsCredentialsProvider
       // ignored
       digester = null;
     }
-    Arrays.stream(secrets).forEach(this::printSecretOption);
+    Arrays.stream(SECRETS).forEach(this::printSecretOption);
     Arrays.stream(ENV_VARS).forEach(this::printEnvVar);
   }
 

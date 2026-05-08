@@ -67,8 +67,8 @@ public class SafePrefetch extends StoreEntryPoint {
       println("Filesystem for path %s is not an Azure store; not at risk: %s", path, fs);
       return 0;
     }
-    String etag_capability = CapabilityKeys.FS_CAPABILITY_ETAGS_AVAILABLE;
-    String readahead_safe = CapabilityKeys.FS_AZURE_CAPABILITY_READAHEAD_SAFE;
+    String etagCapability = CapabilityKeys.FS_CAPABILITY_ETAGS_AVAILABLE;
+    String readaheadSafe = CapabilityKeys.FS_AZURE_CAPABILITY_READAHEAD_SAFE;
 
     println("Using filesystem %s", fs.getUri());
     Path abfsPath = path.makeQualified(fs.getUri(), fs.getWorkingDirectory());
@@ -84,15 +84,15 @@ public class SafePrefetch extends StoreEntryPoint {
       println("Hadoop version is too old for the feature to surface (no PathCapabilities)");
       return 0;
     }
-    if (!checker.hasPathCapability(abfsPath, etag_capability)) {
+    if (!checker.hasPathCapability(abfsPath, etagCapability)) {
       println("Filesystem is not from a release with the prefetch issue (no path capability %s)",
-          etag_capability);
+          etagCapability);
       return 0;
     }
-    if (checker.hasPathCapability(abfsPath, readahead_safe)) {
+    if (checker.hasPathCapability(abfsPath, readaheadSafe)) {
 
       println("Filesystem %s has prefetch issue fixed (has path capability %s)", abfsPath,
-          readahead_safe);
+          readaheadSafe);
       return 0;
     }
     println("Store is vulnerable to inconsistent prefetching. This MUST be disabled\n");

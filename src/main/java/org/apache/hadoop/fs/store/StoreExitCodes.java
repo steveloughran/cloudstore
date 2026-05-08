@@ -18,9 +18,12 @@
 package org.apache.hadoop.fs.store;
 
 /**
- * See LauncherExitCodes; here just to build against older versions
+ * See LauncherExitCodes; here just to build against older versions.
  */
-public class StoreExitCodes {
+public final class StoreExitCodes {
+
+  private StoreExitCodes() {}
+
 
   public static final int E_SUCCESS = 0;
   public static final int E_ERROR = -1;

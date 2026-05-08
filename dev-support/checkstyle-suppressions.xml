@@ -17,6 +17,21 @@
     "https://checkstyle.org/dtds/suppressions_1_1.dtd">
 
 <suppressions>
+  <!-- Generated package-info.java is unlikely to need a Javadoc line. -->
   <suppress checks="JavadocPackage" files="[\\/]src[\\/]test[\\/].*"/>
   <suppress checks="JavadocPackage" files="[\\/]src[\\/][\w\-]*generated[\\/].*"/>
+
+  <!-- Test code: relax structural rules. Tests use lowercased static fields,
+       public fixture fields, and short test-helper utility classes. -->
+  <suppress checks="VisibilityModifier"          files="[\\/]src[\\/]test[\\/]"/>
+  <suppress checks="ConstantName"                files="[\\/]src[\\/]test[\\/]"/>
+  <suppress checks="HideUtilityClassConstructor" files="[\\/]src[\\/]test[\\/]"/>
+  <suppress checks="JavadocStyle"                files="[\\/]src[\\/]test[\\/]"/>
+
+  <!-- Per-FS DiagnosticsInfo subclasses follow a project convention: each
+       declares `classnames`, `optionalClassnames`, `options`, `optionalCapabilities`
+       arrays in the same shape across stores so they read like a table. The
+       convention predates Hadoop's Sun-checks-derived ConstantName rule. -->
+  <suppress checks="ConstantName"
+            files="[\\/]src[\\/]main[\\/]java[\\/]org[\\/]apache[\\/]hadoop[\\/]fs[\\/]store[\\/]diag[\\/].*DiagnosticsInfo\.java"/>
 </suppressions>

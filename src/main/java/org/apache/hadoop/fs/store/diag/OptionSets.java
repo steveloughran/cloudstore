@@ -30,7 +30,10 @@ import org.apache.hadoop.classification.InterfaceStability;
  * standard env vars, JVM options etc.
  */
 @SuppressWarnings("SpellCheckingInspection")
-public class OptionSets {
+public final class OptionSets {
+
+  private OptionSets() {}
+
 
   /**
    * Not all of these are in CommonConfigurationKeysPublic of older Hadoop versions, so they are

@@ -126,9 +126,9 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
 
   /**
    * Environment variables set by azure deployments. This is not currently picked up by the abfs
-   * client; it is by go and python. {@link <a href=
+   * client; it is by go and python. <a href=
    * "https://github.com/Azure/azure-sdk-for-python/blob/main/sdk/identity/azure-identity/azure/identity/_credentials/workload_identity.py#L70-L72">python
-   * lib</a>}
+   * lib</a>.
    */
   protected static final Object[][] ENV_VARS =
       {{"AZURE_AUTHORITY_HOST", false}, {"AZURE_CLIENT_ID", false},
@@ -506,8 +506,7 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
     printout.println("Authentication type in %s is %s", FS_AZURE_ACCOUNT_AUTH_TYPE, auth.details());
     // look at auth info
     switch (auth.value) {
-      case "SharedKey": {
-
+      case "SharedKey":
         // shared key auth
         printout.println("Authentication is SharedKey");
         int dotIndex = accountName.indexOf(".");
@@ -538,7 +537,6 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
             }
           }
         }
-      }
         break;
       case "OAuth":
         printout.println("OAuth2 is used for authentication");

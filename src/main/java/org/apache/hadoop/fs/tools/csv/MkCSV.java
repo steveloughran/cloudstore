@@ -195,7 +195,7 @@ public class MkCSV extends StoreEntryPoint {
   }
 
   /**
-   * Generate a row from a string
+   * Generate a row from a string.
    * 
    * @param s string to use
    * @param elements number of elements

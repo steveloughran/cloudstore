@@ -13,4 +13,7 @@
  * the License.
  */
 
+/**
+ * S3A commands written against the AWS V2 SDK.
+ */
 package org.apache.hadoop.fs.s3a.sdk2;

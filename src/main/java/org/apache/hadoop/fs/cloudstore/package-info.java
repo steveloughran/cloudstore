@@ -14,6 +14,8 @@
  */
 
 /**
- * Top-level cloudstore command implementations.
+ * The {@code cloudstore} entry point: a single launcher that dispatches every CLI command in this
+ * project to the right {@link org.apache.hadoop.util.Tool} implementation via reflection plus
+ * {@code ToolRunner.run}.
  */
-package org.apache.hadoop.fs.store.commands;
+package org.apache.hadoop.fs.cloudstore;

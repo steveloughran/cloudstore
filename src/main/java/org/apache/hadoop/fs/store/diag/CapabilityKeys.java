@@ -262,7 +262,7 @@ public final class CapabilityKeys {
   public static final String VECTOREDIO = "in:readvectored";
 
   /**
-   * Stream Leak detection (capability and iostat)
+   * Stream Leak detection (capability and iostat).
    */
   public static final String STREAM_LEAKS = "stream_leaks";
 

@@ -14,6 +14,7 @@
  */
 
 /**
- * Top-level cloudstore command implementations.
+ * Parser and tooling for AWS S3 server-access logs and S3A audit logs. Used by the
+ * {@code auditlogs} command.
  */
-package org.apache.hadoop.fs.store.commands;
+package org.apache.hadoop.fs.store.audit;

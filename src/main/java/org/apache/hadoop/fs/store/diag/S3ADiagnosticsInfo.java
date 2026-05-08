@@ -183,7 +183,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
   public static final String SIGNING_ALGORITHM = "fs.s3a.signing-algorithm";
 
   /**
-   * Signing; allows use of v2 signing on sdk v1, -D fs.s3a.signing-algorithm=S3SignerType
+   * Signing; allows use of v2 signing on sdk v1, -D fs.s3a.signing-algorithm=S3SignerType.
    */
   public static final String SIGNING_V2_ALGORITHM = "S3SignerType";
 
@@ -282,7 +282,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
   public static final String FS_S3A_READAHEAD_RANGE = "fs.s3a.readahead.range";
 
   /**
-   * Each option is a triple of (key, secure, obfuscate)
+   * Each option is a triple of (key, secure, obfuscate).
    */
   private static final Object[][] S3A_OPTIONS = {
       /* Core auth */
@@ -1028,8 +1028,8 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       if (region.isEmpty()) {
         printout.println("For reliable signing and performance the AWS region SHOULD be set in %s",
             REGION);
-        printout.warn(
-            "If the network configuration prevents this client from accessing us-east region, the store will not be accessible");
+        printout.warn("If the network configuration prevents this client from accessing"
+            + " us-east region, the store will not be accessible");
       }
     }
 
@@ -1104,9 +1104,8 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       printout.println("Delegation token binding %s is active", dtbinding);
       printout.println("This will take over authentication from the settings in %s",
           AWS_CREDENTIALS_PROVIDER);
-    } else {
-      // TODO: analyse default values.
     }
+    // TODO: analyse default values when no delegation token binding is set.
 
     printout.heading("Analyzing login credentials");
     final S3ASupport.Login accessKeys = S3ASupport.getAWSAccessKeys(getFsURI(), conf);

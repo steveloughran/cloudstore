@@ -600,7 +600,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
   }
 
   /**
-   * Probe all the required resources from base settings, the FS diags,
+   * Probe all the required resources from base settings, the FS diags,.
    * 
    * @throws FileNotFoundException no resource
    * @throws IOException other failure

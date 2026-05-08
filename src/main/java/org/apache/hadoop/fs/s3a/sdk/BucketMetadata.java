@@ -28,7 +28,7 @@ import org.apache.hadoop.util.ToolRunner;
 import software.amazon.awssdk.services.s3.model.HeadBucketResponse;
 
 /**
- * Debug bucket settings; v2 sdk
+ * Debug bucket settings; v2 sdk.
  */
 public class BucketMetadata extends StoreEntryPoint {
 

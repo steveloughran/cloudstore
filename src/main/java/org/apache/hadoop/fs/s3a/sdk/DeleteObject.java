@@ -30,7 +30,7 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 
 /**
- * Deletes the objects on the command line
+ * Deletes the objects on the command line.
  */
 public class DeleteObject extends StoreEntryPoint {
 
