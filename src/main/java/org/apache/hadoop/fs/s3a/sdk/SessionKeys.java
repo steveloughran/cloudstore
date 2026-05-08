@@ -48,198 +48,199 @@ import software.amazon.awssdk.services.sts.model.Credentials;
 
 public class SessionKeys extends StoreEntryPoint {
 
-    private static final Logger LOG = LoggerFactory.getLogger(SessionKeys.class);
+  private static final Logger LOG = LoggerFactory.getLogger(SessionKeys.class);
 
-    public static final String TEMPORARY_AWSCREDENTIALS_PROVIDER =
-            "org.apache.hadoop.fs.s3a.TemporaryAWSCredentialsProvider";
+  public static final String TEMPORARY_AWSCREDENTIALS_PROVIDER =
+      "org.apache.hadoop.fs.s3a.TemporaryAWSCredentialsProvider";
 
-    public static final String AWS_ACCESS_KEY_ID = "AWS_ACCESS_KEY_ID";
+  public static final String AWS_ACCESS_KEY_ID = "AWS_ACCESS_KEY_ID";
 
-    public static final String AWS_SECRET_ACCESS_KEY = "AWS_SECRET_ACCESS_KEY";
+  public static final String AWS_SECRET_ACCESS_KEY = "AWS_SECRET_ACCESS_KEY";
 
-    public static final String AWS_SESSION_TOKEN = "AWS_SESSION_TOKEN";
+  public static final String AWS_SESSION_TOKEN = "AWS_SESSION_TOKEN";
 
-    public static final String JSON = "json";
+  public static final String JSON = "json";
 
-    public static final String ROLE = "role";
+  public static final String ROLE = "role";
 
-    public static final String USAGE = "Usage: sessionkeys\n"
-            + STANDARD_OPTS
-            + optusage(ROLE, "arn", "Role to assume")
-            + optusage(JSON, "file", "Json file to load (only valid if -role is set")
-            + " <S3A path>";
+  public static final String USAGE =
+      "Usage: sessionkeys\n" + STANDARD_OPTS + optusage(ROLE, "arn", "Role to assume")
+          + optusage(JSON, "file", "Json file to load (only valid if -role is set") + " <S3A path>";
 
-    public SessionKeys() {
-        createCommandFormat(1, 1);
-        addValueOptions(ROLE, JSON);
+  public SessionKeys() {
+    createCommandFormat(1, 1);
+    addValueOptions(ROLE, JSON);
+  }
+
+  @SuppressWarnings("MagicNumber")
+  @Override
+  public int run(String[] args) throws Exception {
+    List<String> paths = parseArgs(args);
+    if (paths.size() < 1) {
+      errorln(USAGE);
+      return E_USAGE;
     }
 
-    @SuppressWarnings("MagicNumber")
-    @Override
-    public int run(String[] args) throws Exception {
-        List<String> paths = parseArgs(args);
-        if (paths.size() < 1) {
-            errorln(USAGE);
-            return E_USAGE;
-        }
+    final Configuration conf = createPreconfiguredConfig();
 
-        final Configuration conf = createPreconfiguredConfig();
-
-        // get JSON or empty string
-        String role = getOptional(ROLE).orElse("");
-        String jsonFile = getOptional(JSON).orElse("");
-        boolean hasRole = !role.isEmpty();
-        boolean hasJsonFile = !jsonFile.isEmpty();
-        String json = null;
-        if (hasJsonFile) {
-            if (!hasRole) {
-                errorln("No -role specified for JSON");
-                return E_USAGE;
-            }
-            json = new String(Files.readAllBytes(Paths.get(jsonFile)));
-        }
-
-        AWSCredentialProviderList credentials = null;
-
-        final Path source = new Path(paths.get(0));
-        try (StoreDurationInfo ignored =
-                new StoreDurationInfo(LOG, "requesting %s credentials", hasRole ? "role" : "session")) {
-            S3AFileSystem fs = (S3AFileSystem) source.getFileSystem(conf);
-            credentials = fs.shareCredentials("session");
-            Configuration fsconf = fs.getConf();
-            String bucket = fs.getBucket();
-            String keyId;
-            String secretKey;
-            String sessionToken;
-            // look to see if the creds are already session credentials
-            if (credentials.resolveCredentials() instanceof AwsSessionCredentials) {
-                // already got session credentials, so just print out
-                println("Bucket credentials are already session credentials");
-                final AwsSessionCredentials session = (AwsSessionCredentials) credentials.resolveCredentials();
-                keyId = session.accessKeyId();
-                secretKey = session.secretAccessKey();
-                sessionToken = session.sessionToken();
-            } else {
-
-                Credentials sessionCreds;
-
-                StsClientBuilder builder = STSClientFactory.builder(fsconf, bucket, credentials);
-                STSClientFactory.STSClient stsClient = STSClientFactory.createClientConnection(
-                        builder.build(), new Invoker(new S3ARetryPolicy(conf), Invoker.LOG_EVENT));
-
-                int duration = hasRole ? 12 : 36;
-                println("Session duration: %d hours", duration);
-                if (!hasRole) {
-                    sessionCreds = stsClient.requestSessionCredentials(duration, TimeUnit.HOURS);
-                } else {
-                    sessionCreds = stsClient.requestRole(role, "role-session", json, duration, TimeUnit.HOURS);
-                }
-
-                keyId = sessionCreds.accessKeyId();
-                secretKey = sessionCreds.secretAccessKey();
-                sessionToken = sessionCreds.sessionToken();
-            }
-
-            String endpoint = fsconf.get("fs.s3a.endpoint");
-            String region = fsconf.get("fs.s3a.endpoint.region");
-            String endpointkey = String.format("fs.s3a.bucket.%s.endpoint", bucket);
-            String regionkey = String.format("fs.s3a.bucket.%s.endpoint.region", bucket);
-
-            List<EnvEntry> entries = new ArrayList<>();
-            entries.add(new EnvEntry(ACCESS_KEY, AWS_ACCESS_KEY_ID, keyId));
-            entries.add(new EnvEntry(SECRET_KEY, AWS_SECRET_ACCESS_KEY, secretKey));
-            entries.add(new EnvEntry(SESSION_TOKEN, AWS_SESSION_TOKEN, sessionToken));
-            entries.add(new EnvEntry(AWS_CREDENTIALS_PROVIDER, "", TEMPORARY_AWSCREDENTIALS_PROVIDER));
-            if (endpoint != null) {
-                entries.add(new EnvEntry(endpointkey, "", endpoint));
-            }
-            if (region != null) {
-                entries.add(new EnvEntry(regionkey, "AWS_REGION", region));
-            }
-
-            // =================================================
-            heading("XML settings");
-
-            StringBuilder xml = new StringBuilder();
-            xml.append("<configuration>\n\n");
-
-            entries.forEach(e -> xml.append(e.xml()));
-            xml.append("\n</configuration>\n");
-
-            println(xml.toString());
-
-            // =================================================
-            heading("Properties");
-
-            StringBuilder props = new StringBuilder();
-            entries.forEach(e -> props.append(e.property()));
-
-            println(props.toString());
-
-            // =================================================
-            heading("CLI Arguments");
-
-            StringBuilder cliprops = new StringBuilder();
-            entries.forEach(e -> cliprops.append(e.cliProperty()));
-
-            println(cliprops.toString());
-
-            // =================================================
-            heading("Spark");
-            StringBuilder spark = new StringBuilder();
-            entries.forEach(e -> spark.append(e.spark()));
-            println(spark.toString());
-
-            // =================================================
-            heading("Bash");
-
-            StringBuilder bash = new StringBuilder();
-            entries.stream().filter(EnvEntry::hasEnvVar).forEach(e -> bash.append(e.bash()));
-            println(bash.toString());
-
-            // =================================================
-            heading("Fish");
-
-            StringBuilder fish = new StringBuilder();
-            entries.stream().filter(EnvEntry::hasEnvVar).forEach(e -> fish.append(e.fish()));
-            println(fish.toString());
-
-            // =================================================
-            heading("env");
-
-            StringBuilder env = new StringBuilder();
-            entries.stream().filter(EnvEntry::hasEnvVar).forEach(e -> env.append(e.env()));
-            println(env.toString());
-
-        } finally {
-            if (credentials != null) {
-                credentials.close();
-            }
-        }
-
-        return 0;
+    // get JSON or empty string
+    String role = getOptional(ROLE).orElse("");
+    String jsonFile = getOptional(JSON).orElse("");
+    boolean hasRole = !role.isEmpty();
+    boolean hasJsonFile = !jsonFile.isEmpty();
+    String json = null;
+    if (hasJsonFile) {
+      if (!hasRole) {
+        errorln("No -role specified for JSON");
+        return E_USAGE;
+      }
+      json = new String(Files.readAllBytes(Paths.get(jsonFile)));
     }
 
-    /**
-     * Execute the command, return the result or throw an exception,
-     * as appropriate.
-     * @param args argument varags.
-     * @return return code
-     * @throws Exception failure
-     */
-    public static int exec(String... args) throws Exception {
-        return ToolRunner.run(new SessionKeys(), args);
+    AWSCredentialProviderList credentials = null;
+
+    final Path source = new Path(paths.get(0));
+    try (StoreDurationInfo ignored =
+        new StoreDurationInfo(LOG, "requesting %s credentials", hasRole ? "role" : "session")) {
+      S3AFileSystem fs = (S3AFileSystem) source.getFileSystem(conf);
+      credentials = fs.shareCredentials("session");
+      Configuration fsconf = fs.getConf();
+      String bucket = fs.getBucket();
+      String keyId;
+      String secretKey;
+      String sessionToken;
+      // look to see if the creds are already session credentials
+      if (credentials.resolveCredentials() instanceof AwsSessionCredentials) {
+        // already got session credentials, so just print out
+        println("Bucket credentials are already session credentials");
+        final AwsSessionCredentials session =
+            (AwsSessionCredentials) credentials.resolveCredentials();
+        keyId = session.accessKeyId();
+        secretKey = session.secretAccessKey();
+        sessionToken = session.sessionToken();
+      } else {
+
+        Credentials sessionCreds;
+
+        StsClientBuilder builder = STSClientFactory.builder(fsconf, bucket, credentials);
+        STSClientFactory.STSClient stsClient = STSClientFactory.createClientConnection(
+            builder.build(), new Invoker(new S3ARetryPolicy(conf), Invoker.LOG_EVENT));
+
+        int duration = hasRole ? 12 : 36;
+        println("Session duration: %d hours", duration);
+        if (!hasRole) {
+          sessionCreds = stsClient.requestSessionCredentials(duration, TimeUnit.HOURS);
+        } else {
+          sessionCreds =
+              stsClient.requestRole(role, "role-session", json, duration, TimeUnit.HOURS);
+        }
+
+        keyId = sessionCreds.accessKeyId();
+        secretKey = sessionCreds.secretAccessKey();
+        sessionToken = sessionCreds.sessionToken();
+      }
+
+      String endpoint = fsconf.get("fs.s3a.endpoint");
+      String region = fsconf.get("fs.s3a.endpoint.region");
+      String endpointkey = String.format("fs.s3a.bucket.%s.endpoint", bucket);
+      String regionkey = String.format("fs.s3a.bucket.%s.endpoint.region", bucket);
+
+      List<EnvEntry> entries = new ArrayList<>();
+      entries.add(new EnvEntry(ACCESS_KEY, AWS_ACCESS_KEY_ID, keyId));
+      entries.add(new EnvEntry(SECRET_KEY, AWS_SECRET_ACCESS_KEY, secretKey));
+      entries.add(new EnvEntry(SESSION_TOKEN, AWS_SESSION_TOKEN, sessionToken));
+      entries.add(new EnvEntry(AWS_CREDENTIALS_PROVIDER, "", TEMPORARY_AWSCREDENTIALS_PROVIDER));
+      if (endpoint != null) {
+        entries.add(new EnvEntry(endpointkey, "", endpoint));
+      }
+      if (region != null) {
+        entries.add(new EnvEntry(regionkey, "AWS_REGION", region));
+      }
+
+      // =================================================
+      heading("XML settings");
+
+      StringBuilder xml = new StringBuilder();
+      xml.append("<configuration>\n\n");
+
+      entries.forEach(e -> xml.append(e.xml()));
+      xml.append("\n</configuration>\n");
+
+      println(xml.toString());
+
+      // =================================================
+      heading("Properties");
+
+      StringBuilder props = new StringBuilder();
+      entries.forEach(e -> props.append(e.property()));
+
+      println(props.toString());
+
+      // =================================================
+      heading("CLI Arguments");
+
+      StringBuilder cliprops = new StringBuilder();
+      entries.forEach(e -> cliprops.append(e.cliProperty()));
+
+      println(cliprops.toString());
+
+      // =================================================
+      heading("Spark");
+      StringBuilder spark = new StringBuilder();
+      entries.forEach(e -> spark.append(e.spark()));
+      println(spark.toString());
+
+      // =================================================
+      heading("Bash");
+
+      StringBuilder bash = new StringBuilder();
+      entries.stream().filter(EnvEntry::hasEnvVar).forEach(e -> bash.append(e.bash()));
+      println(bash.toString());
+
+      // =================================================
+      heading("Fish");
+
+      StringBuilder fish = new StringBuilder();
+      entries.stream().filter(EnvEntry::hasEnvVar).forEach(e -> fish.append(e.fish()));
+      println(fish.toString());
+
+      // =================================================
+      heading("env");
+
+      StringBuilder env = new StringBuilder();
+      entries.stream().filter(EnvEntry::hasEnvVar).forEach(e -> env.append(e.env()));
+      println(env.toString());
+
+    } finally {
+      if (credentials != null) {
+        credentials.close();
+      }
     }
 
-    /**
-     * Main entry point. Calls {@code System.exit()} on all execution paths.
-     * @param args argument list
-     */
-    public static void main(String[] args) {
-        try {
-            exit(exec(args), "");
-        } catch (Throwable e) {
-            exitOnThrowable(e);
-        }
+    return 0;
+  }
+
+  /**
+   * Execute the command, return the result or throw an exception, as appropriate.
+   * 
+   * @param args argument varags.
+   * @return return code
+   * @throws Exception failure
+   */
+  public static int exec(String... args) throws Exception {
+    return ToolRunner.run(new SessionKeys(), args);
+  }
+
+  /**
+   * Main entry point. Calls {@code System.exit()} on all execution paths.
+   * 
+   * @param args argument list
+   */
+  public static void main(String[] args) {
+    try {
+      exit(exec(args), "");
+    } catch (Throwable e) {
+      exitOnThrowable(e);
     }
+  }
 }

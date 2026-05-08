@@ -18,6 +18,7 @@
 package org.apache.hadoop.fs.store.commands;
 
 import static org.apache.hadoop.fs.store.CommonParameters.STANDARD_OPTS;
+import static org.apache.hadoop.fs.store.CommonParameters.THREADS;
 import static org.apache.hadoop.mapreduce.lib.input.FileInputFormat.LIST_STATUS_NUM_THREADS;
 
 import java.util.List;
@@ -40,94 +41,91 @@ import org.slf4j.LoggerFactory;
  */
 public class LocateFiles extends StoreEntryPoint {
 
-    private static final Logger LOG = LoggerFactory.getLogger(LocateFiles.class);
+  private static final Logger LOG = LoggerFactory.getLogger(LocateFiles.class);
 
-    public static final String THREADS = "threads";
+  public static final String USAGE = "Usage: locatefiles\n" + STANDARD_OPTS
+      + optusage(THREADS, "threads", "number of threads") + "[<path>|<pattern>]";
 
-    public static final String USAGE = "Usage: locatefiles\n"
-            + STANDARD_OPTS
-            + optusage(THREADS, "threads", "number of threads")
-            + "[<path>|<pattern>]";
+  public static final int DEFAULT_THREADS = 4;
 
-    public static final int DEFAULT_THREADS = 4;
+  public LocateFiles() {
+    createCommandFormat(1, 1);
+    addValueOptions(THREADS);
+  }
 
-    public LocateFiles() {
-        createCommandFormat(1, 1);
-        addValueOptions(THREADS);
-    }
+  @Override
+  public int run(String[] args) throws Exception {
+    List<String> paths = processArgs(args, 1, 1, USAGE);
 
-    @Override
-    public int run(String[] args) throws Exception {
-        List<String> paths = processArgs(args, 1, 1, USAGE);
+    final Configuration conf = createPreconfiguredConfig();
 
-        final Configuration conf = createPreconfiguredConfig();
+    int threads = getOptional(THREADS).map(Integer::valueOf).orElse(DEFAULT_THREADS);
 
-        int threads = getOptional(THREADS).map(Integer::valueOf).orElse(DEFAULT_THREADS);
+    final Path source = new Path(paths.get(0));
+    println("");
+    heading("Locating files under %s with thread count %d", source, threads);
 
-        final Path source = new Path(paths.get(0));
-        println("");
-        heading("Locating files under %s with thread count %d", source, threads);
-
-        final StoreDurationInfo duration = new StoreDurationInfo(LOG, "List located files");
-        final StoreDurationInfo firstLoad = new StoreDurationInfo(LOG, "LocateFileStatus execution");
-        final AtomicInteger count = new AtomicInteger(0);
-        final AtomicLong size = new AtomicLong(0);
-        FileSystem fs = source.getFileSystem(conf);
-        try {
-            Configuration roleConfig = fs.getConf();
-            roleConfig.setInt(LIST_STATUS_NUM_THREADS, threads);
-            LocatedFileStatusFetcher fetcher =
-                    new LocatedFileStatusFetcher(roleConfig, new Path[] {source}, true, HIDDEN_FILE_FILTER, true);
-            Iterable<FileStatus> statuses = fetcher.getFileStatuses();
-            for (FileStatus status : statuses) {
-                int c = count.incrementAndGet();
-                if (c == 1) {
-                    firstLoad.close();
-                }
-                size.addAndGet(status.getLen());
-                printStatus(c, status);
-                LOG.debug("Status: {}", status);
-            }
-            println("Fetched by: " + fetcher);
-        } finally {
-            duration.close();
+    final StoreDurationInfo duration = new StoreDurationInfo(LOG, "List located files");
+    final StoreDurationInfo firstLoad = new StoreDurationInfo(LOG, "LocateFileStatus execution");
+    final AtomicInteger count = new AtomicInteger(0);
+    final AtomicLong size = new AtomicLong(0);
+    FileSystem fs = source.getFileSystem(conf);
+    try {
+      Configuration roleConfig = fs.getConf();
+      roleConfig.setInt(LIST_STATUS_NUM_THREADS, threads);
+      LocatedFileStatusFetcher fetcher = new LocatedFileStatusFetcher(roleConfig,
+          new Path[] {source}, true, HIDDEN_FILE_FILTER, true);
+      Iterable<FileStatus> statuses = fetcher.getFileStatuses();
+      for (FileStatus status : statuses) {
+        int c = count.incrementAndGet();
+        if (c == 1) {
+          firstLoad.close();
         }
-        long files = count.get();
-        double millisPerFile = files > 0 ? (((float) duration.value()) / files) : 0;
-        long totalSize = size.get();
-        long bytesPerFile = (files > 0 ? totalSize / files : 0);
-        println("");
-        println("Found %s files, %,.0f milliseconds per file", files, millisPerFile);
-        println("Data size %,d bytes, %,d bytes per file", totalSize, bytesPerFile);
-        maybeDumpStorageStatistics(fs);
-        return 0;
+        size.addAndGet(status.getLen());
+        printStatus(c, status);
+        LOG.debug("Status: {}", status);
+      }
+      println("Fetched by: " + fetcher);
+    } finally {
+      duration.close();
     }
+    long files = count.get();
+    double millisPerFile = files > 0 ? (((float) duration.value()) / files) : 0;
+    long totalSize = size.get();
+    long bytesPerFile = (files > 0 ? totalSize / files : 0);
+    println("");
+    println("Found %s files, %,.0f milliseconds per file", files, millisPerFile);
+    println("Data size %,d bytes, %,d bytes per file", totalSize, bytesPerFile);
+    maybeDumpStorageStatistics(fs);
+    return 0;
+  }
 
-    /**
-     * Execute the command, return the result or throw an exception,
-     * as appropriate.
-     * @param args argument varags.
-     * @return return code
-     * @throws Exception failure
-     */
-    public static int exec(String... args) throws Exception {
-        return ToolRunner.run(new LocateFiles(), args);
+  /**
+   * Execute the command, return the result or throw an exception, as appropriate.
+   * 
+   * @param args argument varags.
+   * @return return code
+   * @throws Exception failure
+   */
+  public static int exec(String... args) throws Exception {
+    return ToolRunner.run(new LocateFiles(), args);
+  }
+
+  /**
+   * Main entry point. Calls {@code System.exit()} on all execution paths.
+   * 
+   * @param args argument list
+   */
+  public static void main(String[] args) {
+    try {
+      exit(exec(args), "");
+    } catch (Throwable e) {
+      exitOnThrowable(e);
     }
+  }
 
-    /**
-     * Main entry point. Calls {@code System.exit()} on all execution paths.
-     * @param args argument list
-     */
-    public static void main(String[] args) {
-        try {
-            exit(exec(args), "");
-        } catch (Throwable e) {
-            exitOnThrowable(e);
-        }
-    }
-
-    private static final PathFilter HIDDEN_FILE_FILTER = (p) -> {
-        String n = p.getName();
-        return !n.startsWith("_") && !n.startsWith(".");
-    };
+  private static final PathFilter HIDDEN_FILE_FILTER = (p) -> {
+    String n = p.getName();
+    return !n.startsWith("_") && !n.startsWith(".");
+  };
 }

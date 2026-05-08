@@ -35,14 +35,8 @@ mvn site                        # render src/site → target/site (fluido skin)
 The `verify` lifecycle is the one CI runs. To run cloud-backed contract tests
 opt in via profile + credentials in `src/test/resources/auth-keys.xml`:
 
-```bash
-mvn -Ds3a-it verify -Dit.test=ITestS3AStorediagContract
-```
 
-The `s3a-it` profile pulls in the `hadoop-aws` test-jar (which provides
-`S3AContract`). Apache does not consistently publish that artifact to Maven
-Central, so the dependency is gated behind the profile rather than being
-unconditional.
+
 ## Updating cloudstore release versions
 
 For a long time the version was fixed at 1.0 so that curl and other tools could retrieve it

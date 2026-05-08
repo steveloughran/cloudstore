@@ -26,39 +26,36 @@ import org.apache.hadoop.fs.store.diag.StoreDiag;
 import org.junit.Test;
 
 /**
- * Cross-FS contract tests for the {@code storediag} command. Concrete subclasses
- * provide the {@link org.apache.hadoop.fs.contract.AbstractFSContract} that
- * binds the test to a specific filesystem (local, S3A, ABFS, GCS, ...).
+ * Cross-FS contract tests for the {@code storediag} command. Concrete subclasses provide the
+ * {@link org.apache.hadoop.fs.contract.AbstractFSContract} that binds the test to a specific
+ * filesystem (local, S3A, ABFS, GCS, ...).
  *
- * <p>Each test invokes {@link StoreDiag#exec(String...)} in-process. Cloud-backed
- * subclasses honour the cloudstore convention of skipping when
- * {@code src/test/resources/auth-keys.xml} provides no credentials.
+ * <p>
+ * Each test invokes {@link StoreDiag#exec(String...)} in-process. Cloud-backed subclasses honour
+ * the cloudstore convention of skipping when {@code src/test/resources/auth-keys.xml} provides no
+ * credentials.
  */
 public abstract class AbstractStorediagContractTest extends AbstractFSContractTestBase {
 
-    /**
-     * Happy-path: storediag against the test filesystem URI returns 0.
-     * Run in {@code -r} (read-only) mode so that no marker files are written.
-     */
-    @Test
-    public void testStorediagSuccess() throws Exception {
-        expectSuccess(new StoreDiag(), "-r", getFileSystem().getUri().toString());
-    }
+  /**
+   * Happy-path: storediag against the test filesystem URI returns 0. Run in {@code -r} (read-only)
+   * mode so that no marker files are written.
+   */
+  @Test
+  public void testStorediagSuccess() throws Exception {
+    expectSuccess(new StoreDiag(), "-r", getFileSystem().getUri().toString());
+  }
 
-    /**
-     * Storediag with an empty {@code -required} classes file is still a success:
-     * the file is read but yields no classes to probe.
-     */
-    @Test
-    public void testStorediagWithEmptyRequiredFile() throws Exception {
-        File required = File.createTempFile("storediag-required", ".txt");
-        required.deleteOnExit();
-        Files.write(required.toPath(), new byte[0]);
-        expectSuccess(
-                new StoreDiag(),
-                "-r",
-                "-required",
-                required.getAbsolutePath(),
-                getFileSystem().getUri().toString());
-    }
+  /**
+   * Storediag with an empty {@code -required} classes file is still a success: the file is read but
+   * yields no classes to probe.
+   */
+  @Test
+  public void testStorediagWithEmptyRequiredFile() throws Exception {
+    File required = File.createTempFile("storediag-required", ".txt");
+    required.deleteOnExit();
+    Files.write(required.toPath(), new byte[0]);
+    expectSuccess(new StoreDiag(), "-r", "-required", required.getAbsolutePath(),
+        getFileSystem().getUri().toString());
+  }
 }

@@ -22,48 +22,50 @@ import static java.util.Objects.requireNonNull;
 import org.apache.hadoop.fs.store.shim.APIShim;
 
 /**
- * Base class for any API shim.
- * Subclasses provide the class-specific operations; one of them must then
- * be created for every instance of the class to work with.
+ * Base class for any API shim. Subclasses provide the class-specific operations; one of them must
+ * then be created for every instance of the class to work with.
+ * 
  * @param <T> class being shimmed to.
  */
 public abstract class AbstractAPIShim<T> implements APIShim<T> {
 
-    /**
-     * Class being shimmed.
-     */
-    private final Class<T> clazz;
+  /**
+   * Class being shimmed.
+   */
+  private final Class<T> clazz;
 
-    /**
-     * Instance being shimmed.
-     */
-    private final T instance;
+  /**
+   * Instance being shimmed.
+   */
+  private final T instance;
 
-    /**
-     * Constructor.
-     * @param clazz Class being shimmed.
-     * @param instance Instance being shimmed.
-     */
-    public AbstractAPIShim(final Class<T> clazz, final T instance) {
-        this.clazz = requireNonNull(clazz);
-        this.instance = requireNonNull(instance);
-    }
+  /**
+   * Constructor.
+   * 
+   * @param clazz Class being shimmed.
+   * @param instance Instance being shimmed.
+   */
+  public AbstractAPIShim(final Class<T> clazz, final T instance) {
+    this.clazz = requireNonNull(clazz);
+    this.instance = requireNonNull(instance);
+  }
 
-    /**
-     * Get the class.
-     * @return class being shimmed.
-     */
-    public Class<T> getClazz() {
-        return clazz;
-    }
+  /**
+   * Get the class.
+   * 
+   * @return class being shimmed.
+   */
+  public Class<T> getClazz() {
+    return clazz;
+  }
 
-    @Override
-    public T getInstance() {
-        return instance;
-    }
+  @Override
+  public T getInstance() {
+    return instance;
+  }
 
-    @Override
-    public String toString() {
-        return "AbstractAPIShim{" + "instance=" + instance + '}';
-    }
+  @Override
+  public String toString() {
+    return "AbstractAPIShim{" + "instance=" + instance + '}';
+  }
 }

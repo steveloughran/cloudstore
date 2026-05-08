@@ -36,61 +36,51 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * As the S3A test base isn't available, do enough to make it look
- * like it is, to ease later merge.
+ * As the S3A test base isn't available, do enough to make it look like it is, to ease later merge.
  */
 public class ITestS3ACloudup extends AbstractS3AStoreTest {
-    protected static final Logger LOG = LoggerFactory.getLogger(ITestS3ACloudup.class);
-    private Path root;
-    private Path testPath;
+  protected static final Logger LOG = LoggerFactory.getLogger(ITestS3ACloudup.class);
+  private Path root;
+  private Path testPath;
 
-    private static File testDirectory;
-    private File methodDir;
-    private File sourceDir;
+  private static File testDirectory;
+  private File methodDir;
+  private File sourceDir;
 
-    @BeforeClass
-    public static void classSetup() throws Exception {
-        testDirectory = createTestDir();
+  @BeforeClass
+  public static void classSetup() throws Exception {
+    testDirectory = createTestDir();
+  }
+
+  @Before
+  public void setup() throws Exception {
+    super.setup();
+    root = new Path(getFileSystem().getUri());
+    testPath = new Path(root, "/ITestS3ACloudup");
+
+    methodDir = new File(testDirectory, methodName.getMethodName());
+    StoreTestUtils.mkdirs(methodDir);
+    sourceDir = new File(methodDir, "src");
+    FileUtil.fullyDelete(sourceDir);
+  }
+
+  @After
+  public void teardown() throws Exception {
+    if (methodDir != null) {
+      FileUtil.fullyDelete(methodDir);
     }
+    cleanup("TEARDOWN", getFileSystem(), testPath);
+  }
 
-    @Before
-    public void setup() throws Exception {
-        super.setup();
-        root = new Path(getFileSystem().getUri());
-        testPath = new Path(root, "/ITestS3ACloudup");
+  @Test
+  public void testUpload() throws Throwable {
+    Path dest = methodPath();
+    int expected = createTestFiles(sourceDir, 256);
+    expectSuccess(new Cloudup(), sourceDir.toURI().toString(), dest.toUri().toString(), "-t", "16",
+        "-o", "-l", "3");
+  }
 
-        methodDir = new File(testDirectory, methodName.getMethodName());
-        StoreTestUtils.mkdirs(methodDir);
-        sourceDir = new File(methodDir, "src");
-        FileUtil.fullyDelete(sourceDir);
-    }
-
-    @After
-    public void teardown() throws Exception {
-        if (methodDir != null) {
-            FileUtil.fullyDelete(methodDir);
-        }
-        cleanup("TEARDOWN", getFileSystem(), testPath);
-    }
-
-    @Test
-    public void testUpload() throws Throwable {
-        Path dest = methodPath();
-        int expected = createTestFiles(sourceDir, 256);
-        expectSuccess(
-                new Cloudup(),
-                "-s",
-                sourceDir.toURI().toString(),
-                "-d",
-                dest.toUri().toString(),
-                "-t",
-                "16",
-                "-o",
-                "-l",
-                "3");
-    }
-
-    public Path methodPath() {
-        return new Path(testPath, methodName.getMethodName());
-    }
+  public Path methodPath() {
+    return new Path(testPath, methodName.getMethodName());
+  }
 }

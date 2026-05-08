@@ -29,55 +29,54 @@ import org.junit.Test;
 
 public class TestConstval {
 
-    public static final String CONSTVAL = "org.apache.hadoop.fs.store.commands.Constval";
+  public static final String CONSTVAL = "org.apache.hadoop.fs.store.commands.Constval";
 
-    private static void expectValue(String classname, String field, String expected) {
-        String value = lookupFieldValue(classname, field);
-        Assertions.assertThat(value)
-                .describedAs("Field " + field + " in " + classname)
-                .isEqualTo(expected);
-    }
+  private static void expectValue(String classname, String field, String expected) {
+    String value = lookupFieldValue(classname, field);
+    Assertions.assertThat(value).describedAs("Field " + field + " in " + classname)
+        .isEqualTo(expected);
+  }
 
-    @Test
-    public void testRun() {}
+  @Test
+  public void testRun() {}
 
-    @Test
-    public void testLookupString() {
-        expectValue(CONSTVAL, "USAGE", Constval.USAGE);
-    }
+  @Test
+  public void testLookupString() {
+    expectValue(CONSTVAL, "USAGE", Constval.USAGE);
+  }
 
-    @Test
-    public void testLookupInt() {
-        expectValue(FIELDS, "INT", FieldsForTesting.INT + "");
-    }
+  @Test
+  public void testLookupInt() {
+    expectValue(FIELDS, "INT", FieldsForTesting.INT + "");
+  }
 
-    @Test
-    public void testLookupBool() {
-        expectValue(FIELDS, "BOOL", FieldsForTesting.BOOL + "");
-    }
+  @Test
+  public void testLookupBool() {
+    expectValue(FIELDS, "BOOL", FieldsForTesting.BOOL + "");
+  }
 
-    @Test
-    public void testLookupNull() {
-        expectValue(FIELDS, "NULLSTR", Constval.NULL);
-    }
+  @Test
+  public void testLookupNull() {
+    expectValue(FIELDS, "NULLSTR", Constval.NULL);
+  }
 
-    @Test
-    public void testMissingClass() throws Exception {
-        expectExitException(E_NOT_FOUND, () -> lookupFieldValue(CONSTVAL + "2", "not_found"));
-    }
+  @Test
+  public void testMissingClass() throws Exception {
+    expectExitException(E_NOT_FOUND, () -> lookupFieldValue(CONSTVAL + "2", "not_found"));
+  }
 
-    @Test
-    public void testMissingField() throws Exception {
-        expectExitException(E_NOT_FOUND2, () -> lookupFieldValue(CONSTVAL, "not_found"));
-    }
+  @Test
+  public void testMissingField() throws Exception {
+    expectExitException(E_NOT_FOUND2, () -> lookupFieldValue(CONSTVAL, "not_found"));
+  }
 
-    @Test
-    public void testExecNoArgs() throws Exception {
-        expectExitException(E_USAGE, () -> Constval.exec());
-    }
+  @Test
+  public void testExecNoArgs() throws Exception {
+    expectExitException(E_USAGE, () -> Constval.exec());
+  }
 
-    @Test
-    public void testExecBool() throws Exception {
-        Constval.exec(FIELDS, "BOOL");
-    }
+  @Test
+  public void testExecBool() throws Exception {
+    Constval.exec(FIELDS, "BOOL");
+  }
 }

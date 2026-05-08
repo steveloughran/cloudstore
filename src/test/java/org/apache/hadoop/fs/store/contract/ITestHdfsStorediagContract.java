@@ -27,24 +27,25 @@ import org.junit.BeforeClass;
 /**
  * Storediag run against an in-process MiniDFSCluster.
  *
- * <p>Cluster lifecycle follows the {@code TestHDFSContract*} pattern: the cluster
- * is created in {@code @BeforeClass} and torn down in {@code @AfterClass}, so a
- * single MiniDFSCluster is shared by every {@code @Test} method in this class.
+ * <p>
+ * Cluster lifecycle follows the {@code TestHDFSContract*} pattern: the cluster is created in
+ * {@code @BeforeClass} and torn down in {@code @AfterClass}, so a single MiniDFSCluster is shared
+ * by every {@code @Test} method in this class.
  */
 public class ITestHdfsStorediagContract extends AbstractStorediagContractTest {
 
-    @BeforeClass
-    public static void createCluster() throws IOException {
-        HDFSContract.createCluster();
-    }
+  @BeforeClass
+  public static void createCluster() throws IOException {
+    HDFSContract.createCluster();
+  }
 
-    @AfterClass
-    public static void teardownCluster() throws IOException {
-        HDFSContract.destroyCluster();
-    }
+  @AfterClass
+  public static void teardownCluster() throws IOException {
+    HDFSContract.destroyCluster();
+  }
 
-    @Override
-    protected AbstractFSContract createContract(Configuration conf) {
-        return new HDFSContract(conf);
-    }
+  @Override
+  protected AbstractFSContract createContract(Configuration conf) {
+    return new HDFSContract(conf);
+  }
 }

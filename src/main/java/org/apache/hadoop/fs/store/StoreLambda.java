@@ -25,57 +25,56 @@ import org.apache.hadoop.fs.RemoteIterator;
 
 public class StoreLambda {
 
-    /**
-     * An interface for use in lambda-expressions working with
-     * directory tree listings.
-     */
-    @FunctionalInterface
-    public interface CallOnLocatedFileStatus {
+  /**
+   * An interface for use in lambda-expressions working with directory tree listings.
+   */
+  @FunctionalInterface
+  public interface CallOnLocatedFileStatus {
 
-        void call(LocatedFileStatus status) throws IOException;
+    void call(LocatedFileStatus status) throws IOException;
+  }
+
+  /**
+   * An interface for use in lambda-expressions working with directory tree listings.
+   */
+  @FunctionalInterface
+  public interface LocatedFileStatusMap<T> {
+
+    T call(LocatedFileStatus status) throws IOException;
+  }
+
+  /**
+   * Apply an operation to every {@link LocatedFileStatus} in a remote iterator.
+   * 
+   * @param iterator iterator from a list
+   * @param eval closure to evaluate
+   * @return the number of files processed
+   * @throws IOException anything in the closure, or iteration logic.
+   */
+  public static long applyLocatedFiles(RemoteIterator<LocatedFileStatus> iterator,
+      CallOnLocatedFileStatus eval) throws IOException {
+    long count = 0;
+    while (iterator.hasNext()) {
+      count++;
+      eval.call(iterator.next());
     }
+    return count;
+  }
 
-    /**
-     * An interface for use in lambda-expressions working with
-     * directory tree listings.
-     */
-    @FunctionalInterface
-    public interface LocatedFileStatusMap<T> {
-
-        T call(LocatedFileStatus status) throws IOException;
-    }
-
-    /**
-     * Apply an operation to every {@link LocatedFileStatus} in a remote
-     * iterator.
-     * @param iterator iterator from a list
-     * @param eval closure to evaluate
-     * @return the number of files processed
-     * @throws IOException anything in the closure, or iteration logic.
-     */
-    public static long applyLocatedFiles(RemoteIterator<LocatedFileStatus> iterator, CallOnLocatedFileStatus eval)
-            throws IOException {
-        long count = 0;
-        while (iterator.hasNext()) {
-            count++;
-            eval.call(iterator.next());
-        }
-        return count;
-    }
-
-    /**
-     * Map an operation to every {@link LocatedFileStatus} in a remote
-     * iterator, returning a list of the results.
-     * @param <T> return type of map
-     * @param iterator iterator from a list
-     * @param eval closure to evaluate
-     * @return the list of mapped results.
-     * @throws IOException anything in the closure, or iteration logic.
-     */
-    public static <T> List<T> mapLocatedFiles(RemoteIterator<LocatedFileStatus> iterator, LocatedFileStatusMap<T> eval)
-            throws IOException {
-        final List<T> results = new ArrayList<>();
-        applyLocatedFiles(iterator, (s) -> results.add(eval.call(s)));
-        return results;
-    }
+  /**
+   * Map an operation to every {@link LocatedFileStatus} in a remote iterator, returning a list of
+   * the results.
+   * 
+   * @param <T> return type of map
+   * @param iterator iterator from a list
+   * @param eval closure to evaluate
+   * @return the list of mapped results.
+   * @throws IOException anything in the closure, or iteration logic.
+   */
+  public static <T> List<T> mapLocatedFiles(RemoteIterator<LocatedFileStatus> iterator,
+      LocatedFileStatusMap<T> eval) throws IOException {
+    final List<T> results = new ArrayList<>();
+    applyLocatedFiles(iterator, (s) -> results.add(eval.call(s)));
+    return results;
+  }
 }

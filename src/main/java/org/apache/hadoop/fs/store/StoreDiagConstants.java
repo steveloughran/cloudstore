@@ -19,7 +19,7 @@ package org.apache.hadoop.fs.store;
 
 public final class StoreDiagConstants {
 
-    public static final String IOSTATISTICS_LOGGING_LEVEL = "fs.iostatistics.logging.level";
+  public static final String IOSTATISTICS_LOGGING_LEVEL = "fs.iostatistics.logging.level";
 
-    private StoreDiagConstants() {}
+  private StoreDiagConstants() {}
 }

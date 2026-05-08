@@ -37,77 +37,73 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Directory Tree scan with
- * - output to a text file; one entry per line
- * - obfuscate all dirs by replacing all but first three chars with a "-$number".
- * - some summary info at the end (dirs, depth, time to scan)
- * The purpose is to generate reports which we can then use to generate matching
- * directory structures.
+ * Directory Tree scan with - output to a text file; one entry per line - obfuscate all dirs by
+ * replacing all but first three chars with a "-$number". - some summary info at the end (dirs,
+ * depth, time to scan) The purpose is to generate reports which we can then use to generate
+ * matching directory structures.
  */
 public class DirectoryTree extends StoreEntryPoint {
 
-    private static final Logger LOG = LoggerFactory.getLogger(DirectoryTree.class);
+  private static final Logger LOG = LoggerFactory.getLogger(DirectoryTree.class);
 
-    public static final String USAGE = "Usage: dux\n"
-            + STANDARD_OPTS
-            + optusage(THREADS, "threads", "number of threads")
-            + optusage(LIMIT, "limit", "limit of files to list")
-            + "\t<path>";
+  public static final String USAGE =
+      "Usage: dux\n" + STANDARD_OPTS + optusage(THREADS, "threads", "number of threads")
+          + optusage(LIMIT, "limit", "limit of files to list") + "\t<path>";
 
-    public static final int DEFAULT_THREADS = 8;
+  public static final int DEFAULT_THREADS = 8;
 
-    private FileSystem fs;
+  private FileSystem fs;
 
-    public DirectoryTree() {
-        createCommandFormat(1, 1);
-        addValueOptions(THREADS, LIMIT);
+  public DirectoryTree() {
+    createCommandFormat(1, 1);
+    addValueOptions(THREADS, LIMIT);
+  }
+
+  @Override
+  public int run(String[] args) throws Exception {
+    List<String> paths = processArgs(args, 1, 1, USAGE);
+    final Configuration conf = createPreconfiguredConfig();
+
+    int threads = getIntOption(THREADS, DEFAULT_THREADS);
+
+    final Path source = new Path(paths.get(0));
+    heading("Deleting __temporary directories under %s with thread count %d", source, threads);
+
+    final StoreDurationInfo duration = new StoreDurationInfo(LOG, "List files under %s", source);
+    fs = source.getFileSystem(conf);
+    // worker pool
+    ExecutorService workers = new ThreadPoolExecutor(threads, threads, 0L, TimeUnit.MILLISECONDS,
+        new LinkedBlockingQueue<>());
+
+    // now completion service for all outstanding workers
+    ExecutorCompletionService<Summary> completion = new ExecutorCompletionService<>(workers);
+    List<Summary> results = new ArrayList<>();
+
+    return 0;
+  }
+
+  /**
+   * Summary of a tree scan.
+   */
+  private static final class Summary implements Comparable<Summary> {
+
+    private final Path path;
+
+    private Summary(final Path path) {
+      this.path = path;
     }
 
     @Override
-    public int run(String[] args) throws Exception {
-        List<String> paths = processArgs(args, 1, 1, USAGE);
-        final Configuration conf = createPreconfiguredConfig();
-
-        int threads = getIntOption(THREADS, DEFAULT_THREADS);
-
-        final Path source = new Path(paths.get(0));
-        heading("Deleting __temporary directories under %s with thread count %d", source, threads);
-
-        final StoreDurationInfo duration = new StoreDurationInfo(LOG, "List files under %s", source);
-        fs = source.getFileSystem(conf);
-        // worker pool
-        ExecutorService workers =
-                new ThreadPoolExecutor(threads, threads, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
-
-        // now completion service for all outstanding workers
-        ExecutorCompletionService<Summary> completion = new ExecutorCompletionService<>(workers);
-        List<Summary> results = new ArrayList<>();
-
-        return 0;
+    public int compareTo(final Summary o) {
+      return path.toString().compareTo(o.path.toString());
     }
 
-    /**
-     * Summary of a tree scan.
-     */
-    private static final class Summary implements Comparable<Summary> {
-
-        private final Path path;
-
-        private Summary(final Path path) {
-            this.path = path;
-        }
-
-        @Override
-        public int compareTo(final Summary o) {
-            return path.toString().compareTo(o.path.toString());
-        }
-
-        @Override
-        public String toString() {
-            final StringBuilder sb = new StringBuilder("Summary{");
-            sb.append("path=").append(path);
-            sb.append('}');
-            return sb.toString();
-        }
+    @Override
+    public String toString() {
+      final StringBuilder sb = new StringBuilder("Summary{");
+      sb.append("path=").append(path);
+      sb.append('}');
+      return sb.toString();
     }
+  }
 }

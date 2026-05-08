@@ -24,25 +24,25 @@ import org.apache.hadoop.util.ExitUtil;
  */
 public class StoreDiagException extends ExitUtil.ExitException {
 
-    public StoreDiagException(final String message, final Object... args) {
-        this(-1, message, args);
-    }
+  public StoreDiagException(final String message, final Object... args) {
+    this(-1, message, args);
+  }
 
-    @Override
-    public synchronized StoreDiagException initCause(final Throwable cause) {
-        super.initCause(cause);
-        return this;
-    }
+  @Override
+  public synchronized StoreDiagException initCause(final Throwable cause) {
+    super.initCause(cause);
+    return this;
+  }
 
-    public StoreDiagException(final int status, final String message, final Object... args) {
-        super(status, formatStr(message, args));
-    }
+  public StoreDiagException(final int status, final String message, final Object... args) {
+    super(status, formatStr(message, args));
+  }
 
-    private static String formatStr(final String message, final Object[] args) {
-        try {
-            return String.format(message, args);
-        } catch (Exception e) {
-            return message;
-        }
+  private static String formatStr(final String message, final Object[] args) {
+    try {
+      return String.format(message, args);
+    } catch (Exception e) {
+      return message;
     }
+  }
 }

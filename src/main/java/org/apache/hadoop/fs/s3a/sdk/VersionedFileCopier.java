@@ -32,69 +32,66 @@ import software.amazon.awssdk.services.s3.model.HeadObjectRequest;
 import software.amazon.awssdk.services.s3.model.HeadObjectResponse;
 
 /**
- * Support for copying versioned files to different locations in the same bucket.
- * This code uses S3Auditing and other @private apis which came with
- * HADOOP-17511. Add an Audit plugin point for S3A auditing/context
- * then constructs a new TransferManager -the one in the s3afs is inaccessible.
+ * Support for copying versioned files to different locations in the same bucket. This code uses
+ * S3Auditing and other @private apis which came with HADOOP-17511. Add an Audit plugin point for
+ * S3A auditing/context then constructs a new TransferManager -the one in the s3afs is inaccessible.
  */
 public class VersionedFileCopier implements Closeable {
 
-    private final Configuration conf;
+  private final Configuration conf;
 
-    private final S3AFileSystem fs;
+  private final S3AFileSystem fs;
 
-    private final RequestFactory requestFactory;
+  private final RequestFactory requestFactory;
 
-    private final StoreContext storeContext;
+  private final StoreContext storeContext;
 
-    private final AuditManagerS3A auditManager;
+  private final AuditManagerS3A auditManager;
 
-    private final S3Client s3;
+  private final S3Client s3;
 
-    private final Invoker invoker;
+  private final Invoker invoker;
 
-    public VersionedFileCopier(final S3AFileSystem fs) {
-        this.fs = fs;
-        this.s3 = fs.getS3AInternals().getAmazonS3Client("VersionedFileCopier");
-        this.storeContext = fs.createStoreContext();
-        this.invoker = storeContext.getInvoker();
-        this.conf = storeContext.getConfiguration();
-        this.requestFactory = storeContext.getRequestFactory();
-        this.auditManager = fs.getAuditManager();
-    }
+  public VersionedFileCopier(final S3AFileSystem fs) {
+    this.fs = fs;
+    this.s3 = fs.getS3AInternals().getAmazonS3Client("VersionedFileCopier");
+    this.storeContext = fs.createStoreContext();
+    this.invoker = storeContext.getInvoker();
+    this.conf = storeContext.getConfiguration();
+    this.requestFactory = storeContext.getRequestFactory();
+    this.auditManager = fs.getAuditManager();
+  }
 
-    public RequestFactory getRequestFactory() {
-        return requestFactory;
-    }
+  public RequestFactory getRequestFactory() {
+    return requestFactory;
+  }
 
-    @Override
-    public void close() throws IOException {}
+  @Override
+  public void close() throws IOException {}
 
-    /**
-     * Copy an object.
-     * @param sourceKey source
-     * @param version source version
-     * @param destKey dest in same bucket
-     * @return bytes copied
-     * @throws IOException failure
-     */
-    long copy(String sourceKey, String version, String destKey) throws IOException {
+  /**
+   * Copy an object.
+   * 
+   * @param sourceKey source
+   * @param version source version
+   * @param destKey dest in same bucket
+   * @return bytes copied
+   * @throws IOException failure
+   */
+  long copy(String sourceKey, String version, String destKey) throws IOException {
 
-        String action = String.format("copy %s @ %s to %s", sourceKey, version, destKey);
-        HeadObjectRequest head = requestFactory
-                .newHeadObjectRequestBuilder(sourceKey)
-                .versionId(version)
-                .build();
-        final HeadObjectResponse srcom = invoker.retry("HEAD @" + version, sourceKey, true, () -> s3.headObject(head));
+    String action = String.format("copy %s @ %s to %s", sourceKey, version, destKey);
+    HeadObjectRequest head =
+        requestFactory.newHeadObjectRequestBuilder(sourceKey).versionId(version).build();
+    final HeadObjectResponse srcom =
+        invoker.retry("HEAD @" + version, sourceKey, true, () -> s3.headObject(head));
 
-        CopyObjectRequest copyObjectRequest = requestFactory
-                .newCopyObjectRequestBuilder(sourceKey, destKey, srcom)
-                .sourceVersionId(version)
-                .build();
+    CopyObjectRequest copyObjectRequest = requestFactory
+        .newCopyObjectRequestBuilder(sourceKey, destKey, srcom).sourceVersionId(version).build();
 
-        CopyObjectResponse response = invoker.retry(action, sourceKey, true, () -> {
-            return s3.copyObject(copyObjectRequest);
-        });
-        return srcom.contentLength();
-    }
+    CopyObjectResponse response = invoker.retry(action, sourceKey, true, () -> {
+      return s3.copyObject(copyObjectRequest);
+    });
+    return srcom.contentLength();
+  }
 }

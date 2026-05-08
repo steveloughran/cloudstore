@@ -27,79 +27,72 @@ import org.slf4j.LoggerFactory;
 
 public class DistcpDiag extends DiagnosticsEntryPoint {
 
-    private static final Logger LOG = LoggerFactory.getLogger(DistcpDiag.class);
+  private static final Logger LOG = LoggerFactory.getLogger(DistcpDiag.class);
 
-    protected static final Object[][] DISTCP_OPTIONS = {
-        {"distcp.dynamic.strategy.impl", false, false},
-        {"distcp.static.strategy.impl", false, false},
-        {"mapreduce.reduce.class", false, false},
-        {"distcp.filters.class", false, false},
-        {"distcp.exclude-file-regex", false, false},
-        {"distcp.copy.buffer.size", false, false},
-        {"distcp.blocks.per.chunk", false, false},
-        {"mapreduce.map.java.opts", false, false},
-        {"mapreduce.reduce.java.opts", false, false},
-        {"dfs.checksum.combine.mode", false, false},
-        {"fs.gs.checksum.type", false, false},
-    };
+  protected static final Object[][] DISTCP_OPTIONS =
+      {{"distcp.dynamic.strategy.impl", false, false},
+          {"distcp.static.strategy.impl", false, false}, {"mapreduce.reduce.class", false, false},
+          {"distcp.filters.class", false, false}, {"distcp.exclude-file-regex", false, false},
+          {"distcp.copy.buffer.size", false, false}, {"distcp.blocks.per.chunk", false, false},
+          {"mapreduce.map.java.opts", false, false}, {"mapreduce.reduce.java.opts", false, false},
+          {"dfs.checksum.combine.mode", false, false}, {"fs.gs.checksum.type", false, false},};
 
-    @Override
-    public final int run(String[] args) throws Exception {
-        return run(args, System.out);
+  @Override
+  public final int run(String[] args) throws Exception {
+    return run(args, System.out);
+  }
+
+  public int run(String[] args, PrintStream stream) throws Exception {
+    addAllDefaultXMLFiles();
+    // add the distcp resources
+    addDefaultResources("distcp-default.xml", "distcp-site");
+    setOut(stream);
+    heading("Distcp Diagnostics");
+
+    printHadoopVersionInfo();
+
+    heading("Resources");
+    probeResource("distcp-default.xml", false);
+    probeResource("distcp-site.xml", false);
+    probeOptionalClasses("org.apache.hadoop.tools.DistCp",
+        "org.apache.hadoop.tools.mapred.CopyMapper", "org.apache.hadoop.tools.mapred.CopyCommitter",
+        "org.apache.hadoop.tools.mapred.lib.DynamicInputFormat",
+        "org.apache.hadoop.tools.mapred.DeletedDirTracker",
+        "com.cloudera.hadoop.tools.mapred.lib.DynamicInputFormat",
+        "com.cloudera.hadoop.tools.mapred.UniformSizeInputFormat",
+        "com.cloudera.hadoop.tools.DistCp");
+
+    println("");
+    println("warning: classes stored in a distcp.tar.gz file in the cluster filesystem");
+    println(" override those in the host filesystem in the distcp workers");
+
+    final Configuration conf = getConf();
+    printOptions("Hadoop Options", conf, CLUSTER_OPTIONS);
+    printOptions("Distcp Options", conf, DISTCP_OPTIONS);
+    return 0;
+  }
+
+  /**
+   * Main entry point. Calls {@code System.exit()} on all execution paths.
+   * 
+   * @param args argument list
+   */
+  public static void main(String[] args) {
+    try {
+      exit(exec(args), "");
+    } catch (Throwable e) {
+      exitOnThrowable(e);
     }
+  }
 
-    public int run(String[] args, PrintStream stream) throws Exception {
-        addAllDefaultXMLFiles();
-        // add the distcp resources
-        addDefaultResources("distcp-default.xml", "distcp-site");
-        setOut(stream);
-        heading("Distcp Diagnostics");
-
-        printHadoopVersionInfo();
-
-        heading("Resources");
-        probeResource("distcp-default.xml", false);
-        probeResource("distcp-site.xml", false);
-        probeOptionalClasses(
-                "org.apache.hadoop.tools.DistCp",
-                "org.apache.hadoop.tools.mapred.CopyMapper",
-                "org.apache.hadoop.tools.mapred.CopyCommitter",
-                "org.apache.hadoop.tools.mapred.lib.DynamicInputFormat",
-                "org.apache.hadoop.tools.mapred.DeletedDirTracker",
-                "com.cloudera.hadoop.tools.mapred.lib.DynamicInputFormat",
-                "com.cloudera.hadoop.tools.mapred.UniformSizeInputFormat",
-                "com.cloudera.hadoop.tools.DistCp");
-
-        println("");
-        println("warning: classes stored in a distcp.tar.gz file in the cluster filesystem");
-        println(" override those in the host filesystem in the distcp workers");
-
-        final Configuration conf = getConf();
-        printOptions("Hadoop Options", conf, CLUSTER_OPTIONS);
-        printOptions("Distcp Options", conf, DISTCP_OPTIONS);
-        return 0;
-    }
-
-    /**
-     * Main entry point. Calls {@code System.exit()} on all execution paths.
-     * @param args argument list
-     */
-    public static void main(String[] args) {
-        try {
-            exit(exec(args), "");
-        } catch (Throwable e) {
-            exitOnThrowable(e);
-        }
-    }
-
-    /**
-     * Execute the command, return the result or throw an exception,
-     * as appropriate.
-     * @param args argument varags.
-     * @return return code
-     * @throws Exception failure
-     */
-    public static int exec(String... args) throws Exception {
-        return ToolRunner.run(new DistcpDiag(), args);
-    }
+  /**
+   * Execute the command, return the result or throw an exception, as appropriate.
+   * 
+   * @param args argument varags.
+   * @return return code
+   * @throws Exception failure
+   */
+  public static int exec(String... args) throws Exception {
+    return ToolRunner.run(new DistcpDiag(), args);
+  }
 }

@@ -29,63 +29,65 @@ import org.slf4j.LoggerFactory;
 
 public class CheckStoreProperty extends StoreEntryPoint {
 
-    private static final Logger LOG = LoggerFactory.getLogger(CheckStoreProperty.class);
+  private static final Logger LOG = LoggerFactory.getLogger(CheckStoreProperty.class);
 
-    protected CommandFormat commandFormat = new CommandFormat(0, Integer.MAX_VALUE);
+  protected CommandFormat commandFormat = new CommandFormat(0, Integer.MAX_VALUE);
 
-    static final String USAGE = "Usage: CheckStoreProperty <filesystem> <key> <value>";
+  static final String USAGE = "Usage: CheckStoreProperty <filesystem> <key> <value>";
 
-    @Override
-    public final int run(String[] args) throws Exception {
-        return run(args, System.out);
+  @Override
+  public final int run(String[] args) throws Exception {
+    return run(args, System.out);
+  }
+
+  public int run(String[] args, PrintStream stream) throws Exception {
+    setOut(stream);
+    List<String> argList = processArgs(args, 3, 3, USAGE);
+    // path on the CLI
+    String pathString = argList.get(0);
+    if (!pathString.endsWith("/")) {
+      pathString = pathString + "/";
     }
+    Path path = new Path(pathString);
+    Configuration conf = new Configuration(true);
+    FileSystem fs = path.getFileSystem(conf);
+    Configuration fsConf = fs.getConf();
 
-    public int run(String[] args, PrintStream stream) throws Exception {
-        setOut(stream);
-        List<String> argList = processArgs(args, 3, 3, USAGE);
-        // path on the CLI
-        String pathString = argList.get(0);
-        if (!pathString.endsWith("/")) {
-            pathString = pathString + "/";
-        }
-        Path path = new Path(pathString);
-        Configuration conf = new Configuration(true);
-        FileSystem fs = path.getFileSystem(conf);
-        Configuration fsConf = fs.getConf();
+    String key = argList.get(1);
+    String expected = argList.get(2);
 
-        String key = argList.get(1);
-        String expected = argList.get(2);
-
-        String actual = fsConf.getTrimmed(key);
-        if (!expected.equals(actual)) {
-            println("Expected option %s of filesystem %s to be \"%s\", but was \"%s\"", path, key, expected, actual);
-            return -1;
-        } else {
-            println("Value of %s for %s is as expected: %s", key, path, expected);
-            return 0;
-        }
+    String actual = fsConf.getTrimmed(key);
+    if (!expected.equals(actual)) {
+      println("Expected option %s of filesystem %s to be \"%s\", but was \"%s\"", path, key,
+          expected, actual);
+      return -1;
+    } else {
+      println("Value of %s for %s is as expected: %s", key, path, expected);
+      return 0;
     }
+  }
 
-    /**
-     * Execute the command, return the result or throw an exception,
-     * as appropriate.
-     * @param args argument varags.
-     * @return return code
-     * @throws Exception failure
-     */
-    public static int exec(String... args) throws Exception {
-        return ToolRunner.run(new CheckStoreProperty(), args);
-    }
+  /**
+   * Execute the command, return the result or throw an exception, as appropriate.
+   * 
+   * @param args argument varags.
+   * @return return code
+   * @throws Exception failure
+   */
+  public static int exec(String... args) throws Exception {
+    return ToolRunner.run(new CheckStoreProperty(), args);
+  }
 
-    /**
-     * Main entry point. Calls {@code System.exit()} on all execution paths.
-     * @param args argument list
-     */
-    public static void main(String[] args) {
-        try {
-            exit(exec(args), "");
-        } catch (Throwable e) {
-            exitOnThrowable(e);
-        }
+  /**
+   * Main entry point. Calls {@code System.exit()} on all execution paths.
+   * 
+   * @param args argument list
+   */
+  public static void main(String[] args) {
+    try {
+      exit(exec(args), "");
+    } catch (Throwable e) {
+      exitOnThrowable(e);
     }
+  }
 }

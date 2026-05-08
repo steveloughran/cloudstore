@@ -25,18 +25,18 @@ import org.apache.hadoop.fs.store.diag.DiagUtils;
 import org.junit.Test;
 
 public class TestDiagUtils {
-    final Pattern ipv4 = DiagUtils.ipV4pattern();
+  final Pattern ipv4 = DiagUtils.ipV4pattern();
 
-    @Test
-    public void testIPV4Match() throws Throwable {
-        assertMatches("0.0.0.0", true);
-        assertMatches("10.0.1.255", true);
-        assertMatches("s3.amazonaws.com", false);
-        assertMatches("10", false);
-    }
+  @Test
+  public void testIPV4Match() throws Throwable {
+    assertMatches("0.0.0.0", true);
+    assertMatches("10.0.1.255", true);
+    assertMatches("s3.amazonaws.com", false);
+    assertMatches("10", false);
+  }
 
-    private void assertMatches(final String input, final boolean expected) {
-        final Matcher matcher = ipv4.matcher(input);
-        assertThat(matcher.matches()).describedAs("Match against %s", input).isEqualTo(expected);
-    }
+  private void assertMatches(final String input, final boolean expected) {
+    final Matcher matcher = ipv4.matcher(input);
+    assertThat(matcher.matches()).describedAs("Match against %s", input).isEqualTo(expected);
+  }
 }

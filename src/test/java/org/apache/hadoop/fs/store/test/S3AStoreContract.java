@@ -15,18 +15,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.apache.hadoop.fs.store.test;
 
-import org.apache.hadoop.fs.store.commands.Command;
-import org.apache.hadoop.fs.store.commands.LocateFiles;
+import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.contract.AbstractBondedFSContract;
 
-public class locatefiles extends Command {
+/**
+ * The contract of S3A: only enabled if the test bucket is provided.
+ */
+public class S3AStoreContract extends AbstractBondedFSContract {
 
-  public static void main(String[] args) throws Exception {
-    LocateFiles.main(args);
+  public static final String CONTRACT_XML = "cloudstore/s3a.xml";
+
+  public S3AStoreContract(Configuration conf) {
+    super(conf);
+    // insert the base features
+    addConfResource(CONTRACT_XML);
   }
 
-  public static void help() {
-    printCommand("locatefiles", "locate files");
+  @Override
+  public String getScheme() {
+    return "s3a";
   }
-
 }

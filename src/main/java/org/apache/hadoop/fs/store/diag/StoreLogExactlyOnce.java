@@ -25,34 +25,34 @@ import org.slf4j.Logger;
  */
 public class StoreLogExactlyOnce {
 
-    private final AtomicBoolean logged = new AtomicBoolean(false);
-    private final Logger log;
+  private final AtomicBoolean logged = new AtomicBoolean(false);
+  private final Logger log;
 
-    public StoreLogExactlyOnce(final Logger log) {
-        this.log = log;
-    }
+  public StoreLogExactlyOnce(final Logger log) {
+    this.log = log;
+  }
 
-    public boolean warn(String format, Object... args) {
-        if (!logged.getAndSet(true)) {
-            log.warn(format, args);
-            return true;
-        }
-        return false;
+  public boolean warn(String format, Object... args) {
+    if (!logged.getAndSet(true)) {
+      log.warn(format, args);
+      return true;
     }
+    return false;
+  }
 
-    public boolean info(String format, Object... args) {
-        if (!logged.getAndSet(true)) {
-            log.info(format, args);
-            return true;
-        }
-        return false;
+  public boolean info(String format, Object... args) {
+    if (!logged.getAndSet(true)) {
+      log.info(format, args);
+      return true;
     }
+    return false;
+  }
 
-    public boolean error(String format, Object... args) {
-        if (!logged.getAndSet(true)) {
-            log.error(format, args);
-            return true;
-        }
-        return false;
+  public boolean error(String format, Object... args) {
+    if (!logged.getAndSet(true)) {
+      log.error(format, args);
+      return true;
     }
+    return false;
+  }
 }

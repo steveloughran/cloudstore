@@ -44,77 +44,74 @@ import org.slf4j.LoggerFactory;
  */
 public class TestAuditTool {
 
-    private static final Logger LOG = LoggerFactory.getLogger(TestAuditTool.class);
+  private static final Logger LOG = LoggerFactory.getLogger(TestAuditTool.class);
 
-    private final Configuration conf = new Configuration();
+  private final Configuration conf = new Configuration();
 
-    /**
-     * The audit tool.
-     */
-    private AuditTool auditTool;
+  /**
+   * The audit tool.
+   */
+  private AuditTool auditTool;
 
-    /**
-     * Temporary directory to store the sample files; should be under target/
-     * though IDEs may put it elsewhere.
-     */
-    private File sampleDir;
+  /**
+   * Temporary directory to store the sample files; should be under target/ though IDEs may put it
+   * elsewhere.
+   */
+  private File sampleDir;
 
-    /**
-     * Sample directories and files to test.
-     */
-    private File sampleFile;
+  /**
+   * Sample directories and files to test.
+   */
+  private File sampleFile;
 
-    private File sampleDestDir;
+  private File sampleDestDir;
 
-    @Before
-    public void setup() throws Exception {
-        auditTool = new AuditTool();
+  @Before
+  public void setup() throws Exception {
+    auditTool = new AuditTool();
+  }
+
+  /**
+   * Testing run method in AuditTool class by passing source and destination paths.
+   */
+  @Test
+  public void testRun() throws Exception {
+    sampleDir = Files.createTempDirectory("sampleDir").toFile();
+    sampleFile = File.createTempFile("sampleFile", ".txt", sampleDir);
+    try (FileWriter fw = new FileWriter(sampleFile)) {
+      fw.write(SAMPLE_LOG_ENTRY_1);
+      fw.flush();
     }
+    sampleDestDir = Files.createTempDirectory("sampleDestDir").toFile();
+    File sampleDestFile = new File(sampleDestDir, "generated.avro");
+    Path logsPath = new Path(sampleDir.toURI());
+    Path destPath = new Path(sampleDestFile.toURI());
+    String[] args = {logsPath.toString(), destPath.toString()};
+    ToolRunner.run(new Configuration(), auditTool, args);
+    FileSystem fileSystem = destPath.getFileSystem(conf);
+    RemoteIterator<LocatedFileStatus> listOfDestFiles = fileSystem.listFiles(destPath, true);
+    Path expectedPath = destPath;
+    fileSystem.open(expectedPath);
 
-    /**
-     * Testing run method in AuditTool class by passing source and destination
-     * paths.
-     */
-    @Test
-    public void testRun() throws Exception {
-        sampleDir = Files.createTempDirectory("sampleDir").toFile();
-        sampleFile = File.createTempFile("sampleFile", ".txt", sampleDir);
-        try (FileWriter fw = new FileWriter(sampleFile)) {
-            fw.write(SAMPLE_LOG_ENTRY_1);
-            fw.flush();
-        }
-        sampleDestDir = Files.createTempDirectory("sampleDestDir").toFile();
-        File sampleDestFile = new File(sampleDestDir, "generated.avro");
-        Path logsPath = new Path(sampleDir.toURI());
-        Path destPath = new Path(sampleDestFile.toURI());
-        String[] args = {logsPath.toString(), destPath.toString()};
-        ToolRunner.run(new Configuration(), auditTool, args);
-        FileSystem fileSystem = destPath.getFileSystem(conf);
-        RemoteIterator<LocatedFileStatus> listOfDestFiles = fileSystem.listFiles(destPath, true);
-        Path expectedPath = destPath;
-        fileSystem.open(expectedPath);
+    File avroFile = new File(expectedPath.toUri());
 
-        File avroFile = new File(expectedPath.toUri());
+    // DeSerializing the objects
+    DatumReader<AvroS3LogEntryRecord> datumReader =
+        new SpecificDatumReader<>(AvroS3LogEntryRecord.class);
 
-        // DeSerializing the objects
-        DatumReader<AvroS3LogEntryRecord> datumReader = new SpecificDatumReader<>(AvroS3LogEntryRecord.class);
+    // Instantiating DataFileReader
+    DataFileReader<AvroS3LogEntryRecord> dataFileReader =
+        new DataFileReader<>(avroFile, datumReader);
 
-        // Instantiating DataFileReader
-        DataFileReader<AvroS3LogEntryRecord> dataFileReader = new DataFileReader<>(avroFile, datumReader);
+    AvroS3LogEntryRecord record = new AvroS3LogEntryRecord();
+    while (dataFileReader.hasNext()) {
+      record = dataFileReader.next(record);
+      Assertions.assertThat(record.get(BUCKET_GROUP)).describedAs(BUCKET_GROUP)
+          .extracting(Object::toString).isEqualTo("bucket-london");
 
-        AvroS3LogEntryRecord record = new AvroS3LogEntryRecord();
-        while (dataFileReader.hasNext()) {
-            record = dataFileReader.next(record);
-            Assertions.assertThat(record.get(BUCKET_GROUP))
-                    .describedAs(BUCKET_GROUP)
-                    .extracting(Object::toString)
-                    .isEqualTo("bucket-london");
-
-            // verifying the remoteip from generated avro data
-            Assertions.assertThat(record.get(REMOTEIP_GROUP))
-                    .describedAs(BUCKET_GROUP)
-                    .extracting(Object::toString)
-                    .isEqualTo("109.157.171.174");
-        }
+      // verifying the remoteip from generated avro data
+      Assertions.assertThat(record.get(REMOTEIP_GROUP)).describedAs(BUCKET_GROUP)
+          .extracting(Object::toString).isEqualTo("109.157.171.174");
     }
+  }
 }

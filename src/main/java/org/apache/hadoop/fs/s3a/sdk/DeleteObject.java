@@ -34,52 +34,48 @@ import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
  */
 public class DeleteObject extends StoreEntryPoint {
 
-    private static final Logger LOG = LoggerFactory.getLogger(DeleteObject.class);
+  private static final Logger LOG = LoggerFactory.getLogger(DeleteObject.class);
 
-    public static final String USAGE = "Usage: deleteobject <S3A path>";
+  public static final String USAGE = "Usage: deleteobject <S3A path>";
 
-    public DeleteObject() {
-        createCommandFormat(1, 1);
+  public DeleteObject() {
+    createCommandFormat(1, 1);
+  }
+
+  @Override
+  public int run(String[] args) throws Exception {
+    List<String> paths = processArgs(args, 1, 1, USAGE);
+    final Configuration conf = createPreconfiguredConfig();
+
+    final Path source = new Path(paths.get(0));
+    S3AFileSystem fs = (S3AFileSystem) source.getFileSystem(conf);
+    S3Client s3 = fs.getS3AInternals().getAmazonS3Client("DeleteObjects");
+    Invoker.once("delete", source.toString(), () -> s3.deleteObject(
+        DeleteObjectRequest.builder().bucket(fs.getBucket()).key(fs.pathToKey(source)).build()));
+    return 0;
+  }
+
+  /**
+   * Execute the command, return the result or throw an exception, as appropriate.
+   * 
+   * @param args argument varags.
+   * @return return code
+   * @throws Exception failure
+   */
+  public static int exec(String... args) throws Exception {
+    return ToolRunner.run(new DeleteObject(), args);
+  }
+
+  /**
+   * Main entry point. Calls {@code System.exit()} on all execution paths.
+   * 
+   * @param args argument list
+   */
+  public static void main(String[] args) {
+    try {
+      exit(exec(args), "");
+    } catch (Throwable e) {
+      exitOnThrowable(e);
     }
-
-    @Override
-    public int run(String[] args) throws Exception {
-        List<String> paths = processArgs(args, 1, 1, USAGE);
-        final Configuration conf = createPreconfiguredConfig();
-
-        final Path source = new Path(paths.get(0));
-        S3AFileSystem fs = (S3AFileSystem) source.getFileSystem(conf);
-        S3Client s3 = fs.getS3AInternals().getAmazonS3Client("DeleteObjects");
-        Invoker.once(
-                "delete",
-                source.toString(),
-                () -> s3.deleteObject(DeleteObjectRequest.builder()
-                        .bucket(fs.getBucket())
-                        .key(fs.pathToKey(source))
-                        .build()));
-        return 0;
-    }
-
-    /**
-     * Execute the command, return the result or throw an exception,
-     * as appropriate.
-     * @param args argument varags.
-     * @return return code
-     * @throws Exception failure
-     */
-    public static int exec(String... args) throws Exception {
-        return ToolRunner.run(new DeleteObject(), args);
-    }
-
-    /**
-     * Main entry point. Calls {@code System.exit()} on all execution paths.
-     * @param args argument list
-     */
-    public static void main(String[] args) {
-        try {
-            exit(exec(args), "");
-        } catch (Throwable e) {
-            exitOnThrowable(e);
-        }
-    }
+  }
 }

@@ -25,30 +25,28 @@ import org.slf4j.LoggerFactory;
 
 public class TestLog4JController {
 
-    private static final Logger LOG = LoggerFactory.getLogger(TestLog4JController.class);
+  private static final Logger LOG = LoggerFactory.getLogger(TestLog4JController.class);
 
-    @Test
-    public void testCreateLogger() throws Throwable {
-        Optional<LogControl> control = LogControllerFactory.createController(LogControllerFactory.LOG4J);
-        Assertions.assertThat(control)
-                .describedAs("created controller")
-                .isPresent()
-                .containsInstanceOf(Log4JController.class);
-    }
+  @Test
+  public void testCreateLogger() throws Throwable {
+    Optional<LogControl> control =
+        LogControllerFactory.createController(LogControllerFactory.LOG4J);
+    Assertions.assertThat(control).describedAs("created controller").isPresent()
+        .containsInstanceOf(Log4JController.class);
+  }
 
-    @Test
-    public void testConfigureLevel() throws Throwable {
-        LogControl control = LogControllerFactory.createController(LogControllerFactory.LOG4J)
-                .get();
-        final String name = this.getClass().getName();
-        control.setLogLevel(name, LogControl.LogLevel.DEBUG);
-        LOG.debug("debug at debug level");
-        control.setLogLevel(name, LogControl.LogLevel.INFO);
-        LOG.info("info at info level");
-        LOG.debug("debug at info level");
+  @Test
+  public void testConfigureLevel() throws Throwable {
+    LogControl control = LogControllerFactory.createController(LogControllerFactory.LOG4J).get();
+    final String name = this.getClass().getName();
+    control.setLogLevel(name, LogControl.LogLevel.DEBUG);
+    LOG.debug("debug at debug level");
+    control.setLogLevel(name, LogControl.LogLevel.INFO);
+    LOG.info("info at info level");
+    LOG.debug("debug at info level");
 
-        LOG.info("switching back to debug");
-        control.setLogLevel(name, LogControl.LogLevel.DEBUG);
-        LOG.debug("debug at debug level again");
-    }
+    LOG.info("switching back to debug");
+    control.setLogLevel(name, LogControl.LogLevel.DEBUG);
+    LOG.debug("debug at debug level again");
+  }
 }

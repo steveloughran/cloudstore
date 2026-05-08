@@ -34,60 +34,61 @@ import org.slf4j.LoggerFactory;
  */
 public class RestoreObject extends StoreEntryPoint {
 
-    private static final Logger LOG = LoggerFactory.getLogger(RestoreObject.class);
+  private static final Logger LOG = LoggerFactory.getLogger(RestoreObject.class);
 
-    public static final String USAGE = "Usage: restore [-verbose] <S3A path> <version> <dest path>";
+  public static final String USAGE = "Usage: restore [-verbose] <S3A path> <version> <dest path>";
 
-    public RestoreObject() {
-        createCommandFormat(3, 3);
+  public RestoreObject() {
+    createCommandFormat(3, 3);
+  }
+
+  @Override
+  public int run(String[] args) throws Exception {
+    List<String> paths = parseArgs(args);
+    if (paths.size() != 3) {
+      errorln(USAGE);
+      return E_USAGE;
     }
 
-    @Override
-    public int run(String[] args) throws Exception {
-        List<String> paths = parseArgs(args);
-        if (paths.size() != 3) {
-            errorln(USAGE);
-            return E_USAGE;
-        }
+    final Configuration conf = createPreconfiguredConfig();
 
-        final Configuration conf = createPreconfiguredConfig();
-
-        final Path source = new Path(paths.get(0));
-        final String version = paths.get(1);
-        final S3AFileSystem fs = (S3AFileSystem) source.getFileSystem(conf);
-        final Path src = fs.makeQualified(source);
-        final Path dst = fs.makeQualified(new Path(paths.get(2)));
-        println("restoring %s @ %s to %s", src, version, dst);
-        long l;
-        try (VersionedFileCopier copier = new VersionedFileCopier(fs);
-                StoreDurationInfo d = new StoreDurationInfo(getOut(), "restore")) {
-            l = copier.copy(fs.pathToKey(src), version, fs.pathToKey(dst));
-        }
-        println("Restored object of size %,d bytes to %s%n", l, dst);
-
-        return 0;
+    final Path source = new Path(paths.get(0));
+    final String version = paths.get(1);
+    final S3AFileSystem fs = (S3AFileSystem) source.getFileSystem(conf);
+    final Path src = fs.makeQualified(source);
+    final Path dst = fs.makeQualified(new Path(paths.get(2)));
+    println("restoring %s @ %s to %s", src, version, dst);
+    long l;
+    try (VersionedFileCopier copier = new VersionedFileCopier(fs);
+        StoreDurationInfo d = new StoreDurationInfo(getOut(), "restore")) {
+      l = copier.copy(fs.pathToKey(src), version, fs.pathToKey(dst));
     }
+    println("Restored object of size %,d bytes to %s%n", l, dst);
 
-    /**
-     * Execute the command, return the result or throw an exception,
-     * as appropriate.
-     * @param args argument varags.
-     * @return return code
-     * @throws Exception failure
-     */
-    public static int exec(String... args) throws Exception {
-        return ToolRunner.run(new RestoreObject(), args);
-    }
+    return 0;
+  }
 
-    /**
-     * Main entry point. Calls {@code System.exit()} on all execution paths.
-     * @param args argument list
-     */
-    public static void main(String[] args) {
-        try {
-            exit(exec(args), "");
-        } catch (Throwable e) {
-            exitOnThrowable(e);
-        }
+  /**
+   * Execute the command, return the result or throw an exception, as appropriate.
+   * 
+   * @param args argument varags.
+   * @return return code
+   * @throws Exception failure
+   */
+  public static int exec(String... args) throws Exception {
+    return ToolRunner.run(new RestoreObject(), args);
+  }
+
+  /**
+   * Main entry point. Calls {@code System.exit()} on all execution paths.
+   * 
+   * @param args argument list
+   */
+  public static void main(String[] args) {
+    try {
+      exit(exec(args), "");
+    } catch (Throwable e) {
+      exitOnThrowable(e);
     }
+  }
 }

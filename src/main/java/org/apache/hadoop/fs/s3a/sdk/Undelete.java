@@ -48,161 +48,156 @@ import software.amazon.awssdk.services.s3.model.ObjectVersion;
  */
 public class Undelete extends StoreEntryPoint implements SummaryProcessor {
 
-    private static final Logger LOG = LoggerFactory.getLogger(Undelete.class);
+  private static final Logger LOG = LoggerFactory.getLogger(Undelete.class);
 
-    public static final String AGE = "age";
+  public static final String AGE = "age";
 
-    public static final String DELETED = "deleted";
+  public static final String DELETED = "deleted";
 
-    public static final String DIRS = "dirs";
+  public static final String DIRS = "dirs";
 
-    public static final String OUTPUT = "out";
+  public static final String OUTPUT = "out";
 
-    public static final String QUIET = "q";
+  public static final String QUIET = "q";
 
-    public static final String SEPARATOR = "separator";
+  public static final String SEPARATOR = "separator";
 
-    public static final String SINCE = "since";
+  public static final String SINCE = "since";
 
-    public static final String USAGE = "Usage: listversions <path>\n"
-            + STANDARD_OPTS
-            + optusage(LIMIT, "limit", "limit of files to list")
-            + optusage(AGE, "seconds", "Only include versions created in this time interval")
-            + optusage(SINCE, "epoch-time", "Only include versions after this time");
+  public static final String USAGE = "Usage: listversions <path>\n" + STANDARD_OPTS
+      + optusage(LIMIT, "limit", "limit of files to list")
+      + optusage(AGE, "seconds", "Only include versions created in this time interval")
+      + optusage(SINCE, "epoch-time", "Only include versions after this time");
 
-    public static final String NAME = "undelete";
+  public static final String NAME = "undelete";
 
-    private final int deletePageSize;
+  private final int deletePageSize;
 
-    private S3Client s3;
+  private S3Client s3;
 
-    private S3AFileSystem fs;
+  private S3AFileSystem fs;
 
-    private StoreContext context;
+  private StoreContext context;
 
-    private Path source;
+  private Path source;
 
-    private List<ObjectIdentifier> deletions;
+  private List<ObjectIdentifier> deletions;
 
-    public Undelete() {
-        createCommandFormat(1, 1);
-        addValueOptions(
-                LIMIT,
-                // OUTPUT,
-                // SEPARATOR,
-                AGE,
-                SINCE);
-        deletePageSize = 1000;
+  public Undelete() {
+    createCommandFormat(1, 1);
+    addValueOptions(LIMIT,
+        // OUTPUT,
+        // SEPARATOR,
+        AGE, SINCE);
+    deletePageSize = 1000;
+  }
+
+  private void newDeletions() {
+    deletions = new ArrayList<>(deletePageSize);
+  }
+
+  @Override
+  public int run(String[] args) throws Exception {
+    List<String> paths = parseArgs(args);
+    if (paths.isEmpty()) {
+      errorln(USAGE);
+      return E_USAGE;
     }
 
-    private void newDeletions() {
-        deletions = new ArrayList<>(deletePageSize);
+    final Configuration conf = createPreconfiguredConfig();
+    // stop auditing rejecting client direct calls.
+    conf.setBoolean(FS_S3A_AUDIT_REJECT_OUT_OF_SPAN_OPERATIONS, false);
+    int limit = getIntOption(LIMIT, 0);
+    long since = getLongOption(SINCE, 0);
+
+    final Optional<Long> age = getOptionalLong(AGE);
+    if (age.isPresent()) {
+      if (since > 0) {
+        errorln("Only one of " + AGE + " and " + SINCE + " may be specified");
+        return E_USAGE;
+      }
+      since = Instant.now().minusSeconds(age.get()).getEpochSecond();
+    }
+    Instant ageLimit = Instant.ofEpochSecond(since);
+
+    source = new Path(paths.get(0));
+    fs = (S3AFileSystem) source.getFileSystem(conf);
+    context = fs.createStoreContext();
+
+    s3 = fs.getS3AInternals().getAmazonS3Client(NAME);
+    newDeletions();
+
+    try (StoreDurationInfo duration = new StoreDurationInfo(getOut(), NAME)) {
+
+      final ListAndProcessVersionedObjects listing =
+          new ListAndProcessVersionedObjects(NAME, this, fs, source, this, ageLimit, limit);
+
+      final long count = listing.execute();
+
+      // final deletion
+      if (!deletions.isEmpty()) {
+        executeDeleteOperation();
+      }
+
+      println();
+
+      println("Removed %,d tombstones\n", count);
     }
 
-    @Override
-    public int run(String[] args) throws Exception {
-        List<String> paths = parseArgs(args);
-        if (paths.isEmpty()) {
-            errorln(USAGE);
-            return E_USAGE;
-        }
+    return 0;
+  }
 
-        final Configuration conf = createPreconfiguredConfig();
-        // stop auditing rejecting client direct calls.
-        conf.setBoolean(FS_S3A_AUDIT_REJECT_OUT_OF_SPAN_OPERATIONS, false);
-        int limit = getIntOption(LIMIT, 0);
-        long since = getLongOption(SINCE, 0);
-
-        final Optional<Long> age = getOptionalLong(AGE);
-        if (age.isPresent()) {
-            if (since > 0) {
-                errorln("Only one of " + AGE + " and " + SINCE + " may be specified");
-                return E_USAGE;
-            }
-            since = Instant.now().minusSeconds(age.get()).getEpochSecond();
-        }
-        Instant ageLimit = Instant.ofEpochSecond(since);
-
-        source = new Path(paths.get(0));
-        fs = (S3AFileSystem) source.getFileSystem(conf);
-        context = fs.createStoreContext();
-
-        s3 = fs.getS3AInternals().getAmazonS3Client(NAME);
-        newDeletions();
-
-        try (StoreDurationInfo duration = new StoreDurationInfo(getOut(), NAME)) {
-
-            final ListAndProcessVersionedObjects listing =
-                    new ListAndProcessVersionedObjects(NAME, this, fs, source, this, ageLimit, limit);
-
-            final long count = listing.execute();
-
-            // final deletion
-            if (!deletions.isEmpty()) {
-                executeDeleteOperation();
-            }
-
-            println();
-
-            println("Removed %,d tombstones\n", count);
-        }
-
-        return 0;
+  @Override
+  public boolean process(final ObjectVersion summary, final Path path, final boolean isDeleteMarker)
+      throws IOException {
+    final boolean dirMarker = isDirMarker(summary);
+    if (dirMarker) {
+      // skip this
+      return false;
     }
-
-    @Override
-    public boolean process(final ObjectVersion summary, final Path path, final boolean isDeleteMarker)
-            throws IOException {
-        final boolean dirMarker = isDirMarker(summary);
-        if (dirMarker) {
-            // skip this
-            return false;
-        }
-        // ok, queue for explicit delete;
-        // for now this is blocking, though async IO would work too.
-        println("%s @ %s", fs.keyToQualifiedPath(summary.key()), summary.versionId());
-        deletions.add(ObjectIdentifier.builder()
-                .key(summary.key())
-                .versionId(summary.versionId())
-                .build());
-        if (deletions.size() == deletePageSize) {
-            executeDeleteOperation();
-        }
-        return true;
+    // ok, queue for explicit delete;
+    // for now this is blocking, though async IO would work too.
+    println("%s @ %s", fs.keyToQualifiedPath(summary.key()), summary.versionId());
+    deletions
+        .add(ObjectIdentifier.builder().key(summary.key()).versionId(summary.versionId()).build());
+    if (deletions.size() == deletePageSize) {
+      executeDeleteOperation();
     }
+    return true;
+  }
 
-    private void executeDeleteOperation() throws IOException {
-        final DeleteObjectsRequest r = DeleteObjectsRequest.builder()
-                .bucket(fs.getBucket())
-                .delete(Delete.builder().objects(deletions).quiet(true).build())
-                .build();
-        println();
-        try (StoreDurationInfo duration = new StoreDurationInfo(getOut(), "deleting %,d objects", deletions.size())) {
-            context.getInvoker().retry("delete", source.toString(), true, () -> s3.deleteObjects(r));
-        }
-        newDeletions();
+  private void executeDeleteOperation() throws IOException {
+    final DeleteObjectsRequest r = DeleteObjectsRequest.builder().bucket(fs.getBucket())
+        .delete(Delete.builder().objects(deletions).quiet(true).build()).build();
+    println();
+    try (StoreDurationInfo duration =
+        new StoreDurationInfo(getOut(), "deleting %,d objects", deletions.size())) {
+      context.getInvoker().retry("delete", source.toString(), true, () -> s3.deleteObjects(r));
     }
+    newDeletions();
+  }
 
-    /**
-     * Execute the command, return the result or throw an exception,
-     * as appropriate.
-     * @param args argument varags.
-     * @return return code
-     * @throws Exception failure
-     */
-    public static int exec(String... args) throws Exception {
-        return ToolRunner.run(new Undelete(), args);
-    }
+  /**
+   * Execute the command, return the result or throw an exception, as appropriate.
+   * 
+   * @param args argument varags.
+   * @return return code
+   * @throws Exception failure
+   */
+  public static int exec(String... args) throws Exception {
+    return ToolRunner.run(new Undelete(), args);
+  }
 
-    /**
-     * Main entry point. Calls {@code System.exit()} on all execution paths.
-     * @param args argument list
-     */
-    public static void main(String[] args) {
-        try {
-            exit(exec(args), "");
-        } catch (Throwable e) {
-            exitOnThrowable(e);
-        }
+  /**
+   * Main entry point. Calls {@code System.exit()} on all execution paths.
+   * 
+   * @param args argument list
+   */
+  public static void main(String[] args) {
+    try {
+      exit(exec(args), "");
+    } catch (Throwable e) {
+      exitOnThrowable(e);
     }
+  }
 }

@@ -26,13 +26,13 @@ import org.apache.hadoop.fs.statistics.IOStatisticsLogging;
  */
 public class IOStatisticsIntegration {
 
-    public IOStatisticsIntegration() {}
+  public IOStatisticsIntegration() {}
 
-    public boolean available() {
-        return true;
-    }
+  public boolean available() {
+    return true;
+  }
 
-    public String ioStatisticsToPrettyString(Object source) {
-        return IOStatisticsLogging.ioStatisticsToPrettyString(retrieveIOStatistics(source));
-    }
+  public String ioStatisticsToPrettyString(Object source) {
+    return IOStatisticsLogging.ioStatisticsToPrettyString(retrieveIOStatistics(source));
+  }
 }

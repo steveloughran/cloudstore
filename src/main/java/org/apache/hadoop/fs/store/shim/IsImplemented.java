@@ -18,32 +18,29 @@
 package org.apache.hadoop.fs.store.shim;
 
 /**
- * Interface to probe for feature being directly available in
- * the Hadoop runtime, through the shim API.
- * If a capability is not implemented it may be because
+ * Interface to probe for feature being directly available in the Hadoop runtime, through the shim
+ * API. If a capability is not implemented it may be because
  * <ol>
- *   <li>The capability is unknown in this release of the shim library.</li>
- *   <li>The capability is unknown in the shim class.</li>
- *   <li>The capability is known in the shim class but the hadoop runtime
- *   lacks the API.</li>
- *   <li>The capability is known, the API exists but is not supported by the object
- *   instance to the which shim class is bound.</li>
- *   <li>The capability is known but disabled/not working.</li>
+ * <li>The capability is unknown in this release of the shim library.</li>
+ * <li>The capability is unknown in the shim class.</li>
+ * <li>The capability is known in the shim class but the hadoop runtime lacks the API.</li>
+ * <li>The capability is known, the API exists but is not supported by the object instance to the
+ * which shim class is bound.</li>
+ * <li>The capability is known but disabled/not working.</li>
  * </ol>
- * The API may be dynamic, where a fallback happens after the failure of a direct
- * invocation.
+ * The API may be dynamic, where a fallback happens after the failure of a direct invocation.
  */
 public interface IsImplemented {
 
-    /**
-     * Is a feature directly available by the wrapped class, rather
-     * than being emulated by the shim library.
-     *
-     * @param capability capability/feature to probe for
-     *
-     * @return true if the wrapped class supports it directly
-     */
-    default boolean isImplemented(String capability) {
-        return false;
-    }
+  /**
+   * Is a feature directly available by the wrapped class, rather than being emulated by the shim
+   * library.
+   *
+   * @param capability capability/feature to probe for
+   *
+   * @return true if the wrapped class supports it directly
+   */
+  default boolean isImplemented(String capability) {
+    return false;
+  }
 }

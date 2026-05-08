@@ -26,8 +26,8 @@ import org.apache.hadoop.fs.contract.localfs.LocalFSContract;
  */
 public class ITestLocalStorediagContract extends AbstractStorediagContractTest {
 
-    @Override
-    protected AbstractFSContract createContract(Configuration conf) {
-        return new LocalFSContract(conf);
-    }
+  @Override
+  protected AbstractFSContract createContract(Configuration conf) {
+    return new LocalFSContract(conf);
+  }
 }

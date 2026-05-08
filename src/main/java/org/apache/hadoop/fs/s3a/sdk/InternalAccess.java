@@ -27,18 +27,19 @@ import software.amazon.awssdk.services.s3.S3Client;
  */
 public class InternalAccess {
 
-    private final S3AFileSystem filesystem;
+  private final S3AFileSystem filesystem;
 
-    public InternalAccess(final S3AFileSystem filesystem) {
-        this.filesystem = checkNotNull(filesystem);
-    }
+  public InternalAccess(final S3AFileSystem filesystem) {
+    this.filesystem = checkNotNull(filesystem);
+  }
 
-    /**
-     * Returns the S3 client used by this filesystem.
-     * This is for internal use within the S3A code itself.
-     * @return AmazonS3Client
-     */
-    public S3Client getAmazonS3Client() {
-        return filesystem.getS3AInternals().getAmazonS3Client("Diagnostics");
-    }
+  /**
+   * Returns the S3 client used by this filesystem. This is for internal use within the S3A code
+   * itself.
+   * 
+   * @return AmazonS3Client
+   */
+  public S3Client getAmazonS3Client() {
+    return filesystem.getS3AInternals().getAmazonS3Client("Diagnostics");
+  }
 }

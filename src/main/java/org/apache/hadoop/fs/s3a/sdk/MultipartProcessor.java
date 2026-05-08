@@ -27,70 +27,64 @@ import software.amazon.awssdk.services.s3.model.ListPartsResponse;
 
 public class MultipartProcessor {
 
-    private final S3AFileSystem fs;
+  private final S3AFileSystem fs;
 
-    private final S3Client amazonS3;
+  private final S3Client amazonS3;
 
-    public MultipartProcessor(final S3AFileSystem fs) {
-        this.fs = fs;
-        amazonS3 = fs.getS3AInternals().getAmazonS3Client("api");
+  public MultipartProcessor(final S3AFileSystem fs) {
+    this.fs = fs;
+    amazonS3 = fs.getS3AInternals().getAmazonS3Client("api");
+  }
+
+  public PartIterator partListing(String key, final String id) {
+    return new PartIterator(key, id);
+  }
+
+  public class PartIterator implements RemoteIterator<ListPartsResponse> {
+
+    private final String key;
+
+    private final String id;
+
+    private boolean firstListing = true;
+
+    private ListPartsResponse partListing;
+
+    private ListPartsRequest request;
+
+    PartIterator(final String key, final String id) {
+      this.key = key;
+      this.id = id;
     }
 
-    public PartIterator partListing(String key, final String id) {
-        return new PartIterator(key, id);
+    public void listFirst() {
+      request = ListPartsRequest.builder().bucket(fs.getBucket()).key(key).uploadId(id).build();
+      partListing = amazonS3.listParts(request);
     }
 
-    public class PartIterator implements RemoteIterator<ListPartsResponse> {
-
-        private final String key;
-
-        private final String id;
-
-        private boolean firstListing = true;
-
-        private ListPartsResponse partListing;
-
-        private ListPartsRequest request;
-
-        PartIterator(final String key, final String id) {
-            this.key = key;
-            this.id = id;
-        }
-
-        public void listFirst() {
-            request = ListPartsRequest.builder()
-                    .bucket(fs.getBucket())
-                    .key(key)
-                    .uploadId(id)
-                    .build();
-            partListing = amazonS3.listParts(request);
-        }
-
-        public void listNext() {
-            request = request.toBuilder()
-                    .partNumberMarker(partListing.nextPartNumberMarker())
-                    .build();
-            partListing = amazonS3.listParts(request);
-        }
-
-        @Override
-        public boolean hasNext() throws IOException {
-            return firstListing || (partListing != null && partListing.isTruncated());
-        }
-
-        @Override
-        public ListPartsResponse next() throws IOException {
-            if (!hasNext()) {
-                throw new NoSuchElementException();
-            }
-            if (firstListing) {
-                firstListing = false;
-                listFirst();
-            } else {
-                // not first listing, so there's a valid, truncated part
-                listNext();
-            }
-            return null;
-        }
+    public void listNext() {
+      request = request.toBuilder().partNumberMarker(partListing.nextPartNumberMarker()).build();
+      partListing = amazonS3.listParts(request);
     }
+
+    @Override
+    public boolean hasNext() throws IOException {
+      return firstListing || (partListing != null && partListing.isTruncated());
+    }
+
+    @Override
+    public ListPartsResponse next() throws IOException {
+      if (!hasNext()) {
+        throw new NoSuchElementException();
+      }
+      if (firstListing) {
+        firstListing = false;
+        listFirst();
+      } else {
+        // not first listing, so there's a valid, truncated part
+        listNext();
+      }
+      return null;
+    }
+  }
 }

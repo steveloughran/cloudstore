@@ -22,84 +22,71 @@ import java.net.URI;
 import org.apache.hadoop.conf.Configuration;
 
 /**
- * Wasb diagnostics.
- * Doesn't include credential information.
+ * Wasb diagnostics. Doesn't include credential information.
  */
 public class WasbDiagnosticsInfo extends StoreDiagnosticsInfo {
 
-    private static final Object[][] options = {
-        {"fs.azure.user.agent.prefix", false, false},
-        {"fs.azure.secure.mode", false, false},
-        {"fs.azure.local.sas.key.mode", false, false},
-        {"fs.azure.atomic.rename.dir", false, false},
-        {"fs.azure.flatlist.enable", false, false},
-        {"fs.azure.autothrottling.enable", false, false},
-        {"fs.azure.enable.kerberos.support", false, false},
-        {"fs.azure.enable.spnego.token.cache", false, false},
-        {"fs.azure.cred.service.urls", false, false},
-        {"fs.azure.saskeygenerator.http.retry.policy.enabled", false, false},
-        {"fs.azure.saskeygenerator.http.retry.policy.spec", false, false},
-        {"fs.azure.saskey.cacheentry.expiry.period", false, false},
-        {"fs.azure.authorization.remote.service.urls", false, false},
-        {"fs.azure.delegation.token.service.urls", false, false},
-    };
+  private static final Object[][] options = {{"fs.azure.user.agent.prefix", false, false},
+      {"fs.azure.secure.mode", false, false}, {"fs.azure.local.sas.key.mode", false, false},
+      {"fs.azure.atomic.rename.dir", false, false}, {"fs.azure.flatlist.enable", false, false},
+      {"fs.azure.autothrottling.enable", false, false},
+      {"fs.azure.enable.kerberos.support", false, false},
+      {"fs.azure.enable.spnego.token.cache", false, false},
+      {"fs.azure.cred.service.urls", false, false},
+      {"fs.azure.saskeygenerator.http.retry.policy.enabled", false, false},
+      {"fs.azure.saskeygenerator.http.retry.policy.spec", false, false},
+      {"fs.azure.saskey.cacheentry.expiry.period", false, false},
+      {"fs.azure.authorization.remote.service.urls", false, false},
+      {"fs.azure.delegation.token.service.urls", false, false},};
 
-    public static final String[] classnames = {
-        "com.fasterxml.jackson.databind.ObjectReader",
-        "com.google.common.base.Preconditions",
-        "com.microsoft.azure.storage.StorageErrorCode",
-        "org.apache.commons.logging.Log",
-        "org.apache.http.client.methods.HttpGet",
-        "org.eclipse.jetty.util.ajax.JSON",
-        "org.eclipse.jetty.util.log.Log",
-        "org.apache.hadoop.fs.azure.NativeAzureFileSystem",
-    };
+  public static final String[] classnames =
+      {"com.fasterxml.jackson.databind.ObjectReader", "com.google.common.base.Preconditions",
+          "com.microsoft.azure.storage.StorageErrorCode", "org.apache.commons.logging.Log",
+          "org.apache.http.client.methods.HttpGet", "org.eclipse.jetty.util.ajax.JSON",
+          "org.eclipse.jetty.util.log.Log", "org.apache.hadoop.fs.azure.NativeAzureFileSystem",};
 
-    public static final String[] optionalClassnames = {
-        "org.apache.commons.lang.StringUtils", "org.apache.commons.lang3.StringUtils"
-    };
+  public static final String[] optionalClassnames =
+      {"org.apache.commons.lang.StringUtils", "org.apache.commons.lang3.StringUtils"};
 
-    public WasbDiagnosticsInfo(final URI fsURI, final Printout output) {
-        super(fsURI, output);
-    }
+  public WasbDiagnosticsInfo(final URI fsURI, final Printout output) {
+    super(fsURI, output);
+  }
 
-    @Override
-    public String getName() {
-        return "Azure WASB connector";
-    }
+  @Override
+  public String getName() {
+    return "Azure WASB connector";
+  }
 
-    @Override
-    public String getDescription() {
-        return "ASF Filesystem Connector to Microsoft Azure Storage";
-    }
+  @Override
+  public String getDescription() {
+    return "ASF Filesystem Connector to Microsoft Azure Storage";
+  }
 
-    @Override
-    public String getHomepage() {
-        return "https://hadoop.apache.org/docs/current/hadoop-azure/index.html";
-    }
+  @Override
+  public String getHomepage() {
+    return "https://hadoop.apache.org/docs/current/hadoop-azure/index.html";
+  }
 
-    @Override
-    public Object[][] getFilesystemOptions() {
-        return options;
-    }
+  @Override
+  public Object[][] getFilesystemOptions() {
+    return options;
+  }
 
-    @Override
-    public String[] getClassnames(final Configuration conf) {
-        return classnames;
-    }
+  @Override
+  public String[] getClassnames(final Configuration conf) {
+    return classnames;
+  }
 
-    @Override
-    public String[] getOptionalClassnames(final Configuration conf) {
-        return optionalClassnames;
-    }
+  @Override
+  public String[] getOptionalClassnames(final Configuration conf) {
+    return optionalClassnames;
+  }
 
-    @Override
-    protected void validateConfig(final Printout printout, final Configuration conf, final boolean writeOperations)
-            throws IOException {
-        super.validateConfig(printout, conf, writeOperations);
-        warnOnInvalidDomain(
-                printout,
-                ".blob.core.windows.net",
-                "https://docs.microsoft.com/en-us/azure/storage/blobs/storage-custom-domain-name");
-    }
+  @Override
+  protected void validateConfig(final Printout printout, final Configuration conf,
+      final boolean writeOperations) throws IOException {
+    super.validateConfig(printout, conf, writeOperations);
+    warnOnInvalidDomain(printout, ".blob.core.windows.net",
+        "https://docs.microsoft.com/en-us/azure/storage/blobs/storage-custom-domain-name");
+  }
 }

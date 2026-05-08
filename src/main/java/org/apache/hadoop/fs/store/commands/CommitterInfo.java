@@ -36,69 +36,68 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * CommitterInfo.
- * Finds out about what committer is in use for a path
+ * CommitterInfo. Finds out about what committer is in use for a path
  *
  * Prints some performance numbers at the end.
  */
 @SuppressWarnings("InstanceofIncompatibleInterface")
 public class CommitterInfo extends StoreEntryPoint {
 
-    private static final Logger LOG = LoggerFactory.getLogger(CommitterInfo.class);
+  private static final Logger LOG = LoggerFactory.getLogger(CommitterInfo.class);
 
-    public static final String USAGE = "Usage: committerinfo\n" + STANDARD_OPTS + " <path>";
+  public static final String USAGE = "Usage: committerinfo\n" + STANDARD_OPTS + " <path>";
 
-    public CommitterInfo() {
-        createCommandFormat(1, 999);
+  public CommitterInfo() {
+    createCommandFormat(1, 999);
+  }
+
+  @Override
+  public int run(String[] args) throws Exception {
+    List<String> paths = processArgs(args, 1, 1, USAGE);
+    final Configuration conf = createPreconfiguredConfig();
+
+    final Path source = new Path(paths.get(0));
+
+    try (StoreDurationInfo ignored = new StoreDurationInfo(LOG, "Create committer")) {
+      FileSystem fs = source.getFileSystem(conf);
+      Configuration fsConf = fs.getConf();
+      PathOutputCommitterFactory factory =
+          PathOutputCommitterFactory.getCommitterFactory(source, fsConf);
+      println("Committer factory for path %s is \n" + " %s\n" + " (classname %s)", source, factory,
+          factory.getClass().getCanonicalName());
+      PathOutputCommitter committer = factory.createOutputCommitter(source,
+          new TaskAttemptContextImpl(fsConf, new TaskAttemptID(new TaskID(), 1)));
+      println("Created committer of class\n" + " %s:\n" + " %s",
+          committer.getClass().getCanonicalName(), committer);
+      if (committer instanceof StreamCapabilities && ((StreamCapabilities) committer)
+          .hasCapability("mapreduce.job.committer.dynamic.partitioning")) {
+        println("Committer declares support for spark dynamic partitioning");
+      }
     }
+    return 0;
+  }
 
-    @Override
-    public int run(String[] args) throws Exception {
-        List<String> paths = processArgs(args, 1, 1, USAGE);
-        final Configuration conf = createPreconfiguredConfig();
+  /**
+   * Execute the command, return the result or throw an exception, as appropriate.
+   * 
+   * @param args argument varags.
+   * @return return code
+   * @throws Exception failure
+   */
+  public static int exec(String... args) throws Exception {
+    return ToolRunner.run(new CommitterInfo(), args);
+  }
 
-        final Path source = new Path(paths.get(0));
-
-        try (StoreDurationInfo ignored = new StoreDurationInfo(LOG, "Create committer")) {
-            FileSystem fs = source.getFileSystem(conf);
-            Configuration fsConf = fs.getConf();
-            PathOutputCommitterFactory factory = PathOutputCommitterFactory.getCommitterFactory(source, fsConf);
-            println(
-                    "Committer factory for path %s is \n" + " %s\n" + " (classname %s)",
-                    source, factory, factory.getClass().getCanonicalName());
-            PathOutputCommitter committer = factory.createOutputCommitter(
-                    source, new TaskAttemptContextImpl(fsConf, new TaskAttemptID(new TaskID(), 1)));
-            println(
-                    "Created committer of class\n" + " %s:\n" + " %s",
-                    committer.getClass().getCanonicalName(), committer);
-            if (committer instanceof StreamCapabilities
-                    && ((StreamCapabilities) committer).hasCapability("mapreduce.job.committer.dynamic.partitioning")) {
-                println("Committer declares support for spark dynamic partitioning");
-            }
-        }
-        return 0;
+  /**
+   * Main entry point. Calls {@code System.exit()} on all execution paths.
+   * 
+   * @param args argument list
+   */
+  public static void main(String[] args) {
+    try {
+      exit(exec(args), "");
+    } catch (Throwable e) {
+      exitOnThrowable(e);
     }
-
-    /**
-     * Execute the command, return the result or throw an exception,
-     * as appropriate.
-     * @param args argument varags.
-     * @return return code
-     * @throws Exception failure
-     */
-    public static int exec(String... args) throws Exception {
-        return ToolRunner.run(new CommitterInfo(), args);
-    }
-
-    /**
-     * Main entry point. Calls {@code System.exit()} on all execution paths.
-     * @param args argument list
-     */
-    public static void main(String[] args) {
-        try {
-            exit(exec(args), "");
-        } catch (Throwable e) {
-            exitOnThrowable(e);
-        }
-    }
+  }
 }

@@ -23,16 +23,12 @@
   <packaging>jar</packaging>
 
   <name>cloudstore</name>
-  <url>https://github.com/steveloughran/cloudstore</url>
+  <url>https://org.apache.hadoop/cloudstore</url>
 
 
   <description>
-    Cloud Store operations, targeting Hadoop 3.3.0+.
+    Cloud Store operations, targeting Hadoop 3.4.0+.
 
-    The code is all in the org.apache.hadoop package as we have a goal of
-    including it in hadoop at some point. It just so happens that
-    it turns out to be very useful to be able to agile releases, sometimes
-    even more than once a day, so that we can track down problems elsewhere.
   </description>
 
   <properties>
@@ -41,34 +37,41 @@
     <javac.version>1.8</javac.version>
     <enforced.java.version>${javac.version}</enforced.java.version>
 
-    <hadoop.version>3.4.2</hadoop.version>
-    <gcs-connector.version>hadoop3-2.2.4</gcs-connector.version>
-
     <test.build.dir>${project.build.directory}/test-dir</test.build.dir>
     <test.build.data>${test.build.dir}</test.build.data>
-    <assertj.version>3.27.7</assertj.version>
-    <buildhelper.version>3.3.0</buildhelper.version>
-    <!-- avro version -->
-    <avro.version>1.11.5</avro.version>
 
-    <!-- ASF/Hadoop submodule build tooling -->
-    <maven-enforcer-plugin.version>3.4.1</maven-enforcer-plugin.version>
+    <!-- keep sorted -->
     <apache-rat-plugin.version>0.16.1</apache-rat-plugin.version>
-    <spotless-maven-plugin.version>2.43.0</spotless-maven-plugin.version>
-    <palantir-java-format.version>2.50.0</palantir-java-format.version>
-    <maven-site-plugin.version>3.12.1</maven-site-plugin.version>
-    <maven-fluido-skin.version>1.11.1</maven-fluido-skin.version>
+    <assertj.version>3.27.7</assertj.version>
+    <avro.version>1.11.5</avro.version>
+    <buildhelper.version>3.3.0</buildhelper.version>
     <doxia-module-markdown.version>1.12.0</doxia-module-markdown.version>
-    <maven-source-plugin.version>3.3.0</maven-source-plugin.version>
+    <gcs-connector.version>hadoop3-2.2.4</gcs-connector.version>
+    <hadoop.version>3.4.2</hadoop.version>
+    <junit.version>4.13.2</junit.version>
+    <maven-checkstyle-plugin.version>3.3.1</maven-checkstyle-plugin.version>
+    <checkstyle.version>9.3</checkstyle.version>
+    <maven-enforcer-plugin.version>3.4.1</maven-enforcer-plugin.version>
+    <maven-fluido-skin.version>1.11.1</maven-fluido-skin.version>
     <maven-javadoc-plugin.version>3.6.3</maven-javadoc-plugin.version>
+    <!-- 3.5.0 is the last Doxia-1.x-compatible release; 3.6+ requires the
+         Doxia 2 Sink API which maven-site-plugin 3.12.1 does not provide
+         (NoSuchMethodError: Sink.verbatim()). Bump together if upgrading
+         to maven-site-plugin 3.20+ / Doxia 2. -->
+    <maven-project-info-reports-plugin.version>3.5.0</maven-project-info-reports-plugin.version>
+    <maven-site-plugin.version>3.12.1</maven-site-plugin.version>
+    <maven-source-plugin.version>3.3.0</maven-source-plugin.version>
+    <palantir-java-format.version>2.50.0</palantir-java-format.version>
+    <spotless-maven-plugin.version>2.43.0</spotless-maven-plugin.version>
 
+    <awsv2sdk.version>2.29.52</awsv2sdk.version>
   </properties>
 
   <dependencies>
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
-      <version>4.13.2</version>
+      <version>${junit.version}</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -77,26 +80,6 @@
       <version>${assertj.version}</version>
       <scope>test</scope>
     </dependency>
-    <!--
-
-        <dependency>
-          <groupId>org.slf4j</groupId>
-          <artifactId>slf4j-log4j12</artifactId>
-          <version>1.7.32</version>
-          <scope>provided</scope>
-        </dependency>
-    -->
-
-
-    <!-- https://mvnrepository.com/artifact/ch.qos.logback/logback-classic -->
-    <!--
-        <dependency>
-          <groupId>ch.qos.logback</groupId>
-          <artifactId>logback-classic</artifactId>
-          <version>1.4.5</version>
-          <scope>provided</scope>
-        </dependency>
-    -->
 
     <dependency>
       <groupId>org.apache.hadoop</groupId>
@@ -104,18 +87,7 @@
       <version>${hadoop.version}</version>
       <scope>provided</scope>
       <exclusions>
-        <!--        <exclusion>
-                  <groupId>org.slf4j</groupId>
-                  <artifactId>*</artifactId>
-                </exclusion>
-                <exclusion>
-                  <groupId>log4j</groupId>
-                  <artifactId>log4j</artifactId>
-                </exclusion>
-                <exclusion>
-                  <groupId>ch.qos.reload4j</groupId>
-                  <artifactId>reload4j</artifactId>
-                </exclusion>-->
+
       </exclusions>
     </dependency>
 
@@ -125,18 +97,7 @@
       <version>${hadoop.version}</version>
       <scope>provided</scope>
       <exclusions>
-        <!--        <exclusion>
-                  <groupId>org.slf4j</groupId>
-                  <artifactId>*</artifactId>
-                </exclusion>
-                <exclusion>
-                  <groupId>log4j</groupId>
-                  <artifactId>log4j</artifactId>
-                </exclusion>
-                <exclusion>
-                  <groupId>ch.qos.reload4j</groupId>
-                  <artifactId>reload4j</artifactId>
-                </exclusion>-->
+
       </exclusions>
     </dependency>
 
@@ -147,18 +108,7 @@
       <type>test-jar</type>
       <scope>provided</scope>
       <exclusions>
-        <!--        <exclusion>
-                  <groupId>org.apache.hadoop</groupId>
-                  <artifactId>*</artifactId>
-                </exclusion>
-                <exclusion>
-                  <groupId>org.slf4j</groupId>
-                  <artifactId>*</artifactId>
-                </exclusion>
-                <exclusion>
-                  <groupId>log4j</groupId>
-                  <artifactId>log4j</artifactId>
-                </exclusion>-->
+
       </exclusions>
     </dependency>
 
@@ -198,14 +148,6 @@
           <groupId>com.google.guava</groupId>
           <artifactId>guava</artifactId>
         </exclusion>
-        <!--          <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>*</artifactId>
-                  </exclusion>
-                  <exclusion>
-                    <groupId>log4j</groupId>
-                    <artifactId>log4j</artifactId>
-                  </exclusion>-->
       </exclusions>
     </dependency>
 
@@ -214,16 +156,6 @@
       <version>${hadoop.version}</version>
       <artifactId>hadoop-mapreduce-client-jobclient</artifactId>
       <scope>provided</scope>
-      <exclusions>
-        <!--        <exclusion>
-                  <groupId>org.slf4j</groupId>
-                  <artifactId>*</artifactId>
-                </exclusion>
-                <exclusion>
-                  <groupId>log4j</groupId>
-                  <artifactId>log4j</artifactId>
-                </exclusion>-->
-      </exclusions>
     </dependency>
 
     <dependency>
@@ -231,16 +163,6 @@
       <artifactId>hadoop-mapreduce-client-core</artifactId>
       <version>${hadoop.version}</version>
       <scope>provided</scope>
-      <exclusions>
-        <!--          <exclusion>
-                    <groupId>org.slf4j</groupId>
-                    <artifactId>*</artifactId>
-                  </exclusion>
-                  <exclusion>
-                    <groupId>log4j</groupId>
-                    <artifactId>log4j</artifactId>
-                  </exclusion>-->
-      </exclusions>
     </dependency>
 
 
@@ -262,7 +184,7 @@
     <dependency>
       <groupId>software.amazon.awssdk</groupId>
       <artifactId>bundle</artifactId>
-      <version>2.29.52</version>
+      <version>${awsv2sdk.version}</version>
       <scope>provided</scope>
       <exclusions>
         <exclusion>
@@ -271,24 +193,6 @@
         </exclusion>
       </exclusions>
     </dependency>
-    <!--
-
-        <dependency>
-          <groupId>org.apache.hadoop</groupId>
-          <artifactId>hadoop-aws</artifactId>
-          <version>${hadoop.version}</version>
-          <type>test-jar</type>
-          <scope>test</scope>
-        </dependency>
-
-        <dependency>
-          <groupId>org.apache.hadoop</groupId>
-          <artifactId>hadoop-azure</artifactId>
-          <version>${hadoop.version}</version>
-          <type>test-jar</type>
-          <scope>test</scope>
-        </dependency>
-    -->
 
   </dependencies>
 
@@ -300,7 +204,7 @@
     <profile>
       <id>latest</id>
       <properties>
-        <hadoop.version>3.4.2</hadoop.version>
+        <hadoop.version>3.5.0</hadoop.version>
       </properties>
     </profile>
 
@@ -308,15 +212,15 @@
     <profile>
       <id>next</id>
       <properties>
-        <hadoop.version>3.4.3-SNAPSHOT</hadoop.version>
+        <hadoop.version>3.6.0-SNAPSHOT</hadoop.version>
       </properties>
     </profile>
 
-    <!-- 7.3.2 -->
+    <!-- cloudera 7.3.2 -->
     <profile>
       <id>7.3.2</id>
       <properties>
-        <hadoop.version>3.4.1.7.3.2.0-SNAPSHOT</hadoop.version>
+        <hadoop.version>3.4.1.7.3.2.0</hadoop.version>
       </properties>
     </profile>
 
@@ -341,50 +245,6 @@
       </properties>
     </profile>
 
-    <profile>
-      <!-- Activate to compile and run ITestS3AStorediagContract. Pulls in
-           hadoop-aws test-jar (which provides S3AContract). The test-jar is
-           not always published to Maven Central — set -Ds3a-it on a build that
-           has the test-jar already in the local repo or has a private mirror. -->
-      <id>s3a-it</id>
-      <activation>
-        <property>
-          <name>s3a-it</name>
-        </property>
-      </activation>
-      <dependencies>
-        <dependency>
-          <groupId>org.apache.hadoop</groupId>
-          <artifactId>hadoop-aws</artifactId>
-          <version>${hadoop.version}</version>
-          <type>test-jar</type>
-          <scope>test</scope>
-        </dependency>
-      </dependencies>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>build-helper-maven-plugin</artifactId>
-            <version>${buildhelper.version}</version>
-            <executions>
-              <execution>
-                <id>add-s3a-test-source</id>
-                <phase>generate-test-sources</phase>
-                <goals>
-                  <goal>add-test-source</goal>
-                </goals>
-                <configuration>
-                  <sources>
-                    <source>src/test/extra-s3a</source>
-                  </sources>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
 
     <profile>
       <id>gcs</id>
@@ -517,6 +377,33 @@
 
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-checkstyle-plugin</artifactId>
+          <version>${maven-checkstyle-plugin.version}</version>
+          <dependencies>
+            <!-- Override the bundled Checkstyle to a version that parses
+                 modern Java syntax. Bumping in lockstep with the upstream
+                 hadoop-build-tools release that produced the rules. -->
+            <dependency>
+              <groupId>com.puppycrawl.tools</groupId>
+              <artifactId>checkstyle</artifactId>
+              <version>${checkstyle.version}</version>
+            </dependency>
+          </dependencies>
+          <configuration>
+            <configLocation>${project.basedir}/dev-support/checkstyle.xml</configLocation>
+            <suppressionsLocation>${project.basedir}/dev-support/checkstyle-suppressions.xml</suppressionsLocation>
+            <suppressionsFileExpression>checkstyle.suppressions.file</suppressionsFileExpression>
+            <includeTestSourceDirectory>true</includeTestSourceDirectory>
+            <consoleOutput>true</consoleOutput>
+            <failsOnError>false</failsOnError>
+            <failOnViolation>false</failOnViolation>
+            <linkXRef>false</linkXRef>
+            <encoding>UTF-8</encoding>
+          </configuration>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-site-plugin</artifactId>
           <version>${maven-site-plugin.version}</version>
           <dependencies>
@@ -526,6 +413,12 @@
               <version>${doxia-module-markdown.version}</version>
             </dependency>
           </dependencies>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-project-info-reports-plugin</artifactId>
+          <version>${maven-project-info-reports-plugin.version}</version>
         </plugin>
 
         <plugin>
@@ -641,9 +534,9 @@
               <!-- Generated avro -->
               <exclude>target/generated-sources/**/*.java</exclude>
             </excludes>
-            <palantirJavaFormat>
-              <version>${palantir-java-format.version}</version>
-            </palantirJavaFormat>
+            <eclipse>
+              <file>${project.basedir}/dev-support/eclipse-formatter.xml</file>
+            </eclipse>
             <removeUnusedImports/>
             <importOrder/>
             <licenseHeader>
@@ -732,4 +625,36 @@
       </plugin>
     </plugins>
   </build>
+
+  <reporting>
+    <plugins>
+      <!-- Pinned to a Doxia-1.x-compatible release; see comment in
+           ${maven-project-info-reports-plugin.version}. The site plugin's
+           default report version is incompatible with our Doxia 1 stack. -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-project-info-reports-plugin</artifactId>
+        <version>${maven-project-info-reports-plugin.version}</version>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <version>${maven-checkstyle-plugin.version}</version>
+        <configuration>
+          <configLocation>${project.basedir}/dev-support/checkstyle.xml</configLocation>
+          <suppressionsLocation>${project.basedir}/dev-support/checkstyle-suppressions.xml</suppressionsLocation>
+          <includeTestSourceDirectory>true</includeTestSourceDirectory>
+          <linkXRef>false</linkXRef>
+        </configuration>
+        <reportSets>
+          <reportSet>
+            <reports>
+              <report>checkstyle</report>
+            </reports>
+          </reportSet>
+        </reportSets>
+      </plugin>
+    </plugins>
+  </reporting>
 </project>

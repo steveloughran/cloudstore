@@ -41,56 +41,54 @@ import software.amazon.awssdk.services.s3.model.CreateBucketResponse;
  */
 public class MkBucket extends StoreEntryPoint {
 
-    private static final Logger LOG = LoggerFactory.getLogger(MkBucket.class);
+  private static final Logger LOG = LoggerFactory.getLogger(MkBucket.class);
 
-    public static final String USAGE = "Usage: mkbucket <region> <S3A path>";
+  public static final String USAGE = "Usage: mkbucket <region> <S3A path>";
 
-    public MkBucket() {
-        createCommandFormat(2, 2);
+  public MkBucket() {
+    createCommandFormat(2, 2);
+  }
+
+  @Override
+  public int run(String[] args) throws Exception {
+    List<String> paths = parseArgs(args);
+    if (paths.size() != 2) {
+      errorln(USAGE);
+      return E_USAGE;
     }
 
-    @Override
-    public int run(String[] args) throws Exception {
-        List<String> paths = parseArgs(args);
-        if (paths.size() != 2) {
-            errorln(USAGE);
-            return E_USAGE;
-        }
+    final Configuration conf = createPreconfiguredConfig();
+    conf.setInt(S3A_BUCKET_PROBE, 0);
+    conf.setBoolean(FS_S3A_AUDIT_REJECT_OUT_OF_SPAN_OPERATIONS, false);
 
-        final Configuration conf = createPreconfiguredConfig();
-        conf.setInt(S3A_BUCKET_PROBE, 0);
-        conf.setBoolean(FS_S3A_AUDIT_REJECT_OUT_OF_SPAN_OPERATIONS, false);
-
-        final String region = paths.get(0);
-        final String bucketPath = paths.get(1);
-        final Path source = new Path(bucketPath);
-        S3AFileSystem fs = (S3AFileSystem) source.getFileSystem(conf);
-        final S3Client client = fs.getS3AInternals().getAmazonS3Client("mkbucket");
-        final String bucketName = source.toUri().getHost();
-        final CreateBucketRequest request = CreateBucketRequest.builder()
-                .bucket(bucketName)
-                .createBucketConfiguration(CreateBucketConfiguration.builder()
-                        .locationConstraint(region)
-                        .build())
-                .build();
-        CreateBucketResponse bucket;
-        try (StoreDurationInfo ignored = new StoreDurationInfo(LOG, "Creating bucket %s", bucketName)) {
-            bucket = Invoker.once("delete", source.toString(), () -> client.createBucket(request));
-        }
-        println("Created bucket %s", bucket);
-
-        return 0;
+    final String region = paths.get(0);
+    final String bucketPath = paths.get(1);
+    final Path source = new Path(bucketPath);
+    S3AFileSystem fs = (S3AFileSystem) source.getFileSystem(conf);
+    final S3Client client = fs.getS3AInternals().getAmazonS3Client("mkbucket");
+    final String bucketName = source.toUri().getHost();
+    final CreateBucketRequest request =
+        CreateBucketRequest.builder().bucket(bucketName).createBucketConfiguration(
+            CreateBucketConfiguration.builder().locationConstraint(region).build()).build();
+    CreateBucketResponse bucket;
+    try (StoreDurationInfo ignored = new StoreDurationInfo(LOG, "Creating bucket %s", bucketName)) {
+      bucket = Invoker.once("delete", source.toString(), () -> client.createBucket(request));
     }
+    println("Created bucket %s", bucket);
 
-    /**
-     * Main entry point. Calls {@code System.exit()} on all execution paths.
-     * @param args argument list
-     */
-    public static void main(String[] args) {
-        try {
-            exit(ToolRunner.run(new MkBucket(), args), "");
-        } catch (Throwable e) {
-            exitOnThrowable(e);
-        }
+    return 0;
+  }
+
+  /**
+   * Main entry point. Calls {@code System.exit()} on all execution paths.
+   * 
+   * @param args argument list
+   */
+  public static void main(String[] args) {
+    try {
+      exit(ToolRunner.run(new MkBucket(), args), "");
+    } catch (Throwable e) {
+      exitOnThrowable(e);
     }
+  }
 }

@@ -25,63 +25,55 @@ import org.apache.hadoop.conf.Configuration;
  */
 public class TemplateDiagnosticsInfo extends StoreDiagnosticsInfo {
 
-    /**
-     * Mandatory classnames.
-     */
-    public static final String[] classnames = {
-        "com.example.mandatory",
-    };
+  /**
+   * Mandatory classnames.
+   */
+  public static final String[] classnames = {"com.example.mandatory",};
 
-    /**
-     *  Optional classnames.
-     */
-    public static final String[] optionalClassnames = {
-        "",
-    };
+  /**
+   * Optional classnames.
+   */
+  public static final String[] optionalClassnames = {"",};
 
-    /**
-     * List of options for filesystems.
-     * Each entry must be a tuple of (string, password, sensitive).
-     * "password" entries are read via Configuration.getPassword(),
-     * so will be read from a credential file.
-     * Sensitive strings don't have their values fully printed.
-     */
-    private static final Object[][] options = {
-        {"fs.FS.something", false, false},
-        {"fs.FS.secret", true, true},
-    };
+  /**
+   * List of options for filesystems. Each entry must be a tuple of (string, password, sensitive).
+   * "password" entries are read via Configuration.getPassword(), so will be read from a credential
+   * file. Sensitive strings don't have their values fully printed.
+   */
+  private static final Object[][] options =
+      {{"fs.FS.something", false, false}, {"fs.FS.secret", true, true},};
 
-    public TemplateDiagnosticsInfo(final URI fsURI, final Printout output) {
-        super(fsURI, output);
-    }
+  public TemplateDiagnosticsInfo(final URI fsURI, final Printout output) {
+    super(fsURI, output);
+  }
 
-    @Override
-    public String getName() {
-        return "NAME";
-    }
+  @Override
+  public String getName() {
+    return "NAME";
+  }
 
-    @Override
-    public String getDescription() {
-        return "Filesystem Connector to " + getName();
-    }
+  @Override
+  public String getDescription() {
+    return "Filesystem Connector to " + getName();
+  }
 
-    @Override
-    public String getHomepage() {
-        return "https://hadoop.apache.org/docs/current/index.html";
-    }
+  @Override
+  public String getHomepage() {
+    return "https://hadoop.apache.org/docs/current/index.html";
+  }
 
-    @Override
-    public Object[][] getFilesystemOptions() {
-        return options;
-    }
+  @Override
+  public Object[][] getFilesystemOptions() {
+    return options;
+  }
 
-    @Override
-    public String[] getClassnames(final Configuration conf) {
-        return classnames;
-    }
+  @Override
+  public String[] getClassnames(final Configuration conf) {
+    return classnames;
+  }
 
-    @Override
-    public String[] getOptionalClassnames(final Configuration conf) {
-        return optionalClassnames;
-    }
+  @Override
+  public String[] getOptionalClassnames(final Configuration conf) {
+    return optionalClassnames;
+  }
 }

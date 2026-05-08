@@ -27,24 +27,24 @@ import org.junit.BeforeClass;
 /**
  * Cloudup run against an in-process MiniDFSCluster.
  *
- * <p>Cluster lifecycle follows the {@code TestHDFSContract*} pattern: a single
- * MiniDFSCluster created in {@code @BeforeClass} is shared by every {@code @Test}
- * method in this class.
+ * <p>
+ * Cluster lifecycle follows the {@code TestHDFSContract*} pattern: a single MiniDFSCluster created
+ * in {@code @BeforeClass} is shared by every {@code @Test} method in this class.
  */
 public class ITestHdfsCloudupContract extends AbstractCloudupContractTest {
 
-    @BeforeClass
-    public static void createCluster() throws IOException {
-        HDFSContract.createCluster();
-    }
+  @BeforeClass
+  public static void createCluster() throws IOException {
+    HDFSContract.createCluster();
+  }
 
-    @AfterClass
-    public static void teardownCluster() throws IOException {
-        HDFSContract.destroyCluster();
-    }
+  @AfterClass
+  public static void teardownCluster() throws IOException {
+    HDFSContract.destroyCluster();
+  }
 
-    @Override
-    protected AbstractFSContract createContract(Configuration conf) {
-        return new HDFSContract(conf);
-    }
+  @Override
+  protected AbstractFSContract createContract(Configuration conf) {
+    return new HDFSContract(conf);
+  }
 }

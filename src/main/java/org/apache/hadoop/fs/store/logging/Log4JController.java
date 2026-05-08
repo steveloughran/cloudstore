@@ -25,9 +25,9 @@ import org.apache.log4j.Logger;
  */
 public class Log4JController implements LogControl {
 
-    @Override
-    public void setLogLevel(final String log, final LogLevel level) {
-        Logger logger = Logger.getLogger(log);
-        logger.setLevel(Level.toLevel(level.name()));
-    }
+  @Override
+  public void setLogLevel(final String log, final LogLevel level) {
+    Logger logger = Logger.getLogger(log);
+    logger.setLevel(Level.toLevel(level.name()));
+  }
 }

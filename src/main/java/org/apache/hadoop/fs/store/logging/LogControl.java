@@ -18,42 +18,34 @@
 package org.apache.hadoop.fs.store.logging;
 
 /**
- * Interface to assist reflection-based control of logger back ends.
- * An instance of LogControl is able to control the log levels of
- * loggers for log libraries such as Log4j, yet can be used in
- * code designed to support multiple back end loggers behind
- * SLF4J.
+ * Interface to assist reflection-based control of logger back ends. An instance of LogControl is
+ * able to control the log levels of loggers for log libraries such as Log4j, yet can be used in
+ * code designed to support multiple back end loggers behind SLF4J.
  */
 public interface LogControl {
 
+  /**
+   * Enumeration of log levels. The list is in descending order.
+   */
+  enum LogLevel {
+    ALL("ALL"), FATAL("FATAL"), ERROR("ERROR"), WARN("WARN"), INFO("INFO"), DEBUG("DEBUG"), TRACE(
+        "TRACE"), OFF("OFF");
+
     /**
-     * Enumeration of log levels.
-     * The list is in descending order.
+     * Level name.
      */
-    enum LogLevel {
-        ALL("ALL"),
-        FATAL("FATAL"),
-        ERROR("ERROR"),
-        WARN("WARN"),
-        INFO("INFO"),
-        DEBUG("DEBUG"),
-        TRACE("TRACE"),
-        OFF("OFF");
+    public final String key;
 
-        /**
-         * Level name.
-         */
-        public final String key;
-
-        LogLevel(final String key) {
-            this.key = key;
-        }
+    LogLevel(final String key) {
+      this.key = key;
     }
+  }
 
-    /**
-     * Sets a log level for a class/package.
-     * @param log log to set
-     * @param level level to set
-     */
-    void setLogLevel(String log, LogLevel level);
+  /**
+   * Sets a log level for a class/package.
+   * 
+   * @param log log to set
+   * @param level level to set
+   */
+  void setLogLevel(String log, LogLevel level);
 }

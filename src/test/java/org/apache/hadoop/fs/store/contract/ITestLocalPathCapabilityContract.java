@@ -17,21 +17,27 @@
  */
 package org.apache.hadoop.fs.store.contract;
 
+import static org.apache.hadoop.fs.store.diag.CapabilityKeys.FS_PERMISSIONS;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.contract.AbstractFSContract;
-import org.apache.hadoop.fs.contract.s3a.S3AContract;
+import org.apache.hadoop.fs.contract.localfs.LocalFSContract;
 
 /**
- * Contract test running storediag against an S3A bucket.
- *
- * <p>Skipped automatically when {@code fs.contract.test.fs.s3a} is not set —
- * the cloudstore convention is to put credentials and the test bucket URI in
- * {@code src/test/resources/auth-keys.xml} (gitignored).
+ * pathcapability run against the local filesystem. Always-on.
  */
-public class ITestS3AStorediagContract extends AbstractStorediagContractTest {
+public class ITestLocalPathCapabilityContract extends AbstractPathCapabilityContractTest {
 
-    @Override
-    protected AbstractFSContract createContract(Configuration conf) {
-        return new S3AContract(conf);
-    }
+  @Override
+  protected AbstractFSContract createContract(Configuration conf) {
+    return new LocalFSContract(conf);
+  }
+
+  @Override
+  protected String knownValidCapability() {
+    // ChecksumFileSystem (the wrapper around RawLocalFileSystem) explicitly
+    // blocks FS_APPEND / FS_CONCAT but delegates other capabilities to the
+    // underlying raw FS, which advertises FS_PERMISSIONS.
+    return FS_PERMISSIONS;
+  }
 }

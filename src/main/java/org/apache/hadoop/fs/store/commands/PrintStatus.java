@@ -38,68 +38,70 @@ import org.slf4j.LoggerFactory;
  */
 public class PrintStatus extends StoreEntryPoint {
 
-    private static final Logger LOG = LoggerFactory.getLogger(PrintStatus.class);
+  private static final Logger LOG = LoggerFactory.getLogger(PrintStatus.class);
 
-    public static final String USAGE = "Usage: filestatus\n" + STANDARD_OPTS + " <path> [<path>*]";
+  public static final String USAGE = "Usage: filestatus\n" + STANDARD_OPTS + " <path> [<path>*]";
 
-    public PrintStatus() {
-        createCommandFormat(1, 999);
-    }
+  public PrintStatus() {
+    createCommandFormat(1, 999);
+  }
 
-    @Override
-    public int run(String[] args) throws Exception {
-        List<String> paths = processArgs(args, 1, -1, USAGE);
-        final Configuration conf = createPreconfiguredConfig();
+  @Override
+  public int run(String[] args) throws Exception {
+    List<String> paths = processArgs(args, 1, -1, USAGE);
+    final Configuration conf = createPreconfiguredConfig();
 
-        final Path source = new Path(paths.get(0));
-        FileSystem fs = null;
-        StoreDurationInfo duration = new StoreDurationInfo(LOG, "get path status for %s", source);
-        try {
-            fs = source.getFileSystem(conf);
-            for (String path : paths) {
-                FileStatus st = fs.getFileStatus(new Path(path));
-                println("%s\t%s\t[%s]", st.getPath(), st, FileUtils.byteCountToDisplaySize(st.getLen()));
-                if (st.isDirectory() && st.getLen() > 0) {
-                    LOG.warn("{} is a directory but its length is {}", path, st.getLen());
-                }
-                if (st.getLen() < 0) {
-                    LOG.warn("{} has a negative length: {}", path, st.getLen());
-                }
-            }
-        } finally {
-            duration.close();
+    final Path source = new Path(paths.get(0));
+    FileSystem fs = null;
+    StoreDurationInfo duration = new StoreDurationInfo(LOG, "get path status for %s", source);
+    try {
+      fs = source.getFileSystem(conf);
+      for (String path : paths) {
+        FileStatus st = fs.getFileStatus(new Path(path));
+        println("%s\t%s\t[%s]", st.getPath(), st, FileUtils.byteCountToDisplaySize(st.getLen()));
+        if (st.isDirectory() && st.getLen() > 0) {
+          LOG.warn("{} is a directory but its length is {}", path, st.getLen());
         }
-        long files = paths.size();
-        if (files > 1) {
-            double millisPerFile = (float) duration.value() / files;
-            println("");
-            println("Retrieved the status of %s files, %,.0f milliseconds per file", files, millisPerFile);
+        if (st.getLen() < 0) {
+          LOG.warn("{} has a negative length: {}", path, st.getLen());
         }
-
-        maybeDumpStorageStatistics(fs);
-        return 0;
+      }
+    } finally {
+      duration.close();
+    }
+    long files = paths.size();
+    if (files > 1) {
+      double millisPerFile = (float) duration.value() / files;
+      println("");
+      println("Retrieved the status of %s files, %,.0f milliseconds per file", files,
+          millisPerFile);
     }
 
-    /**
-     * Execute the command, return the result or throw an exception,
-     * as appropriate.
-     * @param args argument varags.
-     * @return return code
-     * @throws Exception failure
-     */
-    public static int exec(String... args) throws Exception {
-        return ToolRunner.run(new PrintStatus(), args);
-    }
+    maybeDumpStorageStatistics(fs);
+    return 0;
+  }
 
-    /**
-     * Main entry point. Calls {@code System.exit()} on all execution paths.
-     * @param args argument list
-     */
-    public static void main(String[] args) {
-        try {
-            exit(exec(args), "");
-        } catch (Throwable e) {
-            exitOnThrowable(e);
-        }
+  /**
+   * Execute the command, return the result or throw an exception, as appropriate.
+   * 
+   * @param args argument varags.
+   * @return return code
+   * @throws Exception failure
+   */
+  public static int exec(String... args) throws Exception {
+    return ToolRunner.run(new PrintStatus(), args);
+  }
+
+  /**
+   * Main entry point. Calls {@code System.exit()} on all execution paths.
+   * 
+   * @param args argument list
+   */
+  public static void main(String[] args) {
+    try {
+      exit(exec(args), "");
+    } catch (Throwable e) {
+      exitOnThrowable(e);
     }
+  }
 }

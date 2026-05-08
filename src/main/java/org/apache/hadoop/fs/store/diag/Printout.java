@@ -25,100 +25,107 @@ import org.apache.hadoop.conf.Configuration;
  */
 public interface Printout {
 
-    void println();
+  void println();
 
-    /**
-     * Print a formatted string followed by a newline to the output stream.
-     * @param format format string
-     */
-    void println(String format);
+  /**
+   * Print a formatted string followed by a newline to the output stream.
+   * 
+   * @param format format string
+   */
+  void println(String format);
 
-    /**
-     * Print a formatted string followed by a newline to the output stream.
-     * @param format format string
-     * @param args optional arguments
-     */
-    void println(String format, Object... args);
+  /**
+   * Print a formatted string followed by a newline to the output stream.
+   * 
+   * @param format format string
+   * @param args optional arguments
+   */
+  void println(String format, Object... args);
 
-    /**
-     * Flush the stream.
-     */
-    void flush();
+  /**
+   * Flush the stream.
+   */
+  void flush();
 
-    /**
-     * Print a formatted string without any newline.
-     * @param format format string
-     * @param args optional arguments
-     */
-    void print(String format, Object... args);
+  /**
+   * Print a formatted string without any newline.
+   * 
+   * @param format format string
+   * @param args optional arguments
+   */
+  void print(String format, Object... args);
 
-    /**
-     * Print a warning.
-     * @param format format string
-     * @param args optional arguments
-     */
-    void warn(String format, Object... args);
+  /**
+   * Print a warning.
+   * 
+   * @param format format string
+   * @param args optional arguments
+   */
+  void warn(String format, Object... args);
 
-    void advise(String format, Object... args);
+  void advise(String format, Object... args);
 
-    /**
-     * Print an error. unless overridden, this forwards to warn.
-     * @param format format string
-     * @param args optional arguments
-     */
-    default void error(String format, Object... args) {
-        warn(format, args);
-    }
+  /**
+   * Print an error. unless overridden, this forwards to warn.
+   * 
+   * @param format format string
+   * @param args optional arguments
+   */
+  default void error(String format, Object... args) {
+    warn(format, args);
+  }
 
-    /**
-     * handle an exception by printing formatted message and
-     * toString value of the exception, then log
-     * at error.
-     * @param thrown exception.
-     * @param format format string
-     * @param args varargs.
-     */
-    void exception(Throwable thrown, String format, Object... args);
+  /**
+   * handle an exception by printing formatted message and toString value of the exception, then log
+   * at error.
+   * 
+   * @param thrown exception.
+   * @param format format string
+   * @param args varargs.
+   */
+  void exception(Throwable thrown, String format, Object... args);
 
-    void heading(String format, Object... args);
+  void heading(String format, Object... args);
 
-    void subheading(String format, Object... args);
+  void subheading(String format, Object... args);
 
-    /**
-     * Debug message.
-     * @param format format string
-     * @param args arguments.
-     */
-    void debug(String format, Object... args);
+  /**
+   * Debug message.
+   * 
+   * @param format format string
+   * @param args arguments.
+   */
+  void debug(String format, Object... args);
 
-    /**
-     * Print the selected options in a config.
-     * This is an array of (name, secret, obfuscate) entries.
-     * @param title heading to print
-     * @param conf source configuration
-     * @param options map of options
-     */
-    void printOptions(String title, Configuration conf, Object[][] options) throws IOException;
+  /**
+   * Print the selected options in a config. This is an array of (name, secret, obfuscate) entries.
+   * 
+   * @param title heading to print
+   * @param conf source configuration
+   * @param options map of options
+   */
+  void printOptions(String title, Configuration conf, Object[][] options) throws IOException;
 
-    /**
-     * Sanitize a value if needed.
-     * @param value option value.
-     * @param obfuscate should it be obfuscated?
-     * @return string safe to log; in quotes
-     */
-    String maybeSanitize(String value, boolean obfuscate);
+  /**
+   * Sanitize a value if needed.
+   * 
+   * @param value option value.
+   * @param obfuscate should it be obfuscated?
+   * @return string safe to log; in quotes
+   */
+  String maybeSanitize(String value, boolean obfuscate);
 
-    /**
-     * Retrieve and print an option.
-     * Secrets are looked for through Configuration.getPassword(),
-     * rather than the simpler get(option).
-     * They are also sanitized in printing, so as to keep the secrets out
-     * of bug reports.
-     * @param conf source configuration
-     * @param index index for a prefix
-     * @param key key
-     * @param secret is it secret?
-     * @param obfuscate should it be obfuscated?
-     */
-    void printOption(Configuration conf, int index, String key, boolean secret, boolean obfuscate) throws IOException;
+  /**
+   * Retrieve and print an option. Secrets are looked for through Configuration.getPassword(),
+   * rather than the simpler get(option). They are also sanitized in printing, so as to keep the
+   * secrets out of bug reports.
+   * 
+   * @param conf source configuration
+   * @param index index for a prefix
+   * @param key key
+   * @param secret is it secret?
+   * @param obfuscate should it be obfuscated?
+   */
+  void printOption(Configuration conf, int index, String key, boolean secret, boolean obfuscate)
+      throws IOException;
 }

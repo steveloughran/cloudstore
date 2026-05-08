@@ -26,7 +26,6 @@ target/
 .idea/
 *.iml
 .DS_Store
-*.iml
 *.ipr
 *.iws
 build.properties

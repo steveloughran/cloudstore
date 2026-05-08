@@ -37,100 +37,101 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Debug GS credentials.
- * Getting past the "java.io.IOException: Invalid PKCS8 data" error message
+ * Debug GS credentials. Getting past the "java.io.IOException: Invalid PKCS8 data" error message
  * with gs auth is a nightmare. This class tries to debug it.
  *
  * Needs the shaded gs jar on the classpath as we call its internals.
  *
- * code includes methods copied from
- * com.google.cloud.hadoop.util.CredentialFactory
+ * code includes methods copied from com.google.cloud.hadoop.util.CredentialFactory
  * https://cloud.google.com/docs/authentication/production
  * https://developers.google.com/accounts/docs/application-default-credentials
  */
 public class GsCredDiag extends StoreEntryPoint {
 
-    private static final Logger LOG = LoggerFactory.getLogger(GsCredDiag.class);
+  private static final Logger LOG = LoggerFactory.getLogger(GsCredDiag.class);
 
-    /** Manage your data and permissions in Google Cloud Storage. */
-    public static final String DEVSTORAGE_FULL_CONTROL = "https://www.googleapis.com/auth/devstorage.full_control";
+  /** Manage your data and permissions in Google Cloud Storage. */
+  public static final String DEVSTORAGE_FULL_CONTROL =
+      "https://www.googleapis.com/auth/devstorage.full_control";
 
-    public static final String USAGE = "Usage: gcscreds\n" + STANDARD_OPTS + "\t<gs path>";
+  public static final String USAGE = "Usage: gcscreds\n" + STANDARD_OPTS + "\t<gs path>";
 
-    public GsCredDiag() {
-        createCommandFormat(1, 1);
+  public GsCredDiag() {
+    createCommandFormat(1, 1);
+  }
+
+  @Override
+  public int run(String[] args) throws Exception {
+    List<String> paths = parseArgs(args);
+    if (paths.isEmpty()) {
+      errorln(USAGE);
+      return E_USAGE;
     }
 
-    @Override
-    public int run(String[] args) throws Exception {
-        List<String> paths = parseArgs(args);
-        if (paths.isEmpty()) {
-            errorln(USAGE);
-            return E_USAGE;
+    final Configuration conf = createPreconfiguredConfig();
+    String key;
+    final char[] password = conf.getPassword(SERVICE_ACCOUNT_PRIVATE_KEY);
+    if (password != null) {
+      key = new String(password).trim();
+    } else {
+      key = null;
+    }
+    if (key != null) {
+      if (isVerbose()) {
+
+        // insecure
+        println("private key is <%s>", key);
+      }
+      if (key.contains("\\n")) {
+        println("key uses \\n for separator -gs connector must convert to line endings");
+        key = key.replace("\\n", System.lineSeparator());
+        if (isVerbose()) {
+
+          // insecure
+
+          println("modified private key is <%s>", key);
         }
-
-        final Configuration conf = createPreconfiguredConfig();
-        String key;
-        final char[] password = conf.getPassword(SERVICE_ACCOUNT_PRIVATE_KEY);
-        if (password != null) {
-            key = new String(password).trim();
-        } else {
-            key = null;
-        }
-        if (key != null) {
-            if (isVerbose()) {
-
-                // insecure
-                println("private key is <%s>", key);
-            }
-            if (key.contains("\\n")) {
-                println("key uses \\n for separator -gs connector must convert to line endings");
-                key = key.replace("\\n", System.lineSeparator());
-                if (isVerbose()) {
-
-                    // insecure
-
-                    println("modified private key is <%s>", key);
-                }
-            }
-        } else {
-            println("no key in %s", SERVICE_ACCOUNT_PRIVATE_KEY);
-            return LauncherExitCodes.EXIT_NOT_FOUND;
-        }
-        Reader reader = new StringReader(key);
-        PemReader.Section section = PemReader.readFirstSectionAndClose(reader, "PRIVATE KEY");
-        if (!section.isSuccess()) {
-            errorln("Failed to parse private key: %s", section.getMessage());
-            return LauncherExitCodes.EXIT_NOT_ACCEPTABLE;
-        }
-
-        println("Parsed private key -entry length %d lines", section.getLines());
-        final CredentialFactory factory = HadoopCredentialConfiguration.getCredentialFactory(conf, GCS_CONFIG_PREFIX);
-        println("factory %s", factory);
-        Credential credential = factory.getCredential(ImmutableList.of(DEVSTORAGE_FULL_CONTROL));
-        return 0;
+      }
+    } else {
+      println("no key in %s", SERVICE_ACCOUNT_PRIVATE_KEY);
+      return LauncherExitCodes.EXIT_NOT_FOUND;
+    }
+    Reader reader = new StringReader(key);
+    PemReader.Section section = PemReader.readFirstSectionAndClose(reader, "PRIVATE KEY");
+    if (!section.isSuccess()) {
+      errorln("Failed to parse private key: %s", section.getMessage());
+      return LauncherExitCodes.EXIT_NOT_ACCEPTABLE;
     }
 
-    /**
-     * Execute the command, return the result or throw an exception,
-     * as appropriate.
-     * @param args argument varags.
-     * @return return code
-     * @throws Exception failure
-     */
-    public static int exec(String... args) throws Exception {
-        return ToolRunner.run(new GsCredDiag(), args);
-    }
+    println("Parsed private key -entry length %d lines", section.getLines());
+    final CredentialFactory factory =
+        HadoopCredentialConfiguration.getCredentialFactory(conf, GCS_CONFIG_PREFIX);
+    println("factory %s", factory);
+    Credential credential = factory.getCredential(ImmutableList.of(DEVSTORAGE_FULL_CONTROL));
+    return 0;
+  }
 
-    /**
-     * Main entry point. Calls {@code System.exit()} on all execution paths.
-     * @param args argument list
-     */
-    public static void main(String[] args) {
-        try {
-            exit(exec(args), "");
-        } catch (Throwable e) {
-            exitOnThrowable(e);
-        }
+  /**
+   * Execute the command, return the result or throw an exception, as appropriate.
+   * 
+   * @param args argument varags.
+   * @return return code
+   * @throws Exception failure
+   */
+  public static int exec(String... args) throws Exception {
+    return ToolRunner.run(new GsCredDiag(), args);
+  }
+
+  /**
+   * Main entry point. Calls {@code System.exit()} on all execution paths.
+   * 
+   * @param args argument list
+   */
+  public static void main(String[] args) {
+    try {
+      exit(exec(args), "");
+    } catch (Throwable e) {
+      exitOnThrowable(e);
     }
+  }
 }

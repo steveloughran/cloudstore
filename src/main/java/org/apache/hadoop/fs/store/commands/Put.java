@@ -53,90 +53,89 @@ import org.slf4j.LoggerFactory;
  */
 public class Put extends StoreEntryPoint {
 
-    private static final Logger LOG = LoggerFactory.getLogger(Put.class);
+  private static final Logger LOG = LoggerFactory.getLogger(Put.class);
 
-    public static final String USAGE = "Usage: put\n"
-            + STANDARD_OPTS
-            + optusage(OPTIONS, "property-file", "A property file of createFile options")
-            + " <source> <dest>";
+  public static final String USAGE = "Usage: put\n" + STANDARD_OPTS
+      + optusage(OPTIONS, "property-file", "A property file of createFile options")
+      + " <source> <dest>";
 
-    public Put() {
-        createCommandFormat(2, 2);
-        addValueOptions(OPTIONS);
-    }
+  public Put() {
+    createCommandFormat(2, 2);
+    addValueOptions(OPTIONS);
+  }
 
-    @Override
-    public int run(String[] args) throws Exception {
-        List<String> paths = processArgs(args, 2, 2, USAGE);
-        final Configuration conf = createPreconfiguredConfig();
+  @Override
+  public int run(String[] args) throws Exception {
+    List<String> paths = processArgs(args, 2, 2, USAGE);
+    final Configuration conf = createPreconfiguredConfig();
 
-        final Path source = new Path(paths.get(0));
-        final Path dest = new Path(paths.get(1));
-        final Optional<String> options = getOptional(OPTIONS);
-        FileSystem sourceFs = null;
-        FileSystem destFs = null;
-        StoreDurationInfo duration = new StoreDurationInfo(LOG, "Put %s to %s", source, dest);
-        FSDataOutputStream out = null;
-        FSDataInputStream in = null;
+    final Path source = new Path(paths.get(0));
+    final Path dest = new Path(paths.get(1));
+    final Optional<String> options = getOptional(OPTIONS);
+    FileSystem sourceFs = null;
+    FileSystem destFs = null;
+    StoreDurationInfo duration = new StoreDurationInfo(LOG, "Put %s to %s", source, dest);
+    FSDataOutputStream out = null;
+    FSDataInputStream in = null;
 
-        try {
-            sourceFs = source.getFileSystem(conf);
-            destFs = dest.getFileSystem(conf);
-            final FileStatus sourceStatus = sourceFs.getFileStatus(source);
-            LOG.info("Source file Size: {}", sourceStatus.getLen());
-            Properties props = null;
-            if (options.isPresent()) {
-                final String filename = options.get();
-                props = new Properties();
-                try (FileInputStream propsIn = new FileInputStream(filename)) {
-                    props.load(propsIn);
-                    LOG.info("Loaded {} properties from {}", props.size(), filename);
-                } catch (IOException e) {
-                    LOG.error("Failed to load properties from {}", filename, e);
-                    throw e;
-                }
-            }
-            final CompletableFuture<FSDataInputStream> future = sourceFs.openFile(source)
-                    .opt(FS_OPTION_OPENFILE_LENGTH, sourceStatus.getLen())
-                    .opt(FS_OPTION_OPENFILE_READ_POLICY, FS_OPTION_OPENFILE_READ_POLICY_WHOLE_FILE)
-                    .build();
-            in = awaitFuture(future);
-            final FSDataOutputStreamBuilder destBuilder = destFs.createFile(dest);
-            if (props != null) {
-                props.forEach((k, v) -> destBuilder.opt(k.toString(), v.toString()));
-            }
-            out = destBuilder.build();
-            copyBytes(in, out, 64_000, true);
-            println("input statistics: %s", ioStatisticsToPrettyString(in.getIOStatistics()));
-            println("output statistics: %s", ioStatisticsToPrettyString(out.getIOStatistics()));
-
-        } finally {
-            closeStreams(in, out);
-            duration.close();
+    try {
+      sourceFs = source.getFileSystem(conf);
+      destFs = dest.getFileSystem(conf);
+      final FileStatus sourceStatus = sourceFs.getFileStatus(source);
+      LOG.info("Source file Size: {}", sourceStatus.getLen());
+      Properties props = null;
+      if (options.isPresent()) {
+        final String filename = options.get();
+        props = new Properties();
+        try (FileInputStream propsIn = new FileInputStream(filename)) {
+          props.load(propsIn);
+          LOG.info("Loaded {} properties from {}", props.size(), filename);
+        } catch (IOException e) {
+          LOG.error("Failed to load properties from {}", filename, e);
+          throw e;
         }
-        return 0;
-    }
+      }
+      final CompletableFuture<FSDataInputStream> future = sourceFs.openFile(source)
+          .opt(FS_OPTION_OPENFILE_LENGTH, sourceStatus.getLen())
+          .opt(FS_OPTION_OPENFILE_READ_POLICY, FS_OPTION_OPENFILE_READ_POLICY_WHOLE_FILE).build();
+      in = awaitFuture(future);
+      final FSDataOutputStreamBuilder destBuilder = destFs.createFile(dest);
+      if (props != null) {
+        props.forEach((k, v) -> destBuilder.opt(k.toString(), v.toString()));
+      }
+      out = destBuilder.build();
+      copyBytes(in, out, 64_000, true);
+      println("input statistics: %s", ioStatisticsToPrettyString(in.getIOStatistics()));
+      println("output statistics: %s", ioStatisticsToPrettyString(out.getIOStatistics()));
 
-    /**
-     * Execute the command, return the result or throw an exception,
-     * as appropriate.
-     * @param args argument varags.
-     * @return return code
-     * @throws Exception failure
-     */
-    public static int exec(String... args) throws Exception {
-        return ToolRunner.run(new Put(), args);
+    } finally {
+      closeStreams(in, out);
+      duration.close();
     }
+    return 0;
+  }
 
-    /**
-     * Main entry point. Calls {@code System.exit()} on all execution paths.
-     * @param args argument list
-     */
-    public static void main(String[] args) {
-        try {
-            exit(exec(args), "");
-        } catch (Throwable e) {
-            exitOnThrowable(e);
-        }
+  /**
+   * Execute the command, return the result or throw an exception, as appropriate.
+   * 
+   * @param args argument varags.
+   * @return return code
+   * @throws Exception failure
+   */
+  public static int exec(String... args) throws Exception {
+    return ToolRunner.run(new Put(), args);
+  }
+
+  /**
+   * Main entry point. Calls {@code System.exit()} on all execution paths.
+   * 
+   * @param args argument list
+   */
+  public static void main(String[] args) {
+    try {
+      exit(exec(args), "");
+    } catch (Throwable e) {
+      exitOnThrowable(e);
     }
+  }
 }
