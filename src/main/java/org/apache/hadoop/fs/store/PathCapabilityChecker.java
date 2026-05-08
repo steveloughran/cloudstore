@@ -15,74 +15,68 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.apache.hadoop.fs.store;
-
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.util.ExitUtil;
-import org.apache.hadoop.util.VersionInfo;
 
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_EXCEPTION_THROWN;
 import static org.apache.hadoop.fs.store.StoreExitCodes.E_UNSUPPORTED_VERSION;
 
+import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.util.ExitUtil;
+import org.apache.hadoop.util.VersionInfo;
+
 public class PathCapabilityChecker {
 
-  private final Method hasPathCapability;
-  private final Object source;
+    private final Method hasPathCapability;
+    private final Object source;
 
-  public PathCapabilityChecker(Object source) {
-    this.source = source;
-    Method method;
-    try {
-      method = source.getClass().getMethod("hasPathCapability",
-          Path.class, String.class);
-    } catch (NoSuchMethodException e) {
-      method = null;
+    public PathCapabilityChecker(Object source) {
+        this.source = source;
+        Method method;
+        try {
+            method = source.getClass().getMethod("hasPathCapability", Path.class, String.class);
+        } catch (NoSuchMethodException e) {
+            method = null;
+        }
+        hasPathCapability = method;
     }
-    hasPathCapability = method;
-  }
 
-  public boolean methodAvailable() {
-    return hasPathCapability != null;
-  }
-
-  /**
-   * Does an object have a capability?
-   * uses reflection so the jar can compile/run against
-   * older hadoop releases.
-   * throws ExitException(E_UNSUPPORTED_VERSION) if the api isn't found.
-   * @param fs filesystem
-   * @param path path
-   * @param capability capability to probe
-   * @return true iff the interface is available
-   * @throws IOException fallure
-   */
-  public boolean hasPathCapability(Path path, String capability)
-      throws IOException {
-    if (!methodAvailable()) {
-      throw new ExitUtil.ExitException(E_UNSUPPORTED_VERSION,
-          "Hadoop version does not support PathCapabilities: "
-              + VersionInfo.getVersion());
+    public boolean methodAvailable() {
+        return hasPathCapability != null;
     }
-    try {
-      return (Boolean) hasPathCapability.invoke(source, path, capability);
-    } catch (IllegalAccessException e) {
-      throw new ExitUtil.ExitException(E_UNSUPPORTED_VERSION,
-          "Hadoop version does not support PathCapabilities: "
-              + VersionInfo.getVersion());
-    } catch (InvocationTargetException e) {
-      Throwable ex = e.getTargetException();
-      if (ex instanceof IOException) {
-        throw (IOException) ex;
-      } else {
-        throw new ExitUtil.ExitException(E_EXCEPTION_THROWN,
-            ex.toString(), ex);
-      }
-    }
-  }
 
+    /**
+     * Does an object have a capability?
+     * uses reflection so the jar can compile/run against
+     * older hadoop releases.
+     * throws ExitException(E_UNSUPPORTED_VERSION) if the api isn't found.
+     * @param fs filesystem
+     * @param path path
+     * @param capability capability to probe
+     * @return true iff the interface is available
+     * @throws IOException fallure
+     */
+    public boolean hasPathCapability(Path path, String capability) throws IOException {
+        if (!methodAvailable()) {
+            throw new ExitUtil.ExitException(
+                    E_UNSUPPORTED_VERSION,
+                    "Hadoop version does not support PathCapabilities: " + VersionInfo.getVersion());
+        }
+        try {
+            return (Boolean) hasPathCapability.invoke(source, path, capability);
+        } catch (IllegalAccessException e) {
+            throw new ExitUtil.ExitException(
+                    E_UNSUPPORTED_VERSION,
+                    "Hadoop version does not support PathCapabilities: " + VersionInfo.getVersion());
+        } catch (InvocationTargetException e) {
+            Throwable ex = e.getTargetException();
+            if (ex instanceof IOException) {
+                throw (IOException) ex;
+            } else {
+                throw new ExitUtil.ExitException(E_EXCEPTION_THROWN, ex.toString(), ex);
+            }
+        }
+    }
 }

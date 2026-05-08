@@ -15,7 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.apache.hadoop.fs.store.logging;
 
 /**
@@ -27,37 +26,34 @@ package org.apache.hadoop.fs.store.logging;
  */
 public interface LogControl {
 
-  /**
-   * Enumeration of log levels.
-   * The list is in descending order.
-   */
-  enum LogLevel {
-    ALL("ALL"),
-    FATAL("FATAL"),
-    ERROR("ERROR"),
-    WARN("WARN"),
-    INFO("INFO"),
-    DEBUG("DEBUG"),
-    TRACE("TRACE"),
-    OFF("OFF");
-
     /**
-     * Level name.
+     * Enumeration of log levels.
+     * The list is in descending order.
      */
-    public final String key;
+    enum LogLevel {
+        ALL("ALL"),
+        FATAL("FATAL"),
+        ERROR("ERROR"),
+        WARN("WARN"),
+        INFO("INFO"),
+        DEBUG("DEBUG"),
+        TRACE("TRACE"),
+        OFF("OFF");
 
-    LogLevel(final String key) {
-      this.key = key;
+        /**
+         * Level name.
+         */
+        public final String key;
+
+        LogLevel(final String key) {
+            this.key = key;
+        }
     }
 
-  }
-
-  /**
-   * Sets a log level for a class/package.
-   * @param log log to set
-   * @param level level to set
-   */
-  void setLogLevel(String log, LogLevel level);
-
-
+    /**
+     * Sets a log level for a class/package.
+     * @param log log to set
+     * @param level level to set
+     */
+    void setLogLevel(String log, LogLevel level);
 }

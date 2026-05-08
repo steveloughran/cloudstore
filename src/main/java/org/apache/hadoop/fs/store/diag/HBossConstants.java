@@ -15,7 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.apache.hadoop.fs.store.diag;
 
 /**
@@ -23,17 +22,14 @@ package org.apache.hadoop.fs.store.diag;
  * From {@code org.apache.hadoop.hbase.oss.Constants}
  */
 public class HBossConstants {
-  public static final String DATA_URI = "fs.hboss.data.uri";
-  public static final String SYNC_IMPL = "fs.hboss.sync.impl";
+    public static final String DATA_URI = "fs.hboss.data.uri";
+    public static final String SYNC_IMPL = "fs.hboss.sync.impl";
 
-  public static final String ZK_CONN_STRING = "fs.hboss.sync.zk.connectionString";
-  public static final String ZK_BASE_SLEEP_MS = "fs.hboss.sync.zk.sleep.base.ms";
-  public static final String ZK_MAX_RETRIES = "fs.hboss.sync.zk.sleep.max.retries";
+    public static final String ZK_CONN_STRING = "fs.hboss.sync.zk.connectionString";
+    public static final String ZK_BASE_SLEEP_MS = "fs.hboss.sync.zk.sleep.base.ms";
+    public static final String ZK_MAX_RETRIES = "fs.hboss.sync.zk.sleep.max.retries";
 
+    public static final String WAIT_INTERVAL_WARN = "fs.hboss.lock-wait.interval.warning";
 
-  public static final String WAIT_INTERVAL_WARN = "fs.hboss.lock-wait.interval.warning";
-
-  public static final String CAPABILITY_HBOSS =
-      "org.apache.hadoop.hbase.hboss";
-
+    public static final String CAPABILITY_HBOSS = "org.apache.hadoop.hbase.hboss";
 }

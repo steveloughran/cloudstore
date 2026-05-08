@@ -36,3 +36,6 @@ auth-keys.xml
 
 # secrets
 auth-keys.xml
+
+# maven versions:set leftover
+pom.xml.versionsBackup

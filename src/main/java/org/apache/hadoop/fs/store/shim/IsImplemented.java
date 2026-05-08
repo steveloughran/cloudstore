@@ -15,7 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.apache.hadoop.fs.store.shim;
 
 /**
@@ -36,15 +35,15 @@ package org.apache.hadoop.fs.store.shim;
  */
 public interface IsImplemented {
 
-  /**
-   * Is a feature directly available by the wrapped class, rather
-   * than being emulated by the shim library.
-   *
-   * @param capability capability/feature to probe for
-   *
-   * @return true if the wrapped class supports it directly
-   */
-  default boolean isImplemented(String capability) {
-    return false;
-  }
+    /**
+     * Is a feature directly available by the wrapped class, rather
+     * than being emulated by the shim library.
+     *
+     * @param capability capability/feature to probe for
+     *
+     * @return true if the wrapped class supports it directly
+     */
+    default boolean isImplemented(String capability) {
+        return false;
+    }
 }

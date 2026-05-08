@@ -15,7 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.apache.hadoop.fs.store.logging;
 
 import org.apache.log4j.Level;
@@ -26,9 +25,9 @@ import org.apache.log4j.Logger;
  */
 public class Log4JController implements LogControl {
 
-  @Override
-  public void setLogLevel(final String log, final LogLevel level) {
-    Logger logger = Logger.getLogger(log);
-    logger.setLevel(Level.toLevel(level.name()));
-  }
+    @Override
+    public void setLogLevel(final String log, final LogLevel level) {
+        Logger logger = Logger.getLogger(log);
+        logger.setLevel(Level.toLevel(level.name()));
+    }
 }

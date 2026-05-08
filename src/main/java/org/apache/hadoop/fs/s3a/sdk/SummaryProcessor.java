@@ -15,23 +15,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.apache.hadoop.fs.s3a.sdk;
 
 import java.io.Closeable;
 import java.io.IOException;
-
+import org.apache.hadoop.fs.Path;
 import software.amazon.awssdk.services.s3.model.DeleteMarkerEntry;
 import software.amazon.awssdk.services.s3.model.ObjectVersion;
 
-import org.apache.hadoop.fs.Path;
-
 interface SummaryProcessor extends Closeable {
 
-  boolean process(ObjectVersion summary, Path path, final boolean isDeleteMarker)
-      throws IOException;
+    boolean process(ObjectVersion summary, Path path, final boolean isDeleteMarker) throws IOException;
 
-  default boolean processTombstone(Path path, DeleteMarkerEntry tombstone) throws IOException {
-    return false;
-  }
+    default boolean processTombstone(Path path, DeleteMarkerEntry tombstone) throws IOException {
+        return false;
+    }
 }

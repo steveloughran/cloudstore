@@ -20,5 +20,4 @@
  * various s3a specific stuff which compiles across all supported hadoop
  * versions.
  */
-
 package org.apache.hadoop.fs.store.s3a;

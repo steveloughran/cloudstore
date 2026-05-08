@@ -15,32 +15,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.apache.hadoop.fs.s3a.sdk;
 
-import software.amazon.awssdk.services.s3.S3Client;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import org.apache.hadoop.fs.s3a.S3AFileSystem;
-
-import static com.google.common.base.Preconditions.checkNotNull;
+import software.amazon.awssdk.services.s3.S3Client;
 
 /**
  * Internal accessor to S3 state
  */
 public class InternalAccess {
 
-  private final S3AFileSystem filesystem;
+    private final S3AFileSystem filesystem;
 
-  public InternalAccess(final S3AFileSystem filesystem) {
-    this.filesystem = checkNotNull(filesystem);
-  }
+    public InternalAccess(final S3AFileSystem filesystem) {
+        this.filesystem = checkNotNull(filesystem);
+    }
 
-  /**
-   * Returns the S3 client used by this filesystem.
-   * This is for internal use within the S3A code itself.
-   * @return AmazonS3Client
-   */
-  public S3Client getAmazonS3Client() {
-    return filesystem.getS3AInternals().getAmazonS3Client("Diagnostics");
-  }
+    /**
+     * Returns the S3 client used by this filesystem.
+     * This is for internal use within the S3A code itself.
+     * @return AmazonS3Client
+     */
+    public S3Client getAmazonS3Client() {
+        return filesystem.getS3AInternals().getAmazonS3Client("Diagnostics");
+    }
 }

@@ -15,47 +15,40 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.apache.hadoop.fs.store.logging;
 
 import java.util.Optional;
-
+import org.apache.hadoop.fs.store.diag.StoreLogExactlyOnce;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import org.apache.hadoop.fs.store.diag.StoreLogExactlyOnce;
 
 /**
  * Factory for creating controllers.
  * It currently only supports Log4J as a back end.
  */
 public final class LogControllerFactory {
-  private static final Logger LOG = LoggerFactory.getLogger(LogControllerFactory.class);
-  private static final StoreLogExactlyOnce LOG_ONCE = new StoreLogExactlyOnce(LOG);
+    private static final Logger LOG = LoggerFactory.getLogger(LogControllerFactory.class);
+    private static final StoreLogExactlyOnce LOG_ONCE = new StoreLogExactlyOnce(LOG);
 
-  /**
-   * Class name of log controller implementation to be loaded
-   * through reflection.
-   */
-  public static final String LOG4J = "org.apache.hadoop.fs.store.logging.Log4JController";
+    /**
+     * Class name of log controller implementation to be loaded
+     * through reflection.
+     */
+    public static final String LOG4J = "org.apache.hadoop.fs.store.logging.Log4JController";
 
-  private LogControllerFactory() {
-  }
+    private LogControllerFactory() {}
 
-  /**
-   * create a controller.
-   * @return the instantiated controllerl or empty of the class can't be instantiated.
-   */
-  public static Optional<LogControl> createController(String classname) {
-    try {
-      Class<?> clazz = Class.forName(classname);
-      return Optional.of((LogControl) clazz.newInstance());
-    } catch (ClassNotFoundException | InstantiationException | IllegalAccessException
-      | ClassCastException e) {
-      LOG_ONCE.warn("Failed to create controller {}: {}", classname, e, e);
-      return Optional.empty();
+    /**
+     * create a controller.
+     * @return the instantiated controllerl or empty of the class can't be instantiated.
+     */
+    public static Optional<LogControl> createController(String classname) {
+        try {
+            Class<?> clazz = Class.forName(classname);
+            return Optional.of((LogControl) clazz.newInstance());
+        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | ClassCastException e) {
+            LOG_ONCE.warn("Failed to create controller {}: {}", classname, e, e);
+            return Optional.empty();
+        }
     }
-  }
-
-
 }

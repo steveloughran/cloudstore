@@ -17,7 +17,7 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>com.cloudera.cloud</groupId>
+  <groupId>org.apache.hadoop</groupId>
   <artifactId>cloudstore</artifactId>
   <version>1.1</version>
   <packaging>jar</packaging>
@@ -50,6 +50,17 @@
     <buildhelper.version>3.3.0</buildhelper.version>
     <!-- avro version -->
     <avro.version>1.11.5</avro.version>
+
+    <!-- ASF/Hadoop submodule build tooling -->
+    <maven-enforcer-plugin.version>3.4.1</maven-enforcer-plugin.version>
+    <apache-rat-plugin.version>0.16.1</apache-rat-plugin.version>
+    <spotless-maven-plugin.version>2.43.0</spotless-maven-plugin.version>
+    <palantir-java-format.version>2.50.0</palantir-java-format.version>
+    <maven-site-plugin.version>3.12.1</maven-site-plugin.version>
+    <maven-fluido-skin.version>1.11.1</maven-fluido-skin.version>
+    <doxia-module-markdown.version>1.12.0</doxia-module-markdown.version>
+    <maven-source-plugin.version>3.3.0</maven-source-plugin.version>
+    <maven-javadoc-plugin.version>3.6.3</maven-javadoc-plugin.version>
 
   </properties>
 
@@ -149,6 +160,24 @@
                   <artifactId>log4j</artifactId>
                 </exclusion>-->
       </exclusions>
+    </dependency>
+
+    <!-- HDFS for the MiniDFSCluster-backed contract tests. Both the regular
+         jar (DistributedFileSystem) and the test-jar (MiniDFSCluster +
+         HDFSContract) are needed. Test scope only — production code never
+         pulls in HDFS server bits. -->
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-hdfs</artifactId>
+      <version>${hadoop.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-hdfs</artifactId>
+      <version>${hadoop.version}</version>
+      <type>test-jar</type>
+      <scope>test</scope>
     </dependency>
 
     <dependency>
@@ -313,6 +342,51 @@
     </profile>
 
     <profile>
+      <!-- Activate to compile and run ITestS3AStorediagContract. Pulls in
+           hadoop-aws test-jar (which provides S3AContract). The test-jar is
+           not always published to Maven Central — set -Ds3a-it on a build that
+           has the test-jar already in the local repo or has a private mirror. -->
+      <id>s3a-it</id>
+      <activation>
+        <property>
+          <name>s3a-it</name>
+        </property>
+      </activation>
+      <dependencies>
+        <dependency>
+          <groupId>org.apache.hadoop</groupId>
+          <artifactId>hadoop-aws</artifactId>
+          <version>${hadoop.version}</version>
+          <type>test-jar</type>
+          <scope>test</scope>
+        </dependency>
+      </dependencies>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.codehaus.mojo</groupId>
+            <artifactId>build-helper-maven-plugin</artifactId>
+            <version>${buildhelper.version}</version>
+            <executions>
+              <execution>
+                <id>add-s3a-test-source</id>
+                <phase>generate-test-sources</phase>
+                <goals>
+                  <goal>add-test-source</goal>
+                </goals>
+                <configuration>
+                  <sources>
+                    <source>src/test/extra-s3a</source>
+                  </sources>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <profile>
       <id>gcs</id>
       <activation>
         <property>
@@ -423,6 +497,49 @@
           </configuration>
         </plugin>
 
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-enforcer-plugin</artifactId>
+          <version>${maven-enforcer-plugin.version}</version>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.rat</groupId>
+          <artifactId>apache-rat-plugin</artifactId>
+          <version>${apache-rat-plugin.version}</version>
+        </plugin>
+
+        <plugin>
+          <groupId>com.diffplug.spotless</groupId>
+          <artifactId>spotless-maven-plugin</artifactId>
+          <version>${spotless-maven-plugin.version}</version>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-site-plugin</artifactId>
+          <version>${maven-site-plugin.version}</version>
+          <dependencies>
+            <dependency>
+              <groupId>org.apache.maven.doxia</groupId>
+              <artifactId>doxia-module-markdown</artifactId>
+              <version>${doxia-module-markdown.version}</version>
+            </dependency>
+          </dependencies>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-source-plugin</artifactId>
+          <version>${maven-source-plugin.version}</version>
+        </plugin>
+
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-javadoc-plugin</artifactId>
+          <version>${maven-javadoc-plugin.version}</version>
+        </plugin>
+
 
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
@@ -468,6 +585,111 @@
 
     </pluginManagement>
     <plugins>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-enforcer-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>enforce-build-environment</id>
+            <goals>
+              <goal>enforce</goal>
+            </goals>
+            <configuration>
+              <rules>
+                <requireMavenVersion>
+                  <version>[3.6.0,)</version>
+                </requireMavenVersion>
+                <!-- Open-ended: source/target are pinned to ${javac.version} on
+                     the compiler plugin; this rule just blocks ancient JDKs. -->
+                <requireJavaVersion>
+                  <version>[1.8,)</version>
+                </requireJavaVersion>
+              </rules>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>com.diffplug.spotless</groupId>
+        <artifactId>spotless-maven-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>spotless-check</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <java>
+            <includes>
+              <include>src/**/*.java</include>
+            </includes>
+            <excludes>
+              <!-- Lowercase default-package CLI shims (e.g. dux.java, storediag.java).
+                   Their class identifiers are the public CLI surface and must
+                   stay byte-stable. -->
+              <exclude>src/main/java/*.java</exclude>
+              <!-- Generated avro -->
+              <exclude>target/generated-sources/**/*.java</exclude>
+            </excludes>
+            <palantirJavaFormat>
+              <version>${palantir-java-format.version}</version>
+            </palantirJavaFormat>
+            <removeUnusedImports/>
+            <importOrder/>
+            <licenseHeader>
+              <file>${project.basedir}/dev-support/license-header.txt</file>
+            </licenseHeader>
+          </java>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.rat</groupId>
+        <artifactId>apache-rat-plugin</artifactId>
+        <executions>
+          <execution>
+            <id>rat-check</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+        <configuration>
+          <consoleOutput>true</consoleOutput>
+          <excludes>
+            <!-- VCS / IDE / OS scratch -->
+            <exclude>.git/**</exclude>
+            <exclude>.idea/**</exclude>
+            <exclude>**/.DS_Store</exclude>
+            <exclude>*.iml</exclude>
+            <exclude>**/*.iml</exclude>
+            <!-- Build artefacts -->
+            <exclude>target/**</exclude>
+            <exclude>**/target/**</exclude>
+            <exclude>pom.xml.versionsBackup</exclude>
+            <!-- Lists/manifests with no place for a header -->
+            <exclude>.gitignore</exclude>
+            <exclude>src/main/resources/cloudstore/required.txt</exclude>
+            <exclude>src/main/resources/META-INF/MANIFEST.MF</exclude>
+            <!-- Test fixture data -->
+            <exclude>src/test/resources/auth-keys.xml</exclude>
+            <exclude>src/test/resources/TestAuditLogs/**</exclude>
+            <!-- Releases artefacts checked in for archival -->
+            <exclude>releases/**</exclude>
+          </excludes>
+        </configuration>
+      </plugin>
 
       <plugin>
         <groupId>org.apache.avro</groupId>

@@ -15,7 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.apache.hadoop.fs.store;
 
 import java.util.concurrent.atomic.AtomicInteger;
@@ -26,49 +25,49 @@ import java.util.concurrent.atomic.AtomicLong;
  */
 public class MinMeanMax {
 
-  final String name;
-  final AtomicLong min = new AtomicLong(Long.MAX_VALUE);
-  final AtomicLong max = new AtomicLong(Long.MIN_VALUE);
-  final AtomicInteger samples = new AtomicInteger(0);
-  final AtomicLong sum = new AtomicLong(0);
+    final String name;
+    final AtomicLong min = new AtomicLong(Long.MAX_VALUE);
+    final AtomicLong max = new AtomicLong(Long.MIN_VALUE);
+    final AtomicInteger samples = new AtomicInteger(0);
+    final AtomicLong sum = new AtomicLong(0);
 
-  public MinMeanMax(final String name) {
-    this.name = name;
-  }
+    public MinMeanMax(final String name) {
+        this.name = name;
+    }
 
-  /**
-   * copilot made this up for us.
-   * @param value new value
-   */
-  public synchronized void add(final long value) {
-    min.accumulateAndGet(value, Math::min);
-    max.accumulateAndGet(value, Math::max);
-    sum.addAndGet(value);
-    samples.incrementAndGet();
-  }
+    /**
+     * copilot made this up for us.
+     * @param value new value
+     */
+    public synchronized void add(final long value) {
+        min.accumulateAndGet(value, Math::min);
+        max.accumulateAndGet(value, Math::max);
+        sum.addAndGet(value);
+        samples.incrementAndGet();
+    }
 
-  public String getName() {
-    return name;
-  }
+    public String getName() {
+        return name;
+    }
 
-  public long min() {
-    return min.get();
-  }
+    public long min() {
+        return min.get();
+    }
 
-  public long max() {
-    return max.get();
-  }
+    public long max() {
+        return max.get();
+    }
 
-  public int samples() {
-    return samples.get();
-  }
+    public int samples() {
+        return samples.get();
+    }
 
-  public long sum() {
-    return sum.get();
-  }
+    public long sum() {
+        return sum.get();
+    }
 
-  public double mean() {
-    final int sam = samples.get();
-    return sam > 0 ? ((double) sum.get()) / sam : 0;
-  }
+    public double mean() {
+        final int sam = samples.get();
+        return sam > 0 ? ((double) sum.get()) / sam : 0;
+    }
 }

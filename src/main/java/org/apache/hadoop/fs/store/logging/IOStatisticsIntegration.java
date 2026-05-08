@@ -15,33 +15,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.apache.hadoop.fs.store.logging;
 
-import org.apache.hadoop.fs.statistics.IOStatisticsLogging;
-import org.apache.hadoop.fs.statistics.IOStatisticsSupport;
-import org.apache.hadoop.fs.store.shim.impl.Invocation;
-
 import static org.apache.hadoop.fs.statistics.IOStatisticsSupport.retrieveIOStatistics;
-import static org.apache.hadoop.fs.store.shim.impl.Invocation.unavailable;
-import static org.apache.hadoop.fs.store.shim.impl.ShimReflectionSupport.loadClass;
-import static org.apache.hadoop.fs.store.shim.impl.ShimReflectionSupport.loadInvocation;
+
+import org.apache.hadoop.fs.statistics.IOStatisticsLogging;
 
 /**
  * Support for IO statistics (initially through reflection).
  */
 public class IOStatisticsIntegration {
 
-  public IOStatisticsIntegration() {
+    public IOStatisticsIntegration() {}
 
-  }
+    public boolean available() {
+        return true;
+    }
 
-  public boolean available() {
-    return true;
-  }
-
-  public String ioStatisticsToPrettyString(Object source) {
-    return IOStatisticsLogging.ioStatisticsToPrettyString(
-        retrieveIOStatistics(source));
-  }
+    public String ioStatisticsToPrettyString(Object source) {
+        return IOStatisticsLogging.ioStatisticsToPrettyString(retrieveIOStatistics(source));
+    }
 }

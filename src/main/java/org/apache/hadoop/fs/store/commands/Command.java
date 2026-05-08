@@ -15,7 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.apache.hadoop.fs.store.commands;
 
 /**
@@ -24,13 +23,12 @@ package org.apache.hadoop.fs.store.commands;
 @SuppressWarnings("UseOfSystemOutOrSystemErr")
 public class Command {
 
-  public static void println(String format, Object... args) {
-    System.out.printf(format, args);
-    System.out.println();
-  }
+    public static void println(String format, Object... args) {
+        System.out.printf(format, args);
+        System.out.println();
+    }
 
-  protected static void printCommand(String name, String function) {
-    System.out.printf("%s\t--\t%s%n", name, function);
-  }
-
+    protected static void printCommand(String name, String function) {
+        System.out.printf("%s\t--\t%s%n", name, function);
+    }
 }

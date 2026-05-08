@@ -15,9 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.apache.hadoop.fs.store.diag;
-
 
 import static org.apache.hadoop.fs.store.diag.S3ADiagnosticsInfo.OPTION_CREATE_CONDITIONAL_OVERWRITE;
 import static org.apache.hadoop.fs.store.diag.S3ADiagnosticsInfo.OPTION_CREATE_CONDITIONAL_OVERWRITE_ETAG;
@@ -29,381 +27,354 @@ import static org.apache.hadoop.fs.store.diag.S3ADiagnosticsInfo.OPTION_CREATE_I
  */
 public final class CapabilityKeys {
 
-  public static final String FS_CAPABILITY_ETAGS_AVAILABLE = "fs.capability.etags.available";
+    public static final String FS_CAPABILITY_ETAGS_AVAILABLE = "fs.capability.etags.available";
 
-  public static final String FS_AZURE_CAPABILITY_READAHEAD_SAFE =
-      "fs.azure.capability.readahead.safe";
+    public static final String FS_AZURE_CAPABILITY_READAHEAD_SAFE = "fs.azure.capability.readahead.safe";
 
+    /**
+     * Does the store support
+     * {@code FileSystem.setAcl(Path, List)},
+     * {@code FileSystem.getAclStatus(Path)}
+     * and related methods?
+     * Value: {@value}.
+     */
+    public static final String FS_ACLS = "fs.capability.paths.acls";
 
-  /**
-   * Does the store support
-   * {@code FileSystem.setAcl(Path, List)},
-   * {@code FileSystem.getAclStatus(Path)}
-   * and related methods?
-   * Value: {@value}.
-   */
-  public static final String FS_ACLS = "fs.capability.paths.acls";
+    /**
+     * Does the store support {@code FileSystem.append(Path)}?
+     * Value: {@value}.
+     */
+    public static final String FS_APPEND = "fs.capability.paths.append";
 
-  /**
-   * Does the store support {@code FileSystem.append(Path)}?
-   * Value: {@value}.
-   */
-  public static final String FS_APPEND = "fs.capability.paths.append";
+    /**
+     * Does the store support {@code FileSystem.getFileChecksum(Path)}?
+     * Value: {@value}.
+     */
+    public static final String FS_CHECKSUMS = "fs.capability.paths.checksums";
 
-  /**
-   * Does the store support {@code FileSystem.getFileChecksum(Path)}?
-   * Value: {@value}.
-   */
-  public static final String FS_CHECKSUMS = "fs.capability.paths.checksums";
+    /**
+     * Does the store support {@code FileSystem.concat(Path, Path[])}?
+     * Value: {@value}.
+     */
+    public static final String FS_CONCAT = "fs.capability.paths.concat";
 
-  /**
-   * Does the store support {@code FileSystem.concat(Path, Path[])}?
-   * Value: {@value}.
-   */
-  public static final String FS_CONCAT = "fs.capability.paths.concat";
+    /**
+     * Does the store support {@code FileSystem.listCorruptFileBlocks(Path)} ()}?
+     * Value: {@value}.
+     */
+    public static final String FS_LIST_CORRUPT_FILE_BLOCKS = "fs.capability.paths.list-corrupt-file-blocks";
 
-  /**
-   * Does the store support {@code FileSystem.listCorruptFileBlocks(Path)} ()}?
-   * Value: {@value}.
-   */
-  public static final String FS_LIST_CORRUPT_FILE_BLOCKS =
-      "fs.capability.paths.list-corrupt-file-blocks";
+    /**
+     * Does the store support
+     * {@code FileSystem.createPathHandle(FileStatus, Options.HandleOpt...)}
+     * and related methods?
+     * Value: {@value}.
+     */
+    public static final String FS_PATHHANDLES = "fs.capability.paths.pathhandles";
 
-  /**
-   * Does the store support
-   * {@code FileSystem.createPathHandle(FileStatus, Options.HandleOpt...)}
-   * and related methods?
-   * Value: {@value}.
-   */
-  public static final String FS_PATHHANDLES = "fs.capability.paths.pathhandles";
+    /**
+     * Does the store support {@code FileSystem.setPermission(Path, FsPermission)}
+     * and related methods?
+     * Value: {@value}.
+     */
+    public static final String FS_PERMISSIONS = "fs.capability.paths.permissions";
 
-  /**
-   * Does the store support {@code FileSystem.setPermission(Path, FsPermission)}
-   * and related methods?
-   * Value: {@value}.
-   */
-  public static final String FS_PERMISSIONS = "fs.capability.paths.permissions";
+    /**
+     * Does this filesystem connector only support filesystem read operations?
+     * For example, the {@code HttpFileSystem} is always read-only.
+     * This is different from "is the specific instance and path read only?",
+     * which must be determined by checking permissions (where supported), or
+     * attempting write operations under a path.
+     * Value: {@value}.
+     */
+    public static final String FS_READ_ONLY_CONNECTOR = "fs.capability.paths.read-only-connector";
 
-  /**
-   * Does this filesystem connector only support filesystem read operations?
-   * For example, the {@code HttpFileSystem} is always read-only.
-   * This is different from "is the specific instance and path read only?",
-   * which must be determined by checking permissions (where supported), or
-   * attempting write operations under a path.
-   * Value: {@value}.
-   */
-  public static final String FS_READ_ONLY_CONNECTOR =
-      "fs.capability.paths.read-only-connector";
+    /**
+     * Does the store support snapshots through
+     * {@code FileSystem.createSnapshot(Path)} and related methods??
+     * Value: {@value}.
+     */
+    public static final String FS_SNAPSHOTS = "fs.capability.paths.snapshots";
 
-  /**
-   * Does the store support snapshots through
-   * {@code FileSystem.createSnapshot(Path)} and related methods??
-   * Value: {@value}.
-   */
-  public static final String FS_SNAPSHOTS = "fs.capability.paths.snapshots";
+    /**
+     * Does the store support {@code FileSystem.setStoragePolicy(Path, String)}
+     * and related methods?
+     * Value: {@value}.
+     */
+    public static final String FS_STORAGEPOLICY = "fs.capability.paths.storagepolicy";
 
-  /**
-   * Does the store support {@code FileSystem.setStoragePolicy(Path, String)}
-   * and related methods?
-   * Value: {@value}.
-   */
-  public static final String FS_STORAGEPOLICY =
-      "fs.capability.paths.storagepolicy";
+    /**
+     * Does the store support symlinks through
+     * {@code FileSystem.createSymlink(Path, Path, boolean)} and related methods?
+     * Value: {@value}.
+     */
+    public static final String FS_SYMLINKS = "fs.capability.paths.symlinks";
 
-  /**
-   * Does the store support symlinks through
-   * {@code FileSystem.createSymlink(Path, Path, boolean)} and related methods?
-   * Value: {@value}.
-   */
-  public static final String FS_SYMLINKS =
-      "fs.capability.paths.symlinks";
+    /**
+     * Does the store support {@code FileSystem#truncate(Path, long)} ?
+     * Value: {@value}.
+     */
+    public static final String FS_TRUNCATE = "fs.capability.paths.truncate";
 
-  /**
-   * Does the store support {@code FileSystem#truncate(Path, long)} ?
-   * Value: {@value}.
-   */
-  public static final String FS_TRUNCATE =
-      "fs.capability.paths.truncate";
+    /**
+     * Does the store support XAttributes through
+     * {@code FileSystem#.setXAttr()} and related methods?
+     * Value: {@value}.
+     */
+    public static final String FS_XATTRS = "fs.capability.paths.xattrs";
 
-  /**
-   * Does the store support XAttributes through
-   * {@code FileSystem#.setXAttr()} and related methods?
-   * Value: {@value}.
-   */
-  public static final String FS_XATTRS = "fs.capability.paths.xattrs";
+    /**
+     * Probe for support for BatchListingOperations.
+     */
+    public static final String FS_EXPERIMENTAL_BATCH_LISTING = "fs.capability.batch.listing";
 
-  /**
-   * Probe for support for BatchListingOperations.
-   */
-  public static final String FS_EXPERIMENTAL_BATCH_LISTING =
-      "fs.capability.batch.listing";
+    /**
+     * Does the store support multipart uploading?
+     * Value: {@value}.
+     */
+    public static final String FS_MULTIPART_UPLOADER = "fs.capability.multipart.uploader";
 
-  /**
-   * Does the store support multipart uploading?
-   * Value: {@value}.
-   */
-  public static final String FS_MULTIPART_UPLOADER =
-      "fs.capability.multipart.uploader";
+    /**
+     * Stream abort() capability implemented by Abortable.abort()}.
+     * Value: {@value}.
+     */
+    public static final String ABORTABLE_STREAM = "fs.capability.outputstream.abortable";
 
+    /**
+     * Does this FS support etags?
+     * That is: will FileStatus entries from listing/getFileStatus
+     * probes support EtagSource and return real values.
+     */
+    public static final String ETAGS_AVAILABLE = "fs.capability.etags.available";
 
-  /**
-   * Stream abort() capability implemented by Abortable.abort()}.
-   * Value: {@value}.
-   */
-  public static final String ABORTABLE_STREAM =
-      "fs.capability.outputstream.abortable";
+    /**
+     * Are etags guaranteed to be preserved across rename() operations..
+     * FileSystems MUST NOT declare support for this feature
+     * unless this holds.
+     */
+    public static final String ETAGS_PRESERVED_IN_RENAME = "fs.capability.etags.preserved.in.rename";
 
-  /**
-   * Does this FS support etags?
-   * That is: will FileStatus entries from listing/getFileStatus
-   * probes support EtagSource and return real values.
-   */
-  public static final String ETAGS_AVAILABLE =
-      "fs.capability.etags.available";
+    /**
+     * Flag to indicate whether a stream is a magic output stream;
+     * returned in {@code StreamCapabilities}
+     * Value: {@value}.
+     */
+    public static final String STREAM_CAPABILITY_MAGIC_OUTPUT = "fs.s3a.capability.magic.output.stream";
 
-  /**
-   * Are etags guaranteed to be preserved across rename() operations..
-   * FileSystems MUST NOT declare support for this feature
-   * unless this holds.
-   */
-  public static final String ETAGS_PRESERVED_IN_RENAME =
-      "fs.capability.etags.preserved.in.rename";
+    /**
+     * Flag to indicate that a store supports magic committers.
+     * returned in {@code PathCapabilities}
+     * Value: {@value}.
+     */
+    public static final String STORE_CAPABILITY_MAGIC_COMMITTER = "fs.s3a.capability.magic.committer";
 
-  /**
-   * Flag to indicate whether a stream is a magic output stream;
-   * returned in {@code StreamCapabilities}
-   * Value: {@value}.
-   */
-  public static final String STREAM_CAPABILITY_MAGIC_OUTPUT
-      = "fs.s3a.capability.magic.output.stream";
+    /**
+     * Does the FS Support S3 Select?
+     * Not true on v2 sdk.
+     * Value: {@value}.
+     */
+    public static final String S3_SELECT_CAPABILITY = "fs.s3a.capability.select.sql";
 
-  /**
-   * Flag to indicate that a store supports magic committers.
-   * returned in {@code PathCapabilities}
-   * Value: {@value}.
-   */
-  public static final String STORE_CAPABILITY_MAGIC_COMMITTER
-      = "fs.s3a.capability.magic.committer";
+    /**
+     * {@code PathCapabilities} probe to indicate that the filesystem
+     * keeps directory markers.
+     * Value: {@value}.
+     */
+    public static final String STORE_CAPABILITY_DIRECTORY_MARKER_AWARE = "fs.s3a.capability.directory.marker.aware";
 
-  /**
-   * Does the FS Support S3 Select?
-   * Not true on v2 sdk.
-   * Value: {@value}.
-   */
-  public static final String S3_SELECT_CAPABILITY =
-      "fs.s3a.capability.select.sql";
+    /**
+     * {@code PathCapabilities} probe to indicate that the filesystem
+     * keeps directory markers.
+     * Value: {@value}.
+     */
+    public static final String STORE_CAPABILITY_DIRECTORY_MARKER_POLICY_KEEP =
+            "fs.s3a.capability.directory.marker.policy.keep";
 
-  /**
-   * {@code PathCapabilities} probe to indicate that the filesystem
-   * keeps directory markers.
-   * Value: {@value}.
-   */
-  public static final String STORE_CAPABILITY_DIRECTORY_MARKER_AWARE
-      = "fs.s3a.capability.directory.marker.aware";
+    /**
+     * {@code PathCapabilities} probe to indicate that the filesystem
+     * deletes directory markers.
+     * Value: {@value}.
+     */
+    public static final String STORE_CAPABILITY_DIRECTORY_MARKER_POLICY_DELETE =
+            "fs.s3a.capability.directory.marker.policy.delete";
 
-  /**
-   * {@code PathCapabilities} probe to indicate that the filesystem
-   * keeps directory markers.
-   * Value: {@value}.
-   */
-  public static final String STORE_CAPABILITY_DIRECTORY_MARKER_POLICY_KEEP
-      = "fs.s3a.capability.directory.marker.policy.keep";
+    /**
+     * {@code PathCapabilities} probe to indicate that the filesystem
+     * keeps directory markers in authoritative paths only.
+     * Value: {@value}.
+     */
+    public static final String STORE_CAPABILITY_DIRECTORY_MARKER_POLICY_AUTHORITATIVE =
+            "fs.s3a.capability.directory.marker.policy.authoritative";
 
-  /**
-   * {@code PathCapabilities} probe to indicate that the filesystem
-   * deletes directory markers.
-   * Value: {@value}.
-   */
-  public static final String STORE_CAPABILITY_DIRECTORY_MARKER_POLICY_DELETE
-      = "fs.s3a.capability.directory.marker.policy.delete";
+    /**
+     * {@code PathCapabilities} probe to indicate that a path
+     * keeps directory markers.
+     * Value: {@value}.
+     */
+    public static final String STORE_CAPABILITY_DIRECTORY_MARKER_ACTION_KEEP =
+            "fs.s3a.capability.directory.marker.action.keep";
 
-  /**
-   * {@code PathCapabilities} probe to indicate that the filesystem
-   * keeps directory markers in authoritative paths only.
-   * Value: {@value}.
-   */
-  public static final String
-      STORE_CAPABILITY_DIRECTORY_MARKER_POLICY_AUTHORITATIVE =
-      "fs.s3a.capability.directory.marker.policy.authoritative";
+    /**
+     * {@code PathCapabilities} probe to indicate that a path
+     * deletes directory markers.
+     * Value: {@value}.
+     */
+    public static final String STORE_CAPABILITY_DIRECTORY_MARKER_ACTION_DELETE =
+            "fs.s3a.capability.directory.marker.action.delete";
 
-  /**
-   * {@code PathCapabilities} probe to indicate that a path
-   * keeps directory markers.
-   * Value: {@value}.
-   */
-  public static final String STORE_CAPABILITY_DIRECTORY_MARKER_ACTION_KEEP
-      = "fs.s3a.capability.directory.marker.action.keep";
+    /**
+     * Stream supports multipart uploads to the given path.
+     */
+    public static final String STORE_CAPABILITY_MULTIPART_UPLOAD_ENABLED =
+            "fs.s3a.capability.multipart.uploads.enabled";
 
-  /**
-   * {@code PathCapabilities} probe to indicate that a path
-   * deletes directory markers.
-   * Value: {@value}.
-   */
-  public static final String STORE_CAPABILITY_DIRECTORY_MARKER_ACTION_DELETE
-      = "fs.s3a.capability.directory.marker.action.delete";
+    /**
+     * Flag for create performance.
+     * This is *not* a configuration option; it is for use in the
+     * {code createFile()} builder.
+     * Value {@value}.
+     */
+    public static final String FS_S3A_CREATE_PERFORMANCE = "fs.s3a.create.performance";
 
-  /**
-   * Stream supports multipart uploads to the given path.
-   */
-  public static final String STORE_CAPABILITY_MULTIPART_UPLOAD_ENABLED =
-      "fs.s3a.capability.multipart.uploads.enabled";
+    /**
+     * Prefix for adding a header to the object when created.
+     * The actual value must have a "." suffix and then the actual header.
+     * This is *not* a configuration option; it is only for use in the
+     * {code createFile()} builder.
+     * Value {@value}.
+     */
+    public static final String FS_S3A_CREATE_HEADER = "fs.s3a.create.header";
 
-  /**
-   * Flag for create performance.
-   * This is *not* a configuration option; it is for use in the
-   * {code createFile()} builder.
-   * Value {@value}.
-   */
-  public static final String FS_S3A_CREATE_PERFORMANCE =
-      "fs.s3a.create.performance";
+    /**
+     * Should directory operations purge uploads?
+     * This adds at least one parallelized list operation to the call,
+     * plus the overhead of deletions.
+     * Value: {@value}.
+     */
+    public static final String DIRECTORY_OPERATIONS_PURGE_UPLOADS = "fs.s3a.directory.operations.purge.uploads";
 
-  /**
-   * Prefix for adding a header to the object when created.
-   * The actual value must have a "." suffix and then the actual header.
-   * This is *not* a configuration option; it is only for use in the
-   * {code createFile()} builder.
-   * Value {@value}.
-   */
-  public static final String FS_S3A_CREATE_HEADER = "fs.s3a.create.header";
+    /**
+     * Streams that support IOStatistics context and capture thread-level
+     * IOStatistics.
+     */
+    public static final String IOSTATISTICS_CONTEXT = "fs.capability.iocontext.supported";
 
+    /**
+     * Is the higher performance copy from local file to S3 enabled?
+     * This switch allows for it to be disabled if there are problems.
+     * Value: {@value}.
+     */
+    public static final String OPTIMIZED_COPY_FROM_LOCAL = "fs.s3a.optimized.copy.from.local.enabled";
 
-  /**
-   * Should directory operations purge uploads?
-   * This adds at least one parallelized list operation to the call,
-   * plus the overhead of deletions.
-   * Value: {@value}.
-   */
-  public static final String DIRECTORY_OPERATIONS_PURGE_UPLOADS =
-      "fs.s3a.directory.operations.purge.uploads";
+    /**
+     * Is this a v2 SDK build? value {@value}.
+     */
+    public static final String STORE_CAPABILITY_AWS_V2 = "fs.s3a.capability.aws.v2";
 
-  /**
-   * Streams that support IOStatistics context and capture thread-level
-   * IOStatistics.
-   */
-  public static final String IOSTATISTICS_CONTEXT = "fs.capability.iocontext.supported";
+    /**
+     * Is this a store where parent directory listings are potentially inconsistent with
+     * direct list/getFileStatus calls?
+     * This can happen with Amazon S3 Express One Zone Storage when there are pending
+     * uploads under a path.
+     * Application code can use this flag to decide whether or not to treat
+     * FileNotFoundExceptions on treewalk as errors or something to downgrade.
+     * Value: {@value}.
+     */
+    public static final String DIRECTORY_LISTING_INCONSISTENT = "fs.capability.directory.listing.inconsistent";
+    /**
+     * Is this S3Express storage? value {@value}.
+     */
+    public static final String STORE_CAPABILITY_S3_EXPRESS_STORAGE = "fs.s3a.capability.s3express.storage";
 
-  /**
-   * Is the higher performance copy from local file to S3 enabled?
-   * This switch allows for it to be disabled if there are problems.
-   * Value: {@value}.
-   */
-  public static final String OPTIMIZED_COPY_FROM_LOCAL = "fs.s3a.optimized.copy.from.local.enabled";
+    /**
+     * IOStatisticsSource API.
+     */
+    public static final String IOSTATISTICS = "iostatistics";
 
-  /**
-   * Is this a v2 SDK build? value {@value}.
-   */
-  public static final String STORE_CAPABILITY_AWS_V2 =
-      "fs.s3a.capability.aws.v2";
+    /**
+     * Support for vectored IO api.
+     * See {@code PositionedReadable#readVectored(List, IntFunction)}.
+     */
+    public static final String VECTOREDIO = "in:readvectored";
 
-  /**
-   * Is this a store where parent directory listings are potentially inconsistent with
-   * direct list/getFileStatus calls?
-   * This can happen with Amazon S3 Express One Zone Storage when there are pending
-   * uploads under a path.
-   * Application code can use this flag to decide whether or not to treat
-   * FileNotFoundExceptions on treewalk as errors or something to downgrade.
-   * Value: {@value}.
-   */
-  public static final String DIRECTORY_LISTING_INCONSISTENT =
-      "fs.capability.directory.listing.inconsistent";
-  /**
-   * Is this S3Express storage? value {@value}.
-   */
-  public static final String STORE_CAPABILITY_S3_EXPRESS_STORAGE =
-      "fs.s3a.capability.s3express.storage";
+    /**
+     * Stream Leak detection (capability and iostat)
+     */
+    public static final String STREAM_LEAKS = "stream_leaks";
 
-  /**
-   * IOStatisticsSource API.
-   */
-  public static final String IOSTATISTICS = "iostatistics";
+    /**
+     * Stream setReadahead capability implemented by
+     * {@code CanSetReadahead#setReadahead(Long)}.
+     */
+    public static final String READAHEAD = "in:readahead";
 
-  /**
-   * Support for vectored IO api.
-   * See {@code PositionedReadable#readVectored(List, IntFunction)}.
-   */
-  public static final String VECTOREDIO = "in:readvectored";
+    /**
+     * Stream setDropBehind capability implemented by
+     * {@code CanSetDropBehind#setDropBehind(Boolean)}.
+     */
+    public static final String DROPBEHIND = "dropbehind";
 
+    /**
+     * Stream unbuffer capability implemented by {@code CanUnbuffer#unbuffer()}.
+     */
+    public static final String UNBUFFER = "in:unbuffer";
 
-  /**
-   * Stream Leak detection (capability and iostat)
-   */
-  public static final String STREAM_LEAKS = "stream_leaks";
+    /**
+     * Stream read(ByteBuffer) capability implemented by
+     * {@code ByteBufferReadable#read(java.nio.ByteBuffer)}.
+     */
+    public static final String READBYTEBUFFER = "in:readbytebuffer";
 
-  /**
-   * Stream setReadahead capability implemented by
-   * {@code CanSetReadahead#setReadahead(Long)}.
-   */
-  public static final String READAHEAD = "in:readahead";
+    /**
+     * Stream read(long, ByteBuffer) capability implemented by
+     * {@code ByteBufferPositionedReadable#read(long, java.nio.ByteBuffer)}.
+     */
+    public static final String PREADBYTEBUFFER = "in:preadbytebuffer";
 
-  /**
-   * Stream setDropBehind capability implemented by
-   * {@code CanSetDropBehind#setDropBehind(Boolean)}.
-   */
-  public static final String DROPBEHIND = "dropbehind";
+    /**
+     * Stream hflush capability implemented by {@code Syncable#hflush()}.
+     *
+     * Use the {@code #HSYNC} probe to check for the support of Syncable;
+     * it's that presence of {@code hsync()} which matters.
+     */
+    @Deprecated
+    public static final String HFLUSH = "hflush";
 
-  /**
-   * Stream unbuffer capability implemented by {@code CanUnbuffer#unbuffer()}.
-   */
-  public static final String UNBUFFER = "in:unbuffer";
+    /**
+     * Stream hsync capability implemented by {@code Syncable#hsync()}.
+     */
+    public static final String HSYNC = "hsync";
 
-  /**
-   * Stream read(ByteBuffer) capability implemented by
-   * {@code ByteBufferReadable#read(java.nio.ByteBuffer)}.
-   */
-  public static final String READBYTEBUFFER = "in:readbytebuffer";
+    /**
+     * Set of input/output stream capabilities to scan for.
+     */
+    public static final String[] INPUTSTREAM_CAPABILITIES = {
+        DROPBEHIND,
+        IOSTATISTICS,
+        IOSTATISTICS_CONTEXT,
+        PREADBYTEBUFFER,
+        READAHEAD,
+        READBYTEBUFFER,
+        STREAM_LEAKS,
+        UNBUFFER,
+        VECTOREDIO,
+        FS_AZURE_CAPABILITY_READAHEAD_SAFE
+    };
 
-  /**
-   * Stream read(long, ByteBuffer) capability implemented by
-   * {@code ByteBufferPositionedReadable#read(long, java.nio.ByteBuffer)}.
-   */
-  public static final String PREADBYTEBUFFER = "in:preadbytebuffer";
+    /**
+     * Set of input/output stream capabilities to scan for.
+     */
+    public static final String[] OUTPUTSTREAM_CAPABILITIES = {
+        ABORTABLE_STREAM,
+        HFLUSH,
+        HSYNC,
+        IOSTATISTICS,
+        IOSTATISTICS_CONTEXT,
+        OPTION_CREATE_CONDITIONAL_OVERWRITE,
+        OPTION_CREATE_CONDITIONAL_OVERWRITE_ETAG,
+        OPTION_CREATE_IN_CLOSE,
+        STREAM_CAPABILITY_MAGIC_OUTPUT,
+    };
 
-  /**
-   * Stream hflush capability implemented by {@code Syncable#hflush()}.
-   *
-   * Use the {@code #HSYNC} probe to check for the support of Syncable;
-   * it's that presence of {@code hsync()} which matters.
-   */
-  @Deprecated
-  public static final String HFLUSH = "hflush";
-
-  /**
-   * Stream hsync capability implemented by {@code Syncable#hsync()}.
-   */
-  public static final String HSYNC = "hsync";
-
-  /**
-   * Set of input/output stream capabilities to scan for.
-   */
-  public static final String[] INPUTSTREAM_CAPABILITIES = {
-      DROPBEHIND,
-      IOSTATISTICS,
-      IOSTATISTICS_CONTEXT,
-      PREADBYTEBUFFER,
-      READAHEAD,
-      READBYTEBUFFER,
-      STREAM_LEAKS,
-      UNBUFFER,
-      VECTOREDIO,
-      FS_AZURE_CAPABILITY_READAHEAD_SAFE
-  };
-
-  /**
-   * Set of input/output stream capabilities to scan for.
-   */
-  public static final String[] OUTPUTSTREAM_CAPABILITIES = {
-      ABORTABLE_STREAM,
-      HFLUSH,
-      HSYNC,
-      IOSTATISTICS,
-      IOSTATISTICS_CONTEXT,
-      OPTION_CREATE_CONDITIONAL_OVERWRITE,
-      OPTION_CREATE_CONDITIONAL_OVERWRITE_ETAG,
-      OPTION_CREATE_IN_CLOSE,
-      STREAM_CAPABILITY_MAGIC_OUTPUT,
-  };
-
-
-  private CapabilityKeys() {
-  }
+    private CapabilityKeys() {}
 }

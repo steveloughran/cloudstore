@@ -15,7 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.apache.hadoop.fs.store.commands;
 
 /**
@@ -23,59 +22,57 @@ package org.apache.hadoop.fs.store.commands;
  * methods to convert to a given format.
  */
 public class EnvEntry {
-  final String name;
-  final String envVar;
-  final String value;
+    final String name;
+    final String envVar;
+    final String value;
 
-  public EnvEntry(String name, String envVar, String value) {
-    this.name = name;
-    this.envVar = envVar;
-    this.value = value;
-  }
-  
-  public String xml() {
-    return String.format("<%s>%n  %s%n</%s>%n", name, value, name);
-  }
+    public EnvEntry(String name, String envVar, String value) {
+        this.name = name;
+        this.envVar = envVar;
+        this.value = value;
+    }
 
-  public String property() {
-    return String.format("%s=%s%n", name, value);
-  }
+    public String xml() {
+        return String.format("<%s>%n  %s%n</%s>%n", name, value, name);
+    }
 
+    public String property() {
+        return String.format("%s=%s%n", name, value);
+    }
 
-  public String cliProperty() {
-    return String.format("-D %s=%s ", name, value);
-  }
+    public String cliProperty() {
+        return String.format("-D %s=%s ", name, value);
+    }
 
+    public String spark() {
+        return String.format("spark.hadoop.%s %s %n", name, value);
+    }
 
-  public String spark() {
-    return String.format("spark.hadoop.%s %s %n", name, value);
-  }
+    public String bash() {
+        return String.format("export %s=\"%s\"%n", envVar, value);
+    }
 
-  public String bash() {
-    return String.format("export %s=\"%s\"%n", envVar, value);
-  }
+    public String env() {
+        return String.format("%s=\"%s\"%n", envVar, value);
+    }
 
-  public String env() {
-    return String.format("%s=\"%s\"%n", envVar, value);
-  }
+    public String fish() {
+        return String.format("set -gx %s \"%s\";%n", envVar, value);
+    }
 
-  public String fish() {
-    return String.format("set -gx %s \"%s\";%n", envVar, value);
-  }
+    public boolean hasEnvVar() {
+        return !envVar.isEmpty();
+    }
 
-  public boolean hasEnvVar() {
-    return !envVar.isEmpty();
-  }
+    public String getName() {
+        return name;
+    }
 
-  public String getName() {
-    return name;
-  }
+    public String getEnvVar() {
+        return envVar;
+    }
 
-  public String getEnvVar() {
-    return envVar;
-  }
-
-  public String getValue() {
-    return value;
-  }
+    public String getValue() {
+        return value;
+    }
 }

@@ -19,5 +19,4 @@
 /**
  * Storediag and the implementations for the different stores.
  */
-
 package org.apache.hadoop.fs.store.diag;

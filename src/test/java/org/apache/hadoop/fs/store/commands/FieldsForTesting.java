@@ -15,19 +15,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.apache.hadoop.fs.store.commands;
 
 public class FieldsForTesting {
 
-  public static final String FIELDS = FieldsForTesting.class.getName();
-  public static final int INT = 1;
-  public static final boolean BOOL = true;
+    public static final String FIELDS = FieldsForTesting.class.getName();
+    public static final int INT = 1;
+    public static final boolean BOOL = true;
 
+    public static final String NULLSTR = null;
 
-  public static final String NULLSTR = null;
+    private static final String privateString = "private";
 
-  private static final String privateString = "private";
-
-  private final String notStatic = "notStatic";
+    private final String notStatic = "notStatic";
 }

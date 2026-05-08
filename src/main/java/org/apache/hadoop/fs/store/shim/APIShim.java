@@ -15,7 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.apache.hadoop.fs.store.shim;
 
 /**
@@ -24,11 +23,10 @@ package org.apache.hadoop.fs.store.shim;
  * @param <TYPE> the type which the shim wraps.
  */
 public interface APIShim<TYPE> extends IsImplemented {
-  /**
-   * Get the instance.
-   *
-   * @return instance being shimmed.
-   */
-  TYPE getInstance();
-
+    /**
+     * Get the instance.
+     *
+     * @return instance being shimmed.
+     */
+    TYPE getInstance();
 }

@@ -1,22 +1,32 @@
 /*
  * Licensed to the Apache Software Foundation (ASF) under one
- *  or more contributor license agreements.  See the NOTICE file
- *  distributed with this work for additional information
- *  regarding copyright ownership.  The ASF licenses this file
- *  to you under the Apache License, Version 2.0 (the
- *  "License"); you may not use this file except in compliance
- *  with the License.  You may obtain a copy of the License at
+ * or more contributor license agreements.  See the NOTICE file
+ * distributed with this work for additional information
+ * regarding copyright ownership.  The ASF licenses this file
+ * to you under the Apache License, Version 2.0 (the
+ * "License"); you may not use this file except in compliance
+ * with the License.  You may obtain a copy of the License at
  *
- *       http://www.apache.org/licenses/LICENSE-2.0
+ *     http://www.apache.org/licenses/LICENSE-2.0
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
-
 package org.apache.hadoop.fs.store.audit;
+
+import static org.apache.hadoop.fs.Options.OpenFileOptions.FS_OPTION_OPENFILE_READ_POLICY;
+import static org.apache.hadoop.fs.Options.OpenFileOptions.FS_OPTION_OPENFILE_READ_POLICY_WHOLE_FILE;
+import static org.apache.hadoop.fs.s3a.audit.S3LogParser.AWS_LOG_REGEXP_GROUPS;
+import static org.apache.hadoop.fs.s3a.audit.S3LogParser.BYTESSENT_GROUP;
+import static org.apache.hadoop.fs.s3a.audit.S3LogParser.LOG_ENTRY_PATTERN;
+import static org.apache.hadoop.fs.s3a.audit.S3LogParser.OBJECTSIZE_GROUP;
+import static org.apache.hadoop.fs.s3a.audit.S3LogParser.TOTALTIME_GROUP;
+import static org.apache.hadoop.fs.s3a.audit.S3LogParser.TURNAROUNDTIME_GROUP;
+import static org.apache.hadoop.fs.store.StoreUtils.isNullOrEmpty;
+import static org.apache.hadoop.util.functional.FutureIO.awaitFuture;
 
 import java.io.IOException;
 import java.time.Instant;
@@ -29,10 +39,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Matcher;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import org.apache.avro.file.DataFileWriter;
 import org.apache.avro.io.DatumWriter;
 import org.apache.avro.specific.SpecificDatumWriter;
@@ -49,17 +55,8 @@ import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapred.LineRecordReader;
 import org.apache.hadoop.util.DurationInfo;
-
-import static org.apache.hadoop.fs.Options.OpenFileOptions.FS_OPTION_OPENFILE_READ_POLICY;
-import static org.apache.hadoop.fs.Options.OpenFileOptions.FS_OPTION_OPENFILE_READ_POLICY_WHOLE_FILE;
-import static org.apache.hadoop.fs.s3a.audit.S3LogParser.AWS_LOG_REGEXP_GROUPS;
-import static org.apache.hadoop.fs.s3a.audit.S3LogParser.BYTESSENT_GROUP;
-import static org.apache.hadoop.fs.s3a.audit.S3LogParser.LOG_ENTRY_PATTERN;
-import static org.apache.hadoop.fs.s3a.audit.S3LogParser.OBJECTSIZE_GROUP;
-import static org.apache.hadoop.fs.s3a.audit.S3LogParser.TOTALTIME_GROUP;
-import static org.apache.hadoop.fs.s3a.audit.S3LogParser.TURNAROUNDTIME_GROUP;
-import static org.apache.hadoop.fs.store.StoreUtils.isNullOrEmpty;
-import static org.apache.hadoop.util.functional.FutureIO.awaitFuture;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Merge all the audit logs present in a directory of
@@ -67,374 +64,356 @@ import static org.apache.hadoop.util.functional.FutureIO.awaitFuture;
  */
 public class AuditLogProcessor {
 
-  /**
-   * Max length of a line in the audit log: {@value}.
-   */
-  public static final int MAX_LINE_LENGTH = 32000;
+    /**
+     * Max length of a line in the audit log: {@value}.
+     */
+    public static final int MAX_LINE_LENGTH = 32000;
 
-  /**
-   * List of fields in a log record which are of type long.
-   */
-  public static final List<String> FIELDS_OF_TYPE_LONG =
-      Arrays.asList(TURNAROUNDTIME_GROUP, BYTESSENT_GROUP,
-          OBJECTSIZE_GROUP, TOTALTIME_GROUP);
+    /**
+     * List of fields in a log record which are of type long.
+     */
+    public static final List<String> FIELDS_OF_TYPE_LONG =
+            Arrays.asList(TURNAROUNDTIME_GROUP, BYTESSENT_GROUP, OBJECTSIZE_GROUP, TOTALTIME_GROUP);
 
-  private static final Logger LOG =
-      LoggerFactory.getLogger(AuditLogProcessor.class);
+    private static final Logger LOG = LoggerFactory.getLogger(AuditLogProcessor.class);
 
-  /**
-   * Referrer header key from the regexp, not the actual header name
-   * which is spelled differently: {@value}.
-   */
-  private static final String REFERRER_HEADER_KEY = "referrer";
+    /**
+     * Referrer header key from the regexp, not the actual header name
+     * which is spelled differently: {@value}.
+     */
+    private static final String REFERRER_HEADER_KEY = "referrer";
 
-  /**
-   * Timestamp key.
-   */
-  private static final String TIMESTAMP_KEY = "timestamp";
-  private static final String AVRO_TIMESTAMP_KEY = "tstamp";
+    /**
+     * Timestamp key.
+     */
+    private static final String TIMESTAMP_KEY = "timestamp";
 
-  /**
-   * Value to use when a long value cannot be parsed: {@value}.
-   */
-  public static final long FAILED_TO_PARSE_LONG = -1L;
+    private static final String AVRO_TIMESTAMP_KEY = "tstamp";
 
-  /**
-   * Key for the referrer map in the Avro record: {@value}.
-   */
-  public static final String REFERRER_MAP = "audit";
+    /**
+     * Value to use when a long value cannot be parsed: {@value}.
+     */
+    public static final long FAILED_TO_PARSE_LONG = -1L;
 
-  /**
-   * Format of S3 log timestamps like "13/May/2021:11:26:06 +0000"
-   */
-  private static final DateTimeFormatter TS_FORMATTER =
-      DateTimeFormatter.ofPattern("dd/MMM/yyyy:HH:mm:ss Z", Locale.ENGLISH);
+    /**
+     * Key for the referrer map in the Avro record: {@value}.
+     */
+    public static final String REFERRER_MAP = "audit";
 
-  public static final Instant EPOCH_START = Instant.ofEpochMilli(0);
+    /**
+     * Format of S3 log timestamps like "13/May/2021:11:26:06 +0000"
+     */
+    private static final DateTimeFormatter TS_FORMATTER =
+            DateTimeFormatter.ofPattern("dd/MMM/yyyy:HH:mm:ss Z", Locale.ENGLISH);
 
-  private final Configuration conf;
+    public static final Instant EPOCH_START = Instant.ofEpochMilli(0);
 
-  /*
-   * Number of records to process before giving a status update.
-   */
-  private final int sample;
+    private final Configuration conf;
 
-  // Basic parsing counters.
+    /*
+     * Number of records to process before giving a status update.
+     */
+    private final int sample;
 
-  /**
-   * Number of audit log files parsed.
-   */
-  private long logFilesParsed = 0;
+    // Basic parsing counters.
 
-  /**
-   * Number of log entries parsed.
-   */
-  private long logRecordsProcessed = 0;
+    /**
+     * Number of audit log files parsed.
+     */
+    private long logFilesParsed = 0;
 
-  /**
-   * How many referrer headers were parsed.
-   */
-  private long referrerHeadersParsed = 0;
+    /**
+     * Number of log entries parsed.
+     */
+    private long logRecordsProcessed = 0;
 
-  /**
-   * How many records were skipped due to lack of referrer or other reason.
-   */
-  private long recordsSkipped = 0;
+    /**
+     * How many referrer headers were parsed.
+     */
+    private long referrerHeadersParsed = 0;
 
-  public AuditLogProcessor(final Configuration conf, final int sample) {
-    this.conf = conf;
+    /**
+     * How many records were skipped due to lack of referrer or other reason.
+     */
+    private long recordsSkipped = 0;
 
-    this.sample = sample;
-  }
+    public AuditLogProcessor(final Configuration conf, final int sample) {
+        this.conf = conf;
 
-  /**
-   * parseAuditLog method helps in parsing the audit log
-   * into key-value pairs using regular expressions.
-   * @param singleAuditLog this is single audit log from merged audit log file
-   * @return it returns a map i.e, auditLogMap which contains key-value pairs of a single audit log
-   */
-  public HashMap<String, String> parseAuditLog(String singleAuditLog) {
-    HashMap<String, String> auditLogMap = new HashMap<>();
-    if (singleAuditLog == null || singleAuditLog.isEmpty()) {
-      LOG.debug("This is an empty string or null string, expected a valid string to parse");
-      return auditLogMap;
+        this.sample = sample;
     }
-    final Matcher matcher = LOG_ENTRY_PATTERN.matcher(singleAuditLog);
-    boolean patternMatched = matcher.matches();
-    if (patternMatched) {
-      for (String key : AWS_LOG_REGEXP_GROUPS) {
+
+    /**
+     * parseAuditLog method helps in parsing the audit log
+     * into key-value pairs using regular expressions.
+     * @param singleAuditLog this is single audit log from merged audit log file
+     * @return it returns a map i.e, auditLogMap which contains key-value pairs of a single audit log
+     */
+    public HashMap<String, String> parseAuditLog(String singleAuditLog) {
+        HashMap<String, String> auditLogMap = new HashMap<>();
+        if (singleAuditLog == null || singleAuditLog.isEmpty()) {
+            LOG.debug("This is an empty string or null string, expected a valid string to parse");
+            return auditLogMap;
+        }
+        final Matcher matcher = LOG_ENTRY_PATTERN.matcher(singleAuditLog);
+        boolean patternMatched = matcher.matches();
+        if (patternMatched) {
+            for (String key : AWS_LOG_REGEXP_GROUPS) {
+                try {
+                    final String value = matcher.group(key);
+                    auditLogMap.put(key, value);
+                } catch (IllegalStateException e) {
+                    LOG.debug("Skipping key :{} due to no match with the audit log " + "pattern :", key);
+                    LOG.debug(String.valueOf(e));
+                }
+            }
+        }
+        return auditLogMap;
+    }
+
+    /**
+     * Parses the http referrer header.
+     * which is one of the key-value pair of audit log.
+     * @param referrerHeader this is the http referrer header of a particular
+     * audit log.
+     * @return returns a map which contains key-value pairs of referrer headers; an empty map
+     * there was no referrer header or parsing failed
+     */
+    public static HashMap<String, String> parseAuditHeader(String referrerHeader) {
+        HashMap<String, String> referrerHeaderMap = new HashMap<>();
+        if (isNullOrEmpty(referrerHeader) || referrerHeader.equals("-")) {
+
+            LOG.debug("This is an empty string or null string, expected a valid string to parse");
+            return referrerHeaderMap;
+        }
+
+        // '?' used as the split point between the headers and the url. This
+        // returns the first occurrence of '?'
+        int indexOfQuestionMark = referrerHeader.indexOf("?");
+        String httpReferrer = referrerHeader.substring(indexOfQuestionMark + 1, referrerHeader.length() - 1);
+
+        int lengthOfReferrer = httpReferrer.length();
+        int start = 0;
+        LOG.debug("HttpReferrer headers string: {}", httpReferrer);
+        while (start < lengthOfReferrer) {
+            // splits "key" and "value" of each header
+            int equals = httpReferrer.indexOf("=", start);
+            // no match : break, no header left
+            if (equals == -1) {
+                break;
+            }
+            // key represents the string between "start" and index of "=".
+            String key = httpReferrer.substring(start, equals);
+            // splits between different headers, this also helps in ignoring "="
+            // inside values since we set the end till we find '&'
+            int end = httpReferrer.indexOf("&", equals);
+            // or end of string
+            if (end == -1) {
+                end = lengthOfReferrer;
+            }
+            // value represents the string between index of "=" + 1 and the "end"
+            String value = httpReferrer.substring(equals + 1, end);
+            referrerHeaderMap.put(key, value);
+            start = end + 1;
+        }
+
+        return referrerHeaderMap;
+    }
+
+    /**
+     * Merge and parse all the audit log files and convert data into avro file.
+     * @param logsPath source path of logs
+     * @param destFile destination path of merged log file
+     * @param overwrite overwrite the dest
+     * @param processed processing callback.
+     * @return number of records parsed.
+     * @throws IOException on any failure
+     */
+    public long mergeAndParseAuditLogFiles(
+            final Path logsPath, final Path destFile, boolean overwrite, Processed processed) throws IOException {
+
+        logRecordsProcessed = 0;
+        logFilesParsed = 0;
+        // List source log files
+        final FileSystem sourceFS = logsPath.getFileSystem(conf);
+        RemoteIterator<LocatedFileStatus> listOfLogFiles = sourceFS.listFiles(logsPath, true);
+
+        final FileSystem destFS = destFile.getFileSystem(conf);
+        final FSDataOutputStreamBuilder builder =
+                destFS.createFile(destFile).recursive().overwrite(overwrite);
+
+        FSDataOutputStream fsDataOutputStream = builder.build();
+
+        // Instantiate DatumWriter class
+        DatumWriter<AvroS3LogEntryRecord> datumWriter = new SpecificDatumWriter<>(AvroS3LogEntryRecord.class);
+        boolean continueProcessing = true;
+
+        try (DataFileWriter<AvroS3LogEntryRecord> dataFileWriter = new DataFileWriter<>(datumWriter);
+                DataFileWriter<AvroS3LogEntryRecord> avroWriter =
+                        dataFileWriter.create(AvroS3LogEntryRecord.getClassSchema(), fsDataOutputStream); ) {
+
+            // Iterating over the list of files to merge and parse
+            while (continueProcessing && listOfLogFiles.hasNext()) {
+                FileStatus fileStatus = listOfLogFiles.next();
+                int fileLength = (int) fileStatus.getLen();
+
+                try (DurationInfo duration = new DurationInfo(
+                                LOG, "[%05d] Processing %s", getLogFilesParsed() + 1, fileStatus.getPath());
+                        FSDataInputStream fsDataInputStream = awaitFuture(sourceFS.openFile(fileStatus.getPath())
+                                .withFileStatus(fileStatus)
+                                .opt(FS_OPTION_OPENFILE_READ_POLICY, FS_OPTION_OPENFILE_READ_POLICY_WHOLE_FILE)
+                                .build())) {
+                    logFilesParsed++;
+
+                    // Reading the file data using LineRecordReader
+                    LineRecordReader lineRecordReader =
+                            new LineRecordReader(fsDataInputStream, 0L, fileLength, MAX_LINE_LENGTH);
+                    LongWritable longWritable = new LongWritable();
+                    Text singleAuditLog = new Text();
+
+                    // Parse each and every audit log from list of logs
+                    while (continueProcessing && lineRecordReader.next(longWritable, singleAuditLog)) {
+                        // Parse audit log
+                        HashMap<String, String> auditLogMap = parseAuditLog(singleAuditLog.toString());
+                        logRecordsProcessed++;
+
+                        // Insert data according to schema
+
+                        // Instantiating generated AvroDataRecord class
+                        AvroS3LogEntryRecord avroDataRecord = buildLogRecord(auditLogMap);
+                        if (!avroDataRecord.getAudit().isEmpty()) {
+                            referrerHeadersParsed++;
+                        }
+                        avroWriter.append(avroDataRecord);
+                        continueProcessing = processed.processed(avroDataRecord);
+                    }
+                    dataFileWriter.flush();
+                }
+            }
+        }
+
+        LOG.info(
+                "Successfully parsed: {} records with {} referrer headers " + "in the logs",
+                logRecordsProcessed,
+                referrerHeadersParsed);
+        return logRecordsProcessed;
+    }
+
+    public long getLogRecordsProcessed() {
+        return logRecordsProcessed;
+    }
+
+    public long getLogFilesParsed() {
+        return logFilesParsed;
+    }
+
+    public long getReferrerHeadersParsed() {
+        return referrerHeadersParsed;
+    }
+
+    /**
+     * Build log record from a parsed audit log entry.
+     * @param auditLogMap parsed audit log entry.
+     * @return the Avro record.
+     */
+    public AvroS3LogEntryRecord buildLogRecord(Map<String, String> auditLogMap) {
+
+        // Instantiating generated AvroDataRecord class
+        AvroS3LogEntryRecord avroDataRecord = new AvroS3LogEntryRecord();
+
+        // special timestamp handling
+        String timestamp = auditLogMap.get(TIMESTAMP_KEY);
+        timestamp = timestamp.substring(1, timestamp.length() - 1);
         try {
-          final String value = matcher.group(key);
-          auditLogMap.put(key, value);
-        } catch (IllegalStateException e) {
-          LOG.debug("Skipping key :{} due to no match with the audit log "
-              + "pattern :", key);
-          LOG.debug(String.valueOf(e));
+            avroDataRecord.setEvent(parseToInstant(timestamp));
+        } catch (DateTimeParseException e) {
+            avroDataRecord.setEvent(EPOCH_START);
         }
-      }
-    }
-    return auditLogMap;
-  }
+        avroDataRecord.setTstamp(timestamp);
 
-  /**
-   * Parses the http referrer header.
-   * which is one of the key-value pair of audit log.
-   * @param referrerHeader this is the http referrer header of a particular
-   * audit log.
-   * @return returns a map which contains key-value pairs of referrer headers; an empty map
-   * there was no referrer header or parsing failed
-   */
-  public static HashMap<String, String> parseAuditHeader(String referrerHeader) {
-    HashMap<String, String> referrerHeaderMap = new HashMap<>();
-    if (isNullOrEmpty(referrerHeader)
-        || referrerHeader.equals("-")) {
+        for (Map.Entry<String, String> entry : auditLogMap.entrySet()) {
+            String key = entry.getKey();
+            String value = entry.getValue().trim();
 
-      LOG.debug("This is an empty string or null string, expected a valid string to parse");
-      return referrerHeaderMap;
-    }
-
-    // '?' used as the split point between the headers and the url. This
-    // returns the first occurrence of '?'
-    int indexOfQuestionMark = referrerHeader.indexOf("?");
-    String httpReferrer = referrerHeader.substring(indexOfQuestionMark + 1,
-        referrerHeader.length() - 1);
-
-    int lengthOfReferrer = httpReferrer.length();
-    int start = 0;
-    LOG.debug("HttpReferrer headers string: {}", httpReferrer);
-    while (start < lengthOfReferrer) {
-      // splits "key" and "value" of each header
-      int equals = httpReferrer.indexOf("=", start);
-      // no match : break, no header left
-      if (equals == -1) {
-        break;
-      }
-      // key represents the string between "start" and index of "=".
-      String key = httpReferrer.substring(start, equals);
-      // splits between different headers, this also helps in ignoring "="
-      // inside values since we set the end till we find '&'
-      int end = httpReferrer.indexOf("&", equals);
-      // or end of string
-      if (end == -1) {
-        end = lengthOfReferrer;
-      }
-      // value represents the string between index of "=" + 1 and the "end"
-      String value = httpReferrer.substring(equals + 1, end);
-      referrerHeaderMap.put(key, value);
-      start = end + 1;
-    }
-
-    return referrerHeaderMap;
-  }
-
-  /**
-   * Merge and parse all the audit log files and convert data into avro file.
-   * @param logsPath source path of logs
-   * @param destFile destination path of merged log file
-   * @param overwrite overwrite the dest
-   * @param processed processing callback.
-   * @return number of records parsed.
-   * @throws IOException on any failure
-   */
-  public long mergeAndParseAuditLogFiles(
-      final Path logsPath,
-      final Path destFile,
-      boolean overwrite,
-      Processed processed) throws IOException {
-
-
-    logRecordsProcessed = 0;
-    logFilesParsed = 0;
-    // List source log files
-    final FileSystem sourceFS = logsPath.getFileSystem(conf);
-    RemoteIterator<LocatedFileStatus> listOfLogFiles =
-        sourceFS.listFiles(logsPath, true);
-
-    final FileSystem destFS = destFile.getFileSystem(conf);
-    final FSDataOutputStreamBuilder builder = destFS.createFile(destFile)
-        .recursive()
-        .overwrite(overwrite);
-
-
-    FSDataOutputStream fsDataOutputStream = builder.build();
-
-    // Instantiate DatumWriter class
-    DatumWriter<AvroS3LogEntryRecord> datumWriter =
-        new SpecificDatumWriter<>(
-            AvroS3LogEntryRecord.class);
-    boolean continueProcessing = true;
-
-    try (DataFileWriter<AvroS3LogEntryRecord> dataFileWriter =
-             new DataFileWriter<>(datumWriter);
-         DataFileWriter<AvroS3LogEntryRecord> avroWriter =
-             dataFileWriter.create(AvroS3LogEntryRecord.getClassSchema(),
-                 fsDataOutputStream);) {
-
-      // Iterating over the list of files to merge and parse
-      while (continueProcessing && listOfLogFiles.hasNext()) {
-        FileStatus fileStatus = listOfLogFiles.next();
-        int fileLength = (int) fileStatus.getLen();
-
-        try (DurationInfo duration = new DurationInfo(LOG,
-            "[%05d] Processing %s", getLogFilesParsed() + 1, fileStatus.getPath());
-             FSDataInputStream fsDataInputStream =
-                 awaitFuture(sourceFS.openFile(fileStatus.getPath())
-                     .withFileStatus(fileStatus)
-                     .opt(FS_OPTION_OPENFILE_READ_POLICY,
-                         FS_OPTION_OPENFILE_READ_POLICY_WHOLE_FILE)
-                     .build())) {
-          logFilesParsed++;
-
-          // Reading the file data using LineRecordReader
-          LineRecordReader lineRecordReader =
-              new LineRecordReader(fsDataInputStream, 0L, fileLength,
-                  MAX_LINE_LENGTH);
-          LongWritable longWritable = new LongWritable();
-          Text singleAuditLog = new Text();
-
-          // Parse each and every audit log from list of logs
-          while (continueProcessing && lineRecordReader.next(longWritable, singleAuditLog)) {
-            // Parse audit log
-            HashMap<String, String> auditLogMap =
-                parseAuditLog(singleAuditLog.toString());
-            logRecordsProcessed++;
-
-            // Insert data according to schema
-
-            // Instantiating generated AvroDataRecord class
-            AvroS3LogEntryRecord avroDataRecord = buildLogRecord(auditLogMap);
-            if (!avroDataRecord.getAudit().isEmpty()) {
-              referrerHeadersParsed++;
+            // fixup
+            if (TIMESTAMP_KEY.equals(key)) {
+                // timestamp handler.
+                continue;
             }
-            avroWriter.append(avroDataRecord);
-            continueProcessing = processed.processed(avroDataRecord);
-          }
-          dataFileWriter.flush();
-        }
-      }
-    }
 
-    LOG.info("Successfully parsed: {} records with {} referrer headers "
-        + "in the logs", logRecordsProcessed, referrerHeadersParsed);
-    return logRecordsProcessed;
-  }
-
-  public long getLogRecordsProcessed() {
-    return logRecordsProcessed;
-  }
-
-  public long getLogFilesParsed() {
-    return logFilesParsed;
-  }
-
-  public long getReferrerHeadersParsed() {
-    return referrerHeadersParsed;
-  }
-
-  /**
-   * Build log record from a parsed audit log entry.
-   * @param auditLogMap parsed audit log entry.
-   * @return the Avro record.
-   */
-  public AvroS3LogEntryRecord buildLogRecord(Map<String, String> auditLogMap) {
-
-    // Instantiating generated AvroDataRecord class
-    AvroS3LogEntryRecord avroDataRecord = new AvroS3LogEntryRecord();
-
-    // special timestamp handling
-    String timestamp = auditLogMap.get(TIMESTAMP_KEY);
-    timestamp = timestamp.substring(1, timestamp.length() - 1);
-    try {
-      avroDataRecord.setEvent(parseToInstant(timestamp));
-    } catch (DateTimeParseException e) {
-      avroDataRecord.setEvent(EPOCH_START);
-    }
-    avroDataRecord.setTstamp(timestamp);
-
-    for (Map.Entry<String, String> entry : auditLogMap.entrySet()) {
-      String key = entry.getKey();
-      String value = entry.getValue().trim();
-
-      // fixup
-      if (TIMESTAMP_KEY .equals(key)) {
-        // timestamp handler.
-        continue;
-      }
-
-      // if value == '-' and key is not in arraylist then put '-' or else '-1'
-      // if key is in arraylist of long values then parse the long value
-      // while parsing do it in try-catch block,
-      // in catch block need to log exception and set value as '-1'
-      try {
-        if (FIELDS_OF_TYPE_LONG.contains(key)) {
-          if (value.equals("-")) {
-            avroDataRecord.put(key, null);
-          } else {
+            // if value == '-' and key is not in arraylist then put '-' or else '-1'
+            // if key is in arraylist of long values then parse the long value
+            // while parsing do it in try-catch block,
+            // in catch block need to log exception and set value as '-1'
             try {
-              avroDataRecord.put(key, Long.parseLong(value));
-            } catch (NumberFormatException e) {
-              // failed to parse the long value.
-              LOG.debug("Failed to parse long value for key {} : {}", key, value);
-              avroDataRecord.put(key, FAILED_TO_PARSE_LONG);
+                if (FIELDS_OF_TYPE_LONG.contains(key)) {
+                    if (value.equals("-")) {
+                        avroDataRecord.put(key, null);
+                    } else {
+                        try {
+                            avroDataRecord.put(key, Long.parseLong(value));
+                        } catch (NumberFormatException e) {
+                            // failed to parse the long value.
+                            LOG.debug("Failed to parse long value for key {} : {}", key, value);
+                            avroDataRecord.put(key, FAILED_TO_PARSE_LONG);
+                        }
+                    }
+                } else {
+                    avroDataRecord.put(key, value);
+                }
+            } catch (Exception e) {
+                avroDataRecord.put(key, null);
             }
-          }
-        } else {
-          avroDataRecord.put(key, value);
         }
-      } catch (Exception e) {
-        avroDataRecord.put(key, null);
-      }
+
+        // Parse the audit header
+        HashMap<String, String> referrerHeaderMap = parseAuditHeader(auditLogMap.get(REFERRER_HEADER_KEY));
+        avroDataRecord.put(REFERRER_MAP, referrerHeaderMap);
+
+        return avroDataRecord;
+
+        // build the event header
+
     }
 
-    // Parse the audit header
-    HashMap<String, String> referrerHeaderMap =
-        parseAuditHeader(auditLogMap.get(REFERRER_HEADER_KEY));
-    avroDataRecord.put(REFERRER_MAP, referrerHeaderMap);
-
-    return avroDataRecord;
-
-    // build the event header
-
-  }
-
-  @Override
-  public String toString() {
-    final StringBuilder sb = new StringBuilder("AuditLogProcessor{");
-    sb.append("logFilesParsed=").append(logFilesParsed);
-    sb.append(", logRecordsProcessed=").append(logRecordsProcessed);
-    sb.append(", referrerHeadersParsed=").append(referrerHeadersParsed);
-    sb.append(", recordsSkipped=").append(recordsSkipped);
-    sb.append('}');
-    return sb.toString();
-  }
-
-  /**
-   * Parse the input string to an Instant (UTC).
-   * @throws DateTimeParseException if the input cannot be parsed.
-   */
-  public static Instant parseToInstant(String input) {
-    OffsetDateTime odt = OffsetDateTime.parse(input, TS_FORMATTER);
-    return odt.toInstant();
-  }
-
-  /**
-   * Parse the input string to the epoch millis; fallback is 0.
-   * @param input input string.
-   * @return parsed value or 0 on a failure.
-   */
-  public static long parseToEpochMillis(String input) {
-    try {
-      return parseToInstant(input).toEpochMilli();
-    } catch (DateTimeParseException e) {
-      return 0;
+    @Override
+    public String toString() {
+        final StringBuilder sb = new StringBuilder("AuditLogProcessor{");
+        sb.append("logFilesParsed=").append(logFilesParsed);
+        sb.append(", logRecordsProcessed=").append(logRecordsProcessed);
+        sb.append(", referrerHeadersParsed=").append(referrerHeadersParsed);
+        sb.append(", recordsSkipped=").append(recordsSkipped);
+        sb.append('}');
+        return sb.toString();
     }
-  }
 
-  @FunctionalInterface
-  public interface Processed {
-    // callback on process; return true to continue processing
-    boolean processed(AvroS3LogEntryRecord record);
-  }
+    /**
+     * Parse the input string to an Instant (UTC).
+     * @throws DateTimeParseException if the input cannot be parsed.
+     */
+    public static Instant parseToInstant(String input) {
+        OffsetDateTime odt = OffsetDateTime.parse(input, TS_FORMATTER);
+        return odt.toInstant();
+    }
 
-  public static Processed PROCESS_ALL = (record -> true);
+    /**
+     * Parse the input string to the epoch millis; fallback is 0.
+     * @param input input string.
+     * @return parsed value or 0 on a failure.
+     */
+    public static long parseToEpochMillis(String input) {
+        try {
+            return parseToInstant(input).toEpochMilli();
+        } catch (DateTimeParseException e) {
+            return 0;
+        }
+    }
+
+    @FunctionalInterface
+    public interface Processed {
+        // callback on process; return true to continue processing
+        boolean processed(AvroS3LogEntryRecord record);
+    }
+
+    public static Processed PROCESS_ALL = (record -> true);
 }

@@ -19,13 +19,30 @@
 With maven
 
 To build a production release
-1. Use java8
-2. compile against a shipping hadoop version (see the profiles)
+1. Use java8 for the *bytecode* (`source`/`target` are pinned to 1.8 by the compiler plugin and by the enforcer plugin's lower bound).
+2. Run the build under a JDK that the toolchain supports — JDK 11+ is required for `spotless:apply` because palantir-java-format pulls in JDK 11 APIs at format time.
+3. Compile against a shipping hadoop version (see the profiles).
 
 
 ```bash
-mvn clean install
+mvn clean install               # compile + unit tests + jar
+mvn clean verify                # adds: ITest*, apache-rat:check, spotless:check
+mvn spotless:apply              # auto-format Java sources to palantir-java-format
+mvn org.apache.rat:apache-rat-plugin:check    # license-header audit only
+mvn site                        # render src/site → target/site (fluido skin)
 ```
+
+The `verify` lifecycle is the one CI runs. To run cloud-backed contract tests
+opt in via profile + credentials in `src/test/resources/auth-keys.xml`:
+
+```bash
+mvn -Ds3a-it verify -Dit.test=ITestS3AStorediagContract
+```
+
+The `s3a-it` profile pulls in the `hadoop-aws` test-jar (which provides
+`S3AContract`). Apache does not consistently publish that artifact to Maven
+Central, so the dependency is gated behind the profile rather than being
+unconditional.
 ## Updating cloudstore release versions
 
 For a long time the version was fixed at 1.0 so that curl and other tools could retrieve it

@@ -15,115 +15,113 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.apache.hadoop.fs.store.diag;
+
+import static org.apache.hadoop.fs.store.diag.DiagnosticsEntryPoint.toURI;
 
 import java.io.IOException;
 import java.net.URI;
-
-import static org.apache.hadoop.fs.store.diag.DiagnosticsEntryPoint.toURI;
 
 /**
  * Endpoint to probe for and the results of that probe.
  */
 public final class EndpointProbe {
 
-  /** URI. */
-  public final URI endpoint;
+    /** URI. */
+    public final URI endpoint;
 
-  /** Generic description. */
-  public final String description;
+    /** Generic description. */
+    public final String description;
 
-  /** where did the endpoint come from? */
-  public final String origin;
+    /** where did the endpoint come from? */
+    public final String origin;
 
-  private final boolean expectWorldReadable;
-  private boolean success;
+    private final boolean expectWorldReadable;
+    private boolean success;
 
-  private boolean usedProxy;
+    private boolean usedProxy;
 
-  private String message;
+    private String message;
 
-  private String body;
+    private String body;
 
-  public EndpointProbe(final URI endpoint, final String description, final String origin,
-      final boolean expectWorldReadable) {
-    this.endpoint = endpoint;
-    this.description = description;
-    this.origin = origin;
-    this.expectWorldReadable = expectWorldReadable;
-  }
+    public EndpointProbe(
+            final URI endpoint, final String description, final String origin, final boolean expectWorldReadable) {
+        this.endpoint = endpoint;
+        this.description = description;
+        this.origin = origin;
+        this.expectWorldReadable = expectWorldReadable;
+    }
 
-  public EndpointProbe(final String endpoint, final String description, final String origin,
-      final boolean expectWorldReadable)
-      throws IOException {
-    this.expectWorldReadable = expectWorldReadable;
-    this.endpoint = toURI(origin, endpoint);
-    this.description = description;
-    this.origin = origin;
-  }
+    public EndpointProbe(
+            final String endpoint, final String description, final String origin, final boolean expectWorldReadable)
+            throws IOException {
+        this.expectWorldReadable = expectWorldReadable;
+        this.endpoint = toURI(origin, endpoint);
+        this.description = description;
+        this.origin = origin;
+    }
 
-  @Override
-  public String toString() {
-    return "EndpointProbe{" +
-        "endpoint=" + endpoint +
-        ", description='" + description + '\'' +
-        ", origin='" + origin + '\'' +
-        ", success=" + success +
-        ", usedProxy=" + usedProxy +
-        '}';
-  }
+    @Override
+    public String toString() {
+        return "EndpointProbe{" + "endpoint="
+                + endpoint + ", description='"
+                + description + '\'' + ", origin='"
+                + origin + '\'' + ", success="
+                + success + ", usedProxy="
+                + usedProxy + '}';
+    }
 
-  public URI getEndpoint() {
-    return endpoint;
-  }
+    public URI getEndpoint() {
+        return endpoint;
+    }
 
-  public String getDescription() {
-    return description;
-  }
+    public String getDescription() {
+        return description;
+    }
 
-  public String getOrigin() {
-    return origin;
-  }
+    public String getOrigin() {
+        return origin;
+    }
 
-  public boolean isSuccess() {
-    return success;
-  }
+    public boolean isSuccess() {
+        return success;
+    }
 
-  public void failed(String message) {
-    this.success = false;
-    this.message = message;
-  }
+    public void failed(String message) {
+        this.success = false;
+        this.message = message;
+    }
 
-  public void setSuccess(final boolean success) {
-    this.success = success;
-  }
+    public void setSuccess(final boolean success) {
+        this.success = success;
+    }
 
-  public boolean isUsedProxy() {
-    return usedProxy;
-  }
+    public boolean isUsedProxy() {
+        return usedProxy;
+    }
 
-  public void setUsedProxy(final boolean usedProxy) {
-    this.usedProxy = usedProxy;
-  }
+    public void setUsedProxy(final boolean usedProxy) {
+        this.usedProxy = usedProxy;
+    }
 
-  public String getMessage() {
-    return message;
-  }
+    public String getMessage() {
+        return message;
+    }
 
-  public void setMessage(final String message) {
-    this.message = message;
-  }
+    public void setMessage(final String message) {
+        this.message = message;
+    }
 
-  public String getBody() {
-    return body;
-  }
+    public String getBody() {
+        return body;
+    }
 
-  public void setBody(final String body) {
-    this.body = body;
-  }
+    public void setBody(final String body) {
+        this.body = body;
+    }
 
-  public boolean isExpectWorldReadable() {
-    return expectWorldReadable;
-  }
+    public boolean isExpectWorldReadable() {
+        return expectWorldReadable;
+    }
 }

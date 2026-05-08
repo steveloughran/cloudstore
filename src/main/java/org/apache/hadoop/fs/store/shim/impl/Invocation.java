@@ -15,7 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.apache.hadoop.fs.store.shim.impl;
 
 import java.io.IOException;
@@ -28,72 +27,68 @@ import java.lang.reflect.Method;
  */
 public final class Invocation<T> {
 
-  /**
-   * Method name for error messages.
-   */
-  private final String name;
+    /**
+     * Method name for error messages.
+     */
+    private final String name;
 
-  /**
-   * Method to invoke.
-   */
-  private final Method method;
+    /**
+     * Method to invoke.
+     */
+    private final Method method;
 
-  /**
-   * Create.
-   * @param name invocation name for error messages.
-   * @param method method to invoke.
-   */
-  public Invocation(final String name, final Method method) {
-    this.name = name;
-    this.method = method;
-  }
+    /**
+     * Create.
+     * @param name invocation name for error messages.
+     * @param method method to invoke.
+     */
+    public Invocation(final String name, final Method method) {
+        this.name = name;
+        this.method = method;
+    }
 
-  /**
-   * Is the method available.
-   * @return true if the invocation is available.
-   */
-  public boolean available() {
-    return method != null;
-  }
+    /**
+     * Is the method available.
+     * @return true if the invocation is available.
+     */
+    public boolean available() {
+        return method != null;
+    }
 
-  /**
-   * Invoke the method with exception unwrap/uprate.
-   * If {@link #method} is null, raise UnsupportedOperationException
-   * @param instance instance to invoke
-   * @param parameters parameters
-   * @return the result
-   * @throws UnsupportedOperationException if the method is null
-   * @throws RuntimeException for all RTEs raised by invoked methods except UncheckedIOEs
-   * @throws IOException when converting/unwrappping thrown exceptions
-   */
- public T invoke(
-     final Object instance,
-     final Object... parameters) throws IOException {
-    return (T) ShimReflectionSupport.invokeOperation(name, instance, method, parameters);
-  }
+    /**
+     * Invoke the method with exception unwrap/uprate.
+     * If {@link #method} is null, raise UnsupportedOperationException
+     * @param instance instance to invoke
+     * @param parameters parameters
+     * @return the result
+     * @throws UnsupportedOperationException if the method is null
+     * @throws RuntimeException for all RTEs raised by invoked methods except UncheckedIOEs
+     * @throws IOException when converting/unwrappping thrown exceptions
+     */
+    public T invoke(final Object instance, final Object... parameters) throws IOException {
+        return (T) ShimReflectionSupport.invokeOperation(name, instance, method, parameters);
+    }
 
-  /**
-   * Invoke the method with exception unwrap/uprate.
-   * If {@link #method} is null, raise UnsupportedOperationException
-   * @param instance instance to invoke
-   * @param parameters parameters
-   * @return the result
-   * @throws UnsupportedOperationException if the method is null
-   * @throws RuntimeException for all RTEs raised by invoked methods except UncheckedIOEs
-   * @throws UncheckedIOException wrapped IOE
-   */
- public T invokeUnchecked(
-     final Object instance,
-     final Object... parameters) {
-    return (T) ShimReflectionSupport.invokeUnchecked(name, instance, method, parameters);
-  }
+    /**
+     * Invoke the method with exception unwrap/uprate.
+     * If {@link #method} is null, raise UnsupportedOperationException
+     * @param instance instance to invoke
+     * @param parameters parameters
+     * @return the result
+     * @throws UnsupportedOperationException if the method is null
+     * @throws RuntimeException for all RTEs raised by invoked methods except UncheckedIOEs
+     * @throws UncheckedIOException wrapped IOE
+     */
+    public T invokeUnchecked(final Object instance, final Object... parameters) {
+        return (T) ShimReflectionSupport.invokeUnchecked(name, instance, method, parameters);
+    }
 
-  /**
-   * Generate an invocation which is always unavailable.
-   * @param name name for the exception text.
-   * @return an invocation which always raises
-   */
-  public static <T> Invocation<T> unavailable(String name) {
-    return new Invocation<T>(name, null);
-  }
+    /**
+     * Generate an invocation which is always unavailable.
+     * @param name name for the exception text.
+     * @return an invocation which always raises
+     */
+    public static <T> Invocation<T> unavailable(String name) {
+        return new Invocation<T>(name, null);
+    }
 }

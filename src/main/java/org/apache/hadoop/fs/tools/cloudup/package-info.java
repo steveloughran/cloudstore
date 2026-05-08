@@ -120,7 +120,5 @@ package org.apache.hadoop.fs.tools.cloudup;
  * The large file queue would take the larger files, and upload very
  * few at a time 1? 2?, sorting the order to do large uploads first.
  */
-
 import org.apache.hadoop.classification.InterfaceAudience;
 import org.apache.hadoop.classification.InterfaceStability;
-
