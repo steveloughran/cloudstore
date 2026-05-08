@@ -42,19 +42,19 @@ Upload 128M of data to s3 with a block size of 8 megabytes; use `-verbose` outpu
 statistics. Save the summary to a CSV file for review.
 
 ```
-> hadoop jar cloudstore-1.1.jar bandwidth -csv tmp/s3a128m.csv -block 8 -verbose -policy whole-file 128m s3a://stevel-london/tmp
+> hadoop jar cloudstore-1.1.jar bandwidth -csv tmp/s3a128m.csv -block 8 -verbose -policy whole-file 128m s3a://example-london/tmp
 
-Bandwidth test against s3a://stevel-london/tmp with data size 128m
+Bandwidth test against s3a://example-london/tmp with data size 128m
 ==================================================================
 
 Block size 8 MB
 Saving statistics as CSV data to tmp/s3a128m.csv
 2023-09-14 13:57:00,959 [main] INFO  impl.DirectoryPolicyImpl (DirectoryPolicyImpl.java:getDirectoryPolicy(189)) - Directory markers will be kept
-Using filesystem s3a://stevel-london
+Using filesystem s3a://example-london
 Upload size in Megabytes 128 MB
 Writing data as 16 blocks each of size 8,388,608 bytes
-Starting: Opening s3a://stevel-london/tmp for upload
-Duration of Opening s3a://stevel-london/tmp for upload: 0:00.397
+Starting: Opening s3a://example-london/tmp for upload
+Duration of Opening s3a://example-london/tmp for upload: 0:00.397
 Write block 0 in 0.002 seconds
 Write block 1 in 0.002 seconds
 Write block 2 in 0.002 seconds
@@ -75,22 +75,22 @@ Write block 15 in 8.248 seconds
 Starting: upload stream close()
 Duration of upload stream close(): 0:11.706
 Progress callbacks 16420; in close 5734
-Upload Stream: FSDataOutputStream{wrappedStream=S3ABlockOutputStream{WriteOperationHelper {bucket=stevel-london}, blockSize=33554432 Statistics=counters=((stream_write_bytes=134217728) (multipart_upload_completed.failures=0) (op_hsync=0) (multipart_upload_completed=1) (stream_write_exceptions=0) (stream_write_block_uploads=4) (stream_write_queue_duration=0) (op_hflush=0) (action_executor_acquired.failures=0) (stream_write_total_time=0) (stream_write_exceptions_completing_upload=0) (action_executor_acquired=0) (op_abort.failures=0) (op_abort=0) (object_multipart_aborted.failures=0) (stream_write_total_data=134217728) (object_multipart_aborted=0));
+Upload Stream: FSDataOutputStream{wrappedStream=S3ABlockOutputStream{WriteOperationHelper {bucket=example-london}, blockSize=33554432 Statistics=counters=((stream_write_bytes=134217728) (multipart_upload_completed.failures=0) (op_hsync=0) (multipart_upload_completed=1) (stream_write_exceptions=0) (stream_write_block_uploads=4) (stream_write_queue_duration=0) (op_hflush=0) (action_executor_acquired.failures=0) (stream_write_total_time=0) (stream_write_exceptions_completing_upload=0) (action_executor_acquired=0) (op_abort.failures=0) (op_abort=0) (object_multipart_aborted.failures=0) (stream_write_total_data=134217728) (object_multipart_aborted=0));
 gauges=((stream_write_block_uploads_pending=0) (stream_write_block_uploads_data_pending=0));
 minimums=((action_executor_acquired.failures.min=-1) (multipart_upload_completed.min=119) (object_multipart_aborted.failures.min=-1) (op_abort.min=-1) (action_executor_acquired.min=1) (object_multipart_aborted.min=-1) (multipart_upload_completed.failures.min=-1) (op_abort.failures.min=-1));
 maximums=((action_executor_acquired.max=11092) (object_multipart_aborted.failures.max=-1) (op_abort.max=-1) (object_multipart_aborted.max=-1) (multipart_upload_completed.failures.max=-1) (op_abort.failures.max=-1) (action_executor_acquired.failures.max=-1) (multipart_upload_completed.max=119));
 means=((object_multipart_aborted.mean=(samples=0, sum=0, mean=0.0000)) (op_abort.failures.mean=(samples=0, sum=0, mean=0.0000)) (action_executor_acquired.mean=(samples=4, sum=19349, mean=4837.2500)) (op_abort.mean=(samples=0, sum=0, mean=0.0000)) (action_executor_acquired.failures.mean=(samples=0, sum=0, mean=0.0000)) (multipart_upload_completed.failures.mean=(samples=0, sum=0, mean=0.0000)) (multipart_upload_completed.mean=(samples=1, sum=119, mean=119.0000)) (object_multipart_aborted.failures.mean=(samples=0, sum=0, mean=0.0000)));
 }}
 
-FileSystem s3a://stevel-london
+FileSystem s3a://example-london
 
-S3AFileSystem{uri=s3a://stevel-london, workingDir=s3a://stevel-london/user/stevel, inputPolicy=normal, partSize=33554432, enableMultiObjectsDelete=true, maxKeys=5000, readAhead=32768, blockSize=33554432, multiPartThreshold=134217728, s3EncryptionAlgorithm='SSE_KMS', blockFactory=org.apache.hadoop.fs.s3a.S3ADataBlocks$DiskBlockFactory@a7f0ab6, auditManager=Service ActiveAuditManagerS3A in state ActiveAuditManagerS3A: STARTED, auditor=LoggingAuditor{ID='ee1422f2-dd3f-489a-a9a3-fb5fee3db23e', headerEnabled=true, rejectOutOfSpan=false}}, authoritativePath=[], useListV1=false, magicCommitter=true, boundedExecutor=BlockingThreadPoolExecutorService{SemaphoredDelegatingExecutor{permitCount=384, available=384, waiting=0}, activeCount=0}, unboundedExecutor=java.util.concurrent.ThreadPoolExecutor@41f35f7c[Running, pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 0], credentials=AWSCredentialProviderList[refcount= 1: [TemporaryAWSCredentialsProvider, SimpleAWSCredentialsProvider] last provider: SimpleAWSCredentialsProvider, delegation tokens=disabled, DirectoryMarkerRetention{policy='keep'}, instrumentation {S3AInstrumentation{}}, ClientSideEncryption=false}
+S3AFileSystem{uri=s3a://example-london, workingDir=s3a://example-london/user/alicel, inputPolicy=normal, partSize=33554432, enableMultiObjectsDelete=true, maxKeys=5000, readAhead=32768, blockSize=33554432, multiPartThreshold=134217728, s3EncryptionAlgorithm='SSE_KMS', blockFactory=org.apache.hadoop.fs.s3a.S3ADataBlocks$DiskBlockFactory@a7f0ab6, auditManager=Service ActiveAuditManagerS3A in state ActiveAuditManagerS3A: STARTED, auditor=LoggingAuditor{ID='ee1422f2-dd3f-489a-a9a3-fb5fee3db23e', headerEnabled=true, rejectOutOfSpan=false}}, authoritativePath=[], useListV1=false, magicCommitter=true, boundedExecutor=BlockingThreadPoolExecutorService{SemaphoredDelegatingExecutor{permitCount=384, available=384, waiting=0}, activeCount=0}, unboundedExecutor=java.util.concurrent.ThreadPoolExecutor@41f35f7c[Running, pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 0], credentials=AWSCredentialProviderList[refcount= 1: [TemporaryAWSCredentialsProvider, SimpleAWSCredentialsProvider] last provider: SimpleAWSCredentialsProvider, delegation tokens=disabled, DirectoryMarkerRetention{policy='keep'}, instrumentation {S3AInstrumentation{}}, ClientSideEncryption=false}
 
 
-Download s3a://stevel-london/tmp
+Download s3a://example-london/tmp
 ================================
 
-Starting: open s3a://stevel-london/tmp
+Starting: open s3a://example-london/tmp
 Read block 0 in 1.773 seconds
 Read block 1 in 3.491 seconds
 Read block 2 in 4.255 seconds
@@ -110,15 +110,15 @@ Read block 15 in 4.743 seconds
 
 Starting: download stream close()
 Duration of download stream close(): 0:00.003
-Download Stream: org.apache.hadoop.fs.FSDataInputStream@4784013e: S3AInputStream{s3a://stevel-london/tmp wrappedStream=closed read policy=normal pos=134217728 nextReadPos=0 contentLength=134217728 contentRangeStart=0 contentRangeFinish=134217728 remainingInCurrentRequest=0 ChangeTracker{VersionIdChangeDetectionPolicy mode=Server, revisionId='_p9gzHB4V256F6gROEMs5dP8MQqFGvik'}
+Download Stream: org.apache.hadoop.fs.FSDataInputStream@4784013e: S3AInputStream{s3a://example-london/tmp wrappedStream=closed read policy=normal pos=134217728 nextReadPos=0 contentLength=134217728 contentRangeStart=0 contentRangeFinish=134217728 remainingInCurrentRequest=0 ChangeTracker{VersionIdChangeDetectionPolicy mode=Server, revisionId='_p9gzHB4V256F6gROEMs5dP8MQqFGvik'}
 StreamStatistics{counters=((stream_read_fully_operations=16) (stream_read_seek_backward_operations=0) (stream_read_seek_policy_changed=1) (stream_read_seek_operations=0) (stream_read_seek_bytes_skipped=0) (action_http_get_request=1) (stream_read_total_bytes=134217728) (stream_read_bytes=134217728) (stream_read_version_mismatches=0) (stream_read_unbuffered=0) (stream_read_opened=1) (stream_read_closed=1) (stream_read_exceptions=0) (stream_read_close_operations=1) (stream_read_seek_forward_operations=0) (stream_read_seek_bytes_discarded=0) (stream_read_bytes_discarded_in_abort=0) (stream_read_operations=8323) (stream_read_bytes_backwards_on_seek=0) (stream_read_bytes_discarded_in_close=0) (stream_read_operations_incomplete=8307) (stream_aborted=0) (action_http_get_request.failures=0));
 gauges=((stream_read_gauge_input_policy=0));
 minimums=((action_http_get_request.min=62) (action_http_get_request.failures.min=-1));
 maximums=((action_http_get_request.failures.max=-1) (action_http_get_request.max=62));
 means=((action_http_get_request.failures.mean=(samples=0, sum=0, mean=0.0000)) (action_http_get_request.mean=(samples=1, sum=62, mean=62.0000)));
 }}
-Starting: delete file s3a://stevel-london/tmp
-Duration of delete file s3a://stevel-london/tmp: 0:00.161
+Starting: delete file s3a://example-london/tmp
+Duration of delete file s3a://example-london/tmp: 0:00.161
 
 Upload Summary
 ==============
@@ -285,7 +285,7 @@ Here's the experiment repeated with prefetching enabled and changes to block upl
 
 ```
 ```bash
-bin/hadoop jar cloudstore-1.1.jar  bandwidth -D fs.s3a.prefetch.enabled=true -csv tmp/s3a128mp.csv -block 8 -verbose -policy whole-file 128m s3a://stevel-london
+bin/hadoop jar cloudstore-1.1.jar  bandwidth -D fs.s3a.prefetch.enabled=true -csv tmp/s3a128mp.csv -block 8 -verbose -policy whole-file 128m s3a://example-london
 
 Upload Summary
 ==============

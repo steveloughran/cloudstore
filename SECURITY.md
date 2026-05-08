@@ -29,15 +29,3 @@ None. You are on your own. Sorry.
   [Transitive Issues](https://steveloughran.blogspot.com/2022/08/transitive-issues.html)
   then solve the entire software-versioning problem in java. please.
 
-This library is actually written by Hadoop committers at cloudera;
-if you are using Apache Hadoop -you are already running our code.
-
-The builds take place on our local machines, reading in all dependencies
-from our private maven artifact server -the same one used for all
-cloudera releases.
-
-The maven binaries used are pulled direct from apache, with
-their GPG signatures checked before installation.
-
-This means the risk of supply chain attack or deliberate
-malicious code is pretty low.

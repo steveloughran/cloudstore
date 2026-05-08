@@ -103,13 +103,13 @@ there is no buffering to local disk.
 
 ```bash
  hadoop jar cloudstore-1.1.jar  cloudup -threads 60 -largest 16 -update -hflush -verbose \
-   hdfs://tmp/share/hadoop/common  gs://stevel-london/share/common 
+   hdfs://tmp/share/hadoop/common  gs://example-london/share/common 
 ```
 
 Then download to the local fs
 
 ```
-hadoop jar cloudstore-1.1.jar  cloudup -threads 60 -largest 16 -update -block 32  gs://stevel-london/share/common ./scratch/gcs
+hadoop jar cloudstore-1.1.jar  cloudup -threads 60 -largest 16 -update -block 32  gs://example-london/share/common ./scratch/gcs
 
 ...
 
@@ -127,9 +127,9 @@ Seconds per file: 0.377s
 
 ```bash
 
-hadoop jar cloudstore-1.1.jar cloudup -threads 60 -largest 32 -block 64 -update share/hadoop/common  s3a://stevel-london/share/common
+hadoop jar cloudstore-1.1.jar cloudup -threads 60 -largest 32 -block 64 -update share/hadoop/common  s3a://example-london/share/common
 
-Summary of copy from file:/Users/stevel/Projects/Releases/cdp-7.1.9/share/hadoop/common to s3a://stevel-london/share/common
+Summary of copy from file:/Users/alicel/Projects/Releases/cdp-7.1.9/share/hadoop/common to s3a://example-london/share/common
 ===========================================================================================================================
 
 File copies attempted: 149; size 85,877,554 bytes
@@ -193,25 +193,25 @@ editing the `core-site.xml` settings of your deployment
 ```
 
 ```bash
-hadoop jar cloudstore-1.1.jar cloudup -threads 60 -largest 32 -block 64 -update share/hadoop/common  s3a://stevel-london/share/common
+hadoop jar cloudstore-1.1.jar cloudup -threads 60 -largest 32 -block 64 -update share/hadoop/common  s3a://example-london/share/common
 
-Copying from file:/Users/stevel/Projects/Releases/cdp-7.1.9/share/hadoop/common to s3a://stevel-london/share/common; threads=60; large files=32; block size=67108864n; overwrite=false; update=true verbose=false; ignore failures=false
-Listing source files under file:/Users/stevel/Projects/Releases/cdp-7.1.9/share/hadoop/common
-2023-09-26 17:07:31,573 [main] DEBUG store.StoreEntryPoint (StoreEntryPoint.java:debug(235)) - Destination prepared: s3a://stevel-london/share/common
+Copying from file:/Users/alicel/Projects/Releases/cdp-7.1.9/share/hadoop/common to s3a://example-london/share/common; threads=60; large files=32; block size=67108864n; overwrite=false; update=true verbose=false; ignore failures=false
+Listing source files under file:/Users/alicel/Projects/Releases/cdp-7.1.9/share/hadoop/common
+2023-09-26 17:07:31,573 [main] DEBUG store.StoreEntryPoint (StoreEntryPoint.java:debug(235)) - Destination prepared: s3a://example-london/share/common
 Files to copy = 149; preparation  = 0:00:01.538
 
-[01]: size = 4,675,711 bytes: file:/Users/stevel/Projects/Releases/cdp-7.1.9/share/hadoop/common/lib/gcs-connector-2.1.2.7.1.9.0-SNAPSHOT-shaded.jar
-[pool-4-thread-3] [0001] Copying file:/Users/stevel/Projects/Releases/cdp-7.1.9/share/hadoop/common/lib/gcs-connector-2.1.2.7.1.9.0-SNAPSHOT-shaded.jar to s3a://stevel-london/share/common/lib/gcs-connector-2.1.2.7.1.9.0-SNAPSHOT-shaded.jar (size: 4,675,711 bytes)
-[02]: size = 4,448,398 bytes: file:/Users/stevel/Projects/Releases/cdp-7.1.9/share/hadoop/common/hadoop-common-3.1.1.7.1.9.0-SNAPSHOT.jar
-[pool-4-thread-4] [0002] Copying file:/Users/stevel/Projects/Releases/cdp-7.1.9/share/hadoop/common/hadoop-common-3.1.1.7.1.9.0-SNAPSHOT.jar to s3a://stevel-london/share/common/hadoop-common-3.1.1.7.1.9.0-SNAPSHOT.jar (size: 4,448,398 bytes)
-[pool-4-thread-5] [0003] Copying file:/Users/stevel/Projects/Releases/cdp-7.1.9/share/hadoop/common/lib/curator-client-5.4.0.7.1.9.0-SNAPSHOT.jar to s3a://stevel-london/share/common/lib/curator-client-5.4.0.7.1.9.0-SNAPSHOT.jar (size: 3,276,219 bytes)
-[03]: size = 3,276,219 bytes: file:/Users/stevel/Projects/Releases/cdp-7.1.9/share/hadoop/common/lib/curator-client-5.4.0.7.1.9.0-SNAPSHOT.jar
+[01]: size = 4,675,711 bytes: file:/Users/alicel/Projects/Releases/cdp-7.1.9/share/hadoop/common/lib/gcs-connector-2.1.2.7.1.9.0-SNAPSHOT-shaded.jar
+[pool-4-thread-3] [0001] Copying file:/Users/alicel/Projects/Releases/cdp-7.1.9/share/hadoop/common/lib/gcs-connector-2.1.2.7.1.9.0-SNAPSHOT-shaded.jar to s3a://example-london/share/common/lib/gcs-connector-2.1.2.7.1.9.0-SNAPSHOT-shaded.jar (size: 4,675,711 bytes)
+[02]: size = 4,448,398 bytes: file:/Users/alicel/Projects/Releases/cdp-7.1.9/share/hadoop/common/hadoop-common-3.1.1.7.1.9.0-SNAPSHOT.jar
+[pool-4-thread-4] [0002] Copying file:/Users/alicel/Projects/Releases/cdp-7.1.9/share/hadoop/common/hadoop-common-3.1.1.7.1.9.0-SNAPSHOT.jar to s3a://example-london/share/common/hadoop-common-3.1.1.7.1.9.0-SNAPSHOT.jar (size: 4,448,398 bytes)
+[pool-4-thread-5] [0003] Copying file:/Users/alicel/Projects/Releases/cdp-7.1.9/share/hadoop/common/lib/curator-client-5.4.0.7.1.9.0-SNAPSHOT.jar to s3a://example-london/share/common/lib/curator-client-5.4.0.7.1.9.0-SNAPSHOT.jar (size: 3,276,219 bytes)
+[03]: size = 3,276,219 bytes: file:/Users/alicel/Projects/Releases/cdp-7.1.9/share/hadoop/common/lib/curator-client-5.4.0.7.1.9.0-SNAPSHOT.jar
 ...
-[pool-4-thread-60] [0138] Skipped copy of file:/Users/stevel/Projects/Releases/cdp-7.1.9/share/hadoop/common/lib/jetty-security-9.4.48.v20220622.jar to s3a://stevel-london/share/common/lib/jetty-security-9.4.48.v20220622.jar  (size: 118,511 bytes) in 2023-09-26 17:07:33,616 [pool-4-thread-1] DEBUG store.StoreEntryPoint (StoreEntryPoint.java:debug(235)) - Skipping copy of %s to %s
+[pool-4-thread-60] [0138] Skipped copy of file:/Users/alicel/Projects/Releases/cdp-7.1.9/share/hadoop/common/lib/jetty-security-9.4.48.v20220622.jar to s3a://example-london/share/common/lib/jetty-security-9.4.48.v20220622.jar  (size: 118,511 bytes) in 2023-09-26 17:07:33,616 [pool-4-thread-1] DEBUG store.StoreEntryPoint (StoreEntryPoint.java:debug(235)) - Skipping copy of %s to %s
 0:00:00.152s
-[pool-4-thread-1] [0137] Skipped copy of file:/Users/stevel/Projects/Releases/cdp-7.1.9/share/hadoop/common/lib/netty-buffer-4.1.86.Final.jar to s3a://stevel-london/share/common/lib/netty-buffer-4.1.86.Final.jar  (size: 305,047 bytes) in 0:00:00.152s
+[pool-4-thread-1] [0137] Skipped copy of file:/Users/alicel/Projects/Releases/cdp-7.1.9/share/hadoop/common/lib/netty-buffer-4.1.86.Final.jar to s3a://example-london/share/common/lib/netty-buffer-4.1.86.Final.jar  (size: 305,047 bytes) in 0:00:00.152s
 
-Summary of copy from file:/Users/stevel/Projects/Releases/cdp-7.1.9/share/hadoop/common to s3a://stevel-london/share/common
+Summary of copy from file:/Users/alicel/Projects/Releases/cdp-7.1.9/share/hadoop/common to s3a://example-london/share/common
 ===========================================================================================================================
 
 File copies attempted: 149; size 85,877,554 bytes
@@ -255,16 +255,16 @@ Here, no copies took place at all. The IOStatistics report 151 HEAD requests aga
 
 And download it
 ```bash
-hadoop jar cloudstore-1.1.jar cloudup -threads 60 -largest 16 -update -block 32 s3a://stevel-london/share/common ./scratch/s3a
+hadoop jar cloudstore-1.1.jar cloudup -threads 60 -largest 16 -update -block 32 s3a://example-london/share/common ./scratch/s3a
 
-Copying from s3a://stevel-london/share/common to file:/Users/stevel/Projects/Releases/cdp-7.1.9/scratch/s3a; threads=60; large files=16; block size=33554432n; overwrite=false; update=true verbose=false; ignore failures=false
-Listing source files under s3a://stevel-london/share/common
-2023-09-26 17:12:40,655 [main] DEBUG store.StoreEntryPoint (StoreEntryPoint.java:debug(235)) - Destination prepared: file:/Users/stevel/Projects/Releases/cdp-7.1.9/scratch/s3a
+Copying from s3a://example-london/share/common to file:/Users/alicel/Projects/Releases/cdp-7.1.9/scratch/s3a; threads=60; large files=16; block size=33554432n; overwrite=false; update=true verbose=false; ignore failures=false
+Listing source files under s3a://example-london/share/common
+2023-09-26 17:12:40,655 [main] DEBUG store.StoreEntryPoint (StoreEntryPoint.java:debug(235)) - Destination prepared: file:/Users/alicel/Projects/Releases/cdp-7.1.9/scratch/s3a
 Files to copy = 149; preparation  = 0:00:00.123
 
 ...
 
-Summary of copy from s3a://stevel-london/share/common to file:/Users/stevel/Projects/Releases/cdp-7.1.9/scratch/s3a
+Summary of copy from s3a://example-london/share/common to file:/Users/alicel/Projects/Releases/cdp-7.1.9/scratch/s3a
 ===================================================================================================================
 
 File copies attempted: 149; size 85,877,554 bytes
@@ -351,11 +351,11 @@ Smaller files are slower to upload.
 Increasing the number of threads copying files with the `-threads` offers speedup when there are many small files
 
 ```bash
- hadoop jar cloudstore-1.1.jar cloudup -threads 100 -largest 32 -block 64 -update share/hadoop/common  s3a://stevel-london/share/common
+ hadoop jar cloudstore-1.1.jar cloudup -threads 100 -largest 32 -block 64 -update share/hadoop/common  s3a://example-london/share/common
 
 ...
 
-Summary of copy from file:/Users/stevel/Projects/Releases/cdp-7.1.9/share/hadoop/common to s3a://stevel-london/share/common
+Summary of copy from file:/Users/alicel/Projects/Releases/cdp-7.1.9/share/hadoop/common to s3a://example-london/share/common
 ===========================================================================================================================
 
 File copies attempted: 149; size 85,877,554 bytes
@@ -373,11 +373,11 @@ Seconds per file: 0.155s
 And with 120 threads
 
 ```bash
- hadoop jar cloudstore-1.1.jar cloudup -threads 120 -largest 32 -block 64 -update share/hadoop/common  s3a://stevel-london/share/common
+ hadoop jar cloudstore-1.1.jar cloudup -threads 120 -largest 32 -block 64 -update share/hadoop/common  s3a://example-london/share/common
 
 ...
 
-Summary of copy from file:/Users/stevel/Projects/Releases/cdp-7.1.9/share/hadoop/common to s3a://stevel-london/share/common
+Summary of copy from file:/Users/alicel/Projects/Releases/cdp-7.1.9/share/hadoop/common to s3a://example-london/share/common
 ===========================================================================================================================
 
 File copies attempted: 149; size 85,877,554 bytes
@@ -422,7 +422,7 @@ may time out when uploading a large file to a remote store if the connection is 
 error message "Client execution did not complete before the specified timeout configuration: 15000 millis"
 
 ```
-2024-10-03 12:07:32,246 [s3a-transfer-stevel-london-bounded-pool1-t4] INFO  s3a.WriteOperationHelper (WriteOperationHelper.java:operationRetried(184)) - upload part #4 upload ID s4TDe4.rV1PdcesERDuWAhFeGFdpcaWlEG5Eno3Xpa5YL.CWWJRiSEmuT19Pu.K4dFLvRp18z4cuGJClTc52eKVe3LKzu.MAfWp5qipIgdHqgiUDl68swKeXcEbbvzfS on hadoop-3.4.1.tar.gz: Retried 0: org.apache.hadoop.fs.s3a.AWSApiCallTimeoutException: upload part #4 upload ID s4TDe4.rV1PdcesERDuWAhFeGFdpcaWlEG5Eno3Xpa5YL.CWWJRiSEmuT19Pu.K4dFLvRp18z4cuGJClTc52eKVe3LKzu.MAfWp5qipIgdHqgiUDl68swKeXcEbbvzfS on hadoop-3.4.1.tar.gz: software.amazon.awssdk.core.exception.ApiCallTimeoutException: Client execution did not complete before the specified timeout configuration: 15000 millis
+2024-10-03 12:07:32,246 [s3a-transfer-example-london-bounded-pool1-t4] INFO  s3a.WriteOperationHelper (WriteOperationHelper.java:operationRetried(184)) - upload part #4 upload ID s4TDe4.rV1PdcesERDuWAhFeGFdpcaWlEG5Eno3Xpa5YL.CWWJRiSEmuT19Pu.K4dFLvRp18z4cuGJClTc52eKVe3LKzu.MAfWp5qipIgdHqgiUDl68swKeXcEbbvzfS on hadoop-3.4.1.tar.gz: Retried 0: org.apache.hadoop.fs.s3a.AWSApiCallTimeoutException: upload part #4 upload ID s4TDe4.rV1PdcesERDuWAhFeGFdpcaWlEG5Eno3Xpa5YL.CWWJRiSEmuT19Pu.K4dFLvRp18z4cuGJClTc52eKVe3LKzu.MAfWp5qipIgdHqgiUDl68swKeXcEbbvzfS on hadoop-3.4.1.tar.gz: software.amazon.awssdk.core.exception.ApiCallTimeoutException: Client execution did not complete before the specified timeout configuration: 15000 millis
 ```
 
 If this occurs, set the property `fs.s3a.connection.request.timeout` to a larger number, such as `15m`.
@@ -431,5 +431,5 @@ We recommend doing this on the command line itself, rather than set it site-wide
 ```bash
 bin/hadoop jar cloudstore-1.1.jar cloudup -D fs.s3a.connection.request.timeout=15m -overwrite \
 ../releases/hadoop-3.4.1-RC2/hadoop-3.4.1.tar.gz \
-s3a://stevel-london/
+s3a://example-london/
 ```

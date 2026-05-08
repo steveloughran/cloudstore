@@ -32,10 +32,11 @@
     <fluidoSkin>
       <topBarEnabled>true</topBarEnabled>
       <sideBarEnabled>true</sideBarEnabled>
-      <gitHub>
+<!--      <gitHub>
         <projectId>steveloughran/cloudstore</projectId>
         <ribbonOrientation>right</ribbonOrientation>
       </gitHub>
+      -->
       <breadcrumbDivider>»</breadcrumbDivider>
     </fluidoSkin>
   </custom>

@@ -63,19 +63,19 @@ It will only delete files at the target path; if there
 is a directory there it will be ignored.
 
 ```
- bin/hadoop jar cloudstore-1.1.jar bulkdelete -page 4 -verbose s3a://stevel-london/ delete.txt
-Bulk delete under s3a://stevel-london/
+ bin/hadoop jar cloudstore-1.1.jar bulkdelete -page 4 -verbose s3a://example-london/ delete.txt
+Bulk delete under s3a://example-london/
 ======================================
 
 5 files to delete
 Store page size = 250
 Delete page size = 4
 
-  s3a://stevel-london/scratch/object
-  s3a://stevel-london/scratch/object
-  s3a://stevel-london/scratch/object
-  s3a://stevel-london/scratch
-  s3a://stevel-london/scratch/object/subdir
+  s3a://example-london/scratch/object
+  s3a://example-london/scratch/object
+  s3a://example-london/scratch/object
+  s3a://example-london/scratch
+  s3a://example-london/scratch/object/subdir
 
 Summary
 =======
@@ -135,20 +135,20 @@ deleted per batch
 ```
 
 ```
- > hadoop jar cloudstore-1.1.jar bulkdelete -Dfs.s3a.multiobjectdelete.enable=false -page 4 -verbose s3a://stevel-london/ delete.txt
+ > hadoop jar cloudstore-1.1.jar bulkdelete -Dfs.s3a.multiobjectdelete.enable=false -page 4 -verbose s3a://example-london/ delete.txt
 
 
-Bulk delete under s3a://stevel-london/
+Bulk delete under s3a://example-london/
 ======================================
 
 5 files to delete
 Store page size = 1
 
-  s3a://stevel-london/scratch/object
-  s3a://stevel-london/scratch/object
-  s3a://stevel-london/scratch/object
-  s3a://stevel-london/scratch
-  s3a://stevel-london/scratch/object/subdir
+  s3a://example-london/scratch/object
+  s3a://example-london/scratch/object
+  s3a://example-london/scratch/object
+  s3a://example-london/scratch
+  s3a://example-london/scratch/object/subdir
 
 Summary
 =======
