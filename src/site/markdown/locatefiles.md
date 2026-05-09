@@ -52,14 +52,14 @@ Locating files under s3a://landsat-pds/L8/001/002/LC80010022016230LGN00 with thr
 2019-07-29 16:48:19,844 [main] INFO  tools.LocateFiles (DurationInfo.java:<init>(53)) - Starting: List located files
 2019-07-29 16:48:19,847 [main] INFO  tools.LocateFiles (DurationInfo.java:<init>(53)) - Starting: LocateFileStatus execution
 2019-07-29 16:48:24,645 [main] INFO  tools.LocateFiles (DurationInfo.java:close(100)) - LocateFileStatus execution: duration 0:04:798
-[0001] s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B1.TIF 63,786,465 alicel alicel [encrypted]
-[0002] s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B1.TIF.ovr 8,475,353 alicel alicel [encrypted]
-[0003] s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B10.TIF 35,027,713 alicel alicel [encrypted]
-[0004] s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B10.TIF.ovr 6,029,012 alicel alicel [encrypted]
+[0001] s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B1.TIF 63,786,465 alice alice [encrypted]
+[0002] s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B1.TIF.ovr 8,475,353 alice alice [encrypted]
+[0003] s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B10.TIF 35,027,713 alice alice [encrypted]
+[0004] s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_B10.TIF.ovr 6,029,012 alice alice [encrypted]
 ...
-[0039] s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_thumb_large.jpg 270,427 alicel alicel [encrypted]
-[0040] s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_thumb_small.jpg 12,873 alicel alicel [encrypted]
-[0041] s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/index.html 3,780 alicel alicel [encrypted]
+[0039] s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_thumb_large.jpg 270,427 alice alice [encrypted]
+[0040] s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/LC80010022016230LGN00_thumb_small.jpg 12,873 alice alice [encrypted]
+[0041] s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/index.html 3,780 alice alice [encrypted]
 2019-07-29 16:48:24,652 [main] INFO  tools.LocateFiles (DurationInfo.java:close(100)) - List located files: duration 0:04:810
 
 Found 41 files, 117 milliseconds per file

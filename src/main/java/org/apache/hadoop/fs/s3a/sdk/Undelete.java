@@ -20,8 +20,8 @@ package org.apache.hadoop.fs.s3a.sdk;
 import static org.apache.hadoop.fs.s3a.sdk.S3ListingSupport.isDirMarker;
 import static org.apache.hadoop.fs.store.CommonParameters.LIMIT;
 import static org.apache.hadoop.fs.store.CommonParameters.STANDARD_OPTS;
-import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
 import static org.apache.hadoop.fs.store.diag.S3ADiagnosticsInfo.FS_S3A_AUDIT_REJECT_OUT_OF_SPAN_OPERATIONS;
+import static org.apache.hadoop.service.launcher.LauncherExitCodes.EXIT_USAGE;
 
 import java.io.IOException;
 import java.time.Instant;
@@ -101,7 +101,7 @@ public class Undelete extends StoreEntryPoint implements SummaryProcessor {
     List<String> paths = parseArgs(args);
     if (paths.isEmpty()) {
       errorln(USAGE);
-      return E_USAGE;
+      return EXIT_USAGE;
     }
 
     final Configuration conf = createPreconfiguredConfig();
@@ -114,7 +114,7 @@ public class Undelete extends StoreEntryPoint implements SummaryProcessor {
     if (age.isPresent()) {
       if (since > 0) {
         errorln("Only one of " + AGE + " and " + SINCE + " may be specified");
-        return E_USAGE;
+        return EXIT_USAGE;
       }
       since = Instant.now().minusSeconds(age.get()).getEpochSecond();
     }

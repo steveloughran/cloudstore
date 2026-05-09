@@ -89,9 +89,8 @@ public class VersionedFileCopier implements Closeable {
     CopyObjectRequest copyObjectRequest = requestFactory
         .newCopyObjectRequestBuilder(sourceKey, destKey, srcom).sourceVersionId(version).build();
 
-    CopyObjectResponse response = invoker.retry(action, sourceKey, true, () -> {
-      return s3.copyObject(copyObjectRequest);
-    });
+    CopyObjectResponse response =
+        invoker.retry(action, sourceKey, true, () -> s3.copyObject(copyObjectRequest));
     return srcom.contentLength();
   }
 }

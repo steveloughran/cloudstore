@@ -18,10 +18,6 @@
 package org.apache.hadoop.fs.store.diag;
 
 import static org.apache.hadoop.fs.store.CommonParameters.STANDARD_OPTS;
-import static org.apache.hadoop.fs.store.StoreExitCodes.E_ERROR;
-import static org.apache.hadoop.fs.store.StoreExitCodes.E_NOT_FOUND;
-import static org.apache.hadoop.fs.store.StoreExitCodes.E_NO_ACCESS;
-import static org.apache.hadoop.fs.store.StoreExitCodes.E_SUCCESS;
 import static org.apache.hadoop.fs.store.diag.OptionSets.CLUSTER_OPTIONS;
 import static org.apache.hadoop.fs.store.diag.OptionSets.HADOOP_TOKEN;
 import static org.apache.hadoop.fs.store.diag.OptionSets.HADOOP_TOKEN_FILE_LOCATION;
@@ -29,6 +25,10 @@ import static org.apache.hadoop.fs.store.diag.OptionSets.SECURITY_OPTIONS;
 import static org.apache.hadoop.fs.store.diag.OptionSets.TLS_SYSPROPS;
 import static org.apache.hadoop.fs.store.diag.S3ADiagnosticsInfo.OPTION_CREATE_IN_CLOSE;
 import static org.apache.hadoop.io.IOUtils.closeStream;
+import static org.apache.hadoop.service.launcher.LauncherExitCodes.EXIT_FAIL;
+import static org.apache.hadoop.service.launcher.LauncherExitCodes.EXIT_NOT_FOUND;
+import static org.apache.hadoop.service.launcher.LauncherExitCodes.EXIT_SUCCESS;
+import static org.apache.hadoop.service.launcher.LauncherExitCodes.EXIT_UNAUTHORIZED;
 
 import com.google.common.base.Charsets;
 import com.google.common.io.CharStreams;
@@ -75,7 +75,6 @@ import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.RemoteIterator;
 import org.apache.hadoop.fs.StreamCapabilities;
 import org.apache.hadoop.fs.UnsupportedFileSystemException;
-import org.apache.hadoop.fs.store.PathCapabilityChecker;
 import org.apache.hadoop.fs.store.StoreDurationInfo;
 import org.apache.hadoop.io.IOUtils;
 import org.apache.hadoop.net.NetUtils;
@@ -224,7 +223,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
     } else {
       heading("Failed to complete file operations");
     }
-    return completed ? E_SUCCESS : E_ERROR;
+    return completed ? EXIT_SUCCESS : EXIT_FAIL;
   }
 
   /**
@@ -737,26 +736,23 @@ public class StoreDiag extends DiagnosticsEntryPoint {
     println("%s", fs);
     println("Implementation class %s", fs.getClass());
 
-    final String[] pathCapabilites = storeInfo.getOptionalPathCapabilites();
-    if (pathCapabilites.length > 0) {
-      final PathCapabilityChecker checker = new PathCapabilityChecker(fs);
-      if (checker.methodAvailable()) {
-        heading("Path Capabilities");
-        String capability = "";
-        for (String s : pathCapabilites) {
-          try {
-            capability = s;
-            println("%s\t%s", s, checker.hasPathCapability(baseDir, s));
-          } catch (IOException | ExitUtil.ExitException e) {
+    final String[] pathCapabilities = storeInfo.getOptionalPathCapabilites();
+    if (pathCapabilities.length > 0) {
+      heading("Path Capabilities");
+      String capability = "";
+      for (String s : pathCapabilities) {
+        try {
+          capability = s;
+          println("%s\t%s", s, fs.hasPathCapability(baseDir, s));
+        } catch (IOException | ExitUtil.ExitException e) {
 
-            // problem
-            warn("When checking path capability %s: %s", capability, e.toString());
-            LOG.debug("checking path capability {}", capability, e);
-            break;
-          }
+          // problem
+          warn("When checking path capability %s: %s", capability, e.toString());
+          LOG.debug("checking path capability {}", capability, e);
+          break;
         }
-        println();
       }
+      println();
     }
 
     storeInfo.validateFilesystem(this, baseDir, fs);
@@ -787,7 +783,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
       println("  - the store has been deleted: check console for history");
       println("There's nothing else which can be done here");
 
-      throw new StoreDiagException(E_NOT_FOUND, "Store not found %s: %s", root, e.toString())
+      throw new StoreDiagException(EXIT_NOT_FOUND, "Store not found %s: %s", root, e.toString())
           .initCause(e);
     }
 
@@ -920,7 +916,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
       }
     }
     if (requireToken && !issued) {
-      throw new StoreDiagException(E_NO_ACCESS, "No delegation token issued by filesystem %s",
+      throw new StoreDiagException(EXIT_UNAUTHORIZED, "No delegation token issued by filesystem %s",
           fsUri);
     }
 

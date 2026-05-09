@@ -194,11 +194,3 @@ See [versioned objects](versioned-objects.md).
 "undeletes" S3 objects by removing directory tombstones from a bucket path.
 
 See [versioned objects](versioned-objects.md).
-
-
-
-## S3A Diagnostics Credential Provider
-
-[DiagnosticsAWSCredentialsProvider](diagnosticsawscredentialsprovider.md)
-is an AWS credential provider which logs the fs.s3a login secrets (obfuscated and md5).
-

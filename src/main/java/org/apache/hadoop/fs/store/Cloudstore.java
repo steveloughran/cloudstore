@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.hadoop.fs.cloudstore;
+package org.apache.hadoop.fs.store;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -35,7 +35,6 @@ import org.apache.hadoop.fs.s3a.sdk.RestoreObject;
 import org.apache.hadoop.fs.s3a.sdk.SessionKeys;
 import org.apache.hadoop.fs.s3a.sdk.Undelete;
 import org.apache.hadoop.fs.shell.CommandFormat;
-import org.apache.hadoop.fs.store.StoreExitCodes;
 import org.apache.hadoop.fs.store.abfs.SafePrefetch;
 import org.apache.hadoop.fs.store.audit.AuditTool;
 import org.apache.hadoop.fs.store.commands.Bandwidth;
@@ -57,6 +56,7 @@ import org.apache.hadoop.fs.store.diag.DistcpDiag;
 import org.apache.hadoop.fs.store.diag.StoreDiag;
 import org.apache.hadoop.fs.tools.cloudup.Cloudup;
 import org.apache.hadoop.fs.tools.csv.MkCSV;
+import org.apache.hadoop.service.launcher.LauncherExitCodes;
 import org.apache.hadoop.util.ExitUtil;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
@@ -71,8 +71,8 @@ import org.slf4j.LoggerFactory;
  * Invocation, using the bundled jar:
  *
  * <pre>{@code
- * hadoop jar cloudstore-1.1.jar org.apache.hadoop.fs.cloudstore.Cloudstore <command> [args...]
- * hadoop jar cloudstore-1.1.jar org.apache.hadoop.fs.cloudstore.Cloudstore help
+ * hadoop jar cloudstore-1.1.jar org.apache.hadoop.fs.store.Cloudstore <command> [args...]
+ * hadoop jar cloudstore-1.1.jar org.apache.hadoop.fs.store.Cloudstore help
  * }</pre>
  *
  * <p>
@@ -83,9 +83,9 @@ import org.slf4j.LoggerFactory;
  * Each invocation instantiates the {@link Tool} subclass via its public no-arg constructor and runs
  * it with the rest of the argv via {@link ToolRunner}. Throwables coming out of
  * {@code ToolRunner.run} are routed through the same three-way handler used by every existing
- * {@code main()}: usage errors map to {@link StoreExitCodes#E_USAGE},
+ * {@code main()}: usage errors map to {@link LauncherExitCodes#EXIT_USAGE},
  * {@link ExitUtil.ExitException}s preserve their embedded code, and any other throwable produces
- * {@link StoreExitCodes#E_ERROR}.
+ * {@link LauncherExitCodes#EXIT_FAIL}.
  */
 public final class Cloudstore {
 
@@ -140,8 +140,8 @@ public final class Cloudstore {
 
   /**
    * Dispatch one command. Returns the exit code from {@link ToolRunner#run} for known commands, or
-   * {@link StoreExitCodes#E_USAGE} when the command name is missing, unknown, or {@code help} /
-   * {@code -help} / {@code --help}.
+   * {@link LauncherExitCodes#EXIT_USAGE} when the command name is missing, unknown, or {@code help}
+   * / {@code -help} / {@code --help}.
    *
    * <p>
    * Throwables raised by the dispatched Tool propagate up, just like the existing per-command
@@ -150,7 +150,7 @@ public final class Cloudstore {
   public static int exec(String... args) throws Exception {
     if (args == null || args.length == 0) {
       printUsage(System.err);
-      return StoreExitCodes.E_USAGE;
+      return LauncherExitCodes.EXIT_USAGE;
     }
     String name = args[0];
     if ("help".equals(name) || "-help".equals(name) || "--help".equals(name)) {
@@ -161,7 +161,7 @@ public final class Cloudstore {
     if (clazz == null) {
       System.err.println("Unknown command: " + name);
       printUsage(System.err);
-      return StoreExitCodes.E_USAGE;
+      return LauncherExitCodes.EXIT_USAGE;
     }
     Tool tool = clazz.getDeclaredConstructor().newInstance();
     String[] rest = Arrays.copyOfRange(args, 1, args.length);
@@ -188,13 +188,13 @@ public final class Cloudstore {
   static void exitOnThrowable(Throwable ex) {
     if (ex instanceof CommandFormat.UnknownOptionException) {
       System.err.println(ex.getMessage());
-      ExitUtil.terminate(StoreExitCodes.E_USAGE, ex.getMessage());
+      ExitUtil.terminate(LauncherExitCodes.EXIT_USAGE, ex.getMessage());
     } else if (ex instanceof ExitUtil.ExitException) {
       LOG.debug("Command failure", ex);
       ExitUtil.terminate((ExitUtil.ExitException) ex);
     } else {
       ex.printStackTrace(System.err);
-      ExitUtil.terminate(StoreExitCodes.E_ERROR, ex.toString());
+      ExitUtil.terminate(LauncherExitCodes.EXIT_FAIL, ex.toString());
     }
   }
 

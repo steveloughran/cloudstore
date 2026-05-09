@@ -14,8 +14,9 @@
  */
 
 /**
- * Shared infrastructure for the cloudstore CLI commands: the
- * {@link org.apache.hadoop.fs.store.StoreEntryPoint} base class, common argument-parsing helpers,
- * exit codes, and other cross-command utilities.
+ * Cloudstore: the {@link org.apache.hadoop.fs.store.Cloudstore} launcher dispatches every CLI
+ * command to its {@link org.apache.hadoop.util.Tool} implementation, plus the
+ * {@link org.apache.hadoop.fs.store.StoreEntryPoint} base class, shared argument-parsing helpers,
+ * and other cross-command utilities.
  */
 package org.apache.hadoop.fs.store;

@@ -17,7 +17,6 @@
  */
 package org.apache.hadoop.fs.store.diag;
 
-import static org.apache.hadoop.fs.store.StoreUtils.checkArgument;
 import static org.apache.hadoop.fs.store.diag.OptionSets.SYSPROPS_TO_SKIP;
 import static org.apache.hadoop.util.VersionInfo.getDate;
 import static org.apache.hadoop.util.VersionInfo.getProtocVersion;
@@ -46,6 +45,7 @@ import java.util.TreeSet;
 import java.util.stream.Collectors;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
+import org.apache.hadoop.util.Preconditions;
 
 public class DiagnosticsEntryPoint extends StoreEntryPoint {
 
@@ -86,7 +86,8 @@ public class DiagnosticsEntryPoint extends StoreEntryPoint {
    * @throws IOException parsing problem
    */
   public static URI toURI(String origin, String uri) throws IOException {
-    checkArgument(uri != null && !uri.isEmpty(), "No URI");
+    boolean condition = uri != null && !uri.isEmpty();
+    Preconditions.checkArgument(condition, "No URI");
     try {
       return new URI(uri);
     } catch (URISyntaxException e) {

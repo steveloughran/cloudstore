@@ -22,7 +22,7 @@ import static org.apache.hadoop.fs.s3a.Constants.AWS_CREDENTIALS_PROVIDER;
 import static org.apache.hadoop.fs.s3a.Constants.SECRET_KEY;
 import static org.apache.hadoop.fs.s3a.Constants.SESSION_TOKEN;
 import static org.apache.hadoop.fs.store.CommonParameters.STANDARD_OPTS;
-import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
+import static org.apache.hadoop.service.launcher.LauncherExitCodes.EXIT_USAGE;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -78,7 +78,7 @@ public class SessionKeys extends StoreEntryPoint {
     List<String> paths = parseArgs(args);
     if (paths.size() < 1) {
       errorln(USAGE);
-      return E_USAGE;
+      return EXIT_USAGE;
     }
 
     final Configuration conf = createPreconfiguredConfig();
@@ -92,7 +92,7 @@ public class SessionKeys extends StoreEntryPoint {
     if (hasJsonFile) {
       if (!hasRole) {
         errorln("No -role specified for JSON");
-        return E_USAGE;
+        return EXIT_USAGE;
       }
       json = new String(Files.readAllBytes(Paths.get(jsonFile)));
     }

@@ -22,7 +22,7 @@
   <version>1.1</version>
   <packaging>jar</packaging>
 
-  <name>cloudstore</name>
+  <name>hadoop cloudstore</name>
   <url>https://org.apache.hadoop/cloudstore</url>
 
 

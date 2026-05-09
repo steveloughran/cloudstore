@@ -25,7 +25,7 @@ import org.slf4j.Logger;
 /**
  * A duration with logging of final state at info in the {@code close()} call. This allows it to be
  * used in a try-with-resources clause, and have the duration automatically logged.
- *
+ * <p>
  * Based on the hadoop one; adds an empty constructor which doesn't do any logging.
  */
 public class StoreDurationInfo implements AutoCloseable {

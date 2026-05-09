@@ -120,7 +120,7 @@ hadoop 3.4.2
 
 ```
 
-Store Diagnostics for alicel (auth:SIMPLE) on alicel-MBP16/192.168.86.27
+Store Diagnostics for alice (auth:SIMPLE) on alice-MBP16/192.168.86.27
 ========================================================================
 
 Collected at at 2024-10-21T19:07:07.627Z
@@ -137,14 +137,14 @@ Hadoop information
 ==================
 
   Hadoop 3.4.0-SNAPSHOT
-  Compiled by alicel on 2024-01-29T14:12Z
+  Compiled by alice on 2024-01-29T14:12Z
   Compiled with protoc 3.7.1
   From source with checksum bf6e206593b31fae5c42eaf9fee773d
 
 Determining OS version
 ======================
 
-Darwin alicel-MBP16 23.5.0 Darwin Kernel Version 23.5.0: Wed May  1 20:12:58 PDT 2024; root:xnu-10063.121.3~5/RELEASE_ARM64_T6000 arm64
+Darwin alice-MBP16 23.5.0 Darwin Kernel Version 23.5.0: Wed May  1 20:12:58 PDT 2024; root:xnu-10063.121.3~5/RELEASE_ARM64_T6000 arm64
 
 Selected System Properties
 ==========================
@@ -479,7 +479,7 @@ Environment Variables
 [028]  AWS_ROLE_SESSION_NAME = (unset)
 [029]  AWS_S3_US_EAST_1_REGIONAL_ENDPOINT = (unset)
 [030]  AWS_WEB_IDENTITY_TOKEN_FILE = (unset)
-[031]  PATH = "/Users/alicel/.cargo/bin:/Users/alicel/bin/google-cloud-sdk/bin:/Users/alicel/Library/Python/3.9/bin:/Users/alicel/java/maven/bin:/Library/Java/JavaVirtualMachines/zulu-8.jdk/Contents/Home:/usr/local/smlnj/bin:~/.local/bin:/Users/alicel/bin:/Users/alicel/bin/scripts:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/opt/X11/bin:/Library/Apple/usr/bin:/usr/local/MacGPG2/bin:/Library/TeX/texbin:/usr/local/share/dotnet:~/.dotnet/tools:/Users/alicel/.cargo/bin:./bin:/Users/alicel/Projects/gocode/bin"
+[031]  PATH = "/Users/alice/.cargo/bin:/Users/alice/bin/google-cloud-sdk/bin:/Users/alice/Library/Python/3.9/bin:/Users/alice/java/maven/bin:/Library/Java/JavaVirtualMachines/zulu-8.jdk/Contents/Home:/usr/local/smlnj/bin:~/.local/bin:/Users/alice/bin:/Users/alice/bin/scripts:/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/opt/X11/bin:/Library/Apple/usr/bin:/usr/local/MacGPG2/bin:/Library/TeX/texbin:/usr/local/share/dotnet:~/.dotnet/tools:/Users/alice/.cargo/bin:./bin:/Users/alice/Projects/gocode/bin"
 [032]  HADOOP_CONF_DIR = "./home/alice/hadoop-3.4.0/etc/hadoop"
 [033]  HADOOP_CLASSPATH = (unset)
 [034]  HADOOP_CREDSTORE_PASSWORD = (unset)
@@ -488,7 +488,7 @@ Environment Variables
 [037]  HADOOP_HOME = "./home/alice/hadoop-3.4.0"
 [038]  HADOOP_LOG_DIR = (unset)
 [039]  HADOOP_OPTIONAL_TOOLS = "hadoop-azure,hadoop-aws"
-[040]  HADOOP_OPTS = "-Djava.net.preferIPv4Stack=true  -Dyarn.log.dir=./home/alice/hadoop-3.4.0/logs -Dyarn.log.file=hadoop.log -Dyarn.home.dir=./home/alice/hadoop-3.4.0 -Dyarn.root.logger=INFO,console -Dhadoop.log.dir=./home/alice/hadoop-3.4.0/logs -Dhadoop.log.file=hadoop.log -Dhadoop.home.dir=./home/alice/hadoop-3.4.0 -Dhadoop.id.str=alicel -Dhadoop.root.logger=INFO,console -Dhadoop.policy.file=hadoop-policy.xml -Dhadoop.security.logger=INFO,NullAppender"
+[040]  HADOOP_OPTS = "-Djava.net.preferIPv4Stack=true  -Dyarn.log.dir=./home/alice/hadoop-3.4.0/logs -Dyarn.log.file=hadoop.log -Dyarn.home.dir=./home/alice/hadoop-3.4.0 -Dyarn.root.logger=INFO,console -Dhadoop.log.dir=./home/alice/hadoop-3.4.0/logs -Dhadoop.log.file=hadoop.log -Dhadoop.home.dir=./home/alice/hadoop-3.4.0 -Dhadoop.id.str=alice -Dhadoop.root.logger=INFO,console -Dhadoop.policy.file=hadoop-policy.xml -Dhadoop.security.logger=INFO,NullAppender"
 [041]  HADOOP_SHELL_SCRIPT_DEBUG = (unset)
 [042]  HADOOP_TOKEN = (unset)
 [043]  HADOOP_TOKEN_FILE_LOCATION = (unset)
@@ -536,7 +536,7 @@ Security
 Security Enabled: false
 Keytab login: false
 Ticket login: false
-Current user: alicel (auth:SIMPLE)
+Current user: alice (auth:SIMPLE)
 Token count: 0
 
 Hadoop Options
@@ -550,7 +550,7 @@ Hadoop Options
 [006]  fs.trash.interval = "0" [core-default.xml]
 [007]  fs.trash.checkpoint.interval = "0" [core-default.xml]
 [008]  fs.file.impl = (unset)
-[009]  hadoop.tmp.dir = "/tmp/hadoop-alicel" [core-default.xml]
+[009]  hadoop.tmp.dir = "/tmp/hadoop-alice" [core-default.xml]
 [010]  hdp.version = (unset)
 [011]  yarn.resourcemanager.address = "0.0.0.0:8032" [yarn-default.xml]
 [012]  yarn.resourcemanager.principal = (unset)
@@ -608,7 +608,7 @@ Selected Configuration Options
 [017]  fs.s3a.aws.credentials.provider.mapping = (unset)
 [018]  fs.s3a.block.size = "32M" [core-default.xml]
 [019]  fs.s3a.bucket.probe = "0" [core-site.xml]
-[020]  fs.s3a.buffer.dir = "/tmp/hadoop-alicel/s3a" [core-default.xml]
+[020]  fs.s3a.buffer.dir = "/tmp/hadoop-alice/s3a" [core-default.xml]
 [021]  fs.s3a.bulk.delete.page.size = (unset)
 [022]  fs.s3a.change.detection.source = "versionid" [fs.s3a.bucket.example-london.change.detection.source via [core-site.xml]]
 [023]  fs.s3a.change.detection.mode = "server" [core-default.xml]
@@ -674,7 +674,7 @@ Selected Configuration Options
 [083]  fs.s3a.vectored.read.min.seek.size = (unset)
 [084]  fs.s3a.vectored.read.max.merged.size = (unset)
 [085]  fs.s3a.vectored.active.ranged.reads = (unset)
-[086]  fs.s3a.assumed.role.arn = "arn:aws:iam::152813717728:role/alicel-assumed-role" [core-site.xml]
+[086]  fs.s3a.assumed.role.arn = "arn:aws:iam::152813717728:role/alice-assumed-role" [core-site.xml]
 [087]  fs.s3a.assumed.role.sts.endpoint = "sts.eu-west-2.amazonaws.com" [core-site.xml]
 [088]  fs.s3a.assumed.role.sts.endpoint.region = "eu-west-2" [core-site.xml]
 [089]  fs.s3a.assumed.role.session.name = (unset)
@@ -910,15 +910,15 @@ S3A Configuration validation
 Output Buffering
 ================
 
-Buffer configuration option fs.s3a.buffer.dir = /tmp/hadoop-alicel/s3a
+Buffer configuration option fs.s3a.buffer.dir = /tmp/hadoop-alice/s3a
 Number of buffer directories: 1
-Buffer path /tmp/hadoop-alicel/s3a:
+Buffer path /tmp/hadoop-alice/s3a:
     * exists and is writable
     * contains 0 file(s) with total size 0 bytes
 
 Attempting to create a temporary file
 
-Temporary file successfully created in /tmp/hadoop-alicel/s3a
+Temporary file successfully created in /tmp/hadoop-alice/s3a
 
 Encryption
 ==========
@@ -984,7 +984,7 @@ TLS System Properties
 =====================
 
 [001]  java.version = "1.8.0_362"
-[002]  java.library.path = "/Users/alicel/Library/Java/Extensions:/Library/Java/Extensions:/Network/Library/Java/Extensions:/System/Library/Java/Extensions:/usr/lib/java:."
+[002]  java.library.path = "/Users/alice/Library/Java/Extensions:/Library/Java/Extensions:/Network/Library/Java/Extensions:/System/Library/Java/Extensions:/usr/lib/java:."
 [003]  https.protocols = (unset)
 [004]  javax.net.ssl.keyStore = (unset)
 [005]  javax.net.ssl.keyStorePassword = (unset)
@@ -1093,7 +1093,7 @@ Starting with some read operations, then trying to write
 [0m2024-10-21 20:07:09,746 [main] INFO  diag.StoreDiag (StoreDurationInfo.java:<init>(91)) - Starting: Creating filesystem for s3a://example-london/temp/subdir
 [33;1m2024-10-21 20:07:09,908 [main] WARN  impl.ConfigurationHelper (LogExactlyOnce.java:warn(39)) - Option fs.s3a.connection.establish.timeout is too low (5,000 ms). Setting to 15,000 ms instead
 [0m2024-10-21 20:07:10,363 [main] INFO  diag.StoreDiag (StoreDurationInfo.java:close(193)) - Duration of Creating filesystem for s3a://example-london/temp/subdir: 0:00:00.618
-S3AFileSystem{uri=s3a://example-london, workingDir=s3a://example-london/user/alicel, partSize=67108864, enableMultiObjectsDelete=true, maxKeys=5000, OpenFileSupport{changePolicy=VersionIdChangeDetectionPolicy mode=Server, defaultReadAhead=32768, defaultBufferSize=4194304, defaultAsyncDrainThreshold=1024, defaultInputPolicy=default}, blockSize=33554432, multiPartThreshold=134217728, s3EncryptionAlgorithm='SSE_KMS', blockFactory=org.apache.hadoop.fs.s3a.S3ADataBlocks$DiskBlockFactory@226b143b, auditManager=Service ActiveAuditManagerS3A in state ActiveAuditManagerS3A: STARTED, auditor=LoggingAuditor{ID='b356eaa0-f54e-486a-a5c3-00f48f0d9b15', headerEnabled=true, rejectOutOfSpan=false, isMultipartUploadEnabled=true}}, authoritativePath=[], useListV1=false, magicCommitter=true, boundedExecutor=BlockingThreadPoolExecutorService{SemaphoredDelegatingExecutor{permitCount=544, available=544, waiting=0}, activeCount=0}, unboundedExecutor=java.util.concurrent.ThreadPoolExecutor@682bd3c4[Running, pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 0], credentials=AWSCredentialProviderList name=; refcount= 1; size=2: [TemporaryAWSCredentialsProvider, SimpleAWSCredentialsProvider{accessKey.empty=false, secretKey.empty=false}], delegation tokens=disabled, DirectoryMarkerRetention{policy='keep'}, instrumentation {S3AInstrumentation{}}, ClientSideEncryption=false}
+S3AFileSystem{uri=s3a://example-london, workingDir=s3a://example-london/user/alice, partSize=67108864, enableMultiObjectsDelete=true, maxKeys=5000, OpenFileSupport{changePolicy=VersionIdChangeDetectionPolicy mode=Server, defaultReadAhead=32768, defaultBufferSize=4194304, defaultAsyncDrainThreshold=1024, defaultInputPolicy=default}, blockSize=33554432, multiPartThreshold=134217728, s3EncryptionAlgorithm='SSE_KMS', blockFactory=org.apache.hadoop.fs.s3a.S3ADataBlocks$DiskBlockFactory@226b143b, auditManager=Service ActiveAuditManagerS3A in state ActiveAuditManagerS3A: STARTED, auditor=LoggingAuditor{ID='b356eaa0-f54e-486a-a5c3-00f48f0d9b15', headerEnabled=true, rejectOutOfSpan=false, isMultipartUploadEnabled=true}}, authoritativePath=[], useListV1=false, magicCommitter=true, boundedExecutor=BlockingThreadPoolExecutorService{SemaphoredDelegatingExecutor{permitCount=544, available=544, waiting=0}, activeCount=0}, unboundedExecutor=java.util.concurrent.ThreadPoolExecutor@682bd3c4[Running, pool size = 0, active threads = 0, queued tasks = 0, completed tasks = 0], credentials=AWSCredentialProviderList name=; refcount= 1; size=2: [TemporaryAWSCredentialsProvider, SimpleAWSCredentialsProvider{accessKey.empty=false, secretKey.empty=false}], delegation tokens=disabled, DirectoryMarkerRetention{policy='keep'}, instrumentation {S3AInstrumentation{}}, ClientSideEncryption=false}
 Implementation class class org.apache.hadoop.fs.s3a.S3AFileSystem
 
 Path Capabilities
@@ -1124,7 +1124,7 @@ fs.s3a.optimized.copy.from.local.enabled	true
 org.apache.hadoop.hbase.hboss	false
 
 Starting: Examine root path
-root entry S3AFileStatus{path=s3a://example-london/; isDirectory=true; modification_time=0; access_time=0; owner=alicel; group=alicel; permission=rwxrwxrwx; isSymlink=false; hasAcl=false; isEncrypted=true; isErasureCoded=false} isEmptyDirectory=UNKNOWN eTag=null versionId=null
+root entry S3AFileStatus{path=s3a://example-london/; isDirectory=true; modification_time=0; access_time=0; owner=alice; group=alice; permission=rwxrwxrwx; isSymlink=false; hasAcl=false; isEncrypted=true; isErasureCoded=false} isEmptyDirectory=UNKNOWN eTag=null versionId=null
 list /
 ls / contains 5 entries; first entry s3a://example-london/bundle-2.24.6.jar	[558001584]
 Duration of Examine root path: 0:00:00.473

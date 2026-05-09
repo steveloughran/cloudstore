@@ -24,29 +24,29 @@ The `auditlogs` command will take a directory (local or remote)
 ## Usage
 
 ```
-> bin/hadoop jar $CLOUDSTORE auditlogs -overwrite ../logs/example-london 2026-alicel.avro
+> bin/hadoop jar $CLOUDSTORE auditlogs -overwrite ../logs/example-london 2026-alice.avro
 Processing logs in source directory ../logs/example-london
-Writing output to file 2026-alicel.avro
+Writing output to file 2026-alice.avro
 2026-01-14 16:46:25,725 [main] INFO  audit.AuditTool (DurationInfo.java:<init>(77)) - Starting: Log Source ../logs/example-london
-2026-01-14 16:46:27,291 [main] INFO  audit.AuditLogProcessor (DurationInfo.java:<init>(77)) - Starting: [00001] Processing file:/Users/alicel/Projects/Releases/logs/example-london/log-2026-01-02-14-32-17-E552136FFD8BB1DE
-2026-01-14 16:46:27,365 [main] INFO  audit.AuditLogProcessor (DurationInfo.java:close(98)) - [00001] Processing file:/Users/alicel/Projects/Releases/logs/example-london/log-2026-01-02-14-32-17-E552136FFD8BB1DE: duration 0:00.074s
-2026-01-14 16:46:27,412 [main] INFO  audit.AuditLogProcessor (DurationInfo.java:<init>(77)) - Starting: [00002] Processing file:/Users/alicel/Projects/Releases/logs/example-london/log-2025-12-19-08-31-24-FC1D799A1C284943
-2026-01-14 16:46:27,419 [main] INFO  audit.AuditLogProcessor (DurationInfo.java:close(98)) - [00002] Processing file:/Users/alicel/Projects/Releases/logs/example-london/log-2025-12-19-08-31-24-FC1D799A1C284943: duration 0:00.006s
+2026-01-14 16:46:27,291 [main] INFO  audit.AuditLogProcessor (DurationInfo.java:<init>(77)) - Starting: [00001] Processing file:/Users/alice/Projects/Releases/logs/example-london/log-2026-01-02-14-32-17-E552136FFD8BB1DE
+2026-01-14 16:46:27,365 [main] INFO  audit.AuditLogProcessor (DurationInfo.java:close(98)) - [00001] Processing file:/Users/alice/Projects/Releases/logs/example-london/log-2026-01-02-14-32-17-E552136FFD8BB1DE: duration 0:00.074s
+2026-01-14 16:46:27,412 [main] INFO  audit.AuditLogProcessor (DurationInfo.java:<init>(77)) - Starting: [00002] Processing file:/Users/alice/Projects/Releases/logs/example-london/log-2025-12-19-08-31-24-FC1D799A1C284943
+2026-01-14 16:46:27,419 [main] INFO  audit.AuditLogProcessor (DurationInfo.java:close(98)) - [00002] Processing file:/Users/alice/Projects/Releases/logs/example-london/log-2025-12-19-08-31-24-FC1D799A1C284943: duration 0:00.006s
 
 ...
 
-2026-01-14 16:55:11,108 [main] INFO  audit.AuditLogProcessor (DurationInfo.java:<init>(77)) - Starting: [03101] Processing file:/Users/alicel/Projects/Releases/logs/example-london/log-2025-12-16-12-33-08-D2A6B5894C47AE33
-2026-01-14 16:55:11,109 [main] INFO  audit.AuditLogProcessor (DurationInfo.java:close(98)) - [03101] Processing file:/Users/alicel/Projects/Releases/logs/example-london/log-2025-12-16-12-33-08-D2A6B5894C47AE33: duration 0:00.001s
+2026-01-14 16:55:11,108 [main] INFO  audit.AuditLogProcessor (DurationInfo.java:<init>(77)) - Starting: [03101] Processing file:/Users/alice/Projects/Releases/logs/example-london/log-2025-12-16-12-33-08-D2A6B5894C47AE33
+2026-01-14 16:55:11,109 [main] INFO  audit.AuditLogProcessor (DurationInfo.java:close(98)) - [03101] Processing file:/Users/alice/Projects/Releases/logs/example-london/log-2025-12-16-12-33-08-D2A6B5894C47AE33: duration 0:00.001s
 2026-01-14 16:55:11,117 [main] INFO  audit.AuditLogProcessor (AuditLogProcessor.java:mergeAndParseAuditLogFiles(298)) - Successfully parsed: 64765 records with 39156 referrer headers in the logs
 Read 3101 source files
 Processed 64765 records of which 39156 had audit information
 Total processing time: 2:23.363s
-Saved output to 2026-alicel.avro
+Saved output to 2026-alice.avro
 
-> ls -al 2026-alicel.avro 
-  -rw-r--r--@ 1 alicel  staff  65175013 Jan 14 16:55 2026-alicel.avro
+> ls -al 2026-alice.avro 
+  -rw-r--r--@ 1 alice  staff  65175013 Jan 14 16:55 2026-alice.avro
   
-> java -jar avro-tools-1.13.0-SNAPSHOT.jar getschema 2026-alicel.avro 
+> java -jar avro-tools-1.13.0-SNAPSHOT.jar getschema 2026-alice.avro 
 {
   "type" : "record",
   "name" : "AvroS3LogEntryRecord",
@@ -142,7 +142,7 @@ Saved output to 2026-alicel.avro
 }
 
 
-> java -jar avro-tools-1.13.0-SNAPSHOT.jar count 2026-alicel.avro 
+> java -jar avro-tools-1.13.0-SNAPSHOT.jar count 2026-alice.avro 
 64765
 
 ```
@@ -243,7 +243,7 @@ val ddl: String = event TIMESTAMP,owner STRING,bucket STRING,tstamp STRING,remot
     audit MAP<STRING, STRING>
     
 > println(s"CREATE TABLE avro_table (${ddl}) USING avro LOCATION '${path}'")
-CREATE TABLE avro_table (owner STRING,bucket STRING,timestamp STRING,remoteip STRING,requester STRING,requestid STRING,verb STRING,key STRING,requesturi STRING,http STRING,awserrorcode STRING,bytessent BIGINT,objectsize BIGINT,totaltime BIGINT,turnaroundtime BIGINT,referrer STRING,useragent STRING,version STRING,hostid STRING,sigv STRING,cypher STRING,auth STRING,endpoint STRING,tls STRING,tail STRING,audit MAP<STRING, STRING>) USING avro LOCATION '/Users/alicel/Projects/Misc/warehouse/incoming/2026-alicel.avro'   
+CREATE TABLE avro_table (owner STRING,bucket STRING,timestamp STRING,remoteip STRING,requester STRING,requestid STRING,verb STRING,key STRING,requesturi STRING,http STRING,awserrorcode STRING,bytessent BIGINT,objectsize BIGINT,totaltime BIGINT,turnaroundtime BIGINT,referrer STRING,useragent STRING,version STRING,hostid STRING,sigv STRING,cypher STRING,auth STRING,endpoint STRING,tls STRING,tail STRING,audit MAP<STRING, STRING>) USING avro LOCATION '/Users/alice/Projects/Misc/warehouse/incoming/2026-alice.avro'   
 ```
 
 With a bit of cleanup, this is your SQL table.

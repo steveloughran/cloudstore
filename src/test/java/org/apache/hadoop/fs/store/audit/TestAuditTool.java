@@ -36,15 +36,11 @@ import org.apache.hadoop.util.ToolRunner;
 import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * AuditTool tests.
  */
 public class TestAuditTool {
-
-  private static final Logger LOG = LoggerFactory.getLogger(TestAuditTool.class);
 
   private final Configuration conf = new Configuration();
 
@@ -54,17 +50,9 @@ public class TestAuditTool {
   private AuditTool auditTool;
 
   /**
-   * Temporary directory to store the sample files; should be under target/ though IDEs may put it
-   * elsewhere.
-   */
-  private File sampleDir;
-
-  /**
    * Sample directories and files to test.
    */
   private File sampleFile;
-
-  private File sampleDestDir;
 
   @Before
   public void setup() throws Exception {
@@ -76,13 +64,14 @@ public class TestAuditTool {
    */
   @Test
   public void testRun() throws Exception {
-    sampleDir = Files.createTempDirectory("sampleDir").toFile();
+    // Temporary directory to store the sample files; should be under target
+    File sampleDir = Files.createTempDirectory("sampleDir").toFile();
     sampleFile = File.createTempFile("sampleFile", ".txt", sampleDir);
     try (FileWriter fw = new FileWriter(sampleFile)) {
       fw.write(SAMPLE_LOG_ENTRY_1);
       fw.flush();
     }
-    sampleDestDir = Files.createTempDirectory("sampleDestDir").toFile();
+    File sampleDestDir = Files.createTempDirectory("sampleDestDir").toFile();
     File sampleDestFile = new File(sampleDestDir, "generated.avro");
     Path logsPath = new Path(sampleDir.toURI());
     Path destPath = new Path(sampleDestFile.toURI());

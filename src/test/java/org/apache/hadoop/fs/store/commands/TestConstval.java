@@ -17,11 +17,10 @@
  */
 package org.apache.hadoop.fs.store.commands;
 
-import static org.apache.hadoop.fs.store.StoreExitCodes.E_NOT_FOUND;
-import static org.apache.hadoop.fs.store.StoreExitCodes.E_NOT_FOUND2;
-import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
 import static org.apache.hadoop.fs.store.commands.Constval.lookupFieldValue;
 import static org.apache.hadoop.fs.store.commands.FieldsForTesting.FIELDS;
+import static org.apache.hadoop.service.launcher.LauncherExitCodes.EXIT_NOT_FOUND;
+import static org.apache.hadoop.service.launcher.LauncherExitCodes.EXIT_USAGE;
 import static org.apache.hadoop.tools.store.StoreTestUtils.expectExitException;
 
 import org.assertj.core.api.Assertions;
@@ -62,17 +61,17 @@ public class TestConstval {
 
   @Test
   public void testMissingClass() throws Exception {
-    expectExitException(E_NOT_FOUND, () -> lookupFieldValue(CONSTVAL + "2", "not_found"));
+    expectExitException(EXIT_NOT_FOUND, () -> lookupFieldValue(CONSTVAL + "2", "not_found"));
   }
 
   @Test
   public void testMissingField() throws Exception {
-    expectExitException(E_NOT_FOUND2, () -> lookupFieldValue(CONSTVAL, "not_found"));
+    expectExitException(EXIT_NOT_FOUND, () -> lookupFieldValue(CONSTVAL, "not_found"));
   }
 
   @Test
   public void testExecNoArgs() throws Exception {
-    expectExitException(E_USAGE, () -> Constval.exec());
+    expectExitException(EXIT_USAGE, () -> Constval.exec());
   }
 
   @Test

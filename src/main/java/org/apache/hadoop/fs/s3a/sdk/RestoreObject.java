@@ -17,8 +17,6 @@
  */
 package org.apache.hadoop.fs.s3a.sdk;
 
-import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
-
 import java.util.List;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
@@ -47,7 +45,7 @@ public class RestoreObject extends StoreEntryPoint {
     List<String> paths = parseArgs(args);
     if (paths.size() != 3) {
       errorln(USAGE);
-      return E_USAGE;
+      return EXIT_USAGE;
     }
 
     final Configuration conf = createPreconfiguredConfig();

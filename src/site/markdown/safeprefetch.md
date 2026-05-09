@@ -36,19 +36,19 @@ The probe for the fix relies on `HADOOP-18577. ABFS: Add probes of readahead fix
 
 
 ```
-bin/hadoop jar $CLOUDSTORE safeprefetch abfs://alicel-testing@alicelukwest.dfs.core.windows.net/user
+bin/hadoop jar $CLOUDSTORE safeprefetch abfs://alice-testing@aliceukwest.dfs.core.windows.net/user
 
-Probing abfs://alicel-testing@alicelukwest.dfs.core.windows.net/user for prefetch safety
-Using filesystem abfs://alicel-testing@alicelukwest.dfs.core.windows.net
-Filesystem abfs://alicel-testing@alicelukwest.dfs.core.windows.net/user has prefetch issue fixed (has path capability fs.azure.capability.readahead.safe)
+Probing abfs://alice-testing@aliceukwest.dfs.core.windows.net/user for prefetch safety
+Using filesystem abfs://alice-testing@aliceukwest.dfs.core.windows.net
+Filesystem abfs://alice-testing@aliceukwest.dfs.core.windows.net/user has prefetch issue fixed (has path capability fs.azure.capability.readahead.safe)
 ```
 
 ## Example, probe of hadoop 3.3.4 -unsafe
 
 ```
-bin/hadoop jar $CLOUDSTORE safeprefetch abfs://alicel-testing@alicelukwest.dfs.core.windows.net/user
-Probing abfs://alicel-testing@alicelukwest.dfs.core.windows.net/user for prefetch safety
-Using filesystem abfs://alicel-testing@alicelukwest.dfs.core.windows.net
+bin/hadoop jar $CLOUDSTORE safeprefetch abfs://alice-testing@aliceukwest.dfs.core.windows.net/user
+Probing abfs://alice-testing@aliceukwest.dfs.core.windows.net/user for prefetch safety
+Using filesystem abfs://alice-testing@aliceukwest.dfs.core.windows.net
 Store is vulnerable to inconsistent prefetching. This MUST be disabled
 
 WARNING: Filesystem is vulnerable until prefetching is disabled

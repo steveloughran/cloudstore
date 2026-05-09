@@ -24,15 +24,12 @@ import org.apache.hadoop.fs.statistics.IOStatisticsLogging;
 /**
  * Support for IO statistics (initially through reflection).
  */
-public class IOStatisticsIntegration {
+public final class IOStatisticsIntegration {
 
-  public IOStatisticsIntegration() {}
+  private IOStatisticsIntegration() {}
 
-  public boolean available() {
-    return true;
-  }
-
-  public String ioStatisticsToPrettyString(Object source) {
+  public static String ioStatisticsToPrettyString(Object source) {
     return IOStatisticsLogging.ioStatisticsToPrettyString(retrieveIOStatistics(source));
   }
+
 }

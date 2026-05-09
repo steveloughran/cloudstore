@@ -35,6 +35,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.StorageUnit;
 import org.apache.hadoop.util.ExitUtil;
 
+/** General utils, many here to avoid adding external dependencies. */
 public final class StoreUtils {
 
   private StoreUtils() {}
@@ -48,19 +49,6 @@ public final class StoreUtils {
 
   /** {@value}. */
   protected static final int HIDE_THRESHOLD = HIDE_PREFIX * 2 + HIDE_SUFFIX;
-
-  /** life without Guava. */
-  public static void checkArgument(boolean condition, String text) {
-    if (!condition) {
-      throw new IllegalArgumentException(text);
-    }
-  }
-
-  public static void checkState(boolean condition, String text) {
-    if (!condition) {
-      throw new IllegalStateException(text);
-    }
-  }
 
   /**
    * Take an exception from a Future and convert to an IOE.
@@ -219,9 +207,14 @@ public final class StoreUtils {
     return ioStatisticsToPrettyString(retrieveIOStatistics(source));
   }
 
+  /**
+   * String tuple; value is mutable.
+   */
   public static final class StringPair implements Map.Entry<String, String> {
 
-    private String key, value;
+    private final String key;
+
+    private String value;
 
     private StringPair(final String left, final String right) {
       this.key = left;

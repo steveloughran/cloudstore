@@ -47,7 +47,7 @@ import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.LocalDirAllocator;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.fs.store.StoreUtils;
+import org.apache.hadoop.util.Preconditions;
 
 /**
  * Class for filesystems to implement to provide better diagnostics than the default.
@@ -88,7 +88,7 @@ public class StoreDiagnosticsInfo {
   public static StoreDiagnosticsInfo bindToStore(URI fsURI, final Printout output)
       throws IOException {
     StoreDiagnosticsInfo store;
-    StoreUtils.checkArgument(fsURI != null, "Null fsURI argument");
+    Preconditions.checkArgument(fsURI != null, "Null fsURI argument");
     String scheme = fsURI.getScheme();
     if (scheme == null) {
       try {

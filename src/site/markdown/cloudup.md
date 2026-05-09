@@ -129,7 +129,7 @@ Seconds per file: 0.377s
 
 hadoop jar cloudstore-1.1.jar cloudup -threads 60 -largest 32 -block 64 -update share/hadoop/common  s3a://example-london/share/common
 
-Summary of copy from file:/Users/alicel/Projects/Releases/cdp-7.1.9/share/hadoop/common to s3a://example-london/share/common
+Summary of copy from file:/Users/alice/Projects/Releases/cdp-7.1.9/share/hadoop/common to s3a://example-london/share/common
 ===========================================================================================================================
 
 File copies attempted: 149; size 85,877,554 bytes
@@ -195,23 +195,23 @@ editing the `core-site.xml` settings of your deployment
 ```bash
 hadoop jar cloudstore-1.1.jar cloudup -threads 60 -largest 32 -block 64 -update share/hadoop/common  s3a://example-london/share/common
 
-Copying from file:/Users/alicel/Projects/Releases/cdp-7.1.9/share/hadoop/common to s3a://example-london/share/common; threads=60; large files=32; block size=67108864n; overwrite=false; update=true verbose=false; ignore failures=false
-Listing source files under file:/Users/alicel/Projects/Releases/cdp-7.1.9/share/hadoop/common
+Copying from file:/Users/alice/Projects/Releases/cdp-7.1.9/share/hadoop/common to s3a://example-london/share/common; threads=60; large files=32; block size=67108864n; overwrite=false; update=true verbose=false; ignore failures=false
+Listing source files under file:/Users/alice/Projects/Releases/cdp-7.1.9/share/hadoop/common
 2023-09-26 17:07:31,573 [main] DEBUG store.StoreEntryPoint (StoreEntryPoint.java:debug(235)) - Destination prepared: s3a://example-london/share/common
 Files to copy = 149; preparation  = 0:00:01.538
 
-[01]: size = 4,675,711 bytes: file:/Users/alicel/Projects/Releases/cdp-7.1.9/share/hadoop/common/lib/gcs-connector-2.1.2.7.1.9.0-SNAPSHOT-shaded.jar
-[pool-4-thread-3] [0001] Copying file:/Users/alicel/Projects/Releases/cdp-7.1.9/share/hadoop/common/lib/gcs-connector-2.1.2.7.1.9.0-SNAPSHOT-shaded.jar to s3a://example-london/share/common/lib/gcs-connector-2.1.2.7.1.9.0-SNAPSHOT-shaded.jar (size: 4,675,711 bytes)
-[02]: size = 4,448,398 bytes: file:/Users/alicel/Projects/Releases/cdp-7.1.9/share/hadoop/common/hadoop-common-3.1.1.7.1.9.0-SNAPSHOT.jar
-[pool-4-thread-4] [0002] Copying file:/Users/alicel/Projects/Releases/cdp-7.1.9/share/hadoop/common/hadoop-common-3.1.1.7.1.9.0-SNAPSHOT.jar to s3a://example-london/share/common/hadoop-common-3.1.1.7.1.9.0-SNAPSHOT.jar (size: 4,448,398 bytes)
-[pool-4-thread-5] [0003] Copying file:/Users/alicel/Projects/Releases/cdp-7.1.9/share/hadoop/common/lib/curator-client-5.4.0.7.1.9.0-SNAPSHOT.jar to s3a://example-london/share/common/lib/curator-client-5.4.0.7.1.9.0-SNAPSHOT.jar (size: 3,276,219 bytes)
-[03]: size = 3,276,219 bytes: file:/Users/alicel/Projects/Releases/cdp-7.1.9/share/hadoop/common/lib/curator-client-5.4.0.7.1.9.0-SNAPSHOT.jar
+[01]: size = 4,675,711 bytes: file:/Users/alice/Projects/Releases/cdp-7.1.9/share/hadoop/common/lib/gcs-connector-2.1.2.7.1.9.0-SNAPSHOT-shaded.jar
+[pool-4-thread-3] [0001] Copying file:/Users/alice/Projects/Releases/cdp-7.1.9/share/hadoop/common/lib/gcs-connector-2.1.2.7.1.9.0-SNAPSHOT-shaded.jar to s3a://example-london/share/common/lib/gcs-connector-2.1.2.7.1.9.0-SNAPSHOT-shaded.jar (size: 4,675,711 bytes)
+[02]: size = 4,448,398 bytes: file:/Users/alice/Projects/Releases/cdp-7.1.9/share/hadoop/common/hadoop-common-3.1.1.7.1.9.0-SNAPSHOT.jar
+[pool-4-thread-4] [0002] Copying file:/Users/alice/Projects/Releases/cdp-7.1.9/share/hadoop/common/hadoop-common-3.1.1.7.1.9.0-SNAPSHOT.jar to s3a://example-london/share/common/hadoop-common-3.1.1.7.1.9.0-SNAPSHOT.jar (size: 4,448,398 bytes)
+[pool-4-thread-5] [0003] Copying file:/Users/alice/Projects/Releases/cdp-7.1.9/share/hadoop/common/lib/curator-client-5.4.0.7.1.9.0-SNAPSHOT.jar to s3a://example-london/share/common/lib/curator-client-5.4.0.7.1.9.0-SNAPSHOT.jar (size: 3,276,219 bytes)
+[03]: size = 3,276,219 bytes: file:/Users/alice/Projects/Releases/cdp-7.1.9/share/hadoop/common/lib/curator-client-5.4.0.7.1.9.0-SNAPSHOT.jar
 ...
-[pool-4-thread-60] [0138] Skipped copy of file:/Users/alicel/Projects/Releases/cdp-7.1.9/share/hadoop/common/lib/jetty-security-9.4.48.v20220622.jar to s3a://example-london/share/common/lib/jetty-security-9.4.48.v20220622.jar  (size: 118,511 bytes) in 2023-09-26 17:07:33,616 [pool-4-thread-1] DEBUG store.StoreEntryPoint (StoreEntryPoint.java:debug(235)) - Skipping copy of %s to %s
+[pool-4-thread-60] [0138] Skipped copy of file:/Users/alice/Projects/Releases/cdp-7.1.9/share/hadoop/common/lib/jetty-security-9.4.48.v20220622.jar to s3a://example-london/share/common/lib/jetty-security-9.4.48.v20220622.jar  (size: 118,511 bytes) in 2023-09-26 17:07:33,616 [pool-4-thread-1] DEBUG store.StoreEntryPoint (StoreEntryPoint.java:debug(235)) - Skipping copy of %s to %s
 0:00:00.152s
-[pool-4-thread-1] [0137] Skipped copy of file:/Users/alicel/Projects/Releases/cdp-7.1.9/share/hadoop/common/lib/netty-buffer-4.1.86.Final.jar to s3a://example-london/share/common/lib/netty-buffer-4.1.86.Final.jar  (size: 305,047 bytes) in 0:00:00.152s
+[pool-4-thread-1] [0137] Skipped copy of file:/Users/alice/Projects/Releases/cdp-7.1.9/share/hadoop/common/lib/netty-buffer-4.1.86.Final.jar to s3a://example-london/share/common/lib/netty-buffer-4.1.86.Final.jar  (size: 305,047 bytes) in 0:00:00.152s
 
-Summary of copy from file:/Users/alicel/Projects/Releases/cdp-7.1.9/share/hadoop/common to s3a://example-london/share/common
+Summary of copy from file:/Users/alice/Projects/Releases/cdp-7.1.9/share/hadoop/common to s3a://example-london/share/common
 ===========================================================================================================================
 
 File copies attempted: 149; size 85,877,554 bytes
@@ -257,14 +257,14 @@ And download it
 ```bash
 hadoop jar cloudstore-1.1.jar cloudup -threads 60 -largest 16 -update -block 32 s3a://example-london/share/common ./scratch/s3a
 
-Copying from s3a://example-london/share/common to file:/Users/alicel/Projects/Releases/cdp-7.1.9/scratch/s3a; threads=60; large files=16; block size=33554432n; overwrite=false; update=true verbose=false; ignore failures=false
+Copying from s3a://example-london/share/common to file:/Users/alice/Projects/Releases/cdp-7.1.9/scratch/s3a; threads=60; large files=16; block size=33554432n; overwrite=false; update=true verbose=false; ignore failures=false
 Listing source files under s3a://example-london/share/common
-2023-09-26 17:12:40,655 [main] DEBUG store.StoreEntryPoint (StoreEntryPoint.java:debug(235)) - Destination prepared: file:/Users/alicel/Projects/Releases/cdp-7.1.9/scratch/s3a
+2023-09-26 17:12:40,655 [main] DEBUG store.StoreEntryPoint (StoreEntryPoint.java:debug(235)) - Destination prepared: file:/Users/alice/Projects/Releases/cdp-7.1.9/scratch/s3a
 Files to copy = 149; preparation  = 0:00:00.123
 
 ...
 
-Summary of copy from s3a://example-london/share/common to file:/Users/alicel/Projects/Releases/cdp-7.1.9/scratch/s3a
+Summary of copy from s3a://example-london/share/common to file:/Users/alice/Projects/Releases/cdp-7.1.9/scratch/s3a
 ===================================================================================================================
 
 File copies attempted: 149; size 85,877,554 bytes
@@ -355,7 +355,7 @@ Increasing the number of threads copying files with the `-threads` offers speedu
 
 ...
 
-Summary of copy from file:/Users/alicel/Projects/Releases/cdp-7.1.9/share/hadoop/common to s3a://example-london/share/common
+Summary of copy from file:/Users/alice/Projects/Releases/cdp-7.1.9/share/hadoop/common to s3a://example-london/share/common
 ===========================================================================================================================
 
 File copies attempted: 149; size 85,877,554 bytes
@@ -377,7 +377,7 @@ And with 120 threads
 
 ...
 
-Summary of copy from file:/Users/alicel/Projects/Releases/cdp-7.1.9/share/hadoop/common to s3a://example-london/share/common
+Summary of copy from file:/Users/alice/Projects/Releases/cdp-7.1.9/share/hadoop/common to s3a://example-london/share/common
 ===========================================================================================================================
 
 File copies attempted: 149; size 85,877,554 bytes

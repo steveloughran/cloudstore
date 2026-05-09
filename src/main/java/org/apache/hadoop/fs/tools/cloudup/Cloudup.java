@@ -65,8 +65,8 @@ import org.apache.hadoop.fs.RemoteIterator;
 import org.apache.hadoop.fs.StorageStatistics;
 import org.apache.hadoop.fs.store.StoreDurationInfo;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
-import org.apache.hadoop.fs.store.StoreUtils;
 import org.apache.hadoop.fs.store.logging.IOStatisticsIntegration;
+import org.apache.hadoop.util.Preconditions;
 import org.apache.hadoop.util.Progressable;
 import org.apache.hadoop.util.ToolRunner;
 import org.slf4j.Logger;
@@ -128,11 +128,6 @@ public class Cloudup extends StoreEntryPoint {
    * Source path (qualified).
    */
   private Path sourcePath;
-
-  /**
-   * Source path status.
-   */
-  private FileStatus sourcePathStatus;
 
   /**
    * Did the destination exist?
@@ -261,7 +256,7 @@ public class Cloudup extends StoreEntryPoint {
         ignoreFailures);
 
     // see what we have for a source: file & dir are treated differently
-    sourcePathStatus = sourceFS.getFileStatus(sourcePath);
+    FileStatus sourcePathStatus = sourceFS.getFileStatus(sourcePath);
     try {
       destPathStatus = destFS.getFileStatus(destPath);
     } catch (FileNotFoundException e) {
@@ -276,9 +271,11 @@ public class Cloudup extends StoreEntryPoint {
 
       String s = sourcePath.toString();
       String d = destPath.toString();
-      StoreUtils.checkArgument(!s.startsWith(d),
+      boolean condition1 = !s.startsWith(d);
+      Preconditions.checkArgument(condition1,
           "Source path " + s + "%s is under destination path " + d);
-      StoreUtils.checkArgument(!d.startsWith(s),
+      boolean condition = !d.startsWith(s);
+      Preconditions.checkArgument(condition,
           "Destination path " + s + "%s is under source path " + d);
     }
 
@@ -725,13 +722,10 @@ public class Cloudup extends StoreEntryPoint {
     // Not supported on Hadoop 2.7
     println();
     println("%s: %s", header, fs.getUri());
-    final IOStatisticsIntegration ios = new IOStatisticsIntegration();
-    if (ios.available()) {
-      final String prettyString = ios.ioStatisticsToPrettyString(fs);
-      if (!prettyString.isEmpty()) {
-        println(prettyString);
-        return;
-      }
+    final String prettyString = IOStatisticsIntegration.ioStatisticsToPrettyString(fs);
+    if (!prettyString.isEmpty()) {
+      println(prettyString);
+      return;
     }
 
     // only get here if there are no iostats

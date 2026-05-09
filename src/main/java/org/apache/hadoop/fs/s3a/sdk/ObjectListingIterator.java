@@ -22,7 +22,6 @@ import java.util.NoSuchElementException;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.RemoteIterator;
 import org.apache.hadoop.fs.s3a.Invoker;
-import org.apache.hadoop.fs.s3a.S3AFileSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -32,19 +31,18 @@ import software.amazon.awssdk.services.s3.model.ListObjectsV2Response;
 /**
  * Wraps up AWS `ListObjects` requests in a remote iterator which will ask for more listing data if
  * needed.
- *
+ * <p>
  * That is:
- *
+ * <p>
  * 1. The first invocation of the {@link #next()} call will return the results of the first request,
  * the one created during the construction of the instance.
- *
- * 2. Second and later invocations will continue the ongoing listing, calling
- * {@link S3AFileSystem#continueListObjects} to request the next batch of results.
- *
+ * <p>
+ * 2. Second and later invocations will continue the ongoing listing.
+ * <p>
  * 3. The {@link #hasNext()} predicate returns true for the initial call, where {@link #next()} will
  * return the initial results. It declares that it has future results iff the last executed request
  * was truncated.
- *
+ * <p>
  * Thread safety: none.
  */
 class ObjectListingIterator implements RemoteIterator<ListObjectsV2Response> {
@@ -74,7 +72,7 @@ class ObjectListingIterator implements RemoteIterator<ListObjectsV2Response> {
   /**
    * Maximum keys in a request.
    */
-  private int maxKeys;
+  private final int maxKeys;
 
   /**
    * Constructor -calls `listObjects()` on the request to populate the initial set of results/fail

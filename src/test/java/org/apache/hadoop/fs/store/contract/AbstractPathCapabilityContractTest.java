@@ -17,7 +17,7 @@
  */
 package org.apache.hadoop.fs.store.contract;
 
-import static org.apache.hadoop.fs.store.StoreExitCodes.E_ERROR;
+import static org.apache.hadoop.service.launcher.LauncherExitCodes.EXIT_FAIL;
 import static org.apache.hadoop.tools.store.StoreTestUtils.expectOutcome;
 import static org.apache.hadoop.tools.store.StoreTestUtils.expectSuccess;
 
@@ -56,6 +56,6 @@ public abstract class AbstractPathCapabilityContractTest extends AbstractFSContr
   public void testNegativeCapability() throws Exception {
     // synthetic name that no filesystem will ever advertise
     String bogus = "fs.cloudstore.test.no-such-capability." + UUID.randomUUID();
-    expectOutcome(E_ERROR, new PathCapability(), bogus, getFileSystem().getUri().toString());
+    expectOutcome(EXIT_FAIL, new PathCapability(), bogus, getFileSystem().getUri().toString());
   }
 }

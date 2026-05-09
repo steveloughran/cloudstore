@@ -18,8 +18,8 @@
 package org.apache.hadoop.fs.tools.csv;
 
 import static org.apache.hadoop.fs.store.CommonParameters.STANDARD_OPTS;
-import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
 import static org.apache.hadoop.fs.store.StoreUtils.getDataSize;
+import static org.apache.hadoop.service.launcher.LauncherExitCodes.EXIT_USAGE;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -93,7 +93,7 @@ public class MkCSV extends StoreEntryPoint {
     if (rows < 0) {
       errorln("Invalid row count %s", size);
       errorln(USAGE);
-      return E_USAGE;
+      return EXIT_USAGE;
     }
     boolean header = hasOption(HEADER);
     boolean quote = hasOption(QUOTE);

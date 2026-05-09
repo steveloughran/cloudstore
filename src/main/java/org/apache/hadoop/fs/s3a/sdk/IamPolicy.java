@@ -26,12 +26,11 @@ import org.apache.hadoop.fs.s3a.auth.RoleModel;
 import org.apache.hadoop.fs.s3a.auth.delegation.AWSPolicyProvider;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
 import org.apache.hadoop.util.ToolRunner;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+/**
+ * Ask the target FS to generate its policy rules.
+ */
 public class IamPolicy extends StoreEntryPoint {
-
-  private static final Logger LOG = LoggerFactory.getLogger(IamPolicy.class);
 
   public static final String USAGE = "Usage: iampolicy <S3A path>";
 

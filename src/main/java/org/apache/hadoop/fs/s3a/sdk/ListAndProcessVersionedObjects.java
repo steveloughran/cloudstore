@@ -40,7 +40,7 @@ import software.amazon.awssdk.services.s3.model.ObjectVersion;
 
 public class ListAndProcessVersionedObjects {
 
-  private static final Logger LOG = LoggerFactory.getLogger(ListVersions.class);
+  private static final Logger LOG = LoggerFactory.getLogger(ListAndProcessVersionedObjects.class);
 
   private final String name;
 

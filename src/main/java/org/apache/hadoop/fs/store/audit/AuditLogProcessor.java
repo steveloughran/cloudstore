@@ -110,7 +110,7 @@ public class AuditLogProcessor {
 
   private final Configuration conf;
 
-  /*
+  /**
    * Number of records to process before giving a status update.
    */
   private final int sample;

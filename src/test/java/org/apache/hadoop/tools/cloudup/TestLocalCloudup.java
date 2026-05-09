@@ -21,7 +21,7 @@ import static org.apache.hadoop.fs.store.CommonParameters.IGNORE;
 import static org.apache.hadoop.fs.store.CommonParameters.LARGEST;
 import static org.apache.hadoop.fs.store.CommonParameters.OVERWRITE;
 import static org.apache.hadoop.fs.store.CommonParameters.THREADS;
-import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
+import static org.apache.hadoop.service.launcher.LauncherExitCodes.EXIT_USAGE;
 import static org.apache.hadoop.tools.store.StoreTestUtils.createTestDir;
 import static org.apache.hadoop.tools.store.StoreTestUtils.createTestFiles;
 import static org.apache.hadoop.tools.store.StoreTestUtils.expectException;
@@ -101,7 +101,7 @@ public class TestLocalCloudup {
   @Test
   public void testNoArgs() throws Throwable {
     // no args == failure
-    LambdaTestUtils.intercept(ExitUtil.ExitException.class, Integer.toString(E_USAGE),
+    LambdaTestUtils.intercept(ExitUtil.ExitException.class, Integer.toString(EXIT_USAGE),
         () -> StoreTestUtils.exec(new Cloudup()));
   }
 
@@ -129,7 +129,7 @@ public class TestLocalCloudup {
         destDir.toURI().toString());
 
     // and now with -i, the failure is ignored
-    expectSuccess(new Cloudup(), sourceDir.toURI().toString(), "-" + IGNORE,
+    expectSuccess(new Cloudup(), "-" + IGNORE, sourceDir.toURI().toString(),
         destDir.toURI().toString());
   }
 
@@ -140,7 +140,7 @@ public class TestLocalCloudup {
     expectSuccess(new Cloudup(), sourceDir.toURI().toString(), destDir.toURI().toString());
     assertDestDirIsFile();
     LOG.info("Second upload");
-    expectSuccess(new Cloudup(), sourceDir.toURI().toString(), "-" + OVERWRITE,
+    expectSuccess(new Cloudup(), "-" + OVERWRITE, sourceDir.toURI().toString(),
         destDir.toURI().toString());
   }
 

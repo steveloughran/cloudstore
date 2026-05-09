@@ -17,10 +17,9 @@
  */
 package org.apache.hadoop.fs.store.commands;
 
-import static org.apache.hadoop.fs.store.StoreExitCodes.E_EXCEPTION_THROWN;
-import static org.apache.hadoop.fs.store.StoreExitCodes.E_NOT_FOUND;
-import static org.apache.hadoop.fs.store.StoreExitCodes.E_NOT_FOUND2;
-import static org.apache.hadoop.fs.store.StoreExitCodes.E_NO_ACCESS;
+import static org.apache.hadoop.service.launcher.LauncherExitCodes.EXIT_EXCEPTION_THROWN;
+import static org.apache.hadoop.service.launcher.LauncherExitCodes.EXIT_NOT_FOUND;
+import static org.apache.hadoop.service.launcher.LauncherExitCodes.EXIT_UNAUTHORIZED;
 
 import java.lang.reflect.Field;
 import java.util.List;
@@ -71,17 +70,17 @@ public class Constval extends DiagnosticsEntryPoint {
     try {
       clazz = Class.forName(classname);
     } catch (ClassNotFoundException e) {
-      throw new StoreDiagException(E_NOT_FOUND, "Class not found: " + classname).initCause(e);
+      throw new StoreDiagException(EXIT_NOT_FOUND, "Class not found: " + classname).initCause(e);
     }
     final Field f;
     try {
       f = clazz.getField(field);
     } catch (NoSuchFieldException e) {
-      throw new StoreDiagException(E_NOT_FOUND2, "Field not found: " + field + " in " + classname)
+      throw new StoreDiagException(EXIT_NOT_FOUND, "Field not found: " + field + " in " + classname)
           .initCause(e);
 
     } catch (SecurityException e) {
-      throw new StoreDiagException(E_NO_ACCESS, "No access to " + field + " in " + classname)
+      throw new StoreDiagException(EXIT_UNAUTHORIZED, "No access to " + field + " in " + classname)
           .initCause(e);
     }
     // set it to accessible
@@ -90,7 +89,7 @@ public class Constval extends DiagnosticsEntryPoint {
       final Object value = f.get(null);
       return value != null ? value.toString() : NULL;
     } catch (Throwable e) {
-      throw new StoreDiagException(E_EXCEPTION_THROWN,
+      throw new StoreDiagException(EXIT_EXCEPTION_THROWN,
           "No access to " + field + " in " + classname + ": " + e).initCause(e);
     }
   }

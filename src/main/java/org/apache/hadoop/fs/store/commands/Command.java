@@ -21,10 +21,10 @@ package org.apache.hadoop.fs.store.commands;
  * This is the base class for the minimal CLI commands.
  */
 @SuppressWarnings("UseOfSystemOutOrSystemErr")
-public final class Command {
+public class Command {
 
-  private Command() {}
-
+  /** Subclass-only access; this class is a base for the lowercase CLI shims. */
+  protected Command() {}
 
   public static void println(String format, Object... args) {
     System.out.printf(format, args);

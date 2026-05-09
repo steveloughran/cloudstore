@@ -17,9 +17,8 @@
  */
 package org.apache.hadoop.fs.s3a.sdk;
 
-import static org.apache.hadoop.fs.store.StoreUtils.checkArgument;
-
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.util.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.s3.model.ListObjectVersionsRequest;
@@ -46,7 +45,8 @@ public final class S3ListingSupport {
    * @return a key excluding the leading "/", or, if it is the root path, ""
    */
   public static String pathToKey(Path path) {
-    checkArgument(path.isAbsolute(), "not absolute: " + path);
+    boolean condition = path.isAbsolute();
+    Preconditions.checkArgument(condition, "not absolute: " + path);
     if (path.toUri().getScheme() != null && path.toUri().getPath().isEmpty()) {
       return "";
     }

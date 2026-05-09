@@ -18,9 +18,9 @@
 package org.apache.hadoop.fs.store.commands;
 
 import static org.apache.hadoop.fs.store.CommonParameters.STANDARD_OPTS;
-import static org.apache.hadoop.fs.store.StoreExitCodes.E_NOT_FOUND;
-import static org.apache.hadoop.fs.store.StoreExitCodes.E_SERVICE_UNAVAILABLE;
-import static org.apache.hadoop.fs.store.StoreExitCodes.E_UNIMPLEMENTED;
+import static org.apache.hadoop.service.launcher.LauncherExitCodes.EXIT_NOT_FOUND;
+import static org.apache.hadoop.service.launcher.LauncherExitCodes.EXIT_SERVICE_UNAVAILABLE;
+import static org.apache.hadoop.service.launcher.LauncherExitCodes.EXIT_UNIMPLEMENTED;
 
 import java.io.FileNotFoundException;
 import java.util.List;
@@ -64,7 +64,7 @@ public class EtagCommand extends StoreEntryPoint {
         StoreDurationInfo duration = new StoreDurationInfo(LOG, "get path status for %s", source)) {
       st = fs.getFileStatus(source);
     } catch (FileNotFoundException e) {
-      throw new ExitUtil.ExitException(E_NOT_FOUND, "Not found: " + source, e);
+      throw new ExitUtil.ExitException(EXIT_NOT_FOUND, "Not found: " + source, e);
     }
 
     if (st instanceof EtagSource) {
@@ -72,17 +72,17 @@ public class EtagCommand extends StoreEntryPoint {
       println("Etag of %s = %s", source, etag);
       if (etag == null) {
         errorln("File status of path %s is an EtagSource but the value is null:\n%s", source, st);
-        throw new ExitUtil.ExitException(E_SERVICE_UNAVAILABLE, "Etag is null");
+        throw new ExitUtil.ExitException(EXIT_SERVICE_UNAVAILABLE, "Etag is null");
       }
       if (etag.isEmpty()) {
         errorln("File status of path %s is an EtagSource but the value is the empty string:\n%s",
             source, st);
-        throw new ExitUtil.ExitException(E_SERVICE_UNAVAILABLE, "Etag is empty string");
+        throw new ExitUtil.ExitException(EXIT_SERVICE_UNAVAILABLE, "Etag is empty string");
       }
 
     } else {
       errorln("File status of path %s is not an EtagSource:\n%s", source, st);
-      throw new ExitUtil.ExitException(E_UNIMPLEMENTED,
+      throw new ExitUtil.ExitException(EXIT_UNIMPLEMENTED,
           "Filesystem does not provide Etag information");
     }
     return 0;

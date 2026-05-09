@@ -21,7 +21,7 @@ import static org.apache.hadoop.tools.store.StoreTestUtils.expectExitException;
 import static org.apache.hadoop.tools.store.StoreTestUtils.expectSuccess;
 
 import org.apache.hadoop.fs.shell.CommandFormat;
-import org.apache.hadoop.fs.store.StoreExitCodes;
+import org.apache.hadoop.service.launcher.LauncherExitCodes;
 import org.apache.hadoop.tools.store.StoreTestUtils;
 import org.junit.Test;
 
@@ -57,11 +57,11 @@ public class TestTLSInfo {
 
   /**
    * Match a string that should not appear in any cert. {@link TLSInfo} returns {@code -1} (==
-   * {@link StoreExitCodes#E_ERROR}) when an alias filter matches nothing.
+   * {@link LauncherExitCodes#EXIT_FAIL}) when an alias filter matches nothing.
    */
   @Test
   public void testNoMatchReturnsError() throws Exception {
-    StoreTestUtils.expectOutcome(StoreExitCodes.E_ERROR, new TLSInfo(),
+    StoreTestUtils.expectOutcome(LauncherExitCodes.EXIT_FAIL, new TLSInfo(),
         "match-string-that-does-not-appear-in-any-trusted-cert-" + System.nanoTime());
   }
 
@@ -86,13 +86,13 @@ public class TestTLSInfo {
    */
   @Test
   public void testUnknownOption() throws Exception {
-    expectExitException(StoreExitCodes.E_ERROR, () -> {
+    expectExitException(LauncherExitCodes.EXIT_FAIL, () -> {
       try {
         return TLSInfo.exec("--no-such-flag");
       } catch (CommandFormat.UnknownOptionException uoe) {
         // map UnknownOption to the same exit code Cloudstore.exitOnThrowable
         // would use, so the assertion stays in the ExitException family.
-        throw new org.apache.hadoop.util.ExitUtil.ExitException(StoreExitCodes.E_ERROR,
+        throw new org.apache.hadoop.util.ExitUtil.ExitException(LauncherExitCodes.EXIT_FAIL,
             uoe.getMessage());
       }
     });

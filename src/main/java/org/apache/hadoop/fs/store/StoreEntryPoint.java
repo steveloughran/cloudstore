@@ -18,6 +18,8 @@
 package org.apache.hadoop.fs.store;
 
 import static java.util.logging.Level.ALL;
+import static org.apache.hadoop.fs.statistics.IOStatisticsLogging.ioStatisticsToPrettyString;
+import static org.apache.hadoop.fs.statistics.IOStatisticsSupport.retrieveIOStatistics;
 import static org.apache.hadoop.fs.store.CommonParameters.DEBUG;
 import static org.apache.hadoop.fs.store.CommonParameters.DEFINE;
 import static org.apache.hadoop.fs.store.CommonParameters.LOG_OVERRIDES;
@@ -25,7 +27,6 @@ import static org.apache.hadoop.fs.store.CommonParameters.SYSPROPS;
 import static org.apache.hadoop.fs.store.CommonParameters.TOKENFILE;
 import static org.apache.hadoop.fs.store.CommonParameters.VERBOSE;
 import static org.apache.hadoop.fs.store.CommonParameters.XMLFILE;
-import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
 import static org.apache.hadoop.fs.store.StoreUtils.split;
 import static org.apache.hadoop.fs.store.diag.OptionSets.CLOUD_CONNECTOR_LOGS;
 import static org.apache.hadoop.fs.store.diag.OptionSets.JAVAX_NET_DEBUG;
@@ -65,6 +66,7 @@ import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.StorageStatistics;
 import org.apache.hadoop.fs.shell.CommandFormat;
+import org.apache.hadoop.fs.statistics.IOStatistics;
 import org.apache.hadoop.fs.store.diag.Printout;
 import org.apache.hadoop.fs.store.diag.StoreLogExactlyOnce;
 import org.apache.hadoop.fs.store.logging.LogControl;
@@ -74,6 +76,7 @@ import org.apache.hadoop.security.Credentials;
 import org.apache.hadoop.security.UserGroupInformation;
 import org.apache.hadoop.security.token.Token;
 import org.apache.hadoop.security.token.TokenIdentifier;
+import org.apache.hadoop.service.launcher.LauncherExitCodes;
 import org.apache.hadoop.util.ExitUtil;
 import org.apache.hadoop.util.StringUtils;
 import org.apache.hadoop.util.Tool;
@@ -94,7 +97,7 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
   /**
    * Exit code when a usage message was printed: {@value}.
    */
-  public static final int EXIT_USAGE = StoreExitCodes.E_USAGE;
+  public static final int EXIT_USAGE = LauncherExitCodes.EXIT_USAGE;
 
   public static final boolean DEFAULT_HIDE_ALL_SENSITIVE_CHARS = false;
 
@@ -369,7 +372,7 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
     if ((min >= 0 && parsed.size() < min) || (max >= 0 && parsed.size() > max)) {
       errorln(error);
       parsed.forEach(s -> errorln("  %s", s));
-      throw new ExitUtil.ExitException(E_USAGE, "invalid argment count: expected between " + min
+      throw new ExitUtil.ExitException(EXIT_USAGE, "invalid argment count: expected between " + min
           + " and " + max + " but got " + parsed.size());
     }
     maybeEnableDebugLogging();
@@ -533,7 +536,7 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
       exit((ExitUtil.ExitException) ex);
     } else {
       ex.printStackTrace(System.err);
-      exit(StoreExitCodes.E_ERROR, ex.toString());
+      exit(LauncherExitCodes.EXIT_FAIL, ex.toString());
     }
   }
 
@@ -542,7 +545,7 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
     String xmlfile = getOption(CommonParameters.XMLFILE);
     if (xmlfile != null) {
       if (xmlfile.isEmpty()) {
-        throw new ExitUtil.ExitException(StoreExitCodes.E_INVALID_ARGUMENT,
+        throw new ExitUtil.ExitException(LauncherExitCodes.EXIT_COMMAND_ARGUMENT_ERROR,
             "XML file option " + CommonParameters.XMLFILE + " found but no value was provided");
       }
       File f = new File(xmlfile);
@@ -635,8 +638,8 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
     if (fs == null) {
       return;
     }
-    // TODO: use reflection to find this
-    String report = ""; // ioStatisticsSourceToString(fs);
+    final IOStatistics iostats = retrieveIOStatistics(fs);
+    String report = iostats != null ? ioStatisticsToPrettyString(iostats) : "";
     if (!report.isEmpty()) {
       heading("IO Statistics");
 

@@ -32,7 +32,7 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.store.StoreDurationInfo;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
-import org.apache.hadoop.fs.store.StoreExitCodes;
+import org.apache.hadoop.service.launcher.LauncherExitCodes;
 import org.apache.hadoop.util.ToolRunner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -76,7 +76,7 @@ public class BulkDeleteCommand extends StoreEntryPoint {
     File file = new File(filename);
     if (!file.exists()) {
       errorln("File not found \"%s\"", filename);
-      return StoreExitCodes.E_NOT_FOUND;
+      return LauncherExitCodes.EXIT_NOT_FOUND;
     }
 
     // get the list of paths to delete

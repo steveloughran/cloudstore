@@ -17,7 +17,7 @@
  */
 package org.apache.hadoop.fs.store.diag;
 
-import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
+import static org.apache.hadoop.service.launcher.LauncherExitCodes.EXIT_USAGE;
 import static org.apache.hadoop.tools.store.StoreTestUtils.expectExitException;
 import static org.apache.hadoop.tools.store.StoreTestUtils.expectSuccess;
 import static org.apache.hadoop.tools.store.StoreTestUtils.intercept;
@@ -57,12 +57,12 @@ public class TestStoreDiagInvocations {
   /** No positional argument → usage error. */
   @Test
   public void testStorediagNoArgs() throws Exception {
-    expectExitException(E_USAGE, () -> StoreDiag.exec());
+    expectExitException(EXIT_USAGE, () -> StoreDiag.exec());
   }
 
   /**
    * Two positional arguments → CommandFormat rejects before processArgs has a chance to wrap as an
-   * ExitException with E_USAGE.
+   * ExitException with EXIT_USAGE.
    */
   @Test
   public void testStorediagTooManyArgs() throws Exception {
@@ -99,7 +99,7 @@ public class TestStoreDiagInvocations {
   /**
    * Pointing storediag at a path under a nonexistent local directory still succeeds: storediag
    * binds to the filesystem root and reports diagnostics even when the supplied path inside that
-   * root is missing. {@code E_NOT_FOUND} only fires when the *root* of the store cannot be
+   * root is missing. {@code EXIT_NOT_FOUND} only fires when the *root* of the store cannot be
    * resolved, which cannot be triggered against {@code file://} on a host where {@code /} exists.
    */
   @Test

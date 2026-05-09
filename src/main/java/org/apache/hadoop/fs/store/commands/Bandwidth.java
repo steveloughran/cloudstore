@@ -24,8 +24,8 @@ import static org.apache.hadoop.fs.store.CommonParameters.CSVFILE;
 import static org.apache.hadoop.fs.store.CommonParameters.FLUSH;
 import static org.apache.hadoop.fs.store.CommonParameters.HFLUSH;
 import static org.apache.hadoop.fs.store.CommonParameters.STANDARD_OPTS;
-import static org.apache.hadoop.fs.store.StoreExitCodes.E_INVALID_ARGUMENT;
 import static org.apache.hadoop.fs.store.StoreUtils.prettyIOStatistics;
+import static org.apache.hadoop.service.launcher.LauncherExitCodes.EXIT_COMMAND_ARGUMENT_ERROR;
 
 import java.io.EOFException;
 import java.io.IOException;
@@ -150,12 +150,12 @@ public class Bandwidth extends StoreEntryPoint {
     final int blockSize = (int) (blockSizeMB * MB_1);
     if (blockSize <= 0) {
       error("block size MB is invalid", blockSizeMB);
-      return E_INVALID_ARGUMENT;
+      return EXIT_COMMAND_ARGUMENT_ERROR;
     }
 
     if (fileSizeBytes < blockSize) {
       error("upload size %,d MB smaller than the block size %,d MB", sizeMB, blockSizeMB);
-      return E_INVALID_ARGUMENT;
+      return EXIT_COMMAND_ARGUMENT_ERROR;
     }
     int numberOfBuffersToUpload = (int) (sizeMB / blockSizeMB);
     println("Writing data as %,d blocks each of size %,d bytes", numberOfBuffersToUpload,
@@ -183,7 +183,6 @@ public class Bandwidth extends StoreEntryPoint {
     // buffer of randomness
     byte[] dataBuffer = new byte[blockSize];
     new Random().nextBytes(dataBuffer);
-    final IOStatisticsIntegration ios = new IOStatisticsIntegration();
 
     // progress callback counts #of invocations
     AtomicLong progressCount = new AtomicLong();
@@ -357,12 +356,10 @@ public class Bandwidth extends StoreEntryPoint {
       }
     }
 
-    if (ios.available()) {
-      final String prettyString = ios.ioStatisticsToPrettyString(fs);
-      if (!prettyString.isEmpty()) {
-        heading("Destination Filesystem IO Statistics");
-        println(prettyString);
-      }
+    final String prettyString = IOStatisticsIntegration.ioStatisticsToPrettyString(fs);
+    if (!prettyString.isEmpty()) {
+      heading("Destination Filesystem IO Statistics");
+      println(prettyString);
     }
 
     // now print summaries

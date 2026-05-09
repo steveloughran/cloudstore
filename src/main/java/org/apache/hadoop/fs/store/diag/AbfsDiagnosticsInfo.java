@@ -19,7 +19,6 @@ package org.apache.hadoop.fs.store.diag;
 
 import static org.apache.hadoop.fs.azurebfs.constants.ConfigurationKeys.AZURE_KEY_ACCOUNT_KEYPROVIDER;
 import static org.apache.hadoop.fs.store.StoreUtils.cat;
-import static org.apache.hadoop.fs.store.StoreUtils.checkArgument;
 import static org.apache.hadoop.fs.store.StoreUtils.sanitize;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.ETAGS_AVAILABLE;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.ETAGS_PRESERVED_IN_RENAME;
@@ -52,6 +51,7 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.azurebfs.services.AbfsOutputStream;
 import org.apache.hadoop.fs.store.StoreDurationInfo;
+import org.apache.hadoop.util.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -612,9 +612,9 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
   private String[] authorityParts(URI uri) {
     final String uriText = uri.toString();
     final String authority = uri.getRawAuthority();
-    checkArgument(authority != null, "Authority is null in \"" + uriText + "\""
+    Preconditions.checkArgument(authority != null, "Authority is null in \"" + uriText + "\""
         + " Make sure there are exactly two / symbols after abfs. " + ABFS_URL_FORM);
-    checkArgument(authority.contains("@"),
+    Preconditions.checkArgument(authority.contains("@"),
         "Authority has no @ splitter \"" + uriText + "\". " + ABFS_URL_FORM);
 
     final String[] authorityParts = authority.split("@", 2);
@@ -622,7 +622,7 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
     if (authorityParts.length < 2 || authorityParts[0] != null && authorityParts[0].isEmpty()) {
       final String errMsg = String.format(
           "'%s' has a malformed authority, expected container name. " + ABFS_URL_FORM, uriText);
-      checkArgument(false, errMsg);
+      Preconditions.checkArgument(false, errMsg);
     }
     return authorityParts;
   }

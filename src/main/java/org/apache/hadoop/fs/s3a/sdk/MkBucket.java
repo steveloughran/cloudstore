@@ -18,8 +18,8 @@
 package org.apache.hadoop.fs.s3a.sdk;
 
 import static org.apache.hadoop.fs.s3a.Constants.S3A_BUCKET_PROBE;
-import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
 import static org.apache.hadoop.fs.store.diag.S3ADiagnosticsInfo.FS_S3A_AUDIT_REJECT_OUT_OF_SPAN_OPERATIONS;
+import static org.apache.hadoop.service.launcher.LauncherExitCodes.EXIT_USAGE;
 
 import java.util.List;
 import org.apache.hadoop.conf.Configuration;
@@ -54,7 +54,7 @@ public class MkBucket extends StoreEntryPoint {
     List<String> paths = parseArgs(args);
     if (paths.size() != 2) {
       errorln(USAGE);
-      return E_USAGE;
+      return EXIT_USAGE;
     }
 
     final Configuration conf = createPreconfiguredConfig();

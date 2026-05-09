@@ -19,7 +19,6 @@ package org.apache.hadoop.fs.s3a.sdk;
 
 import static org.apache.hadoop.fs.store.CommonParameters.LIMIT;
 import static org.apache.hadoop.fs.store.CommonParameters.STANDARD_OPTS;
-import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
 import static org.apache.hadoop.fs.store.diag.S3ADiagnosticsInfo.FS_S3A_AUDIT_REJECT_OUT_OF_SPAN_OPERATIONS;
 
 import java.io.PrintStream;
@@ -34,14 +33,12 @@ import org.apache.hadoop.fs.s3a.S3AFileSystem;
 import org.apache.hadoop.fs.store.StoreDurationInfo;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
 import org.apache.hadoop.util.ToolRunner;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+/**
+ * List versions of S3 objects.
+ */
 public class ListVersions extends StoreEntryPoint {
 
-  private static final Logger LOG = LoggerFactory.getLogger(ListVersions.class);
-
-  public static final String AGE = "age";
 
   public static final String DELETED = "deleted";
 
@@ -74,7 +71,7 @@ public class ListVersions extends StoreEntryPoint {
     List<String> paths = parseArgs(args);
     if (paths.isEmpty()) {
       errorln(USAGE);
-      return E_USAGE;
+      return EXIT_USAGE;
     }
 
     final Configuration conf = createPreconfiguredConfig();
@@ -90,7 +87,7 @@ public class ListVersions extends StoreEntryPoint {
     if (age.isPresent()) {
       if (since > 0) {
         errorln("Only one of " + AGE + " and " + SINCE + " may be specified");
-        return E_USAGE;
+        return EXIT_USAGE;
       }
       since = Instant.now().minusSeconds(age.get()).getEpochSecond();
     }

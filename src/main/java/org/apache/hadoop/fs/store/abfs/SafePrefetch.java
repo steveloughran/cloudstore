@@ -19,10 +19,10 @@ package org.apache.hadoop.fs.store.abfs;
 
 import static org.apache.hadoop.fs.store.CommonParameters.LOGFILE;
 import static org.apache.hadoop.fs.store.CommonParameters.STANDARD_OPTS;
-import static org.apache.hadoop.fs.store.StoreExitCodes.E_ERROR;
 import static org.apache.hadoop.fs.store.diag.AbfsDiagnosticsInfo.FS_AZURE_ENABLE_READAHEAD;
 import static org.apache.hadoop.fs.store.diag.AbfsDiagnosticsInfo.FS_AZURE_ENABLE_READAHEAD_V2;
 import static org.apache.hadoop.fs.store.diag.AbfsDiagnosticsInfo.FS_AZURE_READAHEADQUEUE_DEPTH;
+import static org.apache.hadoop.service.launcher.LauncherExitCodes.EXIT_FAIL;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,7 +31,6 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.azurebfs.AzureBlobFileSystem;
 import org.apache.hadoop.fs.azurebfs.constants.ConfigurationKeys;
-import org.apache.hadoop.fs.store.PathCapabilityChecker;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
 import org.apache.hadoop.fs.store.commands.EnvEntry;
 import org.apache.hadoop.fs.store.diag.CapabilityKeys;
@@ -79,18 +78,12 @@ public class SafePrefetch extends StoreEntryPoint {
     println("%s=%s", FS_AZURE_ENABLE_READAHEAD, readAheadEnabled);
     println("%s=%s", FS_AZURE_ENABLE_READAHEAD_V2, readAheadV2Enabled);
 
-    final PathCapabilityChecker checker = new PathCapabilityChecker(fs);
-    if (!checker.methodAvailable()) {
-      println("Hadoop version is too old for the feature to surface (no PathCapabilities)");
-      return 0;
-    }
-    if (!checker.hasPathCapability(abfsPath, etagCapability)) {
+    if (!fs.hasPathCapability(abfsPath, etagCapability)) {
       println("Filesystem is not from a release with the prefetch issue (no path capability %s)",
           etagCapability);
       return 0;
     }
-    if (checker.hasPathCapability(abfsPath, readaheadSafe)) {
-
+    if (fs.hasPathCapability(abfsPath, readaheadSafe)) {
       println("Filesystem %s has prefetch issue fixed (has path capability %s)", abfsPath,
           readaheadSafe);
       return 0;
@@ -133,7 +126,7 @@ public class SafePrefetch extends StoreEntryPoint {
     StringBuilder spark = new StringBuilder();
     entries.forEach(e -> spark.append(e.spark()));
     println("spark: %n%s%n", spark);
-    return E_ERROR;
+    return EXIT_FAIL;
   }
 
   /**

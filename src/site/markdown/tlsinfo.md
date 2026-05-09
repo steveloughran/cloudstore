@@ -29,7 +29,7 @@ Usage: tlsinfo [-verbose] [-debug] [<match>]
 ========================
 
 [001]  java.version = "1.8.0_362"
-[002]  java.library.path = "/Users/alicel/Library/Java/Extensions:/Library/Java/Extensions:/Network/Library/Java/Extensions:/System/Library/Java/Extensions:/usr/lib/java:."
+[002]  java.library.path = "/Users/alice/Library/Java/Extensions:/Library/Java/Extensions:/Network/Library/Java/Extensions:/System/Library/Java/Extensions:/usr/lib/java:."
 [003]  com.sun.net.ssl.checkRevocation = (unset)
 [004]  https.protocols = (unset)
 [005]  javax.net.ssl.keyStore = (unset)
@@ -229,7 +229,7 @@ Print certificates containing a specific string, here everything with the string
 ========================
 
 [001]  java.version = "11.0.18"
-[002]  java.library.path = "/Users/alicel/Library/Java/Extensions:/Library/Java/Extensions:/Network/Library/Java/Extensions:/System/Library/Java/Extensions:/usr/lib/java:."
+[002]  java.library.path = "/Users/alice/Library/Java/Extensions:/Library/Java/Extensions:/Network/Library/Java/Extensions:/System/Library/Java/Extensions:/usr/lib/java:."
 [003]  com.sun.net.ssl.checkRevocation = (unset)
 [004]  https.protocols = (unset)
 [005]  javax.net.ssl.keyStore = (unset)
@@ -276,7 +276,7 @@ A full dump of the details of matching certificates
 ========================
 
 [001]  java.version = "11.0.18"
-[002]  java.library.path = "/Users/alicel/Library/Java/Extensions:/Library/Java/Extensions:/Network/Library/Java/Extensions:/System/Library/Java/Extensions:/usr/lib/java:."
+[002]  java.library.path = "/Users/alice/Library/Java/Extensions:/Library/Java/Extensions:/Network/Library/Java/Extensions:/System/Library/Java/Extensions:/usr/lib/java:."
 [003]  com.sun.net.ssl.checkRevocation = (unset)
 [004]  https.protocols = (unset)
 [005]  javax.net.ssl.keyStore = (unset)
@@ -549,7 +549,7 @@ hadoop jar cloudstore-1.1.jar tlsinfo unknown
 ========================
 
 [001]  java.version = "11.0.18"
-[002]  java.library.path = "/Users/alicel/Library/Java/Extensions:/Library/Java/Extensions:/Network/Library/Java/Extensions:/System/Library/Java/Extensions:/usr/lib/java:."
+[002]  java.library.path = "/Users/alice/Library/Java/Extensions:/Library/Java/Extensions:/Network/Library/Java/Extensions:/System/Library/Java/Extensions:/usr/lib/java:."
 [003]  com.sun.net.ssl.checkRevocation = (unset)
 [004]  https.protocols = (unset)
 [005]  javax.net.ssl.keyStore = (unset)

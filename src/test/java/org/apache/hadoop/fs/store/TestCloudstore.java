@@ -15,9 +15,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.hadoop.fs.cloudstore;
+package org.apache.hadoop.fs.store;
 
-import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
+import static org.apache.hadoop.service.launcher.LauncherExitCodes.EXIT_USAGE;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.apache.hadoop.fs.store.commands.LocalHost;
@@ -30,12 +30,12 @@ public class TestCloudstore {
 
   @Test
   public void testNoArgsIsUsageError() throws Exception {
-    assertThat(Cloudstore.exec()).isEqualTo(E_USAGE);
+    assertThat(Cloudstore.exec()).isEqualTo(EXIT_USAGE);
   }
 
   @Test
   public void testUnknownCommandIsUsageError() throws Exception {
-    assertThat(Cloudstore.exec("no-such-command-name")).isEqualTo(E_USAGE);
+    assertThat(Cloudstore.exec("no-such-command-name")).isEqualTo(EXIT_USAGE);
   }
 
   @Test

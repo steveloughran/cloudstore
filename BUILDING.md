@@ -35,6 +35,12 @@ mvn site                        # render src/site → target/site (fluido skin)
 The `verify` lifecycle is the one CI runs. To run cloud-backed contract tests
 opt in via profile + credentials in `src/test/resources/auth-keys.xml`:
 
+# Hadoop versions
+
+There's a dependency on hadoop 3.4.2 to be compatible with its avro version and to
+have non-reflective access to the bulk delete API.
+You should still code targeting hadoop 3.4.0 as the minimum version *outside these specific
+cli commands*
 
 
 ## Updating cloudstore release versions

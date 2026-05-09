@@ -70,10 +70,10 @@ Exports a version listing as a tab separated file. Any hadoop filesystem URI is 
 4	"FileSystemContractBaseTest"	"s3a://example-london/FileSystemContractBaseTest"	1	0	2048	0	0	"2023-03-01+000001:57:38"	1677679058000	"_iQNRagGNEXrjotZ4LT84GgpBIVsJklY"	"0959a0ff20f313b8ddc81a525ca2c3c3"
 5	"ITestS3AFailureHandling/missingFile"	"s3a://example-london/ITestS3AFailureHandling/missingFile"	0	1	0	1	0	"2023-03-01+000001:56:08"	1677678968000	"BMRq06R30ePuCl8K_QWh634WsI8DO9Zq"	""
 6	"ITestS3AFailureHandling/missingFile"	"s3a://example-london/ITestS3AFailureHandling/missingFile"	0	0	0	1	0	"2023-03-01+000001:56:08"	1677678968000	"8ceq9Uda5myt7.puCcJY000AW_77eMXq"	""
-7	"Users/alicel/Projects/hadoop-trunk/hadoop-tools/hadoop-aws/target/test-dir/4/"	"s3a://example-london/Users/alicel/Projects/hadoop-trunk/hadoop-tools/hadoop-aws/target/test-dir/4"	0	1	0	1	1	"2023-03-01+000001:59:30"	1677679170000	"aoyBEEYq2W4.MthXEhh4dzgAhnWaWQhE"	""
-8	"Users/alicel/Projects/hadoop-trunk/hadoop-tools/hadoop-aws/target/test-dir/4/"	"s3a://example-london/Users/alicel/Projects/hadoop-trunk/hadoop-tools/hadoop-aws/target/test-dir/4"	0	0	0	0	1	"2023-03-01+000001:55:26"	1677678926000	"t0jV3f3h0HnZ0muKZ3bcahSlZ71kERC5"	"be721d84a0fc359d66e0370e0ec76193"
-9	"Users/alicel/Projects/hadoop-trunk/hadoop-tools/hadoop-aws/target/test-dir/4/0eKEU4DVOz/test/"	"s3a://example-london/Users/alicel/Projects/hadoop-trunk/hadoop-tools/hadoop-aws/target/test-dir/4/0eKEU4DVOz/test"	0	1	0	1	1	"2023-03-01+000001:56:37"	1677678997000	"nWSgpqtidc0euYUIXd7G0vkvCRMdg3k9"	""
-10	"Users/alicel/Projects/hadoop-trunk/hadoop-tools/hadoop-aws/target/test-dir/4/0eKEU4DVOz/test/"	"s3a://example-london/Users/alicel/Projects/hadoop-trunk/hadoop-tools/hadoop-aws/target/test-dir/4/0eKEU4DVOz/test"	0	0	0	0	1	"2023-03-01+000001:56:36"	1677678996000	"OFlnJeZlT9DgkQ6VxiOCHm46iD5Nyn7O"	"8338c064e7ad08dd583e4090f8435f48"
+7	"Users/alice/Projects/hadoop-trunk/hadoop-tools/hadoop-aws/target/test-dir/4/"	"s3a://example-london/Users/alice/Projects/hadoop-trunk/hadoop-tools/hadoop-aws/target/test-dir/4"	0	1	0	1	1	"2023-03-01+000001:59:30"	1677679170000	"aoyBEEYq2W4.MthXEhh4dzgAhnWaWQhE"	""
+8	"Users/alice/Projects/hadoop-trunk/hadoop-tools/hadoop-aws/target/test-dir/4/"	"s3a://example-london/Users/alice/Projects/hadoop-trunk/hadoop-tools/hadoop-aws/target/test-dir/4"	0	0	0	0	1	"2023-03-01+000001:55:26"	1677678926000	"t0jV3f3h0HnZ0muKZ3bcahSlZ71kERC5"	"be721d84a0fc359d66e0370e0ec76193"
+9	"Users/alice/Projects/hadoop-trunk/hadoop-tools/hadoop-aws/target/test-dir/4/0eKEU4DVOz/test/"	"s3a://example-london/Users/alice/Projects/hadoop-trunk/hadoop-tools/hadoop-aws/target/test-dir/4/0eKEU4DVOz/test"	0	1	0	1	1	"2023-03-01+000001:56:37"	1677678997000	"nWSgpqtidc0euYUIXd7G0vkvCRMdg3k9"	""
+10	"Users/alice/Projects/hadoop-trunk/hadoop-tools/hadoop-aws/target/test-dir/4/0eKEU4DVOz/test/"	"s3a://example-london/Users/alice/Projects/hadoop-trunk/hadoop-tools/hadoop-aws/target/test-dir/4/0eKEU4DVOz/test"	0	0	0	0	1	"2023-03-01+000001:56:36"	1677678996000	"OFlnJeZlT9DgkQ6VxiOCHm46iD5Nyn7O"	"8338c064e7ad08dd583e4090f8435f48"
 ```
 
 ## Table column meaning
@@ -226,7 +226,7 @@ which can be verified
 ```bash
 > hadoop fs -ls  s3a://example-london/undelete.txt
 
--rw-rw-rw-   1 alicel alicel          0 2023-03-03 15:26 s3a://example-london/undelete.txt
+-rw-rw-rw-   1 alice alice          0 2023-03-03 15:26 s3a://example-london/undelete.txt
 
 
 ```

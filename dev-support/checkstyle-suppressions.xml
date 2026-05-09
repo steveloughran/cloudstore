@@ -34,4 +34,12 @@
        convention predates Hadoop's Sun-checks-derived ConstantName rule. -->
   <suppress checks="ConstantName"
             files="[\\/]src[\\/]main[\\/]java[\\/]org[\\/]apache[\\/]hadoop[\\/]fs[\\/]store[\\/]diag[\\/].*DiagnosticsInfo\.java"/>
+
+  <!-- Default-package CLI shims (e.g. dux.java, storediag.java). Each is a
+       lowercase-named one-liner that delegates to its target Tool class so
+       `hadoop jar cloudstore.jar dux ...` resolves at the bare class name.
+       The lowercase identifier is the public CLI surface and must stay
+       byte-stable. The default package also prevents a package-info.java. -->
+  <suppress checks="TypeName"        files="[\\/]src[\\/]main[\\/]java[\\/][a-z][^\\/]*\.java"/>
+  <suppress checks="JavadocPackage"  files="[\\/]src[\\/]main[\\/]java[\\/][a-z][^\\/]*\.java"/>
 </suppressions>

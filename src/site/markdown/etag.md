@@ -40,11 +40,11 @@ Etag of s3a://example-london/file = "d41d8cd98f00b204e9800998ecf8427e"
 ### Example: S3 Express
 
 ```
-> bin/hadoop jar cloudstore-1.1.jar etag s3a://alicel--usw2-az1--x-s3/file
+> bin/hadoop jar cloudstore-1.1.jar etag s3a://alice--usw2-az1--x-s3/file
 
-2025-10-21 12:28:22,878 [main] INFO  commands.EtagCommand (StoreDurationInfo.java:<init>(91)) - Starting: get path status for s3a://alicel--usw2-az1--x-s3/file
-2025-10-21 12:28:23,863 [main] INFO  commands.EtagCommand (StoreDurationInfo.java:close(200)) - Duration of get path status for s3a://alicel--usw2-az1--x-s3/file: 00:00:00.986
-Etag of s3a://alicel--usw2-az1--x-s3/file = "3708fc5526564ad19b2fe536b45a6fe1"
+2025-10-21 12:28:22,878 [main] INFO  commands.EtagCommand (StoreDurationInfo.java:<init>(91)) - Starting: get path status for s3a://alice--usw2-az1--x-s3/file
+2025-10-21 12:28:23,863 [main] INFO  commands.EtagCommand (StoreDurationInfo.java:close(200)) - Duration of get path status for s3a://alice--usw2-az1--x-s3/file: 00:00:00.986
+Etag of s3a://alice--usw2-az1--x-s3/file = "3708fc5526564ad19b2fe536b45a6fe1"
 ```
 
 S3 Express always encrypts data, which is why it has a different checksum.
@@ -80,7 +80,7 @@ the etag returned is `null`, which is considered an error."
 2025-10-21 13:01:00,160 [main] INFO  commands.EtagCommand (StoreDurationInfo.java:close(200)) - Duration of get path status for s3a://example-london/dir/subdir: 00:00:00.464
 Etag of s3a://example-london/dir/subdir = null
 File status of path s3a://example-london/dir/subdir is an EtagSource but the value is null:
-S3AFileStatus{path=s3a://example-london/dir/subdir; isDirectory=true; modification_time=0; access_time=0; owner=alicel; group=alicel; permission=rwxrwxrwx; isSymlink=false; hasAcl=false; isEncrypted=true; isErasureCoded=false} isEmptyDirectory=FALSE eTag=null versionId=null
+S3AFileStatus{path=s3a://example-london/dir/subdir; isDirectory=true; modification_time=0; access_time=0; owner=alice; group=alice; permission=rwxrwxrwx; isSymlink=false; hasAcl=false; isEncrypted=true; isErasureCoded=false} isEmptyDirectory=FALSE eTag=null versionId=null
 
 2025-10-21 13:01:00,161 [main] INFO  util.ExitUtil (ExitUtil.java:terminate(248)) - Exiting with status 53: Etag is null
 ```
@@ -90,11 +90,11 @@ This holds for parent directories too, which may or may not have a directory mar
 ## Azure ABFS
 
 ```
-> bin/hadoop jar cloudstore-1.1.jar etag abfs://alicel-testing@alicelwales.dfs.core.windows.net/file
+> bin/hadoop jar cloudstore-1.1.jar etag abfs://alice-testing@alicewales.dfs.core.windows.net/file
 
-2025-10-21 12:42:45,257 [main] INFO  commands.EtagCommand (StoreDurationInfo.java:<init>(91)) - Starting: get path status for abfs://alicel-testing@alicelwales.dfs.core.windows.net/file
-2025-10-21 12:42:45,456 [main] INFO  commands.EtagCommand (StoreDurationInfo.java:close(200)) - Duration of get path status for abfs://alicel-testing@alicelwales.dfs.core.windows.net/file: 00:00:00.200
-Etag of abfs://alicel-testing@alicelwales.dfs.core.windows.net/file = 0x8DE1096EF738A3D
+2025-10-21 12:42:45,257 [main] INFO  commands.EtagCommand (StoreDurationInfo.java:<init>(91)) - Starting: get path status for abfs://alice-testing@alicewales.dfs.core.windows.net/file
+2025-10-21 12:42:45,456 [main] INFO  commands.EtagCommand (StoreDurationInfo.java:close(200)) - Duration of get path status for abfs://alice-testing@alicewales.dfs.core.windows.net/file: 00:00:00.200
+Etag of abfs://alice-testing@alicewales.dfs.core.windows.net/file = 0x8DE1096EF738A3D
 ```
 
 ## Local FileSystem
@@ -105,7 +105,7 @@ Etag of abfs://alicel-testing@alicelwales.dfs.core.windows.net/file = 0x8DE1096E
 2025-10-21 12:46:30,236 [main] INFO  commands.EtagCommand (StoreDurationInfo.java:<init>(91)) - Starting: get path status for file
 2025-10-21 12:46:30,240 [main] INFO  commands.EtagCommand (StoreDurationInfo.java:close(200)) - Duration of get path status for file: 00:00:00.005
 File status of path file is not an EtagSource:
-DeprecatedRawLocalFileStatus{path=file:/Users/alicel/Projects/Releases/hadoop-3.5.0-SNAPSHOT/file; isDirectory=false; length=0; replication=1; blocksize=33554432; modification_time=1761047017929; access_time=1761047017000; owner=; group=; permission=rw-rw-rw-; isSymlink=false; hasAcl=false; isEncrypted=false; isErasureCoded=false}
+DeprecatedRawLocalFileStatus{path=file:/Users/alice/Projects/Releases/hadoop-3.5.0-SNAPSHOT/file; isDirectory=false; length=0; replication=1; blocksize=33554432; modification_time=1761047017929; access_time=1761047017000; owner=; group=; permission=rw-rw-rw-; isSymlink=false; hasAcl=false; isEncrypted=false; isErasureCoded=false}
 
 2025-10-21 12:46:30,241 [main] INFO  util.ExitUtil (ExitUtil.java:terminate(248)) - Exiting with status 51: Filesystem does not provide Etag information
 ```

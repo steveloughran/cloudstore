@@ -19,13 +19,12 @@ package org.apache.hadoop.fs.store.commands;
 
 import static org.apache.hadoop.fs.store.CommonParameters.LOGFILE;
 import static org.apache.hadoop.fs.store.CommonParameters.STANDARD_OPTS;
-import static org.apache.hadoop.fs.store.StoreExitCodes.E_ERROR;
+import static org.apache.hadoop.service.launcher.LauncherExitCodes.EXIT_FAIL;
 
 import java.util.List;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.fs.store.PathCapabilityChecker;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
 import org.apache.hadoop.util.ToolRunner;
 import org.slf4j.Logger;
@@ -59,13 +58,12 @@ public class PathCapability extends StoreEntryPoint {
     FileSystem fs = path.getFileSystem(conf);
     println("Using filesystem %s", fs.getUri());
     Path absPath = path.makeQualified(fs.getUri(), fs.getWorkingDirectory());
-    if (new PathCapabilityChecker(fs).hasPathCapability(absPath, capability)) {
-
+    if (fs.hasPathCapability(absPath, capability)) {
       println("Path %s has capability %s", absPath, capability);
       return 0;
     } else {
       println("Path %s lacks capability %s", absPath, capability);
-      return E_ERROR;
+      return EXIT_FAIL;
     }
   }
 

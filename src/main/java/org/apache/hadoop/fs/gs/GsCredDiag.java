@@ -19,8 +19,8 @@ package org.apache.hadoop.fs.gs;
 
 import static com.google.cloud.hadoop.fs.gcs.GoogleHadoopFileSystemConfiguration.GCS_CONFIG_PREFIX;
 import static org.apache.hadoop.fs.store.CommonParameters.STANDARD_OPTS;
-import static org.apache.hadoop.fs.store.StoreExitCodes.E_USAGE;
 import static org.apache.hadoop.fs.store.diag.GCSDiagnosticsInfo.SERVICE_ACCOUNT_PRIVATE_KEY;
+import static org.apache.hadoop.service.launcher.LauncherExitCodes.EXIT_USAGE;
 
 import com.google.cloud.hadoop.repackaged.gcs.com.google.api.client.auth.oauth2.Credential;
 import com.google.cloud.hadoop.repackaged.gcs.com.google.cloud.hadoop.util.CredentialFactory;
@@ -43,8 +43,8 @@ import org.slf4j.LoggerFactory;
  * Needs the shaded gs jar on the classpath as we call its internals.
  *
  * code includes methods copied from com.google.cloud.hadoop.util.CredentialFactory
- * https://cloud.google.com/docs/authentication/production
- * https://developers.google.com/accounts/docs/application-default-credentials
+ * <a href="https://cloud.google.com/docs/authentication/production">...</a>
+ * <a href="https://developers.google.com/accounts/docs/application-default-credentials">...</a>
  */
 public class GsCredDiag extends StoreEntryPoint {
 
@@ -65,7 +65,7 @@ public class GsCredDiag extends StoreEntryPoint {
     List<String> paths = parseArgs(args);
     if (paths.isEmpty()) {
       errorln(USAGE);
-      return E_USAGE;
+      return EXIT_USAGE;
     }
 
     final Configuration conf = createPreconfiguredConfig();
