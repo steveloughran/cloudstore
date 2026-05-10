@@ -97,4 +97,15 @@
     <value>false</value>
   </property>
 
+  <!--
+    Cloudstore commands such as listobjects/listversions invoke the S3
+    SDK directly through getAmazonS3Client(), outside any FS audit span.
+    Disable strict-span auditing for the shared test FileSystem instance
+    so those commands behave as they would when run from the CLI.
+  -->
+  <property>
+    <name>fs.s3a.audit.reject.out.of.span.operations</name>
+    <value>false</value>
+  </property>
+
 </configuration>

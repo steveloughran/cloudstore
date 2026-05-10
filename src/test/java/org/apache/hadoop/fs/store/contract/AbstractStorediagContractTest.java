@@ -17,12 +17,15 @@
  */
 package org.apache.hadoop.fs.store.contract;
 
+import static org.apache.hadoop.tools.store.StoreTestUtils.captureSuccess;
 import static org.apache.hadoop.tools.store.StoreTestUtils.expectSuccess;
 
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import org.apache.hadoop.fs.contract.AbstractFSContractTestBase;
 import org.apache.hadoop.fs.store.diag.StoreDiag;
+import org.assertj.core.api.Assertions;
 import org.junit.Test;
 
 /**
@@ -57,5 +60,34 @@ public abstract class AbstractStorediagContractTest extends AbstractFSContractTe
     Files.write(required.toPath(), new byte[0]);
     expectSuccess(new StoreDiag(), "-r", "-required", required.getAbsolutePath(),
         getFileSystem().getUri().toString());
+  }
+
+  /**
+   * Storediag's captured stdout includes the canonical section headings.
+   */
+  @Test
+  public void testStorediagOutputContainsSections() throws Exception {
+    final String captured =
+        captureSuccess(new StoreDiag(), "-r", getFileSystem().getUri().toString());
+    Assertions.assertThat(captured).as("storediag captured stdout")
+        .contains("Store Diagnostics for").contains("Determining OS version").contains("Security")
+        .contains("Endpoints").contains("Success!");
+  }
+
+  /**
+   * Storediag's {@code -logfile} option writes the diagnostics to a file in addition to stdout.
+   */
+  @Test
+  public void testStorediagLogFile() throws Exception {
+    File logFile = File.createTempFile("storediag-logfile", ".txt");
+    logFile.deleteOnExit();
+    final String captured = captureSuccess(new StoreDiag(), "-r", "-logfile",
+        logFile.getAbsolutePath(), getFileSystem().getUri().toString());
+    Assertions.assertThat(logFile).as("storediag log file").exists();
+    final String onDisk = new String(Files.readAllBytes(logFile.toPath()), StandardCharsets.UTF_8);
+    Assertions.assertThat(onDisk).as("storediag log file contents").isNotEmpty()
+        .contains("Store Diagnostics for").contains("Success!");
+    // captured stdout should also have the same heading
+    Assertions.assertThat(captured).contains("Store Diagnostics for");
   }
 }

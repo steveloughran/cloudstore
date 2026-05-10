@@ -20,6 +20,7 @@ package org.apache.hadoop.fs.store.commands;
 import static org.apache.hadoop.fs.store.CommonParameters.STANDARD_OPTS;
 import static org.apache.hadoop.fs.store.CommonParameters.TOKENFILE;
 
+import java.io.FileNotFoundException;
 import java.nio.file.AccessDeniedException;
 import java.util.List;
 import org.apache.hadoop.conf.Configuration;
@@ -36,8 +37,8 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.GetBucketPolicyRequest;
 import software.amazon.awssdk.services.s3.model.GetBucketPolicyResponse;
 
-/*
- * org.apache.hadoop.fs.tools.BucketState.
+/**
+ * BucketState probe.
  */
 public class BucketState extends StoreEntryPoint {
 
@@ -68,9 +69,10 @@ public class BucketState extends StoreEntryPoint {
             .getBucketPolicy(GetBucketPolicyRequest.builder().bucket(bucket).build()));
         String t = policy.policy();
         policyText = t != null ? "\n" + t : "NONE";
-
       } catch (AccessDeniedException e) {
         policyText = "Access-Denied";
+      } catch (FileNotFoundException e) {
+        policyText = "NONE";
       }
       println("Bucket policy: %s", policyText);
     }

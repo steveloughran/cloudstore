@@ -24,12 +24,13 @@ import java.io.OutputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
+import java.util.Date;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.tools.csv.SimpleCsvWriter;
 import software.amazon.awssdk.services.s3.model.ObjectVersion;
 
 /**
- * write to csv; pulled out to make writing to avro etc easier in future.
+ * Write to csv.
  */
 final class CsvVersionWriter extends ListAndProcessVersionedObjects.NoopProcessor {
 
@@ -76,7 +77,7 @@ final class CsvVersionWriter extends ListAndProcessVersionedObjects.NoopProcesso
     csv.columnB(deleteMarker);
     csv.columnB(dirMarker);
     final Instant lastModified = summary.lastModified();
-    csv.column(df.format(lastModified));
+    csv.column(df.format(Date.from(lastModified)));
     csv.columnL(lastModified.getEpochSecond());
     final String versionId = summary.versionId();
     csv.column(versionId);

@@ -64,7 +64,7 @@ public class Undelete extends StoreEntryPoint implements SummaryProcessor {
 
   public static final String SINCE = "since";
 
-  public static final String USAGE = "Usage: listversions <path>\n" + STANDARD_OPTS
+  public static final String USAGE = "Usage: undelete <path>\n" + STANDARD_OPTS
       + optusage(LIMIT, "limit", "limit of files to list")
       + optusage(AGE, "seconds", "Only include versions created in this time interval")
       + optusage(SINCE, "epoch-time", "Only include versions after this time");
@@ -150,20 +150,30 @@ public class Undelete extends StoreEntryPoint implements SummaryProcessor {
   @Override
   public boolean process(final ObjectVersion summary, final Path path, final boolean isDeleteMarker)
       throws IOException {
-    final boolean dirMarker = isDirMarker(summary);
+    // Live ObjectVersion entries are never undeleted. Only DeleteMarkerEntry
+    // tombstones, handled in processTombstone, get queued for removal.
+    return false;
+  }
+
+  @Override
+  public boolean processTombstone(final Path path,
+      final software.amazon.awssdk.services.s3.model.DeleteMarkerEntry tombstone)
+      throws IOException {
+    final boolean dirMarker = isDirMarker(tombstone.key());
     if (dirMarker) {
-      // skip this
       return false;
     }
-    // ok, queue for explicit delete;
-    // for now this is blocking, though async IO would work too.
-    println("%s @ %s", fs.keyToQualifiedPath(summary.key()), summary.versionId());
-    deletions
-        .add(ObjectIdentifier.builder().key(summary.key()).versionId(summary.versionId()).build());
+    println("%s @ %s", fs.keyToQualifiedPath(tombstone.key()), tombstone.versionId());
+    deletions.add(
+        ObjectIdentifier.builder().key(tombstone.key()).versionId(tombstone.versionId()).build());
     if (deletions.size() == deletePageSize) {
       executeDeleteOperation();
     }
     return true;
+  }
+
+  private static boolean isDirMarker(String key) {
+    return !key.isEmpty() && key.charAt(key.length() - 1) == '/';
   }
 
   private void executeDeleteOperation() throws IOException {

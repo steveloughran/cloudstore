@@ -15,26 +15,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.hadoop.fs.store.test;
+package org.apache.hadoop.fs.store.commands;
 
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.contract.AbstractBondedFSContract;
+import static org.apache.hadoop.tools.store.StoreTestUtils.captureSuccess;
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.net.InetAddress;
+import org.junit.Test;
 
 /**
- * The contract of S3A: only enabled if the test bucket is provided.
+ * Unit test for {@link LocalHost}: runs the command and asserts that the printed output mentions
+ * the local hostname.
  */
-public class S3AStoreContract extends AbstractBondedFSContract {
+public class TestLocalHost {
 
-  public static final String CONTRACT_XML = "contract/s3a.xml";
-
-  public S3AStoreContract(Configuration conf) {
-    super(conf);
-    // insert the base features
-    addConfResource(CONTRACT_XML);
-  }
-
-  @Override
-  public String getScheme() {
-    return "s3a";
+  @Test
+  public void testLocalHostPrintsHostname() throws Exception {
+    final String hostName = InetAddress.getLocalHost().getHostName();
+    final String captured = captureSuccess(new LocalHost());
+    assertThat(captured).as("captured stdout").contains("InetAddress.getLocalHost():")
+        .contains("getLoopbackAddress():").contains("getCanonicalUri():").contains(hostName);
   }
 }

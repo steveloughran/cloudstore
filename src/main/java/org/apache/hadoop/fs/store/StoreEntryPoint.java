@@ -68,6 +68,7 @@ import org.apache.hadoop.fs.StorageStatistics;
 import org.apache.hadoop.fs.shell.CommandFormat;
 import org.apache.hadoop.fs.statistics.IOStatistics;
 import org.apache.hadoop.fs.store.diag.Printout;
+import org.apache.hadoop.fs.store.diag.StdoutPrintout;
 import org.apache.hadoop.fs.store.diag.StoreLogExactlyOnce;
 import org.apache.hadoop.fs.store.logging.LogControl;
 import org.apache.hadoop.fs.store.logging.LogControllerFactory;
@@ -111,6 +112,42 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
   protected CommandFormat commandFormat;
 
   private PrintStream out = System.out;
+
+  /**
+   * Active sink for all {@link Printout} method calls. Tests can swap this via
+   * {@link #setActivePrintout(Printout)} to capture output (e.g. into a
+   * {@link org.apache.hadoop.fs.store.diag.StringBuilderPrintout}). The field is intentionally
+   * global; cloudstore tests run serialised.
+   */
+  private static volatile Printout activePrintout = new StdoutPrintout();
+
+  /**
+   * Get the current active Printout sink.
+   *
+   * @return the sink
+   */
+  public static Printout getActivePrintout() {
+    return activePrintout;
+  }
+
+  /**
+   * Install a new active Printout sink, returning the previous one.
+   *
+   * @param newSink replacement (null restores the default stdout sink)
+   * @return the previous sink
+   */
+  public static Printout setActivePrintout(Printout newSink) {
+    Printout prev = activePrintout;
+    activePrintout = newSink != null ? newSink : new StdoutPrintout();
+    return prev;
+  }
+
+  /**
+   * Reset the active sink to a fresh stdout-backed default.
+   */
+  public static void resetActivePrintout() {
+    activePrintout = new StdoutPrintout();
+  }
 
   private final AtomicInteger headingCounter = new AtomicInteger(1);
   private final AtomicInteger subheadingCounter = new AtomicInteger(1);
@@ -177,77 +214,47 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
 
   @Override
   public final void println() {
-    out.println();
-    flush();
+    activePrintout.println();
   }
 
-  /**
-   * Print a formatted string followed by a newline to the output stream.
-   * 
-   * @param format format string
-   */
   @Override
   public void println(String format) {
-    print(format);
-    out.println();
-    flush();
+    activePrintout.println(format);
   }
 
-  /**
-   * Print a formatted string followed by a newline to the output stream.
-   * 
-   * @param format format string
-   * @param args optional arguments
-   */
+  @Override
   public void println(String format, Object... args) {
-    print(format, args);
-    out.println();
-    flush();
+    activePrintout.println(format, args);
   }
 
-  /**
-   * Flush the stream.
-   */
   @Override
   public void flush() {
-    out.flush();
+    activePrintout.flush();
   }
 
-  /**
-   * Print a formatted string without any newline.
-   * 
-   * @param format format string
-   * @param args optional arguments
-   */
   @Override
   public final void print(String format, Object... args) {
-    if (args.length == 0) {
-      out.print(format);
-    } else {
-      out.printf(format, args);
-    }
+    activePrintout.print(format, args);
   }
 
+  @Override
   public final void warn(String format, Object... args) {
-    println("WARNING: " + String.format(format, args));
+    activePrintout.warn(format, args);
   }
 
   @Override
   public final void advise(String format, Object... args) {
-    println();
-    println("ADVISE: " + String.format(format, args));
-    println();
+    activePrintout.advise(format, args);
   }
 
+  @Override
   public final void error(String format, Object... args) {
-    errorln("ERROR: " + format, args);
+    activePrintout.error(format, args);
   }
 
   @Override
   public final void exception(Throwable thrown, String format, Object... args) {
-    String message = String.format(format, args);
-    errorln("EXCEPTION: " + message + "; %s%n", thrown);
-    LOG.error(message, thrown);
+    activePrintout.exception(thrown, format, args);
   }
 
   public static void errorln(String format, Object... args) {
@@ -298,7 +305,7 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
    */
   @Override
   public final void debug(String format, Object... args) {
-    LOG.debug(format, args);
+    activePrintout.debug(format, args);
   }
 
   protected static void exit(int status, String text) {

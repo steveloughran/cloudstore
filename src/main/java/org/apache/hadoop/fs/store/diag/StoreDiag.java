@@ -17,6 +17,7 @@
  */
 package org.apache.hadoop.fs.store.diag;
 
+import static org.apache.hadoop.fs.store.CommonParameters.LOGFILE;
 import static org.apache.hadoop.fs.store.CommonParameters.STANDARD_OPTS;
 import static org.apache.hadoop.fs.store.diag.OptionSets.CLUSTER_OPTIONS;
 import static org.apache.hadoop.fs.store.diag.OptionSets.HADOOP_TOKEN;
@@ -139,14 +140,15 @@ public class StoreDiag extends DiagnosticsEntryPoint {
       + optusage(PRINCIPAL, "principal", "kerberos principal to request a token for")
       + optusage(REQUIRED, "file", "text file of extra classes+resources to require")
       + optusage(SYSPROPS, "List the JVM System Properties")
-      + optusage(WRITE, "attempt write operations on the filesystem");
+      + optusage(WRITE, "attempt write operations on the filesystem")
+      + optusage(LOGFILE, "file", "also write the diagnostics output to <file>");
 
   private StoreDiagnosticsInfo storeInfo;
 
   public StoreDiag() {
     createCommandFormat(1, 1, DELEGATION, ENVARS, HIDE, JARS, LOGDUMP, MD5, OPTIONAL, READONLY,
         WRITE);
-    addValueOptions(PRINCIPAL, REQUIRED);
+    addValueOptions(PRINCIPAL, REQUIRED, LOGFILE);
   }
 
   @Override
@@ -158,6 +160,29 @@ public class StoreDiag extends DiagnosticsEntryPoint {
     setOut(stream);
     List<String> paths = processArgs(args, 1, 1, USAGE);
 
+    final String logfile = getOption(LOGFILE);
+    StringBuilderPrintout fileSink = null;
+    Printout previousSink = null;
+    if (logfile != null) {
+      fileSink = new StringBuilderPrintout();
+      previousSink = setActivePrintout(new TeePrintout(getActivePrintout(), fileSink));
+    }
+    try {
+      return runDiagnostics(paths);
+    } finally {
+      if (logfile != null) {
+        try {
+          java.nio.file.Files.write(new File(logfile).toPath(),
+              fileSink.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        } catch (IOException e) {
+          LOG.warn("Failed to write diagnostics log file {}", logfile, e);
+        }
+        setActivePrintout(previousSink);
+      }
+    }
+  }
+
+  private int runDiagnostics(List<String> paths) throws Exception {
     heading("Store Diagnostics for %s on %s", UserGroupInformation.getCurrentUser(),
         NetUtils.getHostname());
     println("Collected at at %s%n", Instant.now());
@@ -745,7 +770,6 @@ public class StoreDiag extends DiagnosticsEntryPoint {
           capability = s;
           println("%s\t%s", s, fs.hasPathCapability(baseDir, s));
         } catch (IOException | ExitUtil.ExitException e) {
-
           // problem
           warn("When checking path capability %s: %s", capability, e.toString());
           LOG.debug("checking path capability {}", capability, e);
