@@ -17,15 +17,18 @@
  */
 package org.apache.hadoop.fs.store.contract;
 
+import static org.apache.hadoop.fs.s3a.Constants.SESSION_TOKEN;
 import static org.apache.hadoop.tools.store.StoreTestUtils.runAndCapture;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.contract.AbstractFSContract;
 import org.apache.hadoop.fs.contract.AbstractFSContractTestBase;
+import org.apache.hadoop.fs.s3a.S3AFileSystem;
 import org.apache.hadoop.fs.s3a.sdk.SessionKeys;
 import org.apache.hadoop.fs.store.test.S3AStoreContract;
 import org.apache.hadoop.tools.store.StoreTestUtils.CapturedRun;
 import org.assertj.core.api.Assertions;
+import org.junit.Assume;
 import org.junit.Test;
 
 /**
@@ -47,6 +50,20 @@ public class ITestS3ASessionKeys extends AbstractFSContractTestBase {
 
   @Test
   public void testSessionKeysEmitsAllFormats() throws Exception {
+    // sessionkeys derives a fresh STS session from long-lived credentials.
+    // If the FS is already configured with a session token (i.e. the caller
+    // supplied temporary credentials) the STS call to get session credentials
+    // fails. Skip rather than fail in that environment.
+    final S3AFileSystem fs = (S3AFileSystem) getFileSystem();
+    final String bucket = fs.getBucket();
+    final Configuration conf = fs.getConf();
+    final char[] perBucket = conf.getPassword("fs.s3a.bucket." + bucket + "." + SESSION_TOKEN);
+    final char[] global = conf.getPassword(SESSION_TOKEN);
+    final boolean hasSessionToken =
+        (perBucket != null && perBucket.length > 0) || (global != null && global.length > 0);
+    Assume.assumeFalse("FS already uses session credentials; sessionkeys cannot derive new ones",
+        hasSessionToken);
+
     final CapturedRun run = runAndCapture(new SessionKeys(), getFileSystem().getUri().toString());
     Assertions.assertThat(run.exitCode)
         .overridingErrorMessage(
