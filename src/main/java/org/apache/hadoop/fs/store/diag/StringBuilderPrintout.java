@@ -74,8 +74,8 @@ public class StringBuilderPrintout extends StdoutPrintout {
   }
 
   /**
-   * Always sanitize: tests must never capture cleartext secrets, even if
-   * the caller passed {@code obfuscate=false}.
+   * Always sanitize: tests must never capture cleartext secrets, even if the caller passed
+   * {@code obfuscate=false}.
    */
   @Override
   public String maybeSanitize(String value, boolean obfuscate) {

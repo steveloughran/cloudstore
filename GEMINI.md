@@ -89,4 +89,5 @@ The project uses the standard Hadoop `Configuration` framework. Configuration ca
 
 -   Unit tests are located in `src/test/java`.
 -   Tests are run as part of the `mvn clean install` build process.
--   The project uses JUnit and AssertJ for testing.
+-   The project uses JUnit for testing.
+-   In tests, always use assertJ assertions instead of junit asserts

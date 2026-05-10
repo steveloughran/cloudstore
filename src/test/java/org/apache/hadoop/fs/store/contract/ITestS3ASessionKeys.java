@@ -17,20 +17,26 @@
  */
 package org.apache.hadoop.fs.store.contract;
 
-import static org.apache.hadoop.tools.store.StoreTestUtils.captureSuccess;
+import static org.apache.hadoop.tools.store.StoreTestUtils.runAndCapture;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.contract.AbstractFSContract;
 import org.apache.hadoop.fs.contract.AbstractFSContractTestBase;
 import org.apache.hadoop.fs.s3a.sdk.SessionKeys;
 import org.apache.hadoop.fs.store.test.S3AStoreContract;
+import org.apache.hadoop.tools.store.StoreTestUtils.CapturedRun;
 import org.assertj.core.api.Assertions;
 import org.junit.Test;
 
 /**
- * S3A integration test for the {@code sessionkeys} command. Asserts the command emits all six
- * output formats: XML settings, properties, CLI arguments, Spark, Bash, Fish, and env. TODO: make
- * sure session keys aren't printed on test failures.
+ * S3A integration test for the {@code sessionkeys} command.
+ *
+ * <p>
+ * The captured output of {@code sessionkeys} contains real session credentials. Assertions in this
+ * test use {@link org.assertj.core.api.AbstractAssert#overridingErrorMessage(String, Object...)} to
+ * replace AssertJ's default failure message — which would otherwise include the full actual string
+ * — with a message that names only the missing token, so a test failure cannot leak credentials
+ * into a CI log.
  */
 public class ITestS3ASessionKeys extends AbstractFSContractTestBase {
 
@@ -41,15 +47,29 @@ public class ITestS3ASessionKeys extends AbstractFSContractTestBase {
 
   @Test
   public void testSessionKeysEmitsAllFormats() throws Exception {
-    final String captured = captureSuccess(new SessionKeys(), getFileSystem().getUri().toString());
-    Assertions.assertThat(captured).as("sessionkeys output sections").contains("XML settings")
-        .contains("Properties").contains("CLI Arguments").contains("Spark").contains("Bash")
-        .contains("Fish").contains("env");
-    // XML / Spark / properties section should mention an S3A access key configuration.
-    Assertions.assertThat(captured).as("sessionkeys hadoop credential key in output")
-        .contains("fs.s3a.access.key");
-    // bash/fish/env should mention the AWS env var
-    Assertions.assertThat(captured).as("sessionkeys AWS env var in output")
-        .contains("AWS_ACCESS_KEY_ID");
+    final CapturedRun run = runAndCapture(new SessionKeys(), getFileSystem().getUri().toString());
+    Assertions.assertThat(run.exitCode)
+        .overridingErrorMessage(
+            "sessionkeys exit code != 0 (output suppressed: may contain " + "credentials)")
+        .isZero();
+    final String captured = run.captured;
+    assertContainsHidden(captured, "XML settings");
+    assertContainsHidden(captured, "Properties");
+    assertContainsHidden(captured, "CLI Arguments");
+    assertContainsHidden(captured, "Spark");
+    assertContainsHidden(captured, "Bash");
+    assertContainsHidden(captured, "Fish");
+    assertContainsHidden(captured, "env");
+    // hadoop credential key surfaces in xml/properties/spark/cli sections
+    assertContainsHidden(captured, "fs.s3a.access.key");
+    // bash/fish/env sections surface the AWS env var
+    assertContainsHidden(captured, "AWS_ACCESS_KEY_ID");
+  }
+
+  private static void assertContainsHidden(String captured, String needle) {
+    Assertions.assertThat(captured.contains(needle))
+        .overridingErrorMessage("sessionkeys output is missing expected token \"%s\""
+            + " (full output suppressed: it contains credentials)", needle)
+        .isTrue();
   }
 }

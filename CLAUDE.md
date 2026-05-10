@@ -106,3 +106,4 @@ Avro schemas under `src/main/avro` are compiled into `target/generated-sources/a
 - Logging is SLF4J. Many entry points also write to `System.out` directly (with `@SuppressWarnings("UseOfSystemOutOrSystemErr")`) because the output is meant for humans running the tool.
 - Configuration flows through Hadoop's `Configuration`. Do not add a separate config system.
 - Don't introduce dependencies that aren't `provided` or `test` — the JAR has to stay slim because it's deployed onto whatever Hadoop install the user already has.
+- In tests, always use assertJ assertions instead of junit asserts
