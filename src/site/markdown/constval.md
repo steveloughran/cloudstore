@@ -12,7 +12,7 @@
   limitations under the License. See accompanying LICENSE file.
 -->
 
-# Command `constval`
+# constval
 
 Loads a class, resolves a constant/static final field and prints its value.
 

@@ -12,7 +12,7 @@
   limitations under the License. See accompanying LICENSE file.
 -->
 
-# Command `committerinfo`
+# committerinfo
 
 Tries to instantiate a committer using the Hadoop 3.1+ committer factory mechanism, printing out
 what committer a specific path will create.

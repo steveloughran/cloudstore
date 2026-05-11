@@ -12,7 +12,7 @@
   limitations under the License. See accompanying LICENSE file.
 -->
 
-# Command `mkbucket`
+# mkbucket
 
 Creates a bucket.
 

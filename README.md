@@ -20,15 +20,11 @@ interacting with cloud storage through Apache Hadoop
 *License*: Apache ASF 2.0
 
 All the implementation classes are under the `org.apache.hadoop.fs` package
-tree but it is not part of the apache hadoop artifacts.
+tree but it is not part of the normal Apache Hadoop artifacts.
 
 1. Faster release cycle, so the diagnostics can evolve to track features going
    into Hadoop-trunk.
-2. Fewer test requirements. This is naughty, but as much of this code is written
-   in a hurry to diagnose problems on remote sites, problems which are hard to test,
-   it is under-tested.
-3. Ability to compile against older versions. We've currently switched to Hadoop 3.3+
-   due to the need to make API calls and operations not in older versions.
+2. Ability to compile against older versions.
 
 
 ## Features
@@ -79,12 +75,12 @@ There are a set of arguments common to all commands
 -xmlfile <file>         XML config file to load
 ```
 
-### `-D <key=value>` Define a single Hadoop configuration option
+### -D <key=value> Define a single Hadoop configuration option
 
 Define a single hadoop option.
 For defining multiple options, use `-xmlfile`
 
-### `-sysprops <file>`: Java system properties to set
+### -sysprops <file>: Java system properties to set
 
 This loads a Java properties file containing java system
 properties as key=value pairs. Each of these
@@ -92,46 +88,46 @@ sets the named java system property.
 
 Blank lines and comment lines beginning with `#` are ignored.
 
-### `-tokenfile -tokenfile <file>` : Load hadoop tokens
+### -tokenfile -tokenfile <file> : Load hadoop tokens
 
 The `--tokenfile` option loads tokens saved with `hdfs fetchdt`. It does
 not need Kerberos, though most filesystems expect Kerberos enabled for
 them to pick up tokens (not S3A, potentially other stores).
 
-### `-xmlfile <file>`: XML configuration file to load
+### -xmlfile <file>: XML configuration file to load
 
 This loads a hadoop configuration file and adds its values to
 the Hadoop configuration used in the command.
 
 
 
-## Command `storediag`
+## storediag
 
 Examine store and print diagnostics, including testing read and optionally write
 operations
 
 See [storediag](src/main/site/storediag.md) for details.
 
-## Command `auditlogs`
+## auditlogs
 
 Parse AWS S3 Server logs into avro files, extracting http referrer-encoded
 audit information where found.
 
 See [auditlogs](src/main/site/auditlogs.md) for details.
 
-## Command `bandwidth`
+## bandwidth
 
 Measure upload/download bandwidth, optionally saving data to a CSV file.
 
 See [bandwidth](src/main/site/bandwidth.md) for details.
 
-## Command `bucketmetadata`
+## bucketmetadata
 
 Retrieves metadata from an S3 Bucket (v2 SDK only) by probing the store.
 
 See [bucketmetadata](src/main/site/bucketmetadata.md) for details.
 
-## Command `bulkdelete`
+## bulkdelete
 
 Performs a bulk delete of files from a store, with higher performance
 against some stores (S3).
@@ -139,25 +135,25 @@ Requires hadoop libraries with the 2024 bulk delete API (hadoop 3.4.1+).
 
 See [bulkdelete](src/main/site/bulkdelete.md) for details.
 
-## Command `cloudup` -upload and download files; optimised for cloud storage 
+## cloudup -upload and download files; optimised for cloud storage 
 
 See [cloudup](src/main/site/cloudup.md)
 
-## Command `committerinfo`
+## committerinfo
 
 Tries to instantiate a committer using the Hadoop 3.1+ committer factory mechanism, printing out
 what committer a specific path will create.
 
 See [committerinfo](src/main/site/committerinfo.md).
 
-## Command `constval`
+## constval
 
 Loads a class, resolves a constant/static final field and prints its value. 
 
 See [constval](src/main/site/constval.md)
 
 
-## Command `dux`  "Du, extended"
+## dux  "Du, extended"
 
 A variant on the hadoop `du` command which does a recursive `listFiles()`
 call on every directory immediately under the source path -in separate threads.
@@ -195,21 +191,21 @@ This is harmless; it comes from the SDK thread pool being closed while
 a list page prefetch is in progress.
 
 
-##  Command `etag`
+## etag
 
 Prints the etag of an object, when implemented by the filesystem
 and returned by the object store.
 
 See [etag](src/main/site/etag.md)
 
-##  Command `fetchdt`
+## fetchdt
 
 This is an extension of `hdfs fetchdt` which collects delegation tokens
 from a list of filesystems, saving them to a file.
 
 See [fetchdt](src/main/site/fetchdt.md)
 
-## Command `filestatus`
+## filestatus
 
 Calls `getFileStatus` on the listed paths, prints the values. For stores
 which have more detail on the toString value of any subclass of `FileStatus`,
@@ -232,7 +228,7 @@ s3a://guarded-table/example S3AFileStatus{path=s3a://guarded-table/example; isDi
 2019-07-31 21:48:37,182 [main] INFO  commands.PrintStatus (DurationInfo.java:close(100)) - get path status: duration 0:02:221
 ```
 
-## Command `gcscreds`
+## gcscreds
 
 Help debug gcs credential bindings as set in `fs.gs.auth.service.account.private.key`
 
@@ -250,7 +246,7 @@ Parsed private key -entry length 28 lines
 factory com.google.cloud.hadoop.repackaged.gcs.com.google.cloud.hadoop.util.CredentialFactory@d706f19
 ```
 
-## Command `list`
+## list
 
 Do a recursive listing of a path. Uses `listFiles(path, recursive)`, so for any object store
 which can do this as a deep paginated scan, is much, much faster.
@@ -289,11 +285,11 @@ Found 10 files, 124 milliseconds per file
 Data size 217,741,136 bytes, 21,774,113 bytes per file
 ```
 
-## Command `localhost`
+## localhost
 
 Print out localhost information from java APIs and then the hadoop network APIs.
 
-## Command `locatefiles`
+## locatefiles
 
 Use the mapreduce `LocatedFileStatusFetcher` to scan for all non-hidden
 files under a path.
@@ -301,14 +297,14 @@ files under a path.
 
 See [locatefiles](src/main/site/locatefiles.md)
 
-## Command `mkcsv`
+## mkcsv
 
 Creates a large CSV file designed to trigger/validate the ABFS prefetching bug which
 came in HADOOP-17156/
 
 See [mkcsv](src/main/site/mkcsv.md)
 
-## Command `pathcapability`
+## pathcapability
 
 Probes a filesystem for offering a specific named capability on the given path.
 
@@ -335,21 +331,13 @@ The exit code of the command is 0 if the capability is present, -1 if absent, an
  
 As it is in Hadoop 3.3, all APIs new to that release (including `openFile()`) can absolutely be probed for. Otherwise, the 55 response may mean "an API is implemented, just not the probe". 
 
-## Command `put`
+## put
 
 Uploads/copies a file, with the ability to set `createFile()` parameters.
 
 See [put](src/main/site/put.md)
 
-## Command `safeprefetch`
-
-Probes an abfs store for being vulnerable to
-prefetch data corruption, providing the configuration
-information to disable it if so.
-
-See [safeprefetch](src/main/site/safeprefetch.md)
-
-## Command `tarhardened`
+## tarhardened
 
 Verify the hadoop release has had its untar command hardened and will
 not evaluate commands passed in as filenames.
@@ -357,7 +345,7 @@ not evaluate commands passed in as filenames.
 
 See [tarhardened](src/main/site/tarhardened.md)
 
-## Command `tlsinfo`
+## tlsinfo
 
 Print out TLS information including X509 certificates.
 
@@ -393,11 +381,8 @@ Possible future work
 
 Contributions through PRs welcome.
 
-Bug reports: please include environment and ideally patches. 
-
-There is no formal support for this. Sorry. 
+Bug reports: please include environment and ideally patches.
 
 ## Building
-
 
 See [BUILDING](BUILDING.md)

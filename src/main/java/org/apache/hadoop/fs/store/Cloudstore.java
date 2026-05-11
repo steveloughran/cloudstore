@@ -35,7 +35,6 @@ import org.apache.hadoop.fs.s3a.sdk.RestoreObject;
 import org.apache.hadoop.fs.s3a.sdk.SessionKeys;
 import org.apache.hadoop.fs.s3a.sdk.Undelete;
 import org.apache.hadoop.fs.shell.CommandFormat;
-import org.apache.hadoop.fs.store.abfs.SafePrefetch;
 import org.apache.hadoop.fs.store.audit.AuditTool;
 import org.apache.hadoop.fs.store.commands.Bandwidth;
 import org.apache.hadoop.fs.store.commands.BucketState;
@@ -127,7 +126,6 @@ public final class Cloudstore {
     m.put("put", Put.class);
     m.put("regions", Regions.class);
     m.put("restore", RestoreObject.class);
-    m.put("safeprefetch", SafePrefetch.class);
     m.put("sessionkeys", SessionKeys.class);
     m.put("storediag", StoreDiag.class);
     m.put("tarhardened", TarHardened.class);

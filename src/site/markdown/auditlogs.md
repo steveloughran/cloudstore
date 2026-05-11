@@ -12,7 +12,7 @@
   limitations under the License. See accompanying LICENSE file.
 -->
 
-# `auditlogs`: convert AWS S3 logs to avro records
+# auditlogs: convert AWS S3 logs to avro records
 
 The `auditlogs` command takes a file or directory of AWS S3 logs, generating a single aggregate avro file of these logs.
 Any records which contain S3A Audit headers will have these parsed and added to the `audit` map in the schema.

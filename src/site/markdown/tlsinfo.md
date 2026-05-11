@@ -12,7 +12,7 @@
   limitations under the License. See accompanying LICENSE file.
 -->
 
-# Command `tlsinfo`
+# Command tlsinfo
 
 Print out TLS information, and X509 certificates.
 ```

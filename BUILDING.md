@@ -57,7 +57,7 @@ Update the version, for example from 1.0 to 1.1:
 mvn versions:set -DnewVersion=1.1
 ```
 
-Search and replace all uses of `cloudstore-1.0.jar` with the new version of the artifact.
+Search and replace all uses in markdown files of `cloudstore-X.Y.jar` (where `X.Y` is the previous version) with the new version of the artifact.
 
 *Note:* there's currently no use of the `-SNAPSHOT` suffix, used in downstream builds for the tools
 to recognise this should be updated nightly.

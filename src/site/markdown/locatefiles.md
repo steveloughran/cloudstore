@@ -12,7 +12,7 @@
   limitations under the License. See accompanying LICENSE file.
 -->
 
-# Command `locatefiles`
+# locatefiles
 
 Use the mapreduce `LocatedFileStatusFetcher` to scan for all non-hidden
 files under a path. This matches exactly the scan process used in `FileInputFormat`,

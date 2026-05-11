@@ -17,7 +17,7 @@
 There are a set of commands which require a version of the S3A connector
 built against the AWS v2 SDK on the classpath
 
-## Command `bucketstate`
+## Command bucketstate
 
 Prints some of the low level diagnostics information about an S3 bucket which
 can be obtained via the AWS APIs.
@@ -50,7 +50,7 @@ com.amazonaws.services.s3.model.AmazonS3Exception: The specified method is not a
 ```
 
 
-## Command `iampolicy`
+## Command iampolicy
 
 Generate AWS IAM policy for a given bucket
 ```
@@ -82,7 +82,7 @@ Notes:
 * Read and Write access up the tree is needed. Maybe if you enable directory marker retention writing from root becomes optional.
 * "s3:GetBucketLocation" is used by the bucket existence v2 check. If the probe is at 0, it is never called.
 
-## Command `listobjects`
+## Command listobjects
 
 List all objects and a path through the low-level S3 APIs.
 This bypasses the filesystem metaphor and gives the real view
@@ -100,19 +100,19 @@ Usage: listobjects <path>
     -xmlfile <file> XML config file to load
 ```
 
-## Command `listversions`
+## Command listversions
 
 See [listversions](versioned-objects.md).
 
 
-## Command `mkbucket`
+## Command mkbucket
 
 Creates a new bucket
 
 See [mkbucket](mkbucket.md)
 
 
-## Command `regions`
+## Command regions
 
 Invokes the AWS region provider chain to see if the client can automatically determine the region of AWS SDK calls.
 
@@ -181,7 +181,7 @@ a failure to connect to the instance metadata server.
 
 This is to be expected, given that the service isn't there.
 
-## Command `restore`
+## Command restore
 
 Restores a versioned S3 Object to a path within the same bucket.
 
@@ -189,7 +189,7 @@ See [versioned objects](versioned-objects.md).
 
 
 
-## Command `undelete`
+## Command undelete
 
 "undeletes" S3 objects by removing directory tombstones from a bucket path.
 

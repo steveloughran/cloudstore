@@ -29,7 +29,7 @@ Points to note
 * The caller must be in an IAM Role with the permissions to invoke this, and for `undelete` to be able
   to delete versioned objects.
 
-# Command `listversions`
+# Command listversions
 
 Lists all versions of files under a path.
 
@@ -133,7 +133,7 @@ a test run.
 Taking a TSV file and restoring all those files with restore=1 to a different location is yet to be implemented.
 
 
-## `restore` command
+## restore command
 
 A single file can be restored using the `restore` command, which will take a file and version
 and create a new copy in a different location in the same bucket.
@@ -147,7 +147,7 @@ Duration of restore: 0:00:715
 Restored object of size 2,048 bytes to s3a://example-london/restored.txt
 ```
 
-## `undelete` command
+## undelete command
 
 "undeletes" S3 objects by removing directory tombstones from a bucket path.
 

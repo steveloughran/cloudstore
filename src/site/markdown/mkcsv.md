@@ -12,7 +12,7 @@
   limitations under the License. See accompanying LICENSE file.
 -->
 
-# Command `mkcsv`
+# mkcsv
 
 Creates a CSV file with a given path; useful for scale testing CSV processing.
 

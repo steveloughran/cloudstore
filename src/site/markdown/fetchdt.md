@@ -14,7 +14,7 @@
 
 
 
-#  Command `fetchdt`
+# fetchdt
 
 This is an extension of `hdfs fetchdt` which collects delegation tokens
 from a list of filesystems, saving them to a file.

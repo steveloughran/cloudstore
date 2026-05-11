@@ -12,7 +12,7 @@
   limitations under the License. See accompanying LICENSE file.
 -->
 
-# Command `tarhardened`
+# Command tarhardened
 
 Verify the hadoop release has had its untar command hardened and will
 not evaluate commands passed in as filenames.

@@ -12,7 +12,7 @@
   limitations under the License. See accompanying LICENSE file.
 -->
 
-# Command `etag`
+# etag
 
 Retrieves the etag from an object whose filestore implementation provides this information.
 

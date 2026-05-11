@@ -12,7 +12,7 @@
   limitations under the License. See accompanying LICENSE file.
 -->
 
-# Command `bucketmetadata`
+# bucketmetadata
 
 Retrieves metadata from an S3 Bucket (v2 SDK only) by probing the store, provided
 the caller has the permission to issue this request -sometimes it is disabled.

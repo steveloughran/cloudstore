@@ -12,7 +12,7 @@
   limitations under the License. See accompanying LICENSE file.
 -->
 
-# Command `bulkdelete`
+# bulkdelete
 
 Uses the Hadoop Filesystem bulkdelete API to read in a list of files to delete and delete them in batches, 
 

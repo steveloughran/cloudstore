@@ -13,7 +13,7 @@
 -->
 
 
-# Command `cloudup` -upload and download files; optimized for cloud storage 
+#  cloudup -upload and download files; optimized for cloud storage 
 
 This utility is designed to optimise upload/download between
 cloud storage and local or cluster filesystems.

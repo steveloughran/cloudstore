@@ -14,7 +14,7 @@
 
 
 
-#  Command `put`
+# put
 
 Put a file from a source path (local or remote), to a destination.
 
