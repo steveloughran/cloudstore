@@ -69,6 +69,7 @@ This artifact is not currently intended for such use.
 To publish the release use the gui or the github command line through the `fish` shell.
 
 ```bash
+mvn clean install -DskipTests
 set -gx now (date '+%Y-%m-%d-%H.%M'); echo [$now]
 git add .; git status
 git commit -S --allow-empty -m "release $now"; git push
