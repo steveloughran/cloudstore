@@ -41,29 +41,32 @@
     <test.build.data>${test.build.dir}</test.build.data>
 
     <!-- keep sorted -->
-    <apache-rat-plugin.version>0.16.1</apache-rat-plugin.version>
+    <apache-rat-plugin.version>0.18</apache-rat-plugin.version>
     <assertj.version>3.27.7</assertj.version>
     <avro.version>1.11.5</avro.version>
+    <awsv2sdk.version>2.29.52</awsv2sdk.version>
     <buildhelper.version>3.3.0</buildhelper.version>
+    <checkstyle.version>9.3</checkstyle.version>
     <doxia-module-markdown.version>1.12.0</doxia-module-markdown.version>
     <gcs-connector.version>hadoop3-2.2.4</gcs-connector.version>
     <hadoop.version>3.4.2</hadoop.version>
     <junit.version>4.13.2</junit.version>
-    <maven-checkstyle-plugin.version>3.3.1</maven-checkstyle-plugin.version>
-    <checkstyle.version>9.3</checkstyle.version>
-    <maven-enforcer-plugin.version>3.4.1</maven-enforcer-plugin.version>
+    <maven-checkstyle-plugin.version>3.6.0</maven-checkstyle-plugin.version>
+    <maven-compiler-plugin.version>3.15.0</maven-compiler-plugin.version>
+    <maven-enforcer-plugin.version>3.6.2</maven-enforcer-plugin.version>
+    <maven-failsafe-plugin.version>${maven-surefire-plugin.version}</maven-failsafe-plugin.version>
     <maven-fluido-skin.version>1.11.1</maven-fluido-skin.version>
-    <maven-javadoc-plugin.version>3.6.3</maven-javadoc-plugin.version>
-    <!-- 3.5.0 is the last Doxia-1.x-compatible release; 3.6+ requires the
-         Doxia 2 Sink API which maven-site-plugin 3.12.1 does not provide
-         (NoSuchMethodError: Sink.verbatim()). Bump together if upgrading
-         to maven-site-plugin 3.20+ / Doxia 2. -->
+    <maven-jar-plugin.version>3.5.0</maven-jar-plugin.version>
+    <maven-javadoc-plugin.version>3.12.0</maven-javadoc-plugin.version>
+    <maven-plugin-build-helper.version>3.6.1</maven-plugin-build-helper.version>
+    <!-- 3.5.0 is the last Doxia-1.x-compatible release  -->
     <maven-project-info-reports-plugin.version>3.5.0</maven-project-info-reports-plugin.version>
+    <!-- pinned: 4.x (M-releases only) requires Doxia 2. -->
     <maven-site-plugin.version>3.12.1</maven-site-plugin.version>
-    <maven-source-plugin.version>3.3.0</maven-source-plugin.version>
-    <spotless-maven-plugin.version>2.43.0</spotless-maven-plugin.version>
-
-    <awsv2sdk.version>2.29.52</awsv2sdk.version>
+    <maven-source-plugin.version>3.4.0</maven-source-plugin.version>
+    <maven-surefire-plugin.version>3.5.5</maven-surefire-plugin.version>
+    <maven-surefire-report-plugin.version>${maven-surefire-plugin.version}</maven-surefire-report-plugin.version>
+    <spotless-maven-plugin.version>2.46.1</spotless-maven-plugin.version>
   </properties>
 
   <dependencies>
@@ -236,49 +239,8 @@
       </properties>
     </profile>
 
-
-    <!-- Simple no-op property so that hadoop release ant targets can add it to profiles if needed -->
-    <profile>
-      <id>noop</id>
-      <properties>
-      </properties>
-    </profile>
-
-
-    <profile>
-      <id>gcs</id>
-      <activation>
-        <property>
-          <name>gcs</name>
-        </property>
-      </activation>
-      <build>
-        <plugins>
-          <plugin>
-            <groupId>org.codehaus.mojo</groupId>
-            <artifactId>build-helper-maven-plugin</artifactId>
-            <version>${buildhelper.version}</version>
-            <executions>
-              <execution>
-                <phase>generate-sources</phase>
-                <goals>
-                  <goal>add-source</goal>
-                </goals>
-                <configuration>
-                  <sources>
-                    <source>src/main/extra</source>
-                  </sources>
-                </configuration>
-              </execution>
-            </executions>
-          </plugin>
-        </plugins>
-      </build>
-    </profile>
-
     <profile>
       <id>client</id>
-
       <dependencies>
 
         <!--    this is here to force a dependency -->
@@ -290,10 +252,8 @@
         </dependency>
 
       </dependencies>
-      <build>
-
-      </build>
     </profile>
+
     <!--
      This is a profile to enable the use of the ASF snapshot and staging repositories
      during a build. It is useful when testing against nightly or RC releases of dependencies.
@@ -348,11 +308,11 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-compiler-plugin</artifactId>
-          <version>3.11.0</version>
+          <version>${maven-compiler-plugin.version}</version>
           <configuration>
             <source>${javac.version}</source>
             <target>${javac.version}</target>
-            <useIncrementalCompilation>false</useIncrementalCompilation>
+            <useIncrementalCompilation>true</useIncrementalCompilation>
           </configuration>
         </plugin>
 
@@ -437,7 +397,7 @@
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-jar-plugin</artifactId>
-          <version>3.3.0</version>
+          <version>${maven-jar-plugin.version}</version>
           <configuration>
             <!--            <archive>
                           <manifestFile>src/main/resources/META-INF/MANIFEST.MF</manifestFile>
@@ -445,10 +405,25 @@
           </configuration>
         </plugin>
 
+        <!-- Surefire: capture every test's stdout/stderr into a per-test
+             *-output.txt next to the XML reports so CI artifacts include
+             the console log for failure triage. -->
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-surefire-plugin</artifactId>
+          <version>${maven-surefire-plugin.version}</version>
+          <configuration>
+            <redirectTestOutputToFile>true</redirectTestOutputToFile>
+          </configuration>
+        </plugin>
+
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-failsafe-plugin</artifactId>
-          <version>3.1.2</version>
+          <version>${maven-surefire-plugin.version}</version>
+          <configuration>
+            <redirectTestOutputToFile>true</redirectTestOutputToFile>
+          </configuration>
           <executions>
             <execution>
               <id>default-integration-test</id>
@@ -465,6 +440,7 @@
                                 <systemPropertyVariables>
                                 </systemPropertyVariables>
                 -->
+                <redirectTestOutputToFile>true</redirectTestOutputToFile>
                 <includes>
                   <include>**/ITest*.java</include>
                 </includes>
@@ -478,6 +454,11 @@
 
     </pluginManagement>
     <plugins>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+      </plugin>
 
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -528,8 +509,7 @@
             </includes>
             <excludes>
               <!-- Lowercase default-package CLI shims (e.g. dux.java, storediag.java).
-                   Their class identifiers are the public CLI surface and must
-                   stay byte-stable. -->
+                   Their class identifiers are the public CLI surface. -->
               <exclude>src/main/java/*.java</exclude>
               <!-- Generated avro -->
               <exclude>target/generated-sources/**/*.java</exclude>
@@ -560,30 +540,30 @@
         </executions>
         <configuration>
           <consoleOutput>true</consoleOutput>
-          <excludes>
+          <inputExcludes>
             <!-- VCS / IDE / OS scratch -->
-            <exclude>.git/**</exclude>
-            <exclude>.idea/**</exclude>
-            <exclude>**/.DS_Store</exclude>
-            <exclude>*.iml</exclude>
-            <exclude>**/*.iml</exclude>
+            <inputExclude>.git/**</inputExclude>
+            <inputExclude>.idea/**</inputExclude>
+            <inputExclude>**/.DS_Store</inputExclude>
+            <inputExclude>*.iml</inputExclude>
+            <inputExclude>**/*.iml</inputExclude>
             <!-- Build artefacts -->
-            <exclude>target/**</exclude>
-            <exclude>**/target/**</exclude>
-            <exclude>pom.xml.versionsBackup</exclude>
+            <inputExclude>target/**</inputExclude>
+            <inputExclude>**/target/**</inputExclude>
+            <inputExclude>pom.xml.versionsBackup</inputExclude>
             <!-- Lists/manifests with no place for a header -->
-            <exclude>.gitignore</exclude>
-            <exclude>src/main/resources/cloudstore/required.txt</exclude>
-            <exclude>src/main/resources/META-INF/MANIFEST.MF</exclude>
+            <inputExclude>.gitignore</inputExclude>
+            <inputExclude>src/main/resources/cloudstore/required.txt</inputExclude>
+            <inputExclude>src/main/resources/META-INF/MANIFEST.MF</inputExclude>
             <!-- Test fixture data -->
-            <exclude>src/test/resources/auth-keys.xml</exclude>
-            <exclude>src/test/resources/TestAuditLogs/**</exclude>
-            <!-- Releases artefacts checked in for archival -->
-            <exclude>releases/**</exclude>
+            <inputExclude>src/test/resources/auth-keys.xml</inputExclude>
+            <inputExclude>src/test/resources/TestAuditLogs/**</inputExclude>
+            <!-- Releases artifacts checked in for archival -->
+            <inputExclude>releases/**</inputExclude>
             <!-- Third-party formatter profile from google/styleguide (Apache 2.0
                  licensed but not ASF-headered). Used by Spotless. -->
-            <exclude>dev-support/eclipse-formatter.xml</exclude>
-          </excludes>
+            <inputExclude>dev-support/eclipse-formatter.xml</inputExclude>
+          </inputExcludes>
         </configuration>
       </plugin>
 
@@ -610,7 +590,7 @@
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>build-helper-maven-plugin</artifactId>
-        <version>3.4.0</version>
+        <version>${maven-plugin-build-helper.version}</version>
         <executions>
           <execution>
             <id>add-generated-sources</id>
@@ -631,13 +611,31 @@
 
   <reporting>
     <plugins>
-      <!-- Pinned to a Doxia-1.x-compatible release; see comment in
-           ${maven-project-info-reports-plugin.version}. The site plugin's
-           default report version is incompatible with our Doxia 1 stack. -->
+      <!-- Pinned to a Doxia-1.x-compatible release; see comment on
+           ${maven-project-info-reports-plugin.version}.
+           Dependency report omitted on purpose: it leaks the full provided
+           Hadoop tree (~1000 transitive entries) into the site without
+           adding value for a single-module diagnostics tool. -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-project-info-reports-plugin</artifactId>
         <version>${maven-project-info-reports-plugin.version}</version>
+        <reportSets>
+          <reportSet>
+            <reports>
+              <report>index</report>
+              <report>summary</report>
+              <report>licenses</report>
+<!--              <report>team</report>
+              <report>scm</report>
+              <report>issue-management</report>-->
+              <report>ci-management</report>
+              <report>plugins</report>
+              <report>plugin-management</report>
+<!--              <report>distribution-management</report>-->
+            </reports>
+          </reportSet>
+        </reportSets>
       </plugin>
 
       <plugin>
@@ -658,6 +656,13 @@
           </reportSet>
         </reportSets>
       </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-report-plugin</artifactId>
+        <version>${maven-surefire-plugin.version}</version>
+      </plugin>
     </plugins>
+
   </reporting>
 </project>
