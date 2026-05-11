@@ -69,14 +69,10 @@ This artifact is not currently intended for such use.
 To publish the release use the gui or the github command line through the `fish` shell.
 
 ```bash
-# Make sure it is java 8
-java -version
-
-# actual build
 set -gx now (date '+%Y-%m-%d-%H.%M'); echo [$now]
 git add .; git status
 git commit -S --allow-empty -m "release $now"; git push
-gh release create tag-release-$now -t release-$now -n "release of $now" -d target/cloudstore-1.1.jar
+gh release create tag-release-$now -t release-$now -n "release of $now" -d target/cloudstore-1.2.jar
 # then go to the web ui to review and finalize the release
 ```
 

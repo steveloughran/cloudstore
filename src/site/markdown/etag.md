@@ -29,7 +29,7 @@ In ASF Hadoop, it is available on 3.3.2+ for S3A and ABFS stores.
 Zero byte file, S3 standard, no default encryption.
 
 ```
-> bin/hadoop jar cloudstore-1.1.jar etag s3a://example-london/file
+> bin/hadoop jar cloudstore-1.2.jar etag s3a://example-london/file
 
 2025-10-21 12:40:02,204 [main] INFO  commands.EtagCommand (StoreDurationInfo.java:<init>(91)) - Starting: get path status for s3a://example-london/file
 2025-10-21 12:40:02,580 [main] INFO  commands.EtagCommand (StoreDurationInfo.java:close(200)) - Duration of get path status for s3a://example-london/file: 00:00:00.378
@@ -40,7 +40,7 @@ Etag of s3a://example-london/file = "d41d8cd98f00b204e9800998ecf8427e"
 ### Example: S3 Express
 
 ```
-> bin/hadoop jar cloudstore-1.1.jar etag s3a://alice--usw2-az1--x-s3/file
+> bin/hadoop jar cloudstore-1.2.jar etag s3a://alice--usw2-az1--x-s3/file
 
 2025-10-21 12:28:22,878 [main] INFO  commands.EtagCommand (StoreDurationInfo.java:<init>(91)) - Starting: get path status for s3a://alice--usw2-az1--x-s3/file
 2025-10-21 12:28:23,863 [main] INFO  commands.EtagCommand (StoreDurationInfo.java:close(200)) - Duration of get path status for s3a://alice--usw2-az1--x-s3/file: 00:00:00.986
@@ -56,7 +56,7 @@ The result of the probe against third party stores is undefined, and will vary w
 Here is an example response from a probe of a Dell ECS store:
 
 ```
-> bin/hadoop jar cloudstore-1.1.jar etag s3a://ecsstore/file
+> bin/hadoop jar cloudstore-1.2.jar etag s3a://ecsstore/file
 
 2025-10-21 12:18:54,817 [main] INFO  commands.EtagCommand (StoreDurationInfo.java:<init>(91)) - Starting: get path status for s3a://ecsstore/file
 2025-10-21 12:18:55,523 [main] INFO  commands.EtagCommand (StoreDurationInfo.java:close(200)) - Duration of get path status for s3a://ecsstore/file: 00:00:00.707
@@ -74,7 +74,7 @@ the etag returned is `null`, which is considered an error."
 ```
 > bin/hadoop fs -mkdir -p s3a://example-london/dir/subdir
 
-> bin/hadoop jar cloudstore-1.1.jar etag s3a://example-london/dir/subdir
+> bin/hadoop jar cloudstore-1.2.jar etag s3a://example-london/dir/subdir
 
 2025-10-21 13:00:59,697 [main] INFO  commands.EtagCommand (StoreDurationInfo.java:<init>(91)) - Starting: get path status for s3a://example-london/dir/subdir
 2025-10-21 13:01:00,160 [main] INFO  commands.EtagCommand (StoreDurationInfo.java:close(200)) - Duration of get path status for s3a://example-london/dir/subdir: 00:00:00.464
@@ -90,7 +90,7 @@ This holds for parent directories too, which may or may not have a directory mar
 ## Azure ABFS
 
 ```
-> bin/hadoop jar cloudstore-1.1.jar etag abfs://alice-testing@alicewales.dfs.core.windows.net/file
+> bin/hadoop jar cloudstore-1.2.jar etag abfs://alice-testing@alicewales.dfs.core.windows.net/file
 
 2025-10-21 12:42:45,257 [main] INFO  commands.EtagCommand (StoreDurationInfo.java:<init>(91)) - Starting: get path status for abfs://alice-testing@alicewales.dfs.core.windows.net/file
 2025-10-21 12:42:45,456 [main] INFO  commands.EtagCommand (StoreDurationInfo.java:close(200)) - Duration of get path status for abfs://alice-testing@alicewales.dfs.core.windows.net/file: 00:00:00.200
@@ -100,7 +100,7 @@ Etag of abfs://alice-testing@alicewales.dfs.core.windows.net/file = 0x8DE1096EF7
 ## Local FileSystem
 
 ```
-> bin/hadoop jar cloudstore-1.1.jar etag file
+> bin/hadoop jar cloudstore-1.2.jar etag file
 
 2025-10-21 12:46:30,236 [main] INFO  commands.EtagCommand (StoreDurationInfo.java:<init>(91)) - Starting: get path status for file
 2025-10-21 12:46:30,240 [main] INFO  commands.EtagCommand (StoreDurationInfo.java:close(200)) - Duration of get path status for file: 00:00:00.005
@@ -114,7 +114,7 @@ Error code 51: Unimplemented.
 
 And a probe of a nonexistent file
 ```
-> bin/hadoop jar cloudstore-1.1.jar etag file2
+> bin/hadoop jar cloudstore-1.2.jar etag file2
 
 2025-10-21 12:51:19,515 [main] INFO  commands.EtagCommand (StoreDurationInfo.java:<init>(91)) - Starting: get path status for file2
 2025-10-21 12:51:19,515 [main] INFO  commands.EtagCommand (StoreDurationInfo.java:close(200)) - Duration of get path status for file2: 00:00:00.001

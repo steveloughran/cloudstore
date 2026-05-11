@@ -45,14 +45,14 @@ The project is built using Apache Maven. The standard command to build the proje
 mvn clean install
 ```
 
-This will compile the code, run tests, and create a JAR file in the `target/` directory (e.g., `target/cloudstore-1.1.jar`).
+This will compile the code, run tests, and create a JAR file in the `target/` directory (e.g., `target/cloudstore-1.2.jar`).
 
 ### Running Commands
 
 The tools are executed via the `hadoop jar` command. The general syntax is:
 
 ```sh
-hadoop jar target/cloudstore-1.1.jar <command> [options] <arguments...>
+hadoop jar target/cloudstore-1.2.jar <command> [options] <arguments...>
 ```
 
 -   `<command>`: The name of the tool to run (e.g., `list`, `dux`, `storediag`).
@@ -65,7 +65,7 @@ hadoop jar target/cloudstore-1.1.jar <command> [options] <arguments...>
 **Example: Listing files in an S3 bucket**
 
 ```sh
-hadoop jar target/cloudstore-1.1.jar list -limit 10 s3a://my-bucket/path/
+hadoop jar target/cloudstore-1.2.jar list -limit 10 s3a://my-bucket/path/
 ```
 
 ## Development Conventions

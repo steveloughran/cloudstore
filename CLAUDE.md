@@ -52,8 +52,8 @@ Hadoop, AWS SDK v2, and the GCS connector are all `provided` scope — the JAR i
 Run a command:
 
 ```bash
-hadoop jar target/cloudstore-1.1.jar <command> [options] <args...>
-hadoop jar target/cloudstore-1.1.jar help        # lists every command
+hadoop jar target/cloudstore-1.2.jar <command> [options] <args...>
+hadoop jar target/cloudstore-1.2.jar help        # lists every command
 ```
 
 Releasing is manual and tag-driven — see `BUILDING.md`. Bump the version with `mvn versions:set -DnewVersion=…` *and* search-and-replace `cloudstore-<old>.jar` references; the `-SNAPSHOT` suffix is intentionally never used.

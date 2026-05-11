@@ -23,7 +23,7 @@ Put a file from a source path (local or remote), to a destination.
 * Supports the `-debug` mode for a low level trace of the network IO.
 
 ```bash
-bin/hadoop jar cloudstore-1.1.jar put -options options -debug bin/hadoop s3a://target-london/hadoop
+bin/hadoop jar cloudstore-1.2.jar put -options options -debug bin/hadoop s3a://target-london/hadoop
 ```
 
 Here the options file adds a custom header to the object, and forces multipart IO on hadoop releases with
