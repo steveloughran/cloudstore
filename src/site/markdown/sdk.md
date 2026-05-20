@@ -14,8 +14,7 @@
 
 # S3 operations through the AWS V2 SDK
 
-There are a set of commands which require a version of the S3A connector
-built against the AWS v2 SDK on the classpath
+There are a set of commands which require the AWS V2 SDK `bundle.jar` on the classpath
 
 ## Command bucketstate
 
@@ -171,13 +170,6 @@ Region was determined by AwsProfileRegionProvider as  "eu-west-2"
 This setup has set the environment variable `AWS_EC2_METADATA_DISABLED`; if this variable was unset
 and the command executed outside AWS infrastructure then after a 15 second delay a stack trace warning of
 a failure to connect to the instance metadata server.
-
-```
-2021-06-22 11:54:15,774 [main] WARN  util.EC2MetadataUtils (EC2MetadataUtils.java:getItems(410)) -
- Unable to retrieve the requested metadata (/latest/dynamic/instance-identity/document).
- Failed to connect to service endpoint: 
-    com.amazonaws.SdkClientException: Failed to connect to service endpoint:
-```
 
 This is to be expected, given that the service isn't there.
 

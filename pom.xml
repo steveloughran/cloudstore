@@ -40,6 +40,9 @@
     <test.build.dir>${project.build.directory}/test-dir</test.build.dir>
     <test.build.data>${test.build.dir}</test.build.data>
 
+    <buildnumber.check>false</buildnumber.check>
+    <buildnumber.update>false</buildnumber.update>
+
     <!-- keep sorted -->
     <apache-rat-plugin.version>0.18</apache-rat-plugin.version>
     <assertj.version>3.27.7</assertj.version>
@@ -252,6 +255,14 @@
         </dependency>
 
       </dependencies>
+    </profile>
+
+    <profile>
+      <id>release</id>
+      <properties>
+        <buildnumber.check>true</buildnumber.check>
+        <buildnumber.update>true</buildnumber.update>
+      </properties>
     </profile>
 
     <!--
@@ -606,6 +617,40 @@
           </execution>
         </executions>
       </plugin>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>buildnumber-maven-plugin</artifactId>
+        <version>3.3.0</version>
+        <configuration>
+          <shortRevisionLength>5</shortRevisionLength>
+          <doCheck>${buildnumber.check}</doCheck>
+          <doUpdate>${buildnumber.update}</doUpdate>
+        </configuration>
+        <executions>
+          <execution>
+            <phase>validate</phase>
+            <goals>
+              <goal>create</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-jar-plugin</artifactId>
+        <configuration>
+          <archive>
+            <manifest>
+              <mainClass>org.apache.hadoop.fs.store.Cloudstore</mainClass>
+              <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+            </manifest>
+            <manifestEntries>
+              <git-SHA-1>${buildNumber}</git-SHA-1>
+            </manifestEntries>
+          </archive>
+        </configuration>
+      </plugin>
+
     </plugins>
   </build>
 

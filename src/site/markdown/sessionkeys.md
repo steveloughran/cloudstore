@@ -22,11 +22,20 @@ to use temporary credentials
 Validity: 36h
 
 This is to aid with generating temp keys to use with throwaway test clusters
-that may be shared with colleagues, avoids having to 
+that may be shared with colleagues, avoids having to share real credentials.
 
-*Note*: only available on cloudstore builds with the "extra" profile enabled; and when
- executed against a version of Hadoop (3.2+) which provides API access to the credential
- chain. 
+The `-role` option allows for a specific role to be requested, after which the
+`-json` option may be used to load a JSON file containing an IAM declaration of extra restrictions
+to apply.
+
+## Options
+
+```
+-role <arn>
+-json <jsonfile>
+```
+
+## Example
 
 ```
 bin/hadoop jar $CLOUDSTORE sessionkeys s3a://landsat-pds/
