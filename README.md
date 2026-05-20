@@ -337,14 +337,6 @@ Uploads/copies a file, with the ability to set `createFile()` parameters.
 
 See [put](src/main/site/put.md)
 
-## tarhardened
-
-Verify the hadoop release has had its untar command hardened and will
-not evaluate commands passed in as filenames.
-
-
-See [tarhardened](src/main/site/tarhardened.md)
-
 ## tlsinfo
 
 Print out TLS information including X509 certificates.

@@ -18,7 +18,7 @@
 package org.apache.hadoop.fs.store.logging;
 
 import java.util.Optional;
-import org.apache.hadoop.fs.store.diag.StoreLogExactlyOnce;
+import org.apache.hadoop.fs.store.LogExactlyOnce;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
  */
 public final class LogControllerFactory {
   private static final Logger LOG = LoggerFactory.getLogger(LogControllerFactory.class);
-  private static final StoreLogExactlyOnce LOG_ONCE = new StoreLogExactlyOnce(LOG);
+  private static final LogExactlyOnce LOG_ONCE = new LogExactlyOnce(LOG);
 
   /**
    * Class name of log controller implementation to be loaded through reflection.

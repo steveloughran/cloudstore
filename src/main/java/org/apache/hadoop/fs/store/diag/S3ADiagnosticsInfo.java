@@ -23,7 +23,6 @@ import static org.apache.hadoop.fs.store.StoreUtils.cat;
 import static org.apache.hadoop.fs.store.StoreUtils.sanitize;
 import static org.apache.hadoop.fs.store.diag.CapabilityKeys.*;
 import static org.apache.hadoop.fs.store.diag.DiagUtils.isIpV4String;
-import static org.apache.hadoop.fs.store.diag.HBossConstants.CAPABILITY_HBOSS;
 import static org.apache.hadoop.fs.store.diag.OptionSets.EnhancedOpenFileOptions.FS_OPTION_OPENFILE_READ_POLICY_ADAPTIVE;
 import static org.apache.hadoop.fs.store.diag.OptionSets.EnhancedOpenFileOptions.FS_OPTION_OPENFILE_READ_POLICY_DEFAULT;
 import static org.apache.hadoop.fs.store.diag.OptionSets.EnhancedOpenFileOptions.FS_OPTION_OPENFILE_READ_POLICY_VECTOR;
@@ -45,6 +44,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileStatus;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.s3a.S3AUtils;
 import org.apache.hadoop.fs.store.s3a.S3ASupport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -322,9 +322,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"fs.s3a.experimental.aws.s3.throttling", false, false},
       {"fs.s3a.experimental.optimized.directory.operations", false, false},
       {"fs.s3a.fast.buffer.size", false, false}, {FS_S3A_FAST_UPLOAD_BUFFER, false, false},
-      {FS_S3A_FAST_UPLOAD_ACTIVE_BLOCKS, false, false}, {DISABLE_CACHE, false, false}, // disable
-                                                                                       // filesystem
-                                                                                       // caching
+      {FS_S3A_FAST_UPLOAD_ACTIVE_BLOCKS, false, false}, {DISABLE_CACHE, false, false},
       {INPUT_STREAM_TYPE, false, false}, // stream factory
       {"fs.s3a.list.version", false, false}, {"fs.s3a.max.total.tasks", false, false},
       {MULTIOBJECTDELETE_ENABLE, false, false}, {FS_S3A_MULTIPART_SIZE, false, false},
@@ -382,20 +380,6 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       /* access points. */
       {"fs.s3a.accesspoint.arn", false, false}, {"fs.s3a.accesspoint.required", false, false},
 
-      /* prefetching */
-      {PREFETCH_ENABLED_KEY, false, false}, {PREFETCH_BLOCK_SIZE_KEY, false, false},
-      {PREFETCH_BLOCK_COUNT_KEY, false, false},
-
-      /* hboss */
-      {HBossConstants.DATA_URI, false, false}, {HBossConstants.SYNC_IMPL, false, false},
-      {HBossConstants.WAIT_INTERVAL_WARN, false, false},
-      {HBossConstants.ZK_CONN_STRING, false, false},
-      {HBossConstants.ZK_BASE_SLEEP_MS, false, false},
-      {HBossConstants.ZK_MAX_RETRIES, false, false}, {"test.fs.s3.bucket", false, false}, // print
-                                                                                          // some of
-                                                                                          // the
-                                                                                          // test
-                                                                                          // setups.
       {"", false, false},};
 
   public static final String ENV_AWS_ACCESS_KEY_ID = "AWS_ACCESS_KEY_ID";
@@ -471,22 +455,6 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       {"aws.useFipsEndpoint", false}, {"aws.webIdentityTokenFile", false}, {"", false}, {"", false},
 
       // v1 options
-      {"aws.java.v1.printLocation", false}, {"aws.java.v1.disableDeprecationAnnouncement", false},
-      {"com.amazonaws.regions.RegionUtils.disableRemote", false},
-      {"com.amazonaws.regions.RegionUtils.fileOverride", false},
-      {"com.amazonaws.sdk.disableCertChecking", false},
-      {"com.amazonaws.sdk.disableEc2Metadata", false},
-      {"com.amazonaws.sdk.ec2MetadataServiceEndpointOverride", false},
-      {"com.amazonaws.sdk.enableDefaultMetrics", false},
-      {"com.amazonaws.sdk.enableInRegionOptimizedMode", false},
-      {"com.amazonaws.sdk.enableRuntimeProfiling", false},
-      {"com.amazonaws.sdk.enableThrottledRetry", false}, {"com.amazonaws.sdk.maxAttempts", false},
-      {"com.amazonaws.sdk.retryMode", false},
-      {"com.amazonaws.sdk.s3.defaultStreamBufferSize", false},
-      {"com.amazonaws.services.s3.disableGetObjectMD5Validation", false},
-      {"com.amazonaws.services.s3.disableImplicitGlobalClients", false},
-      {"com.amazonaws.services.s3.disablePutObjectMD5Validation", false},
-      {"com.amazonaws.services.s3.enableV4", false}, {"com.amazonaws.services.s3.enforceV4", false},
       {"org.wildfly.openssl.path", false}, {"org.wildfly.openssl.libwfssl.path", false},
 
       // v2 options
@@ -504,22 +472,6 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
    * Optional classes.
    */
   public static final String[] OPTIONAL_CLASSNAMES = {
-
-      /* Jackson stuff */
-      "com.fasterxml.jackson.annotation.JacksonAnnotation",
-      "com.fasterxml.jackson.core.JsonParseException",
-      "com.fasterxml.jackson.databind.ObjectMapper",
-
-      // dir markers
-      "org.apache.hadoop.fs.s3a.impl.DirectoryPolicy",
-
-      // Auditing
-      "org.apache.hadoop.fs.s3a.audit.AuditManagerS3A",
-      // including the bit where auditing doesn't leak
-      "org.apache.hadoop.util.WeakReferenceMap",
-
-      // etags
-      "org.apache.hadoop.fs.EtagSource",
 
       // access points
       "org.apache.hadoop.fs.s3a.ArnResource",
@@ -597,15 +549,10 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       FS_S3A_CREATE_PERFORMANCE, FS_S3A_CREATE_PERFORMANCE + ".enabled", CONDITIONAL_CREATE_ENABLED,
       FS_S3A_CREATE_HEADER, DIRECTORY_OPERATIONS_PURGE_UPLOADS, ENDPOINT_FIPS,
       INPUT_STREAM_TYPE + "." + CLASSIC_STREAM, INPUT_STREAM_TYPE + "." + PREFETCHING_STREAM,
-      INPUT_STREAM_TYPE + "." + ANALYTICS_STREAM, OPTIMIZED_COPY_FROM_LOCAL,
-
-      // hboss if wrapped by it
-      CAPABILITY_HBOSS};
+      INPUT_STREAM_TYPE + "." + ANALYTICS_STREAM, OPTIMIZED_COPY_FROM_LOCAL,};
 
   public static final String[] OPTIONAL_RESOURCES =
-      {"log4j.properties", "com/amazonaws/internal/config/awssdk_config_default.json",
-          "awssdk_config_override.json", "com/amazonaws/endpointdiscovery/endpoint-discovery.json",
-          "software/amazon/awssdk/global/handlers/execution.interceptors",
+      {"log4j.properties", "software/amazon/awssdk/global/handlers/execution.interceptors",
           "software/amazon/awssdk/services/s3/execution.interceptors"};
 
   public static final String KEEP = "keep";
@@ -687,7 +634,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
    */
   @Override
   public Configuration patchConfigurationToInitalization(final Configuration conf) {
-    return S3ASupport.propagateBucketOptions(conf, getFsURI().getHost());
+    return S3AUtils.propagateBucketOptions(conf, getFsURI().getHost());
   }
 
   /**
@@ -966,9 +913,6 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       printout.println("AWS PrivateLink is being used for a VPN connection to S3");
       printout.warn("You MUST set %s to the region of this store; it is currently \"%s\"", REGION,
           region);
-      printout.println(
-          "Note: Hadoop releases without CDPD-26441/HADOOP-17705 do not support this option");
-      printout.println("See https://issues.apache.org/jira/browse/HADOOP-17705 for a workaround");
       printout.println("See also:");
       printout.println(
           "\tHADOOP-17771. S3AFS creation fails: Unable to find a region via the region provider chain.");
@@ -1000,17 +944,6 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
         boolean showHowToChange;
         printout.println("- Path style access is enabled;"
             + " this is normally the correct setting for third party stores.");
-        if (isUsingAws && !privateLink) {
-          printout
-              .warn("-This is not the recommended setting for AWS S3 except through PrivateLink");
-          showHowToChange = true;
-        } else {
-          showHowToChange = false;
-        }
-        if (showHowToChange) {
-          printout.warn("- To disable path style access, set %s to false", PATH_STYLE_ACCESS);
-        }
-
       } else {
         printout.warn("Path style access is disabled"
             + " this is not the normal setting for third party stores.");
@@ -1095,13 +1028,13 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
         }
       }
     }
-    String dtbinding = conf.getTrimmed(DELEGATION_TOKEN_BINDING, "");
+    String binding = conf.getTrimmed(DELEGATION_TOKEN_BINDING, "");
     String[] auth = conf.getStrings(AWS_CREDENTIALS_PROVIDER, "");
 
-    if (!dtbinding.isEmpty()) {
+    if (!binding.isEmpty()) {
       printout.heading("Delegation Tokens");
 
-      printout.println("Delegation token binding %s is active", dtbinding);
+      printout.println("Delegation token binding %s is active", binding);
       printout.println("This will take over authentication from the settings in %s",
           AWS_CREDENTIALS_PROVIDER);
     }
@@ -1159,6 +1092,15 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
     }
   }
 
+  /**
+   * File validation casts status to S3AFileStatus to look at version id. If we get here the s3a
+   * client is on the classpath and retrieving data from S3.
+   * 
+   * @param printout output
+   * @param filesystem fs
+   * @param path path
+   * @param status status of file at path
+   */
   @Override
   public void validateFile(final Printout printout, final FileSystem filesystem, final Path path,
       final FileStatus status) throws IOException {
@@ -1183,7 +1125,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       } else {
         printout.println("Directory marker retention is enabled, so performance will suffer less");
       }
-      printout.println("");
+      printout.println();
     }
   }
 

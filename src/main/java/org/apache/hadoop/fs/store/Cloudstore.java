@@ -50,7 +50,6 @@ import org.apache.hadoop.fs.store.commands.PathCapability;
 import org.apache.hadoop.fs.store.commands.PrintStatus;
 import org.apache.hadoop.fs.store.commands.Put;
 import org.apache.hadoop.fs.store.commands.TLSInfo;
-import org.apache.hadoop.fs.store.commands.TarHardened;
 import org.apache.hadoop.fs.store.diag.DistcpDiag;
 import org.apache.hadoop.fs.store.diag.StoreDiag;
 import org.apache.hadoop.fs.tools.cloudup.Cloudup;
@@ -128,7 +127,6 @@ public final class Cloudstore {
     m.put("restore", RestoreObject.class);
     m.put("sessionkeys", SessionKeys.class);
     m.put("storediag", StoreDiag.class);
-    m.put("tarhardened", TarHardened.class);
     m.put("tlsinfo", TLSInfo.class);
     m.put("undelete", Undelete.class);
     COMMANDS = Collections.unmodifiableMap(m);

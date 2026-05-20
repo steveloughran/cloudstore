@@ -37,7 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Print the status.
+ * Print the etag of a path..
  * <p>
  * Prints some performance numbers at the end.
  */

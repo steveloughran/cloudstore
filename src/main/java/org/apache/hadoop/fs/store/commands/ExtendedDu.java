@@ -47,11 +47,11 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.LocatedFileStatus;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.PathAccessDeniedException;
-import org.apache.hadoop.fs.PathFilter;
 import org.apache.hadoop.fs.RemoteIterator;
 import org.apache.hadoop.fs.store.StoreDurationInfo;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
 import org.apache.hadoop.util.ToolRunner;
+import org.apache.hadoop.util.functional.RemoteIterators;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -116,30 +116,29 @@ public class ExtendedDu extends StoreEntryPoint {
     List<Summary> results = new ArrayList<>();
 
     try {
-      long submitted = 0;
+      AtomicLong submitted = new AtomicLong();
       RemoteIterator<FileStatus> dir;
       try (StoreDurationInfo firstLoad =
           new StoreDurationInfo(out, "Initial list of path %s", source)) {
         dir = fs.listStatusIterator(source);
       }
-      while (dir.hasNext()) {
-        final FileStatus st = dir.next();
+      RemoteIterators.foreach(dir, st -> {
         if (st.isFile()) {
           // add the file
           updateValues(1, st.getLen());
         } else {
           // it's a dir
-          submitted++;
+          submitted.incrementAndGet();
           if (!isBFS) {
             queue.add(completion.submit(() -> scanOneDir(out, st.getPath())));
           } else {
             queue.add(completion.submit(() -> scanOneDirBFS(out, st.getPath())));
           }
         }
-      }
+      });
 
       // here we have all scans submitted
-      println("Waiting for %d scan to finish", submitted);
+      println("Waiting for %d scan to finish", submitted.get());
       while (!queue.isEmpty()) {
         Future<Summary> fts = queue.remove();
         if (fts.isDone()) {
@@ -242,8 +241,7 @@ public class ExtendedDu extends StoreEntryPoint {
         maybeClose(lister);
       }
     }
-    final Summary summary = new Summary(path, size, count);
-    return summary;
+    return new Summary(path, size, count);
   }
 
   private Summary scanOneDir(final PrintStream out, Path path) throws IOException {
@@ -308,8 +306,4 @@ public class ExtendedDu extends StoreEntryPoint {
     }
   }
 
-  private static final PathFilter HIDDEN_FILE_FILTER = (p) -> {
-    String n = p.getName();
-    return !n.startsWith("_") && !n.startsWith(".");
-  };
 }

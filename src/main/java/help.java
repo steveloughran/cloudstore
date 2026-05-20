@@ -50,7 +50,6 @@ public class help extends Command {
     pathcapability.help();
     put.help();
     storediag.help();
-    tarhardened.help();
     tlsinfo.help();
 
     // extras must not refer to the optional classes.

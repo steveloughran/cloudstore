@@ -89,7 +89,7 @@ When adding a new command: create the implementation class extending `StoreEntry
 ### Entry-point hierarchy
 
 - `org.apache.hadoop.fs.store.StoreEntryPoint` — `Configured implements Tool, Closeable, Printout`. Provides argument parsing for the common options (`-D`, `-xmlfile`, `-tokenfile`, `-verbose`, `-debug`, `-sysprops`, `-logoverrides`), token loading, log-level overrides, and `Printout` helpers used by diagnostics. Standard option keys live in `CommonParameters`.
-- `org.apache.hadoop.fs.store.diag.DiagnosticsEntryPoint extends StoreEntryPoint` — extra helpers shared by diagnostics commands (`storediag`, `constval`, `tlsinfo`, `tarhardened`, etc.).
+- `org.apache.hadoop.fs.store.diag.DiagnosticsEntryPoint extends StoreEntryPoint` — extra helpers shared by diagnostics commands (`storediag`, `constval`, `tlsinfo`, etc.).
 
 Each implementation class follows the same pattern: `createCommandFormat(min, max)` in the constructor, `run(String[] args)` does the work, plus a `static int exec(String...)` that delegates to `ToolRunner.run` and a `static void main(...)` that calls `exec` and exits.
 

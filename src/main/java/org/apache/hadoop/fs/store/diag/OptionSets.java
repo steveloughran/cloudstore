@@ -92,9 +92,7 @@ public final class OptionSets {
           {"OPENSSL_MODULES", false}, {"OPENSSL_TRACE", false}, {"PYSPARK_DRIVER_PYTHON", false},
           {"SASL_MECHANISM", false}, {"SPARK_HOME", false}, {"SPARK_CONF_DIR", false},
           {"SPARK_SCALA_VERSION", false}, {"YARN_CONF_DIR", false}, {"http_proxy", false},
-          {"https_proxy", false}, {"no_proxy", false}, {"", false},
-      // TODO: add the https proxy vars
-      };
+          {"https_proxy", false}, {"no_proxy", false}, {"", false},};
 
   /**
    * TLS related env vars.

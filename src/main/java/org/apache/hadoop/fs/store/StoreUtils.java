@@ -42,13 +42,13 @@ public final class StoreUtils {
 
 
   /** {@value}. */
-  protected static final int HIDE_PREFIX = 2;
+  private static final int HIDE_PREFIX = 2;
 
   /** {@value}. */
-  protected static final int HIDE_SUFFIX = 4;
+  private static final int HIDE_SUFFIX = 4;
 
   /** {@value}. */
-  protected static final int HIDE_THRESHOLD = HIDE_PREFIX * 2 + HIDE_SUFFIX;
+  private static final int HIDE_THRESHOLD = HIDE_PREFIX * 2 + HIDE_SUFFIX;
 
   /**
    * Take an exception from a Future and convert to an IOE.

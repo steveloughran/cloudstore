@@ -69,7 +69,6 @@ import org.apache.hadoop.fs.shell.CommandFormat;
 import org.apache.hadoop.fs.statistics.IOStatistics;
 import org.apache.hadoop.fs.store.diag.Printout;
 import org.apache.hadoop.fs.store.diag.StdoutPrintout;
-import org.apache.hadoop.fs.store.diag.StoreLogExactlyOnce;
 import org.apache.hadoop.fs.store.logging.LogControl;
 import org.apache.hadoop.fs.store.logging.LogControllerFactory;
 import org.apache.hadoop.io.IOUtils;
@@ -102,7 +101,7 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
 
   public static final boolean DEFAULT_HIDE_ALL_SENSITIVE_CHARS = false;
 
-  private final StoreLogExactlyOnce logJceksFailureOnce = new StoreLogExactlyOnce(LOG);
+  private final LogExactlyOnce logJceksFailureOnce = new LogExactlyOnce(LOG);
 
   /**
    * Hide all sensitive data.

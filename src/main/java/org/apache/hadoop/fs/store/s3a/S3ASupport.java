@@ -17,12 +17,8 @@
  */
 package org.apache.hadoop.fs.store.s3a;
 
-import static java.util.Objects.requireNonNull;
-
 import java.io.IOException;
 import java.net.URI;
-import java.util.Iterator;
-import java.util.Map;
 import java.util.Objects;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.hadoop.conf.Configuration;
@@ -52,42 +48,6 @@ public final class S3ASupport {
       return pass != null ? new String(pass).trim() : defVal;
     } catch (IOException ioe) {
       throw new IOException("Cannot find password option " + key, ioe);
-    }
-  }
-
-  public static Configuration propagateBucketOptions(Configuration source, String bucket) {
-    requireNonNull(bucket);
-    String bucketPrefix = "fs.s3a.bucket." + bucket + '.';
-    LOG.debug("Propagating entries under {}", bucketPrefix);
-    Configuration dest = new Configuration(source);
-    Iterator var4 = source.iterator();
-
-    while (true) {
-      while (true) {
-        String key;
-        String value;
-        do {
-          do {
-            if (!var4.hasNext()) {
-              return dest;
-            }
-
-            Map.Entry<String, String> entry = (Map.Entry) var4.next();
-            key = entry.getKey();
-            value = entry.getValue();
-          } while (!key.startsWith(bucketPrefix));
-        } while (bucketPrefix.equals(key));
-
-        String stripped = key.substring(bucketPrefix.length());
-        if (!stripped.startsWith("bucket.") && !"impl".equals(stripped)) {
-          String origin = "[" + StringUtils.join(source.getPropertySources(key), ", ") + "]";
-          String generic = "fs.s3a." + stripped;
-          LOG.debug("Updating {} from {}", generic, origin);
-          dest.set(generic, value, key + " via " + origin);
-        } else {
-          LOG.debug("Ignoring bucket option {}", key);
-        }
-      }
     }
   }
 
