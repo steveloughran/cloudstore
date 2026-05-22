@@ -31,6 +31,12 @@
 
   </description>
 
+  <scm>
+    <connection>scm:git:https://github.com/apache/hadoop-cloudstore.git</connection>
+    <developerConnection>scm:git:https://github.com/apache/hadoop-cloudstore.git</developerConnection>
+    <url>https://github.com/apache/hadoop-cloudstore</url>
+  </scm>
+
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <file.encoding>UTF-8</file.encoding>
@@ -48,14 +54,17 @@
     <assertj.version>3.27.7</assertj.version>
     <avro.version>1.11.5</avro.version>
     <awsv2sdk.version>2.29.52</awsv2sdk.version>
-    <buildhelper.version>3.3.0</buildhelper.version>
     <checkstyle.version>9.3</checkstyle.version>
     <doxia-module-markdown.version>1.12.0</doxia-module-markdown.version>
     <gcs-connector.version>hadoop3-2.2.4</gcs-connector.version>
     <hadoop.version>3.4.2</hadoop.version>
     <junit.version>4.13.2</junit.version>
+
+    <!-- Add maven build version dependencies here, in order, prefixed with maven -->
+    <maven-buildnumber-plugin.version>3.3.0</maven-buildnumber-plugin.version>
     <maven-checkstyle-plugin.version>3.6.0</maven-checkstyle-plugin.version>
     <maven-compiler-plugin.version>3.15.0</maven-compiler-plugin.version>
+    <maven-cyclonedx-plugin.version>2.9.1</maven-cyclonedx-plugin.version>
     <maven-enforcer-plugin.version>3.6.2</maven-enforcer-plugin.version>
     <maven-failsafe-plugin.version>${maven-surefire-plugin.version}</maven-failsafe-plugin.version>
     <maven-fluido-skin.version>1.11.1</maven-fluido-skin.version>
@@ -67,9 +76,9 @@
     <!-- pinned: 4.x (M-releases only) requires Doxia 2. -->
     <maven-site-plugin.version>3.12.1</maven-site-plugin.version>
     <maven-source-plugin.version>3.4.0</maven-source-plugin.version>
+    <maven-spotless-plugin.version>2.46.1</maven-spotless-plugin.version>
     <maven-surefire-plugin.version>3.5.5</maven-surefire-plugin.version>
     <maven-surefire-report-plugin.version>${maven-surefire-plugin.version}</maven-surefire-report-plugin.version>
-    <spotless-maven-plugin.version>2.46.1</spotless-maven-plugin.version>
   </properties>
 
   <dependencies>
@@ -263,6 +272,40 @@
         <buildnumber.check>true</buildnumber.check>
         <buildnumber.update>true</buildnumber.update>
       </properties>
+      <build>
+        <plugins>
+          <!-- Emit a CycloneDX SBOM alongside the release jar.
+               compile scope only: provided/test deps (Hadoop, AWS SDK,
+               GCS, junit, hdfs) are intentionally excluded because they
+               are not shipped inside the jar - they come from the host
+               Hadoop install or the test classpath. -->
+          <plugin>
+            <groupId>org.cyclonedx</groupId>
+            <artifactId>cyclonedx-maven-plugin</artifactId>
+            <version>${maven-cyclonedx-plugin.version}</version>
+            <executions>
+              <execution>
+                <id>sbom-release</id>
+                <phase>package</phase>
+                <goals>
+                  <goal>makeBom</goal>
+                </goals>
+                <configuration>
+                  <includeCompileScope>true</includeCompileScope>
+                  <includeProvidedScope>false</includeProvidedScope>
+                  <includeRuntimeScope>false</includeRuntimeScope>
+                  <includeSystemScope>false</includeSystemScope>
+                  <includeTestScope>false</includeTestScope>
+                  <outputFormat>all</outputFormat>
+                  <outputName>${project.artifactId}-${project.version}-cyclonedx</outputName>
+                  <schemaVersion>1.5</schemaVersion>
+                  <projectType>library</projectType>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
     </profile>
 
     <!--
@@ -342,7 +385,7 @@
         <plugin>
           <groupId>com.diffplug.spotless</groupId>
           <artifactId>spotless-maven-plugin</artifactId>
-          <version>${spotless-maven-plugin.version}</version>
+          <version>${maven-spotless-plugin.version}</version>
         </plugin>
 
         <plugin>
@@ -617,14 +660,17 @@
           </execution>
         </executions>
       </plugin>
-<!--      <plugin>
+      <!-- kept failing -->
+      <!--  Execution default of goal org.codehaus.mojo:buildnumber-maven-plugin:3.3.0:create failed: begin 4, end 0, length 0 -->
+      <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>buildnumber-maven-plugin</artifactId>
-        <version>3.3.0</version>
+        <version>${maven-buildnumber-plugin.version}</version>
         <configuration>
-          <shortRevisionLength>5</shortRevisionLength>
+          <shortRevisionLength>7</shortRevisionLength>
           <doCheck>${buildnumber.check}</doCheck>
           <doUpdate>${buildnumber.update}</doUpdate>
+          <revisionOnScmFailure>UNKNOWN</revisionOnScmFailure>
         </configuration>
         <executions>
           <execution>
@@ -634,8 +680,7 @@
             </goals>
           </execution>
         </executions>
-      </plugin>-->
-<!--
+      </plugin>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-jar-plugin</artifactId>
@@ -651,7 +696,6 @@
           </archive>
         </configuration>
       </plugin>
--->
 
     </plugins>
   </build>

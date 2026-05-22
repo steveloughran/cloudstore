@@ -22,11 +22,12 @@ RFC 2119.
 ## Before filing a report (including AI-assisted reports)
 
 Cloudstore is a diagnostics CLI invoked manually by a cluster operator via
-`hadoop jar`. It is not a service, accepts no untrusted network input other than filenames, and the
+`hadoop jar`.
+It is not a service, accepts no untrusted network input other than filenames, and the
 operator running it is trusted. Many findings that look like vulnerabilities
 in a server context are not vulnerabilities here.
 
-Do **not** file a report for:
+You *MUST NOT* file a report for:
 
 - Output of `sessionkeys` or `gcscreds` containing credentials — these
   commands exist to print credentials.
@@ -96,6 +97,9 @@ model.
 * `sessionkeys`: it generates then prints session keys of limited duration.
 * `gcscreds`: it prints GCS credentials as part of a diagnostics process.
 * Detailed printing of http communications between client and store when enabled.
+* Any vulnerability reported against an older release of cloudstore which cannot be reproduced in the latest version of the `main` branch.
+* Any vulnerability when running on a version of hadoop older than the latest apache hadoop release,
+  and which cannot be reproduced on that release.
 
 ## Do report
 

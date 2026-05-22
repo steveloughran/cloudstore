@@ -68,10 +68,23 @@ This artifact is not currently intended for such use.
 
 To publish the release use the gui or the github command line through the `fish` shell.
 
+Release builds activate the `release` profile, which (a) enforces a clean git
+tree via `buildnumber-maven-plugin` and (b) emits a CycloneDX SBOM next to the
+jar:
+
+- `target/cloudstore-<version>-cyclonedx.json`
+- `target/cloudstore-<version>-cyclonedx.xml`
+
+The SBOM is compile-scope only — `provided` deps (Hadoop, AWS SDK v2, GCS
+connector) are not in it because they are not shipped in the jar.
+
+It also generates a build version, with the buildnumber plugin.
+On release builds, this will fail the build if there are uncommitted changes.
+Commit all changes before starting a release build.
+
 ```bash
-mvn clean install -DskipTests
+mvn clean install -Prelease -DskipTests
 set -gx now (date '+%Y-%m-%d-%H.%M'); echo [$now]
-git add .; git status
 git commit -S --allow-empty -m "release $now"; git push
 gh release create tag-release-$now -t release-$now -n "release of $now" -d target/cloudstore-1.2.jar
 # then go to the web ui to review and finalize the release
