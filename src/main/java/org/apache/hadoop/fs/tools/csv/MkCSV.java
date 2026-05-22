@@ -145,20 +145,21 @@ public class MkCSV extends StoreEntryPoint {
       }
 
       Random rand = new Random();
-      for (int r = 1; r <= rows; r++) {
+      for (long r = 1; r <= rows; r++) {
         writer.resetRowCrc();
         writer.column(START);
         String rowId = Long.toString(r);
         writer.column(rowId);
         // now collect a subset of the value
         int lastElt = 2 + rand.nextInt(elements);
-        String dataRow = blockData.get(r % blockCount);
+        String dataRow = blockData.get((int) (r % blockCount));
         int length = Math.min(lastElt, elements);
         String data = dataRow.substring(length);
         writer.columnL(data.length());
         // data CRC
         CRC32 crc = new CRC32();
-        crc.update(data.getBytes(StandardCharsets.UTF_8));
+        final byte[] b = data.getBytes(StandardCharsets.UTF_8);
+        crc.update(b, 0, b.length);
         writer.columnL(crc.getValue());
         writer.column(data);
         // repeat the row ID
