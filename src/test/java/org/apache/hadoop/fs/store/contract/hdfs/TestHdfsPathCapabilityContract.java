@@ -15,23 +15,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.hadoop.fs.store.contract;
+package org.apache.hadoop.fs.store.contract.hdfs;
+
+import static org.apache.hadoop.fs.store.diag.CapabilityKeys.FS_PERMISSIONS;
 
 import java.io.IOException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.contract.AbstractFSContract;
 import org.apache.hadoop.fs.contract.hdfs.HDFSContract;
+import org.apache.hadoop.fs.store.contract.AbstractPathCapabilityContractTest;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 
 /**
- * Cloudup run against an in-process MiniDFSCluster.
+ * pathcapability run against an in-process MiniDFSCluster.
  *
  * <p>
- * Cluster lifecycle follows the {@code TestHDFSContract*} pattern: a single MiniDFSCluster created
- * in {@code @BeforeClass} is shared by every {@code @Test} method in this class.
+ * Single static cluster per class — created in {@code @BeforeClass}, destroyed in
+ * {@code @AfterClass}, mirroring {@code TestHDFSContractAppend}.
  */
-public class ITestHdfsCloudupContract extends AbstractCloudupContractTest {
+public class TestHdfsPathCapabilityContract extends AbstractPathCapabilityContractTest {
 
   @BeforeClass
   public static void createCluster() throws IOException {
@@ -46,5 +49,11 @@ public class ITestHdfsCloudupContract extends AbstractCloudupContractTest {
   @Override
   protected AbstractFSContract createContract(Configuration conf) {
     return new HDFSContract(conf);
+  }
+
+  @Override
+  protected String knownValidCapability() {
+    // DistributedFileSystem advertises fs.capability.paths.permissions.
+    return FS_PERMISSIONS;
   }
 }

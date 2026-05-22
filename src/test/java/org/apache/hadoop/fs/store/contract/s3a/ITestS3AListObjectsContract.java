@@ -15,17 +15,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.hadoop.fs.store.contract;
+package org.apache.hadoop.fs.store.contract.s3a;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.contract.AbstractFSContract;
-import org.apache.hadoop.fs.store.test.S3AStoreContract;
+import org.apache.hadoop.fs.store.contract.AbstractListObjectsContractTest;
 
 /**
- * S3A contract test for the {@code etag} command. Skips automatically if {@code auth-keys.xml}
- * provides no S3A credentials.
+ * S3A contract test for the {@code listobjects} command.
  */
-public class ITestS3AEtagContract extends AbstractEtagContractTest {
+public class ITestS3AListObjectsContract extends AbstractListObjectsContractTest {
 
   @Override
   protected AbstractFSContract createContract(Configuration conf) {

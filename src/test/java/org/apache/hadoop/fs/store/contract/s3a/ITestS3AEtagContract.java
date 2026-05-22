@@ -15,44 +15,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.hadoop.fs.store.contract;
+package org.apache.hadoop.fs.store.contract.s3a;
 
-import static org.apache.hadoop.fs.store.diag.CapabilityKeys.FS_PERMISSIONS;
-
-import java.io.IOException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.contract.AbstractFSContract;
-import org.apache.hadoop.fs.contract.hdfs.HDFSContract;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
+import org.apache.hadoop.fs.store.contract.AbstractEtagContractTest;
 
 /**
- * pathcapability run against an in-process MiniDFSCluster.
- *
- * <p>
- * Single static cluster per class — created in {@code @BeforeClass}, destroyed in
- * {@code @AfterClass}, mirroring {@code TestHDFSContractAppend}.
+ * S3A contract test for the {@code etag} command. Skips automatically if {@code auth-keys.xml}
+ * provides no S3A credentials.
  */
-public class ITestHdfsPathCapabilityContract extends AbstractPathCapabilityContractTest {
-
-  @BeforeClass
-  public static void createCluster() throws IOException {
-    HDFSContract.createCluster();
-  }
-
-  @AfterClass
-  public static void teardownCluster() throws IOException {
-    HDFSContract.destroyCluster();
-  }
+public class ITestS3AEtagContract extends AbstractEtagContractTest {
 
   @Override
   protected AbstractFSContract createContract(Configuration conf) {
-    return new HDFSContract(conf);
-  }
-
-  @Override
-  protected String knownValidCapability() {
-    // DistributedFileSystem advertises fs.capability.paths.permissions.
-    return FS_PERMISSIONS;
+    return new S3AStoreContract(conf);
   }
 }

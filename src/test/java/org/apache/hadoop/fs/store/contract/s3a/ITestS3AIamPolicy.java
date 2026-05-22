@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.hadoop.fs.store.contract;
+package org.apache.hadoop.fs.store.contract.s3a;
 
 import static org.apache.hadoop.tools.store.StoreTestUtils.captureSuccess;
 
@@ -28,7 +28,6 @@ import org.apache.hadoop.fs.s3a.S3AFileSystem;
 import org.apache.hadoop.fs.s3a.auth.RoleModel;
 import org.apache.hadoop.fs.s3a.auth.delegation.AWSPolicyProvider;
 import org.apache.hadoop.fs.s3a.sdk.IamPolicy;
-import org.apache.hadoop.fs.store.test.S3AStoreContract;
 import org.assertj.core.api.Assertions;
 import org.junit.Test;
 

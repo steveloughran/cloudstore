@@ -15,26 +15,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.hadoop.fs.store.test;
+package org.apache.hadoop.fs.store.contract.s3a;
+
+import static org.apache.hadoop.fs.store.diag.CapabilityKeys.ETAGS_AVAILABLE;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.contract.AbstractBondedFSContract;
+import org.apache.hadoop.fs.contract.AbstractFSContract;
+import org.apache.hadoop.fs.store.contract.AbstractPathCapabilityContractTest;
 
-/**
- * The contract of S3A: only enabled if the test bucket is provided.
- */
-public class S3AStoreContract extends AbstractBondedFSContract {
-
-  public static final String CONTRACT_XML = "contract/s3a.xml";
-
-  public S3AStoreContract(Configuration conf) {
-    super(conf);
-    // insert the base features
-    addConfResource(CONTRACT_XML);
+public class ITestS3APathCapabilityContract extends AbstractPathCapabilityContractTest {
+  @Override
+  protected AbstractFSContract createContract(Configuration conf) {
+    return new S3AStoreContract(conf);
   }
 
   @Override
-  public String getScheme() {
-    return "s3a";
+  protected String knownValidCapability() {
+    return ETAGS_AVAILABLE;
   }
 }

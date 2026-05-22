@@ -15,24 +15,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.hadoop.fs.store.contract;
+package org.apache.hadoop.fs.store.contract.s3a;
 
 import static org.apache.hadoop.tools.store.StoreTestUtils.captureSuccess;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.contract.AbstractFSContract;
 import org.apache.hadoop.fs.contract.AbstractFSContractTestBase;
-import org.apache.hadoop.fs.s3a.S3AFileSystem;
-import org.apache.hadoop.fs.s3a.sdk.BucketMetadata;
-import org.apache.hadoop.fs.store.test.S3AStoreContract;
+import org.apache.hadoop.fs.store.commands.BucketState;
 import org.assertj.core.api.Assertions;
 import org.junit.Test;
-import software.amazon.awssdk.services.s3.model.HeadBucketResponse;
 
 /**
- * S3A integration test for the {@code bucketmetadata} command.
+ * S3A integration test for the {@code bucketstate} command. Exercises the one happy-path output: a
+ * bucket policy is either present (multiline JSON), absent ("NONE"), or unreadable
+ * ("Access-Denied").
  */
-public class ITestS3ABucketMetadata extends AbstractFSContractTestBase {
+public class ITestS3ABucketState extends AbstractFSContractTestBase {
 
   @Override
   protected AbstractFSContract createContract(Configuration conf) {
@@ -40,12 +39,11 @@ public class ITestS3ABucketMetadata extends AbstractFSContractTestBase {
   }
 
   @Test
-  public void testBucketMetadataReportsRegion() throws Exception {
-    final S3AFileSystem fs = (S3AFileSystem) getFileSystem();
-    final HeadBucketResponse expected = fs.getS3AInternals().getBucketMetadata();
-    final String captured = captureSuccess(new BucketMetadata(), fs.getUri().toString());
-    Assertions.assertThat(captured).as("bucketmetadata output").contains("Bucket metadata from S3")
-        .contains("Region " + expected.bucketRegion()).contains("Location Name")
-        .contains("Location Type");
+  public void testBucketStatePrintsPolicy() throws Exception {
+    final String captured = captureSuccess(new BucketState(), getFileSystem().getUri().toString());
+    Assertions.assertThat(captured).as("bucketstate output").contains("Bucket policy:");
+    // one of the three documented outcomes: NONE, Access-Denied, or
+    // a multiline policy beginning on the next line.
+    Assertions.assertThat(captured).containsPattern("Bucket policy: (NONE|Access-Denied|\\n)");
   }
 }

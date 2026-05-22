@@ -14,6 +14,14 @@
 
 # Building
 
+
+# Hadoop versions
+
+There's a dependency on hadoop 3.4.2 to be compatible with its avro version and to
+have non-reflective access to the bulk delete API.
+You should still code targeting hadoop 3.4.0 as the minimum version *outside these specific
+cli commands*
+
 ## Compiling
 
 With maven
@@ -35,13 +43,14 @@ mvn site                        # render src/site → target/site (fluido skin)
 The `verify` lifecycle is the one CI runs. To run cloud-backed contract tests
 opt in via profile + credentials in `src/test/resources/auth-keys.xml`:
 
-# Hadoop versions
+## Testing
 
-There's a dependency on hadoop 3.4.2 to be compatible with its avro version and to
-have non-reflective access to the bulk delete API.
-You should still code targeting hadoop 3.4.0 as the minimum version *outside these specific
-cli commands*
+There are unit tests for store operations against the local fs and a mini hdfs cluster.
 
+There are Integration Tests which run with the `mvn verify` command, currently against S3 stores only.
+The tests are minimal, any basic S3 implementation will suffice.
+
+To bind to a store, follow the [testing s3a](https://hadoop.apache.org/docs/stable/hadoop-aws/tools/hadoop-aws/testing.html#File_auth-keys.xml) docs.
 
 ## Updating cloudstore release versions
 

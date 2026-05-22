@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.hadoop.fs.store.contract;
+package org.apache.hadoop.fs.store.contract.s3a;
 
 import static org.apache.hadoop.fs.s3a.Constants.SESSION_TOKEN;
 import static org.apache.hadoop.tools.store.StoreTestUtils.runAndCapture;
@@ -25,7 +25,6 @@ import org.apache.hadoop.fs.contract.AbstractFSContract;
 import org.apache.hadoop.fs.contract.AbstractFSContractTestBase;
 import org.apache.hadoop.fs.s3a.S3AFileSystem;
 import org.apache.hadoop.fs.s3a.sdk.SessionKeys;
-import org.apache.hadoop.fs.store.test.S3AStoreContract;
 import org.apache.hadoop.tools.store.StoreTestUtils.CapturedRun;
 import org.assertj.core.api.Assertions;
 import org.junit.Assume;

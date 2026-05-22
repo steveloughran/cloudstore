@@ -15,20 +15,38 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.hadoop.fs.store.contract;
+package org.apache.hadoop.fs.store.contract.hdfs;
 
+import java.io.IOException;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.contract.AbstractFSContract;
-import org.apache.hadoop.fs.store.test.S3AStoreContract;
+import org.apache.hadoop.fs.contract.hdfs.HDFSContract;
+import org.apache.hadoop.fs.store.contract.AbstractStorediagContractTest;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 
 /**
- * S3A contract test for the {@code listversions}, {@code restore} and {@code undelete} commands.
- * Skips if the bucket is not versioned.
+ * Storediag run against an in-process MiniDFSCluster.
+ *
+ * <p>
+ * Cluster lifecycle follows the {@code TestHDFSContract*} pattern: the cluster is created in
+ * {@code @BeforeClass} and torn down in {@code @AfterClass}, so a single MiniDFSCluster is shared
+ * by every {@code @Test} method in this class.
  */
-public class ITestS3AListVersionsContract extends AbstractListVersionsContractTest {
+public class TestHdfsStorediagContract extends AbstractStorediagContractTest {
+
+  @BeforeClass
+  public static void createCluster() throws IOException {
+    HDFSContract.createCluster();
+  }
+
+  @AfterClass
+  public static void teardownCluster() throws IOException {
+    HDFSContract.destroyCluster();
+  }
 
   @Override
   protected AbstractFSContract createContract(Configuration conf) {
-    return new S3AStoreContract(conf);
+    return new HDFSContract(conf);
   }
 }
