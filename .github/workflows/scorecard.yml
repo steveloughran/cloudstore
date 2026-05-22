@@ -1,0 +1,75 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# OSSF Scorecard: weekly supply-chain posture audit. Results upload to the
+# Security tab and (when the repo opts in to the OSSF API) feed the public
+# scorecard badge.
+#
+# Third-party actions are SHA-pinned per SECURITY.md.
+
+name: Scorecard supply-chain security
+
+on:
+  branch_protection_rule:
+  schedule:
+    # Mondays 08:23 UTC.
+    - cron: '23 8 * * 1'
+  push:
+    branches: [ main, master, trunk ]
+
+# Top-level default: read. Per-job permissions widen where required.
+permissions: read-all
+
+jobs:
+  analysis:
+    name: Scorecard analysis
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      # Upload SARIF to the Security tab.
+      security-events: write
+      # Read action run metadata (e.g. for Token-Permissions check).
+      actions: read
+      contents: read
+      # Required to publish results to the OSSF results API (opt-in below).
+      id-token: write
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      with:
+        persist-credentials: false
+
+    - name: Run analysis
+      uses: ossf/scorecard-action@4eaacf0543bb3f2c246792bd56e8cdeffafb205a # v2.4.3
+      with:
+        results_file: results.sarif
+        results_format: sarif
+        # Set to true to publish results to the OSSF results API and surface
+        # the public badge. Safe to leave on for a public repo.
+        publish_results: true
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      with:
+        name: SARIF file
+        path: results.sarif
+        retention-days: 5
+
+    - name: Upload to code-scanning dashboard
+      uses: github/codeql-action/upload-sarif@03e4368ac7daa2bd82b3e85262f3bf87ee112f57 # v3
+      with:
+        sarif_file: results.sarif

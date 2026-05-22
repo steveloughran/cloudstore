@@ -1,0 +1,79 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# CodeQL static analysis for Java. Runs on PRs to long-lived branches and
+# weekly on a schedule. Findings appear in the Security tab; the workflow
+# also produces a status check on PRs so reviewers see the badge.
+#
+# Third-party actions are SHA-pinned per SECURITY.md.
+
+name: CodeQL
+
+on:
+  push:
+    branches: [ main, master, trunk ]
+  pull_request:
+    branches: [ main, master, trunk ]
+  schedule:
+    # Mondays 07:17 UTC -- off the hour to dodge the GHA traffic spike.
+    - cron: '17 7 * * 1'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  analyze:
+    name: Analyze (java)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      # Required for the analyze step to upload SARIF to the Security tab.
+      security-events: write
+      # Needed by some private-repo paths; harmless on public repos.
+      actions: read
+      contents: read
+
+    steps:
+    - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+    - name: Set up JDK
+      uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
+      with:
+        # Bytecode is pinned to Java 8 but the build itself requires JDK 11+
+        # (Spotless / palantir-java-format). CodeQL just needs the build to
+        # succeed.
+        java-version: '11'
+        distribution: 'temurin'
+
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@03e4368ac7daa2bd82b3e85262f3bf87ee112f57 # v3
+      with:
+        languages: java-kotlin
+        # Default + security-extended queries. Add security-and-quality if
+        # noise stays manageable.
+        queries: security-extended
+
+    - name: Build with Maven
+      run: mvn -B -DskipTests package
+
+    - name: Perform CodeQL analysis
+      uses: github/codeql-action/analyze@03e4368ac7daa2bd82b3e85262f3bf87ee112f57 # v3
+      with:
+        category: "/language:java-kotlin"

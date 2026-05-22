@@ -1,0 +1,56 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Dependency Review: fails the PR if it introduces a new vulnerable
+# transitive dependency or a disallowed license. Surfaces a PR comment
+# summarizing new dependencies.
+#
+# Hadoop / AWS SDK / GCS-connector pins are manually chosen to work around
+# known CVEs in the broader Hadoop ecosystem (see dependabot.yml). The
+# action's failure threshold below ('high') matches that pragmatic stance
+# without rubber-stamping new highs that were added in *this* PR.
+#
+# Third-party actions are SHA-pinned per SECURITY.md.
+
+name: Dependency review
+
+on:
+  pull_request:
+    branches: [ main, master, trunk ]
+
+permissions:
+  contents: read
+  # Required so the action can post the summary comment.
+  pull-requests: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  review:
+    name: Dependency review
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+    - name: Checkout
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+
+    - name: Dependency review
+      uses: actions/dependency-review-action@2031cfc080254a8a887f58cffee85186f0e49e48 # v4.9.0
+      with:
+        fail-on-severity: high
+        comment-summary-in-pr: on-failure
