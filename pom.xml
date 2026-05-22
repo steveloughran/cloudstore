@@ -62,7 +62,7 @@
     <checkstyle.version>9.3</checkstyle.version>
     <doxia-module-markdown.version>1.12.0</doxia-module-markdown.version>
     <gcs-connector.version>hadoop3-2.2.4</gcs-connector.version>
-    <hadoop.version>3.4.2</hadoop.version>
+    <hadoop.version>3.5.0</hadoop.version>
     <junit.version>4.13.2</junit.version>
 
     <!-- Add maven build version dependencies here, in order, prefixed with maven -->
