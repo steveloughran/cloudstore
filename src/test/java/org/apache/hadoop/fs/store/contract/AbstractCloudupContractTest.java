@@ -17,18 +17,38 @@
  */
 package org.apache.hadoop.fs.store.contract;
 
+import static org.apache.hadoop.fs.store.CommonParameters.LARGEST;
+import static org.apache.hadoop.fs.store.CommonParameters.THREADS;
+import static org.apache.hadoop.service.launcher.LauncherExitCodes.EXIT_USAGE;
+import static org.apache.hadoop.test.LambdaTestUtils.intercept;
+import static org.apache.hadoop.tools.store.StoreTestUtils.createTestFiles;
+import static org.apache.hadoop.tools.store.StoreTestUtils.expectException;
 import static org.apache.hadoop.tools.store.StoreTestUtils.expectSuccess;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.Set;
+import java.util.TreeSet;
 import org.apache.commons.io.FileUtils;
 import org.apache.hadoop.fs.FileStatus;
-import org.apache.hadoop.fs.FileUtil;
+import org.apache.hadoop.fs.FileSystem;
+import org.apache.hadoop.fs.LocatedFileStatus;
 import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.fs.RemoteIterator;
 import org.apache.hadoop.fs.contract.AbstractFSContractTestBase;
+import org.apache.hadoop.fs.contract.ContractTestUtils;
 import org.apache.hadoop.fs.tools.cloudup.Cloudup;
+import org.apache.hadoop.tools.store.StoreTestUtils;
+import org.apache.hadoop.util.ExitUtil;
+import org.assertj.core.api.Assertions;
+import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Cross-FS contract tests for the {@code cloudup} command. The destination is the test filesystem
@@ -41,6 +61,22 @@ import org.junit.Test;
  */
 public abstract class AbstractCloudupContractTest extends AbstractFSContractTestBase {
 
+  private static final Logger LOG = LoggerFactory.getLogger(AbstractCloudupContractTest.class);
+
+  @Rule
+  public TemporaryFolder tempdir = new TemporaryFolder();
+
+  private File sourceDir;
+
+  private Path destDir;
+
+  @Before
+  public void setup() throws Exception {
+    super.setup();
+    destDir = methodPath();
+    sourceDir = tempdir.getRoot();
+  }
+
   /**
    * Single-file copy from a local temp dir into the contract FS.
    *
@@ -50,8 +86,7 @@ public abstract class AbstractCloudupContractTest extends AbstractFSContractTest
    */
   @Test
   public void testCloudupSingleFile() throws Exception {
-    File srcFile = File.createTempFile("cloudup-single", ".txt");
-    srcFile.deleteOnExit();
+    File srcFile = tempdir.newFile("cloudup-single.txt");
     Files.write(srcFile.toPath(), "hello cloudstore".getBytes(StandardCharsets.UTF_8));
 
     Path destDir = methodPath();
@@ -61,8 +96,10 @@ public abstract class AbstractCloudupContractTest extends AbstractFSContractTest
 
     Path destFile = new Path(destDir, srcFile.getName());
     FileStatus dest = getFileSystem().getFileStatus(destFile);
-    assertTrue("Destination is not a file: " + dest, dest.isFile());
-    assertEquals("Destination size mismatch", srcFile.length(), dest.getLen());
+    Assertions.assertThat(dest.isDirectory()).describedAs("Destination is not a file: %s", dest)
+        .isFalse();
+    Assertions.assertThat(dest.getLen()).describedAs("length of file %s", dest)
+        .isEqualTo(srcFile.length());
   }
 
   /**
@@ -70,29 +107,23 @@ public abstract class AbstractCloudupContractTest extends AbstractFSContractTest
    */
   @Test
   public void testCloudupRecursiveTree() throws Exception {
-    File srcDir = Files.createTempDirectory("cloudup-tree").toFile();
-    try {
-      FileUtils.write(new File(srcDir, "top.txt"), "top", StandardCharsets.UTF_8);
-      File sub = new File(srcDir, "sub");
-      assertTrue(sub.mkdir());
-      FileUtils.write(new File(sub, "a.txt"), "alpha", StandardCharsets.UTF_8);
-      FileUtils.write(new File(sub, "b.txt"), "beta", StandardCharsets.UTF_8);
+    File srcDir = tempdir.newFolder("cloudup-tree");
+    FileUtils.write(new File(srcDir, "top.txt"), "top", StandardCharsets.UTF_8);
+    File sub = new File(srcDir, "sub");
+    assertTrue(sub.mkdir());
+    FileUtils.write(new File(sub, "a.txt"), "alpha", StandardCharsets.UTF_8);
+    FileUtils.write(new File(sub, "b.txt"), "beta", StandardCharsets.UTF_8);
 
-      Path destPath = new Path(methodPath(), "tree");
-      getFileSystem().delete(destPath, true);
+    Path destPath = path("tree");
+    getFileSystem().delete(destPath, true);
 
-      expectSuccess(new Cloudup(), "-threads", "2", srcDir.toURI().toString(),
-          destPath.toUri().toString());
+    expectSuccess(new Cloudup(), "-threads", "2", srcDir.toURI().toString(),
+        destPath.toUri().toString());
 
-      assertTrue("Destination tree is missing top.txt",
-          getFileSystem().exists(new Path(destPath, "top.txt")));
-      assertTrue("Destination tree is missing sub/a.txt",
-          getFileSystem().exists(new Path(destPath, "sub/a.txt")));
-      assertTrue("Destination tree is missing sub/b.txt",
-          getFileSystem().exists(new Path(destPath, "sub/b.txt")));
-    } finally {
-      FileUtil.fullyDelete(srcDir);
-    }
+    assertPathExists("dest", new Path(destPath, "top.txt"));
+    assertPathExists("copied file", new Path(destPath, "sub/a.txt"));
+    assertPathExists("copied file", new Path(destPath, "sub/b.txt"));
+    assertPathExists("dest", new Path(destPath, "top.txt"));
   }
 
   /**
@@ -101,12 +132,13 @@ public abstract class AbstractCloudupContractTest extends AbstractFSContractTest
    */
   @Test
   public void testCloudupOverwrite() throws Exception {
-    File srcFile = File.createTempFile("cloudup-overwrite", ".txt");
+    File srcFile = tempdir.newFile("cloudup-overwrite.txt");
     srcFile.deleteOnExit();
     Files.write(srcFile.toPath(), "v1".getBytes(StandardCharsets.UTF_8));
 
     Path destDir = methodPath();
-    getFileSystem().delete(destDir, true);
+    final FileSystem fs = getFileSystem();
+    fs.delete(destDir, true);
     Path destFile = new Path(destDir, srcFile.getName());
 
     // initial copy
@@ -116,8 +148,41 @@ public abstract class AbstractCloudupContractTest extends AbstractFSContractTest
     Files.write(srcFile.toPath(), "v2-longer".getBytes(StandardCharsets.UTF_8));
     expectSuccess(new Cloudup(), "-overwrite", srcFile.toURI().toString(),
         destDir.toUri().toString());
-
-    assertEquals("Destination not overwritten with new payload", srcFile.length(),
-        getFileSystem().getFileStatus(destFile).getLen());
+    ContractTestUtils.assertFileHasLength(fs, destFile, (int) srcFile.length());
   }
+
+  @Test
+  public void testCopyRecursive() throws Throwable {
+
+    int expected = createTestFiles(sourceDir, 64);
+    Path destDir = methodPath();
+
+    expectSuccess(new Cloudup(), "-" + THREADS, "4", "-" + LARGEST, "3",
+        sourceDir.toURI().toString(), destDir.toString());
+
+    Set<String> entries = new TreeSet<>();
+    RemoteIterator<LocatedFileStatus> iterator = getFileSystem().listFiles(destDir, true);
+    int count = 0;
+    while (iterator.hasNext()) {
+      LocatedFileStatus next = iterator.next();
+      entries.add(next.getPath().toUri().toString());
+      LOG.info("Entry {} size = {}", next.getPath(), next.getLen());
+      count++;
+    }
+    Assertions.assertThat(entries).hasSize(expected);
+  }
+
+  @Test
+  public void testNoArgs() throws Throwable {
+    // no args == failure
+    intercept(ExitUtil.ExitException.class, Integer.toString(EXIT_USAGE),
+        () -> StoreTestUtils.exec(new Cloudup()));
+  }
+
+  @Test
+  public void testNonexistentSrcAndDest() throws Throwable {
+    expectException(FileNotFoundException.class, new Cloudup(),
+        sourceDir.toURI().toString() + "/subdir", destDir.toString());
+  }
+
 }

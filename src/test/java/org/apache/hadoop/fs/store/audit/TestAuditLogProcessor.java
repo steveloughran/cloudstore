@@ -26,7 +26,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.time.Instant;
 import java.time.format.DateTimeParseException;
 import java.util.Map;
@@ -40,6 +39,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TemporaryFolder;
 import org.junit.rules.TestName;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,6 +54,9 @@ public class TestAuditLogProcessor {
   @Rule
   public TestName methodName = new TestName();
 
+  @Rule
+  public TemporaryFolder tempdir = new TemporaryFolder();
+
   @BeforeClass
   public static void nameTestThread() {
     Thread.currentThread().setName("JUnit");
@@ -62,6 +65,11 @@ public class TestAuditLogProcessor {
   @Before
   public void nameThread() {
     Thread.currentThread().setName("JUnit-" + getMethodName());
+  }
+
+  @Before
+  public void setup() throws Exception {
+    sampleDir = tempdir.newFolder();
   }
 
   protected String getMethodName() {
@@ -123,6 +131,7 @@ public class TestAuditLogProcessor {
 
   private File sampleDir;
 
+
   private final AuditLogProcessor auditLogProcessor = new AuditLogProcessor(new Configuration(), 1);
 
   /**
@@ -148,7 +157,7 @@ public class TestAuditLogProcessor {
     assertThat(record.getRemoteip()).isEqualTo(ip);
     assertThat(record.getEvent())
         .describedAs("Event timestamp calculated from '%s'", record.getTstamp())
-        .isEqualTo(parseToInstant(TIMESTAMP_1));
+        .isEqualTo(parseToInstant(TIMESTAMP_1).get());
   }
 
   /**
@@ -239,7 +248,7 @@ public class TestAuditLogProcessor {
   }
 
   private Path tempAvroPath() throws IOException {
-    File destFile = Files.createTempFile(getMethodName(), ".avro").toFile();
+    File destFile = tempdir.newFile(getMethodName() + ".avro");
     return new Path(destFile.toURI());
   }
 
@@ -249,7 +258,6 @@ public class TestAuditLogProcessor {
    */
   @Test
   public void testMergeAndParseAuditLogCounter() throws IOException {
-    sampleDir = Files.createTempDirectory("sampleDir").toFile();
     File firstSampleFile = File.createTempFile("sampleFile1", ".txt", sampleDir);
     File secondSampleFile = File.createTempFile("sampleFile2", ".txt", sampleDir);
     File thirdSampleFile = File.createTempFile("sampleFile3", ".txt", sampleDir);
@@ -263,7 +271,7 @@ public class TestAuditLogProcessor {
     Path logsPath = new Path(sampleDir.toURI());
     Path destPath = tempAvroPath();
     auditLogProcessor.mergeAndParseAuditLogFiles(logsPath, destPath, true,
-        org.apache.hadoop.fs.store.audit.AuditLogProcessor.PROCESS_ALL);
+        AuditLogProcessor.PROCESS_ALL);
     assertThat(auditLogProcessor.getLogRecordsProcessed())
         .describedAs("Mismatch in the number of audit logs parsed").isEqualTo(3);
     assertThat(auditLogProcessor.getLogFilesParsed()).isEqualTo(3);
@@ -273,7 +281,7 @@ public class TestAuditLogProcessor {
   public void parsesUtcStringToInstant() {
     String s = "13/May/2021:11:26:06 +0000";
     Instant expected = Instant.parse("2021-05-13T11:26:06Z");
-    assertThat(parseToInstant(s)).describedAs("parsing of %s", s).isEqualTo(expected);
+    assertThat(parseToInstant(s).get()).describedAs("parsing of %s", s).isEqualTo(expected);
   }
 
   @Test

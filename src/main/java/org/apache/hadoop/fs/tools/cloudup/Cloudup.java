@@ -29,6 +29,7 @@ import static org.apache.hadoop.fs.store.CommonParameters.STANDARD_OPTS;
 import static org.apache.hadoop.fs.store.CommonParameters.THREADS;
 import static org.apache.hadoop.fs.store.CommonParameters.UPDATE;
 import static org.apache.hadoop.fs.store.StoreUtils.await;
+import static org.apache.hadoop.fs.store.StoreUtils.isParentOf;
 
 import java.io.Closeable;
 import java.io.FileNotFoundException;
@@ -86,7 +87,7 @@ public class Cloudup extends StoreEntryPoint {
 
   private static final int DEFAULT_BLOCK_SIZE = 2;
 
-  // all the verbs, here just just make renaming again easier.
+  // all the verbs, here just make renaming again easier.
 
   private static final String COPYING = "Copying";
 
@@ -98,7 +99,7 @@ public class Cloudup extends StoreEntryPoint {
 
   private static final String COPIED = "copied";
 
-  private int blockSize = DEFAULT_BLOCK_SIZE;
+  private long blockSize = DEFAULT_BLOCK_SIZE;
 
   /**
    * Usage string: {@value}.
@@ -250,13 +251,12 @@ public class Cloudup extends StoreEntryPoint {
     blockSize = getIntOption(BLOCK, DEFAULT_BLOCK_SIZE) * (1024 * 1024);
 
     println(
-        COPYING + " from %s to %s;" + " threads=%,d; large files=%,d; block size=%dn;"
+        COPYING + " from %s to %s;" + " threads=%,d; large files=%,d; block size=%d;"
             + " overwrite=%s; update=%s verbose=%s; ignore failures=%s",
         sourcePath, destPath, threads, largest, blockSize, overwrite, update, verbose,
         ignoreFailures);
 
-    // see what we have for a source: file & dir are treated differently
-    FileStatus sourcePathStatus = sourceFS.getFileStatus(sourcePath);
+
     try {
       destPathStatus = destFS.getFileStatus(destPath);
     } catch (FileNotFoundException e) {
@@ -271,12 +271,10 @@ public class Cloudup extends StoreEntryPoint {
 
       String s = sourcePath.toString();
       String d = destPath.toString();
-      boolean condition1 = !s.startsWith(d);
-      Preconditions.checkArgument(condition1,
-          "Source path " + s + "%s is under destination path " + d);
-      boolean condition = !d.startsWith(s);
-      Preconditions.checkArgument(condition,
-          "Destination path " + s + "%s is under source path " + d);
+      Preconditions.checkArgument(!isParentOf(sourcePath, destPath),
+          "Source path %s is under destination path %s", s, d);
+      Preconditions.checkArgument(!isParentOf(destPath, sourcePath),
+          "Destination path %s is under source path %s", d, s);
     }
 
     // worker pool
@@ -295,6 +293,7 @@ public class Cloudup extends StoreEntryPoint {
 
     List<UploadEntry> uploadList = await(listFilesOperation);
     final int uploadCount = uploadList.size();
+    int uploaded = 0;
 
     preparationDuration.finished();
     println("Files to " + COPY_LC + " = %,d; preparation  = %s", uploadCount, preparationDuration);
@@ -315,13 +314,16 @@ public class Cloudup extends StoreEntryPoint {
     final int sortUploadCount = Math.min(largest, uploadCount);
     long sortUploadSize = 0;
     int submittedFiles = 0;
+
     for (int i = 0; i < sortUploadCount; i++) {
-      UploadEntry upload = uploadList.get(i);
+      // take the head entries off and submit
+      UploadEntry upload = uploadList.remove(0);
       long submitSize = submit(upload);
       println("[%02d]: size = %,d bytes: %s", i + 1, upload.getSize(), upload.getSource());
       if (submitSize >= 0) {
         submittedFiles++;
         sortUploadSize += submitSize;
+        uploaded++;
       }
     }
 
@@ -343,6 +345,7 @@ public class Cloudup extends StoreEntryPoint {
           // file was submitted for upload
           shuffledUploadCount++;
           shuffledUploadSize += size;
+          uploaded++;
         }
       }
       println("Shuffled files and queued: %,d, total size = %,d bytes", shuffledUploadCount,
@@ -358,9 +361,9 @@ public class Cloudup extends StoreEntryPoint {
     final long uploadSize = sortUploadSize + shuffledUploadSize;
 
     // now await all outcomes to complete
-    println("Awaiting completion of %,d operations", uploadCount);
-    List<Future<Outcome>> outcomes = new ArrayList<>(uploadCount);
-    for (int i = 0; i < uploadCount; i++) {
+    println("Awaiting completion of %,d operations", uploaded);
+    List<Future<Outcome>> outcomes = new ArrayList<>(uploaded);
+    for (int i = 0; i < uploaded; i++) {
       Future<Outcome> outcome = completion.take();
       LOG.debug("Operation {} completed", i + 1);
       outcomes.add(outcome);
@@ -395,7 +398,7 @@ public class Cloudup extends StoreEntryPoint {
           finalUploadedSize += result.getBytesUploaded();
         }
       } catch (InterruptedException ignored) {
-        // ignored
+        Thread.currentThread().interrupt();
       } catch (Exception e) {
         errors++;
         if (exception == null) {
@@ -405,13 +408,14 @@ public class Cloudup extends StoreEntryPoint {
     }
 
     heading("Summary of " + COPY_LC + " from %s to %s", sourcePath, destPath);
-    println("File copies attempted: %,d; size %,d bytes", uploadCount, uploadSize, uploadDuration);
+    println("File copies attempted: %,d; size %,d bytes; duration %s", uploadCount, uploadSize,
+        uploadDuration);
     println("Files skipped: %,d, size %,d bytes", skipCount, skippedSize);
     println();
     println("Listing duration: (HH:MM:ss) : %s", preparationDuration);
     println(COPY_CAPS + " duration: (HH:MM:ss) : %s", uploadDuration);
     println();
-    final int filesActuallyUploaded = uploadCount - skipCount;
+    final int filesActuallyUploaded = uploaded - skipCount;
     if (filesActuallyUploaded > 0) {
       println("Effective bandwidth %,.3f MiB/s, %,.3f Megabits/s",
           uploadTimer.bandwidth(finalUploadedSize),
@@ -496,19 +500,21 @@ public class Cloudup extends StoreEntryPoint {
   private List<UploadEntry> createUploadList() throws IOException {
     List<UploadEntry> uploads = new ArrayList<>();
     RemoteIterator<LocatedFileStatus> ri = sourceFS.listFiles(sourcePath, true);
-    while (ri.hasNext()) {
-      LocatedFileStatus status = ri.next();
-      UploadEntry entry = new UploadEntry(status);
-      entry.setDest(getFinalPath(status.getPath()));
-      uploads.add(entry);
+    try {
+      while (ri.hasNext()) {
+        LocatedFileStatus status = ri.next();
+        UploadEntry entry = new UploadEntry(status);
+        entry.setDest(getFinalPath(status.getPath()));
+        uploads.add(entry);
+      }
+    } finally {
+      if (ri instanceof Closeable) {
+        ((Closeable) ri).close();
+      }
     }
     if (verbose) {
       println("List %s", ri);
     }
-    if (ri instanceof Closeable) {
-      ((Closeable) ri).close();
-    }
-
     return uploads;
   }
 
@@ -606,11 +612,7 @@ public class Cloudup extends StoreEntryPoint {
     final FSDataOutputStreamBuilder output = destFS.createFile(dest).overwrite(overwrite || update)
         .progress(progress).recursive().bufferSize(bufferSize);
     // enable optimised read options on s3a fs and maybe others.
-    output.opt("fs.s3a.create.performance", Boolean.valueOf(s3aCreatePerformance)); // either we
-                                                                                    // know there's
-                                                                                    // no file, or
-                                                                                    // we're
-                                                                                    // overwriting
+    output.opt("fs.s3a.create.performance", s3aCreatePerformance);
 
     final FutureDataInputStreamBuilder input =
         sourceFS.openFile(source).opt("fs.option.openfile.read.policy", "whole-file, sequential")

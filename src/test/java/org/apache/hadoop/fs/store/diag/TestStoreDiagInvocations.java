@@ -18,9 +18,9 @@
 package org.apache.hadoop.fs.store.diag;
 
 import static org.apache.hadoop.service.launcher.LauncherExitCodes.EXIT_USAGE;
+import static org.apache.hadoop.test.LambdaTestUtils.intercept;
 import static org.apache.hadoop.tools.store.StoreTestUtils.expectExitException;
 import static org.apache.hadoop.tools.store.StoreTestUtils.expectSuccess;
-import static org.apache.hadoop.tools.store.StoreTestUtils.intercept;
 
 import java.io.File;
 import java.io.FileNotFoundException;

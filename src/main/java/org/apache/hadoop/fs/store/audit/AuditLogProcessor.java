@@ -38,6 +38,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import org.apache.avro.file.DataFileWriter;
 import org.apache.avro.io.DatumWriter;
@@ -181,8 +182,8 @@ public class AuditLogProcessor {
    */
   public static HashMap<String, String> parseAuditHeader(String referrerHeader) {
     HashMap<String, String> referrerHeaderMap = new HashMap<>();
-    if (isNullOrEmpty(referrerHeader) || referrerHeader.equals("-")) {
 
+    if (isNullOrEmpty(referrerHeader) || referrerHeader.equals("-")) {
       LOG.debug("This is an empty string or null string, expected a valid string to parse");
       return referrerHeaderMap;
     }
@@ -190,6 +191,10 @@ public class AuditLogProcessor {
     // '?' used as the split point between the headers and the url. This
     // returns the first occurrence of '?'
     int indexOfQuestionMark = referrerHeader.indexOf("?");
+    if (indexOfQuestionMark < 0 || indexOfQuestionMark + 1 == referrerHeader.length()) {
+      LOG.debug("no ? in the string/args after the ?");
+      return referrerHeaderMap;
+    }
     String httpReferrer =
         referrerHeader.substring(indexOfQuestionMark + 1, referrerHeader.length() - 1);
 
@@ -324,11 +329,12 @@ public class AuditLogProcessor {
     // Instantiating generated AvroDataRecord class
     AvroS3LogEntryRecord avroDataRecord = new AvroS3LogEntryRecord();
 
-    // special timestamp handling
+    // special timestamp handling. This is a mandatory field, but we're being
+    // cautious to keep the audit tools happy.
     String timestamp = auditLogMap.get(TIMESTAMP_KEY);
     timestamp = timestamp.substring(1, timestamp.length() - 1);
     try {
-      avroDataRecord.setEvent(parseToInstant(timestamp));
+      avroDataRecord.setEvent(parseToInstant(timestamp).orElseGet(() -> EPOCH_START));
     } catch (DateTimeParseException e) {
       avroDataRecord.setEvent(EPOCH_START);
     }
@@ -382,13 +388,10 @@ public class AuditLogProcessor {
 
   @Override
   public String toString() {
-    final StringBuilder sb = new StringBuilder("AuditLogProcessor{");
-    sb.append("logFilesParsed=").append(logFilesParsed);
-    sb.append(", logRecordsProcessed=").append(logRecordsProcessed);
-    sb.append(", referrerHeadersParsed=").append(referrerHeadersParsed);
-    sb.append(", recordsSkipped=").append(recordsSkipped);
-    sb.append('}');
-    return sb.toString();
+    String sb = "AuditLogProcessor{" + "logFilesParsed=" + logFilesParsed + ", logRecordsProcessed="
+        + logRecordsProcessed + ", referrerHeadersParsed=" + referrerHeadersParsed
+        + ", recordsSkipped=" + recordsSkipped + '}';
+    return sb;
   }
 
   /**
@@ -396,9 +399,12 @@ public class AuditLogProcessor {
    * 
    * @throws DateTimeParseException if the input cannot be parsed.
    */
-  public static Instant parseToInstant(String input) {
-    OffsetDateTime odt = OffsetDateTime.parse(input, TS_FORMATTER);
-    return odt.toInstant();
+  public static Optional<Instant> parseToInstant(String input) {
+    if (!isNullOrEmpty(input)) {
+      OffsetDateTime odt = OffsetDateTime.parse(input, TS_FORMATTER);
+      return Optional.of(odt.toInstant());
+    }
+    return Optional.empty();
   }
 
   /**
@@ -408,8 +414,11 @@ public class AuditLogProcessor {
    * @return parsed value or 0 on a failure.
    */
   public static long parseToEpochMillis(String input) {
+    if (isNullOrEmpty(input)) {
+      return 0;
+    }
     try {
-      return parseToInstant(input).toEpochMilli();
+      return parseToInstant(input).map(Instant::toEpochMilli).orElse(0L);
     } catch (DateTimeParseException e) {
       return 0;
     }

@@ -17,7 +17,6 @@
  */
 package org.apache.hadoop.tools.store;
 
-import static org.assertj.core.api.Assertions.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
@@ -25,11 +24,11 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.Callable;
 import org.apache.commons.io.FileUtils;
-import org.apache.hadoop.fs.FileUtil;
 import org.apache.hadoop.fs.contract.ContractTestUtils;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
 import org.apache.hadoop.fs.store.diag.Printout;
 import org.apache.hadoop.fs.store.diag.StringBuilderPrintout;
+import org.apache.hadoop.test.LambdaTestUtils;
 import org.apache.hadoop.util.ExitUtil;
 import org.apache.hadoop.util.StringUtils;
 import org.apache.hadoop.util.Tool;
@@ -57,7 +56,7 @@ public final class StoreTestUtils {
 
   public static <E extends Throwable> E expectException(Class<E> clazz, final Tool tool,
       final String... args) throws Exception {
-    return intercept(clazz, () -> exec(tool, args));
+    return LambdaTestUtils.intercept(clazz, () -> exec(tool, args));
   }
 
   private static String robustToString(Object o) {
@@ -73,23 +72,9 @@ public final class StoreTestUtils {
     }
   }
 
-  @SuppressWarnings("unchecked")
-  public static <T, E extends Throwable> E intercept(Class<E> clazz, Callable<T> eval)
-      throws Exception {
-    try {
-      T result = eval.call();
-      throw new AssertionError("Expected an exception, got " + robustToString(result));
-    } catch (Throwable e) {
-      if (clazz.isAssignableFrom(e.getClass())) {
-        return (E) e;
-      }
-      throw e;
-    }
-  }
-
   public static <T> ExitUtil.ExitException expectExitException(int exitCode, Callable<T> eval)
       throws Exception {
-    final ExitUtil.ExitException ex = intercept(ExitUtil.ExitException.class, eval);
+    final ExitUtil.ExitException ex = LambdaTestUtils.intercept(ExitUtil.ExitException.class, eval);
     if (ex.status != exitCode) {
       throw ex;
     }
@@ -165,23 +150,6 @@ public final class StoreTestUtils {
 
   public static void mkdirs(File dir) {
     assertThat(dir.mkdirs()).describedAs("Failed to create " + dir).isTrue();
-  }
-
-  public static File createTestDir() throws IOException {
-    String testDir = System.getProperty("test.build.data");
-    File testDirectory;
-    if (testDir == null) {
-      File tf = File.createTempFile("TestLocalCloudup", ".dir");
-      tf.delete();
-      testDir = tf.getAbsolutePath();
-      testDirectory = new File(testDir);
-    } else {
-      testDirectory = new File(testDir);
-      // test dir from sysprop; force delete
-      FileUtil.fullyDelete(testDirectory);
-    }
-    mkdirs(testDirectory);
-    return testDirectory;
   }
 
   /**

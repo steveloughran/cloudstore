@@ -17,27 +17,17 @@
  */
 package org.apache.hadoop.fs.store.contract;
 
-import static org.apache.hadoop.fs.store.diag.CapabilityKeys.FS_PERMISSIONS;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.contract.AbstractFSContract;
 import org.apache.hadoop.fs.contract.localfs.LocalFSContract;
 
 /**
- * pathcapability run against the local filesystem. Always-on.
+ * Always-on contract test running storediag against the local filesystem.
  */
-public class ITestLocalPathCapabilityContract extends AbstractPathCapabilityContractTest {
+public class TestLocalStorediagContract extends AbstractStorediagContractTest {
 
   @Override
   protected AbstractFSContract createContract(Configuration conf) {
     return new LocalFSContract(conf);
-  }
-
-  @Override
-  protected String knownValidCapability() {
-    // ChecksumFileSystem (the wrapper around RawLocalFileSystem) explicitly
-    // blocks FS_APPEND / FS_CONCAT but delegates other capabilities to the
-    // underlying raw FS, which advertises FS_PERMISSIONS.
-    return FS_PERMISSIONS;
   }
 }

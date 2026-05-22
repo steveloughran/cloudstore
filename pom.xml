@@ -100,23 +100,11 @@
         <exclusion><groupId>com.google.code.gson</groupId><artifactId>*</artifactId></exclusion>
         <exclusion><groupId>com.google.re2j</groupId><artifactId>*</artifactId></exclusion>
         <exclusion><groupId>com.jcraft</groupId><artifactId>*</artifactId></exclusion>
-        <exclusion><groupId>com.sun.jersey</groupId><artifactId>*</artifactId></exclusion>
-        <exclusion><groupId>com.sun.jersey</groupId><artifactId>*</artifactId></exclusion>
-        <exclusion><groupId>io.netty</groupId><artifactId>*</artifactId></exclusion>
-        <exclusion><groupId>jakarta.activation</groupId><artifactId>*</artifactId></exclusion>
-        <exclusion><groupId>jakarta.servlet.jsp</groupId><artifactId>*</artifactId></exclusion>
-        <exclusion><groupId>javax.servlet.jsp</groupId><artifactId>*</artifactId></exclusion>
-        <exclusion><groupId>javax.servlet</groupId><artifactId>*</artifactId></exclusion>
-        <exclusion><groupId>jakarta.ws.rs</groupId><artifactId>*</artifactId></exclusion>
         <exclusion><groupId>org.apache.curator</groupId><artifactId>*</artifactId></exclusion>
         <exclusion><groupId>org.apache.zookeeper</groupId><artifactId>*</artifactId></exclusion>
-        <exclusion><groupId>org.codehaus.jettison</groupId><artifactId>*</artifactId></exclusion>
-        <exclusion><groupId>org.eclipse.jetty</groupId><artifactId>*</artifactId></exclusion>
-        <exclusion><groupId>org.glassfish.jersey.core</groupId><artifactId>*</artifactId></exclusion>
-        <exclusion><groupId>org.glassfish.jersey.containers</groupId><artifactId>*</artifactId></exclusion>
-        <exclusion><groupId>org.glassfish.jersey.inject</groupId><artifactId>*</artifactId></exclusion>
         <exclusion><groupId>com.github.luben</groupId><artifactId>*</artifactId></exclusion>
-        <exclusion><groupId>org.glassfish.jaxb</groupId><artifactId>*</artifactId></exclusion>
+        <exclusion><groupId>org.apache.avro</groupId><artifactId>*</artifactId></exclusion>
+        <exclusion><groupId>org.apache.assertj</groupId><artifactId>*</artifactId></exclusion>
       </exclusions>
     </dependency>
 

@@ -31,6 +31,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import org.apache.hadoop.conf.StorageUnit;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.store.StoreUtils.StringPair;
 import org.apache.hadoop.util.ExitUtil;
 import org.junit.Rule;
@@ -347,5 +348,46 @@ public class TestStoreUtils {
   @Test
   public void prettyIOStatisticsOnPlainObjectDoesNotThrow() {
     assertThat(StoreUtils.prettyIOStatistics(new Object())).isNotNull();
+  }
+
+  // ---------- isParentOf ----------
+
+  @Test
+  public void isParentOfValidAncestor() {
+    Path parent = new Path("s3a://bucket/parent");
+    Path child = new Path("s3a://bucket/parent/child/grandchild");
+    assertThat(StoreUtils.isParentOf(parent, child))
+        .describedAs("parent should be an ancestor of child").isTrue();
+  }
+
+  @Test
+  public void isParentOfAdjacentPathDoesNotMatch() {
+    Path parent = new Path("s3a://bucket/parent");
+    Path adjacent = new Path("s3a://bucket/other/child");
+    assertThat(StoreUtils.isParentOf(parent, adjacent))
+        .describedAs("adjacent path should not match as child of parent").isFalse();
+  }
+
+  @Test
+  public void isParentOfRootDoesNotMatch() {
+    Path root = new Path("s3a://bucket/");
+    Path child = new Path("s3a://bucket/parent/child");
+    assertThat(StoreUtils.isParentOf(root, child))
+        .describedAs("root should not be considered a valid parent").isFalse();
+  }
+
+  @Test
+  public void isParentOfSelfDoesNotMatch() {
+    Path path = new Path("s3a://bucket/parent/child");
+    assertThat(StoreUtils.isParentOf(path, path))
+        .describedAs("a path should not be considered a parent of itself").isFalse();
+  }
+
+  @Test
+  public void isParentOfChildIsNotParentOfParent() {
+    Path parent = new Path("s3a://bucket/parent");
+    Path child = new Path("s3a://bucket/parent/child");
+    assertThat(StoreUtils.isParentOf(child, parent))
+        .describedAs("child should not be considered a parent of its own parent").isFalse();
   }
 }

@@ -22,6 +22,7 @@ import static org.apache.hadoop.tools.store.StoreTestUtils.expectSuccess;
 
 import org.apache.hadoop.fs.shell.CommandFormat;
 import org.apache.hadoop.service.launcher.LauncherExitCodes;
+import org.apache.hadoop.test.LambdaTestUtils;
 import org.apache.hadoop.tools.store.StoreTestUtils;
 import org.junit.Test;
 
@@ -68,7 +69,7 @@ public class TestTLSInfo {
   /** Two positional args: caught by CommandFormat before the run() body. */
   @Test
   public void testTooManyArgs() throws Exception {
-    StoreTestUtils.intercept(CommandFormat.TooManyArgumentsException.class,
+    LambdaTestUtils.intercept(CommandFormat.TooManyArgumentsException.class,
         () -> TLSInfo.exec("first", "second", "third"));
   }
 

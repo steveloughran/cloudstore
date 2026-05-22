@@ -21,13 +21,10 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.contract.AbstractFSContract;
 import org.apache.hadoop.fs.contract.localfs.LocalFSContract;
 
-/**
- * Always-on contract test running storediag against the local filesystem.
- */
-public class ITestLocalStorediagContract extends AbstractStorediagContractTest {
+public class TestLocalCloudupContract extends AbstractCloudupContractTest {
 
   @Override
-  protected AbstractFSContract createContract(Configuration conf) {
+  protected AbstractFSContract createContract(final Configuration conf) {
     return new LocalFSContract(conf);
   }
 }

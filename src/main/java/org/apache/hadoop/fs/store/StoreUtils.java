@@ -33,6 +33,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.StorageUnit;
+import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.util.ExitUtil;
 
 /** General utils, many here to avoid adding external dependencies. */
@@ -258,5 +259,31 @@ public final class StoreUtils {
 
   public static boolean isNullOrEmpty(CharSequence seq) {
     return seq == null || seq.length() == 0;
+  }
+
+
+  /**
+   * Probe to determine if a path is an ancestor of another path. The root path is not considered a
+   * parent for the purposes of this check.
+   *
+   * @param parent the candidate parent path.
+   * @param child the candidate child path.
+   * @return {@code true} if {@code parent} is an ancestor of {@code child}, excluding the root
+   *         path.
+   */
+  public static boolean isParentOf(Path parent, Path child) {
+    // root is not considered a valid parent
+    if (parent.isRoot()) {
+      return false;
+    }
+    Path childParent = child.getParent();
+    if (childParent == null || childParent.isRoot()) {
+      return false;
+    }
+    if (childParent.equals(parent)) {
+      return true;
+    }
+    return isParentOf(parent, childParent);
+
   }
 }
