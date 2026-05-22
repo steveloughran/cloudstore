@@ -49,6 +49,11 @@
     <buildnumber.check>false</buildnumber.check>
     <buildnumber.update>false</buildnumber.update>
 
+    <!-- GPG signing key id; override on the command line with
+         -Dgpg.keyName=<keyid>. Empty default lets gpg pick the default
+         secret key when -Psign is active. -->
+    <gpg.keyName></gpg.keyName>
+
     <!-- keep sorted -->
     <apache-rat-plugin.version>0.18</apache-rat-plugin.version>
     <assertj.version>3.27.7</assertj.version>
@@ -69,6 +74,7 @@
     <maven-exec-plugin.version>3.5.0</maven-exec-plugin.version>
     <maven-failsafe-plugin.version>${maven-surefire-plugin.version}</maven-failsafe-plugin.version>
     <maven-fluido-skin.version>1.11.1</maven-fluido-skin.version>
+    <maven-gpg-plugin.version>3.2.7</maven-gpg-plugin.version>
     <maven-jar-plugin.version>3.5.0</maven-jar-plugin.version>
     <maven-javadoc-plugin.version>3.12.0</maven-javadoc-plugin.version>
     <maven-plugin-build-helper.version>3.6.1</maven-plugin-build-helper.version>
@@ -301,6 +307,39 @@
                   <outputName>${project.artifactId}-${project.version}-cyclonedx</outputName>
                   <schemaVersion>1.5</schemaVersion>
                   <projectType>library</projectType>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+
+    <!-- Opt-in GPG signing of release artifacts. Activate alongside the
+         release profile: `mvn -Prelease,sign clean install -DskipTests`.
+         Signs the jar, pom, and every attached artifact (incl. the
+         CycloneDX SBOM); each gets a matching `.asc` in target/.
+         Requires gpg-agent running with the release key unlocked. -->
+    <profile>
+      <id>sign</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-gpg-plugin</artifactId>
+            <version>${maven-gpg-plugin.version}</version>
+            <executions>
+              <execution>
+                <id>sign-release-artifacts</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>sign</goal>
+                </goals>
+                <configuration>
+                  <gpgArguments>
+                    <arg>--pinentry-mode=loopback</arg>
+                  </gpgArguments>
+                  <keyname>${gpg.keyName}</keyname>
                 </configuration>
               </execution>
             </executions>

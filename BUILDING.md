@@ -90,7 +90,7 @@ On release builds, this will fail the build if there are uncommitted changes.
 Commit all changes before starting a release build.
 
 ```bash
-mvn clean install -Prelease -DskipTests
+mvn clean install -Prelease,sign -DskipTests
 set -gx now (date '+%Y-%m-%d-%H.%M'); echo [$now]
 git commit -S --allow-empty -m "release $now"; git push
 gh release create tag-release-$now -t release-$now -n "release of $now" -d target/cloudstore-1.2.jar
@@ -99,6 +99,45 @@ gh release create tag-release-$now -t release-$now -n "release of $now" -d targe
 
 * If a new release is made the same day, remember to create a new tag.
 * If you have an env var pointing to the cloudstore JAR, update it!
+
+## Signing release artifacts
+
+Activate the `sign` profile alongside `release` (as in the command
+above) to GPG-sign every attached artifact. The plugin produces a
+detached `.asc` next to each of:
+
+- `target/cloudstore-<version>.jar`
+- `target/cloudstore-<version>.pom`
+- `target/cloudstore-<version>-cyclonedx.json`
+- `target/cloudstore-<version>-cyclonedx.xml`
+
+Prerequisites:
+
+1. A published OpenPGP key.
+2. `gpg-agent` running with the release key unlocked. A quick way to
+   warm the agent before the build is:
+   `echo test | gpg --clearsign -u <keyid> > /dev/null`.
+
+Flags:
+
+- `-Dgpg.keyName=<keyid>` — pick a specific key. If unset, gpg's
+  default secret key is used.
+- `-Dgpg.skip=true` — disable signing even when `-Psign` is active
+  (rarely useful since the profile is already opt-in).
+
+`-Prelease` on its own (without `sign`) still produces a valid jar and
+SBOM — useful for local smoke tests on machines without the release
+key.
+
+Verify a downloaded release:
+
+```bash
+gpg --verify target/cloudstore-1.2.jar.asc target/cloudstore-1.2.jar
+```
+
+Remember to upload the `.asc` files alongside the jar on the GitHub
+release — the documented `gh release create` line only attaches the
+jar by default.
 
 ## How to bypass buildnumber checks
 
