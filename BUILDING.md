@@ -98,6 +98,7 @@ On release builds, this will fail the build if there are uncommitted changes.
 
 Commit all changes before starting a release build.
 
+Commands (for fish)
 ```bash
 set -gx ver 1.3                           # bumped by dev-support/bump-version.sh
 mvn clean install -Prelease,sign -DskipTests
