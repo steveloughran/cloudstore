@@ -89,28 +89,6 @@
   </properties>
 
   <dependencies>
-    <dependency>
-      <groupId>junit</groupId>
-      <artifactId>junit</artifactId>
-      <version>${junit.version}</version>
-      <scope>provided</scope>
-    </dependency>
-    <dependency>
-      <groupId>org.assertj</groupId>
-      <artifactId>assertj-core</artifactId>
-      <version>${assertj.version}</version>
-      <scope>test</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>org.apache.hadoop</groupId>
-      <artifactId>hadoop-client</artifactId>
-      <version>${hadoop.version}</version>
-      <scope>provided</scope>
-      <exclusions>
-
-      </exclusions>
-    </dependency>
 
     <dependency>
       <groupId>org.apache.hadoop</groupId>
@@ -118,7 +96,27 @@
       <version>${hadoop.version}</version>
       <scope>provided</scope>
       <exclusions>
-
+        <exclusion><groupId>com.github.pjfanning</groupId><artifactId>*</artifactId></exclusion>
+        <exclusion><groupId>com.google.code.gson</groupId><artifactId>*</artifactId></exclusion>
+        <exclusion><groupId>com.google.re2j</groupId><artifactId>*</artifactId></exclusion>
+        <exclusion><groupId>com.jcraft</groupId><artifactId>*</artifactId></exclusion>
+        <exclusion><groupId>com.sun.jersey</groupId><artifactId>*</artifactId></exclusion>
+        <exclusion><groupId>com.sun.jersey</groupId><artifactId>*</artifactId></exclusion>
+        <exclusion><groupId>io.netty</groupId><artifactId>*</artifactId></exclusion>
+        <exclusion><groupId>jakarta.activation</groupId><artifactId>*</artifactId></exclusion>
+        <exclusion><groupId>jakarta.servlet.jsp</groupId><artifactId>*</artifactId></exclusion>
+        <exclusion><groupId>javax.servlet.jsp</groupId><artifactId>*</artifactId></exclusion>
+        <exclusion><groupId>javax.servlet</groupId><artifactId>*</artifactId></exclusion>
+        <exclusion><groupId>jakarta.ws.rs</groupId><artifactId>*</artifactId></exclusion>
+        <exclusion><groupId>org.apache.curator</groupId><artifactId>*</artifactId></exclusion>
+        <exclusion><groupId>org.apache.zookeeper</groupId><artifactId>*</artifactId></exclusion>
+        <exclusion><groupId>org.codehaus.jettison</groupId><artifactId>*</artifactId></exclusion>
+        <exclusion><groupId>org.eclipse.jetty</groupId><artifactId>*</artifactId></exclusion>
+        <exclusion><groupId>org.glassfish.jersey.core</groupId><artifactId>*</artifactId></exclusion>
+        <exclusion><groupId>org.glassfish.jersey.containers</groupId><artifactId>*</artifactId></exclusion>
+        <exclusion><groupId>org.glassfish.jersey.inject</groupId><artifactId>*</artifactId></exclusion>
+        <exclusion><groupId>com.github.luben</groupId><artifactId>*</artifactId></exclusion>
+        <exclusion><groupId>org.glassfish.jaxb</groupId><artifactId>*</artifactId></exclusion>
       </exclusions>
     </dependency>
 
@@ -127,9 +125,9 @@
       <artifactId>hadoop-common</artifactId>
       <version>${hadoop.version}</version>
       <type>test-jar</type>
-      <scope>provided</scope>
+      <scope>test</scope>
       <exclusions>
-
+        <exclusion><groupId>*</groupId><artifactId>*</artifactId></exclusion>
       </exclusions>
     </dependency>
 
@@ -142,6 +140,9 @@
       <artifactId>hadoop-hdfs</artifactId>
       <version>${hadoop.version}</version>
       <scope>test</scope>
+      <exclusions>
+        <exclusion><groupId>org.fusesource.leveldbjni</groupId><artifactId>*</artifactId></exclusion>
+      </exclusions>
     </dependency>
     <dependency>
       <groupId>org.apache.hadoop</groupId>
@@ -149,6 +150,9 @@
       <version>${hadoop.version}</version>
       <type>test-jar</type>
       <scope>test</scope>
+      <exclusions>
+        <exclusion><groupId>*</groupId><artifactId>*</artifactId></exclusion>
+      </exclusions>
     </dependency>
 
     <dependency>
@@ -159,16 +163,17 @@
       <exclusions>
         <exclusion>
           <groupId>org.apache.hadoop</groupId>
-          <artifactId>hadoop-openstack</artifactId>
-        </exclusion>
-        <exclusion>
-          <groupId>org.apache.hadoop</groupId>
           <artifactId>hadoop-azure-datalake</artifactId>
         </exclusion>
         <exclusion>
           <groupId>com.google.guava</groupId>
           <artifactId>guava</artifactId>
         </exclusion>
+        <exclusion><groupId>org.apache.hadoop</groupId><artifactId>hadoop-aliyun</artifactId></exclusion>
+        <exclusion><groupId>org.apache.hadoop</groupId><artifactId>hadoop-cos</artifactId></exclusion>
+        <exclusion><groupId>org.apache.hadoop</groupId><artifactId>hadoop-huaweicloud</artifactId></exclusion>
+        <exclusion><groupId>org.apache.hadoop</groupId><artifactId>hadoop-tos</artifactId></exclusion>
+        <exclusion><groupId>com.microsoft</groupId><artifactId>*</artifactId></exclusion>
       </exclusions>
     </dependency>
 
@@ -178,6 +183,7 @@
       <artifactId>hadoop-mapreduce-client-jobclient</artifactId>
       <scope>provided</scope>
     </dependency>
+<!--
 
     <dependency>
       <groupId>org.apache.hadoop</groupId>
@@ -186,6 +192,20 @@
       <scope>provided</scope>
     </dependency>
 
+-->
+
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>${junit.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.assertj</groupId>
+      <artifactId>assertj-core</artifactId>
+      <version>${assertj.version}</version>
+      <scope>test</scope>
+    </dependency>
 
     <!-- https://mvnrepository.com/artifact/com.google.cloud.bigdataoss/gcs-connector -->
     <dependency>
