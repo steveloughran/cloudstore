@@ -93,7 +93,13 @@ Commit all changes before starting a release build.
 mvn clean install -Prelease,sign -DskipTests
 set -gx now (date '+%Y-%m-%d-%H.%M'); echo [$now]
 git commit -S --allow-empty -m "release $now"; git push
-gh release create tag-release-$now -t release-$now -n "release of $now" -d target/cloudstore-1.2.jar
+gh release create tag-release-$now -t release-$now -n "release of $now" -d \
+    target/cloudstore-1.2.jar \
+    target/cloudstore-1.2.jar.asc \
+    target/cloudstore-1.2-cyclonedx.json \
+    target/cloudstore-1.2-cyclonedx.json.asc \
+    target/cloudstore-1.2-cyclonedx.xml \
+    target/cloudstore-1.2-cyclonedx.xml.asc
 # then go to the web ui to review and finalize the release
 ```
 
@@ -135,9 +141,18 @@ Verify a downloaded release:
 gpg --verify target/cloudstore-1.2.jar.asc target/cloudstore-1.2.jar
 ```
 
-Remember to upload the `.asc` files alongside the jar on the GitHub
-release — the documented `gh release create` line only attaches the
-jar by default.
+The `gh release create` command above attaches the jar, the SBOM
+(JSON + XML), and each of their `.asc` signatures in one shot. For an
+already-published release, append signatures with `gh release upload`:
+
+```bash
+gh release upload tag-release-$now \
+    target/cloudstore-1.2.jar.asc \
+    target/cloudstore-1.2-cyclonedx.json.asc \
+    target/cloudstore-1.2-cyclonedx.xml.asc
+```
+
+Use `--clobber` to overwrite an existing asset of the same name.
 
 ## How to bypass buildnumber checks
 
