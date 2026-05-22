@@ -39,7 +39,6 @@ import java.io.OutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URI;
-import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -552,7 +551,8 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
         switch (providerType) {
           case CREDENTIALS_TOKEN_PROVIDER:
             passwordStrings = Arrays.asList(FS_AZURE_ACCOUNT_OAUTH2_CLIENT_ENDPOINT,
-                FS_AZURE_ACCOUNT_OAUTH2_CLIENT_ID, FS_AZURE_ACCOUNT_OAUTH2_CLIENT_SECRET, FS_AZURE_ACCOUNT_OAUTH2_MSI_ENDPOINT);
+                FS_AZURE_ACCOUNT_OAUTH2_CLIENT_ID, FS_AZURE_ACCOUNT_OAUTH2_CLIENT_SECRET,
+                FS_AZURE_ACCOUNT_OAUTH2_MSI_ENDPOINT);
             break;
           case MSI_TOKEN_PROVIDER:
             passwordStrings = Arrays.asList(FS_AZURE_ACCOUNT_OAUTH2_CLIENT_ID,
@@ -619,7 +619,8 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
     final String[] authorityParts = authority.split("@", 2);
 
     if (authorityParts.length < 2 || authorityParts[0] != null && authorityParts[0].isEmpty()) {
-      Preconditions.checkArgument(false, "'%s' has a malformed authority, expected container name. " + ABFS_URL_FORM, uriText);
+      Preconditions.checkArgument(false,
+          "'%s' has a malformed authority, expected container name. " + ABFS_URL_FORM, uriText);
     }
     return authorityParts;
   }
