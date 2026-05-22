@@ -32,22 +32,34 @@ ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 cd "$ROOT"
 
 # Search README, AGENTS, BUILDING, and src/site/markdown for stale references.
-# Anything matching cloudstore-<digits.digits>.jar that isn't the expected
-# version is a drift.
+# Matches any artifact filename: cloudstore-<v>.jar, cloudstore-<v>-cyclonedx.json,
+# .xml, and their .asc siblings. Anything whose <v> != $EXPECTED is drift.
 BAD=()
 while IFS= read -r -d '' f; do
   while IFS= read -r match; do
-    found="${match#*cloudstore-}"
-    found="${found%%.jar*}"
+    # Strip leading "cloudstore-" then take the X.Y prefix.
+    rest="${match#cloudstore-}"
+    found="${rest%%[!0-9.]*}"
+    found="${found%.}"     # drop a trailing '.' if the next char was '.jar' etc.
     if [[ "$found" != "$EXPECTED" ]]; then
-      BAD+=("$f: found cloudstore-${found}.jar, expected cloudstore-${EXPECTED}.jar")
+      BAD+=("$f: $match (expected cloudstore-${EXPECTED}-)")
     fi
-  done < <(grep -oE "cloudstore-[0-9]+\.[0-9]+\.jar" "$f" || true)
+  done < <(grep -oE "cloudstore-[0-9]+\.[0-9]+(-cyclonedx\.(json|xml)|\.jar)(\.asc)?" "$f" || true)
 done < <(find . \( -path ./target -o -path ./releases -o -path './.git' \) -prune -o \
               \( -name '*.md' -print0 \) 2>/dev/null)
 
+# BUILDING.md declares `set -gx ver <v>` in fish for the release block
+# (fish reserves `version`, so we use `ver`). That version must also match.
+if [[ -f BUILDING.md ]]; then
+  while IFS= read -r found; do
+    if [[ "$found" != "$EXPECTED" ]]; then
+      BAD+=("BUILDING.md: set -gx ver $found, expected $EXPECTED")
+    fi
+  done < <(grep -oE "^set -gx ver [0-9]+\.[0-9]+" BUILDING.md | awk '{print $4}')
+fi
+
 if [[ ${#BAD[@]} -gt 0 ]]; then
-  echo "Stale jar version references in docs (expected cloudstore-${EXPECTED}.jar):" >&2
+  echo "Stale artifact version references in docs (expected ${EXPECTED}):" >&2
   printf '  %s\n' "${BAD[@]}" >&2
   echo >&2
   echo "Run: dev-support/bump-version.sh ${EXPECTED}" >&2

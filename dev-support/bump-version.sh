@@ -60,12 +60,31 @@ FILES=(
 while IFS= read -r f; do FILES+=("$f"); done < <(find src/site/markdown -name '*.md')
 
 for f in "${FILES[@]}"; do
-  if [[ -f "$f" ]] && grep -q "cloudstore-${OLD}.jar" "$f"; then
-    # macOS / BSD sed compatible
+  [[ -f "$f" ]] || continue
+  changed=0
+  # cloudstore-<v>.jar (covers cloudstore-<v>.jar.asc as a substring).
+  if grep -q "cloudstore-${OLD}\.jar" "$f"; then
     sed -i.bak "s|cloudstore-${OLD}\.jar|cloudstore-${NEW}.jar|g" "$f"
-    rm -f "${f}.bak"
+    changed=1
+  fi
+  # cloudstore-<v>-cyclonedx.* (covers .json/.xml + their .asc siblings).
+  if grep -q "cloudstore-${OLD}-cyclonedx" "$f"; then
+    sed -i.bak "s|cloudstore-${OLD}-cyclonedx|cloudstore-${NEW}-cyclonedx|g" "$f"
+    changed=1
+  fi
+  rm -f "${f}.bak"
+  if [[ $changed -eq 1 ]]; then
     echo "  rewrote $f"
   fi
 done
+
+# BUILDING.md's release block declares `set -gx ver <v>` in fish (`version`
+# is a reserved variable name in fish). Keep that line in lockstep with the
+# pom version so the release commands point at the right artifacts.
+if [[ -f BUILDING.md ]] && grep -qE "^set -gx ver ${OLD}( |$|	)" BUILDING.md; then
+  sed -i.bak -E "s|^set -gx ver ${OLD}\\b|set -gx ver ${NEW}|" BUILDING.md
+  rm -f BUILDING.md.bak
+  echo "  rewrote BUILDING.md (set -gx ver)"
+fi
 
 echo "done. Review with: git diff"

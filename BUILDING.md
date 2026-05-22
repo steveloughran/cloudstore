@@ -99,16 +99,17 @@ On release builds, this will fail the build if there are uncommitted changes.
 Commit all changes before starting a release build.
 
 ```bash
+set -gx ver 1.3                           # bumped by dev-support/bump-version.sh
 mvn clean install -Prelease,sign -DskipTests
 set -gx now (date '+%Y-%m-%d-%H.%M'); echo [$now]
 git commit -S --allow-empty -m "release $now"; git push
 gh release create tag-release-$now -t release-$now -n "release of $now" -d \
-    target/cloudstore-1.3.jar \
-    target/cloudstore-1.3.jar.asc \
-    target/cloudstore-1.2-cyclonedx.json \
-    target/cloudstore-1.2-cyclonedx.json.asc \
-    target/cloudstore-1.2-cyclonedx.xml \
-    target/cloudstore-1.2-cyclonedx.xml.asc
+    target/cloudstore-$ver.jar \
+    target/cloudstore-$ver.jar.asc \
+    target/cloudstore-$ver-cyclonedx.json \
+    target/cloudstore-$ver-cyclonedx.json.asc \
+    target/cloudstore-$ver-cyclonedx.xml \
+    target/cloudstore-$ver-cyclonedx.xml.asc
 # then go to the web ui to review and finalize the release
 ```
 
@@ -147,7 +148,7 @@ key.
 Verify a downloaded release:
 
 ```bash
-gpg --verify target/cloudstore-1.3.jar.asc target/cloudstore-1.3.jar
+gpg --verify target/cloudstore-$ver.jar.asc target/cloudstore-$ver.jar
 ```
 
 The `gh release create` command above attaches the jar, the SBOM
@@ -156,9 +157,9 @@ already-published release, append signatures with `gh release upload`:
 
 ```bash
 gh release upload tag-release-$now \
-    target/cloudstore-1.3.jar.asc \
-    target/cloudstore-1.2-cyclonedx.json.asc \
-    target/cloudstore-1.2-cyclonedx.xml.asc
+    target/cloudstore-$ver.jar.asc \
+    target/cloudstore-$ver-cyclonedx.json.asc \
+    target/cloudstore-$ver-cyclonedx.xml.asc
 ```
 
 Use `--clobber` to overwrite an existing asset of the same name.
