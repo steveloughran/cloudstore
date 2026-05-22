@@ -369,7 +369,6 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
 
     addAccountOption(optionList, "fs.azure.account.keyprovider", false, false);
     addAccountOption(optionList, "", false, false);
-    addAccountOption(optionList, "", false, false);
 
     return optionList.toArray(new Object[0][0]);
   }
@@ -553,7 +552,7 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
         switch (providerType) {
           case CREDENTIALS_TOKEN_PROVIDER:
             passwordStrings = Arrays.asList(FS_AZURE_ACCOUNT_OAUTH2_CLIENT_ENDPOINT,
-                FS_AZURE_ACCOUNT_OAUTH2_CLIENT_ID, FS_AZURE_ACCOUNT_OAUTH2_CLIENT_SECRET);
+                FS_AZURE_ACCOUNT_OAUTH2_CLIENT_ID, FS_AZURE_ACCOUNT_OAUTH2_CLIENT_SECRET, FS_AZURE_ACCOUNT_OAUTH2_MSI_ENDPOINT);
             break;
           case MSI_TOKEN_PROVIDER:
             passwordStrings = Arrays.asList(FS_AZURE_ACCOUNT_OAUTH2_CLIENT_ID,
@@ -620,16 +619,14 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
     final String[] authorityParts = authority.split("@", 2);
 
     if (authorityParts.length < 2 || authorityParts[0] != null && authorityParts[0].isEmpty()) {
-      final String errMsg = String.format(
-          "'%s' has a malformed authority, expected container name. " + ABFS_URL_FORM, uriText);
-      Preconditions.checkArgument(false, errMsg);
+      Preconditions.checkArgument(false, "'%s' has a malformed authority, expected container name. " + ABFS_URL_FORM, uriText);
     }
     return authorityParts;
   }
 
   @Override
   public List<EndpointProbe> listEndpointsToProbe(final Printout printout, final Configuration conf)
-      throws IOException, URISyntaxException {
+      throws IOException {
     List<EndpointProbe> uris = new ArrayList<>(2);
 
     String store = getFsURI().getHost();
