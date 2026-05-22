@@ -65,7 +65,7 @@ Releasing is manual and tag-driven — see `BUILDING.md`. Bump the version with 
 The tools are executed via the `hadoop jar` command. The general syntax is:
 
 ```sh
-hadoop jar target/cloudstore-1.2.jar <command> [options] <arguments...>
+hadoop jar target/cloudstore-1.3.jar <command> [options] <arguments...>
 ```
 
 -   `<command>`: The name of the tool to run (e.g., `list`, `dux`, `storediag`).
@@ -78,7 +78,7 @@ hadoop jar target/cloudstore-1.2.jar <command> [options] <arguments...>
 **Example: Listing files in an S3 bucket**
 
 ```sh
-hadoop jar target/cloudstore-1.2.jar list -limit 10 s3a://my-bucket/path/
+hadoop jar target/cloudstore-1.3.jar list -limit 10 s3a://my-bucket/path/
 ```
 
 

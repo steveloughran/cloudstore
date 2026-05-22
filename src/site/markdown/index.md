@@ -37,7 +37,7 @@ part of the Apache Hadoop release.
 The full per-command reference is in the **Commands** sidebar. Run
 
 ```bash
-hadoop jar target/cloudstore-1.2.jar help
+hadoop jar target/cloudstore-1.3.jar help
 ```
 
 for a list of every command bundled in the jar.

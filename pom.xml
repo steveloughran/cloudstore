@@ -19,7 +19,7 @@
 
   <groupId>org.apache.hadoop</groupId>
   <artifactId>cloudstore</artifactId>
-  <version>1.2</version>
+  <version>1.3</version>
   <packaging>jar</packaging>
 
   <name>hadoop cloudstore</name>
