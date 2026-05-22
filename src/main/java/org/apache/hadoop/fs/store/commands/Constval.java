@@ -70,17 +70,17 @@ public class Constval extends DiagnosticsEntryPoint {
     try {
       clazz = Class.forName(classname);
     } catch (ClassNotFoundException e) {
-      throw new StoreDiagException(EXIT_NOT_FOUND, "Class not found: " + classname).initCause(e);
+      throw new StoreDiagException(EXIT_NOT_FOUND, "Class not found: %s", classname).initCause(e);
     }
     final Field f;
     try {
       f = clazz.getField(field);
     } catch (NoSuchFieldException e) {
-      throw new StoreDiagException(EXIT_NOT_FOUND, "Field not found: " + field + " in " + classname)
+      throw new StoreDiagException(EXIT_NOT_FOUND, "Field not found: %s in %s", field, classname)
           .initCause(e);
 
     } catch (SecurityException e) {
-      throw new StoreDiagException(EXIT_UNAUTHORIZED, "No access to " + field + " in " + classname)
+      throw new StoreDiagException(EXIT_UNAUTHORIZED, "No access to %s in %s", field, classname)
           .initCause(e);
     }
     // set it to accessible
@@ -121,16 +121,4 @@ public class Constval extends DiagnosticsEntryPoint {
     return ToolRunner.run(new Constval(), args);
   }
 
-  /**
-   * Main entry point. Calls {@code System.exit()} on all execution paths.
-   * 
-   * @param args argument list
-   */
-  public static void main(String[] args) {
-    try {
-      exit(exec(args), "");
-    } catch (Throwable e) {
-      exitOnThrowable(e);
-    }
-  }
 }

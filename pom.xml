@@ -641,7 +641,7 @@
             <inputExclude>**/.DS_Store</inputExclude>
             <inputExclude>*.iml</inputExclude>
             <inputExclude>**/*.iml</inputExclude>
-            <!-- Build artefacts -->
+            <!-- Build artifacts -->
             <inputExclude>target/**</inputExclude>
             <inputExclude>**/target/**</inputExclude>
             <inputExclude>pom.xml.versionsBackup</inputExclude>
@@ -652,11 +652,10 @@
             <!-- Test fixture data -->
             <inputExclude>src/test/resources/auth-keys.xml</inputExclude>
             <inputExclude>src/test/resources/TestAuditLogs/**</inputExclude>
-            <!-- Releases artifacts checked in for archival -->
-            <inputExclude>releases/**</inputExclude>
             <!-- Third-party formatter profile from google/styleguide (Apache 2.0
                  licensed but not ASF-headered). Used by Spotless. -->
             <inputExclude>dev-support/eclipse-formatter.xml</inputExclude>
+            <inputExclude>NOTICE*</inputExclude>
           </inputExcludes>
         </configuration>
       </plugin>

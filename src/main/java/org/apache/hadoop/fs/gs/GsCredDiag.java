@@ -39,12 +39,15 @@ import org.slf4j.LoggerFactory;
 /**
  * Debug GS credentials. Getting past the "java.io.IOException: Invalid PKCS8 data" error message
  * with gs auth is a nightmare. This class tries to debug it.
- *
+ * <p>
  * Needs the shaded gs jar on the classpath as we call its internals.
- *
- * code includes methods copied from com.google.cloud.hadoop.util.CredentialFactory
+ * <p>
+ * * code includes methods copied from com.google.cloud.hadoop.util.CredentialFactory
  * <a href="https://cloud.google.com/docs/authentication/production">...</a>
  * <a href="https://developers.google.com/accounts/docs/application-default-credentials">...</a>
+ * <p>
+ * Security note, -verbose will print the credentials. Sometimes this is necessary to work out what
+ * is going wrong. Do not file security reports about this behavior.
  */
 public class GsCredDiag extends StoreEntryPoint {
 
@@ -54,7 +57,8 @@ public class GsCredDiag extends StoreEntryPoint {
   public static final String DEVSTORAGE_FULL_CONTROL =
       "https://www.googleapis.com/auth/devstorage.full_control";
 
-  public static final String USAGE = "Usage: gcscreds\n" + STANDARD_OPTS + "\t<gs path>";
+  public static final String USAGE = "Usage: gcscreds\n" + STANDARD_OPTS + "\t<gs path>\n"
+      + "warning: the -verbose option will print the credentials. DO NOT SHARE THE OUTPUT";
 
   public GsCredDiag() {
     createCommandFormat(1, 1);
@@ -78,6 +82,7 @@ public class GsCredDiag extends StoreEntryPoint {
     }
     if (key != null) {
       if (isVerbose()) {
+        warn("The private key printed below is a critical secret. Do not share it");
 
         // insecure
         println("private key is <%s>", key);
@@ -122,16 +127,4 @@ public class GsCredDiag extends StoreEntryPoint {
     return ToolRunner.run(new GsCredDiag(), args);
   }
 
-  /**
-   * Main entry point. Calls {@code System.exit()} on all execution paths.
-   * 
-   * @param args argument list
-   */
-  public static void main(String[] args) {
-    try {
-      exit(exec(args), "");
-    } catch (Throwable e) {
-      exitOnThrowable(e);
-    }
-  }
 }

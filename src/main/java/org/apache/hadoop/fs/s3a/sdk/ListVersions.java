@@ -140,12 +140,9 @@ public class ListVersions extends StoreEntryPoint {
       println("Tombstone entries %,d comprising %,d files and %,d dir markers",
           listing.getTombstones(), listing.getFileTombstones(), listing.getDirTombstones());
       println();
-
     } finally {
-
       maybeDumpStorageStatistics(fs);
     }
-
     return 0;
   }
 
@@ -160,16 +157,4 @@ public class ListVersions extends StoreEntryPoint {
     return ToolRunner.run(new ListVersions(), args);
   }
 
-  /**
-   * Main entry point. Calls {@code System.exit()} on all execution paths.
-   * 
-   * @param args argument list
-   */
-  public static void main(String[] args) {
-    try {
-      exit(exec(args), "");
-    } catch (Throwable e) {
-      exitOnThrowable(e);
-    }
-  }
 }

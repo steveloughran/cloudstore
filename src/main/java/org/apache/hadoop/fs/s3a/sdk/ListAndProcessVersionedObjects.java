@@ -30,8 +30,6 @@ import java.util.Iterator;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.fs.s3a.S3AFileSystem;
 import org.apache.hadoop.fs.store.diag.Printout;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.DeleteMarkerEntry;
 import software.amazon.awssdk.services.s3.model.ListObjectVersionsRequest;
@@ -39,8 +37,6 @@ import software.amazon.awssdk.services.s3.model.ListObjectVersionsResponse;
 import software.amazon.awssdk.services.s3.model.ObjectVersion;
 
 public class ListAndProcessVersionedObjects {
-
-  private static final Logger LOG = LoggerFactory.getLogger(ListAndProcessVersionedObjects.class);
 
   private final String name;
 

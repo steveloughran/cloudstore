@@ -38,15 +38,11 @@ import org.apache.hadoop.fs.store.StoreDurationInfo;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
 import org.apache.hadoop.fs.tools.csv.SimpleCsvWriter;
 import org.apache.hadoop.util.ToolRunner;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.s3.model.ListPartsResponse;
 import software.amazon.awssdk.services.s3.model.MultipartUpload;
 import software.amazon.awssdk.services.s3.model.Part;
 
 public class ListMultiparts extends StoreEntryPoint {
-
-  private static final Logger LOG = LoggerFactory.getLogger(ListMultiparts.class);
 
   public static final String AGE = "age";
 
@@ -60,13 +56,13 @@ public class ListMultiparts extends StoreEntryPoint {
 
   public static final String SINCE = "since";
 
-  public static final String USAGE = "Usage: listversions <path>\n" + STANDARD_OPTS
+  public static final String USAGE = "Usage: listmultiparts <path>\n" + STANDARD_OPTS
       + optusage(LIMIT, "limit", "limit of files to list") + optusage(OUTPUT, "file", "output file")
       + optusage(QUIET, "quiet output") + optusage(SEPARATOR, "string", "Separator if not <tab>")
       + optusage(AGE, "seconds", "Only include versions created in this time interval")
       + optusage(SINCE, "epoch-time", "Only include versions after this time");
 
-  public static final String NAME = "listversions";
+  public static final String NAME = "listmultiparts";
 
   public ListMultiparts() {
     createCommandFormat(1, 1, QUIET);
@@ -122,9 +118,7 @@ public class ListMultiparts extends StoreEntryPoint {
         closeOutput = false;
       }
       final String separator = getOptional(SEPARATOR).orElse("\t");
-
       final SimpleCsvWriter csv = new SimpleCsvWriter(dest, separator, "\n", true, closeOutput);
-
       final DateFormat df = new SimpleDateFormat("yyyy-MM-ddZhh:mm:ss");
       final RemoteIterator<MultipartUpload> uploads = fs.listUploads(fs.pathToKey(source));
       final MultipartProcessor multipartProcessor = new MultipartProcessor(fs);
@@ -156,17 +150,13 @@ public class ListMultiparts extends StoreEntryPoint {
           totalSize += bytes;
         }
       }
-
       println();
       println("Found %,d uploads under %s with total size %,d bytes in %,d parts", entries, source,
           totalSize, totalParts);
       println();
-
     } finally {
-
       maybeDumpStorageStatistics(fs);
     }
-
     return 0;
   }
 
@@ -181,16 +171,4 @@ public class ListMultiparts extends StoreEntryPoint {
     return ToolRunner.run(new ListMultiparts(), args);
   }
 
-  /**
-   * Main entry point. Calls {@code System.exit()} on all execution paths.
-   * 
-   * @param args argument list
-   */
-  public static void main(String[] args) {
-    try {
-      exit(exec(args), "");
-    } catch (Throwable e) {
-      exitOnThrowable(e);
-    }
-  }
 }

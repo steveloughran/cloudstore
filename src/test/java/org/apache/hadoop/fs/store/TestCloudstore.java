@@ -59,7 +59,7 @@ public class TestCloudstore {
   @Test
   public void testDispatchToLocalHost() throws Exception {
     // sanity check that the registered class is what we expect
-    assertThat(Cloudstore.commands().get("localhost")).isEqualTo(LocalHost.class);
+    assertThat(Cloudstore.commands().get("localhost").tool).isEqualTo(LocalHost.class);
     assertThat(Cloudstore.exec("localhost")).isEqualTo(0);
   }
 }

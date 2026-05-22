@@ -187,16 +187,4 @@ public class TLSInfo extends DiagnosticsEntryPoint {
     return ToolRunner.run(new TLSInfo(), args);
   }
 
-  /**
-   * Main entry point. Calls {@code System.exit()} on all execution paths.
-   * 
-   * @param args argument list
-   */
-  public static void main(String[] args) {
-    try {
-      exit(exec(args), "");
-    } catch (Throwable e) {
-      exitOnThrowable(e);
-    }
-  }
 }

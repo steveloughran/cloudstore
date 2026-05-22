@@ -22,7 +22,6 @@ import org.apache.hadoop.util.Preconditions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.amazon.awssdk.services.s3.model.ListObjectVersionsRequest;
-import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.ObjectVersion;
 import software.amazon.awssdk.services.s3.model.S3Object;
@@ -76,16 +75,6 @@ public final class S3ListingSupport {
       String delimiter) {
     ListObjectsV2Request.Builder request =
         ListObjectsV2Request.builder().bucket(bucket).maxKeys(MAX_KEYS).prefix(key);
-    if (delimiter != null) {
-      request.delimiter(delimiter);
-    }
-    return request.build();
-  }
-
-  public static ListObjectsRequest createListObjectsV1Request(final String bucket, String key,
-      String delimiter) {
-    ListObjectsRequest.Builder request =
-        ListObjectsRequest.builder().bucket(bucket).maxKeys(MAX_KEYS).prefix(key);
     if (delimiter != null) {
       request.delimiter(delimiter);
     }

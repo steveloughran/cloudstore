@@ -25,6 +25,9 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.ListPartsRequest;
 import software.amazon.awssdk.services.s3.model.ListPartsResponse;
 
+/**
+ * List multipart uploads.
+ */
 public class MultipartProcessor {
 
   private final S3AFileSystem fs;
@@ -33,7 +36,7 @@ public class MultipartProcessor {
 
   public MultipartProcessor(final S3AFileSystem fs) {
     this.fs = fs;
-    amazonS3 = fs.getS3AInternals().getAmazonS3Client("api");
+    amazonS3 = new InternalAccess(fs).getAmazonS3Client();
   }
 
   public PartIterator partListing(String key, final String id) {

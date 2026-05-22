@@ -110,7 +110,9 @@ gh release create tag-release-$now -t release-$now -n "release of $now" -d \
     target/cloudstore-$ver-cyclonedx.json \
     target/cloudstore-$ver-cyclonedx.json.asc \
     target/cloudstore-$ver-cyclonedx.xml \
-    target/cloudstore-$ver-cyclonedx.xml.asc
+    target/cloudstore-$ver-cyclonedx.xml.asc \
+    LICENSE-binary \
+    NOTICE-binary
 # then go to the web ui to review and finalize the release
 ```
 

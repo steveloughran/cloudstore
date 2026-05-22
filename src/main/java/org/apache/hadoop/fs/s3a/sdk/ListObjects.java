@@ -90,7 +90,7 @@ public class ListObjects extends StoreEntryPoint {
     try (StoreDurationInfo duration = new StoreDurationInfo(LOG, "listobjects")) {
       fs = (S3AFileSystem) source.getFileSystem(conf);
       String bucket = fs.getBucket();
-      final S3Client s3 = fs.getS3AInternals().getAmazonS3Client("listobjects");
+      final S3Client s3 = new InternalAccess(fs).getAmazonS3Client();
       String key = S3ListingSupport.pathToKey(source);
       if (!key.endsWith("/")) {
         key += "/";
@@ -202,8 +202,7 @@ public class ListObjects extends StoreEntryPoint {
     if (kv.isEmpty()) {
       return;
     }
-    try (
-        StoreDurationInfo duration = new StoreDurationInfo(LOG, "deleting %s objects", kv.size())) {
+    try (StoreDurationInfo d = new StoreDurationInfo(LOG, "deleting %s objects", kv.size())) {
       final DeleteObjectsRequest request = DeleteObjectsRequest.builder().bucket(bucket)
           .delete(Delete.builder().objects(kv).quiet(true).build()).build();
       once("delete", kv.toString(), () -> s3.deleteObjects(request));
@@ -233,16 +232,4 @@ public class ListObjects extends StoreEntryPoint {
     return ToolRunner.run(new ListObjects(), args);
   }
 
-  /**
-   * Main entry point. Calls {@code System.exit()} on all execution paths.
-   * 
-   * @param args argument list
-   */
-  public static void main(String[] args) {
-    try {
-      exit(exec(args), "");
-    } catch (Throwable e) {
-      exitOnThrowable(e);
-    }
-  }
 }

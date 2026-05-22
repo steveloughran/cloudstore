@@ -54,7 +54,7 @@ public class VersionedFileCopier implements Closeable {
 
   public VersionedFileCopier(final S3AFileSystem fs) {
     this.fs = fs;
-    this.s3 = fs.getS3AInternals().getAmazonS3Client("VersionedFileCopier");
+    this.s3 = new InternalAccess(fs).getAmazonS3Client();
     this.storeContext = fs.createStoreContext();
     this.invoker = storeContext.getInvoker();
     this.conf = storeContext.getConfiguration();

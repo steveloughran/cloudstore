@@ -73,16 +73,4 @@ public class BucketMetadata extends StoreEntryPoint {
     return ToolRunner.run(new BucketMetadata(), args);
   }
 
-  /**
-   * Main entry point. Calls {@code System.exit()} on all execution paths.
-   * 
-   * @param args argument list
-   */
-  public static void main(String[] args) {
-    try {
-      exit(exec(args), "");
-    } catch (Throwable e) {
-      exitOnThrowable(e);
-    }
-  }
 }

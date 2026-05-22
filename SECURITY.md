@@ -95,14 +95,16 @@ The threat model includes the risk of subverted github actions -git checksum ref
 
 * Any attack which requires the user to manually enter credentials or configuration options.
 * Indirect vulnerabilities in dependencies.
-* Any attack which requires the local operating system to be configured as a step in the process
-* Any attack which requires a hadoop site reconfiguration, or the download and execution of external binaries.
+* Any attack which requires the local operating system to be configured in an unusual configuration/misconfigured as a step in the process
+* Any attack which requires a hadoop site reconfiguration
+* Any attack which requires the download and execution of external binaries
+* Any attack contains an assumption about artifacts on the classpath which is not true in production systems (example, spring jars)
 * `sessionkeys`: it generates then prints session keys of limited duration.
 * `gcscreds`: it prints GCS credentials as part of a diagnostics process.
 * Detailed printing of http communications between client and store when enabled.
 * Any vulnerability reported against an older release of cloudstore which cannot be reproduced in the latest version of the `main` branch.
 * Any vulnerability when running on a version of hadoop older than the latest apache hadoop release,
-  and which cannot be reproduced on that release.
+  and which cannot be reproduced on the latest release.
 
 ## Do report
 
