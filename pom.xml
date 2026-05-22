@@ -66,6 +66,7 @@
     <maven-compiler-plugin.version>3.15.0</maven-compiler-plugin.version>
     <maven-cyclonedx-plugin.version>2.9.1</maven-cyclonedx-plugin.version>
     <maven-enforcer-plugin.version>3.6.2</maven-enforcer-plugin.version>
+    <maven-exec-plugin.version>3.5.0</maven-exec-plugin.version>
     <maven-failsafe-plugin.version>${maven-surefire-plugin.version}</maven-failsafe-plugin.version>
     <maven-fluido-skin.version>1.11.1</maven-fluido-skin.version>
     <maven-jar-plugin.version>3.5.0</maven-jar-plugin.version>
@@ -619,6 +620,30 @@
             <inputExclude>dev-support/eclipse-formatter.xml</inputExclude>
           </inputExcludes>
         </configuration>
+      </plugin>
+
+      <!-- Verify-phase guard: fail if any markdown doc references a
+           cloudstore-<X.Y>.jar that disagrees with ${project.version}.
+           Paired with dev-support/bump-version.sh which keeps them in sync. -->
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>${maven-exec-plugin.version}</version>
+        <executions>
+          <execution>
+            <id>check-doc-versions</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>${project.basedir}/dev-support/check-doc-versions.sh</executable>
+              <arguments>
+                <argument>${project.version}</argument>
+              </arguments>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
 
       <plugin>

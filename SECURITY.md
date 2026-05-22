@@ -79,7 +79,8 @@ model.
 
 * The cloudstore application may be deployed in production environments to
   execute operations including `storediag`, `bandwidth`, `cloudup` and more.
-* It is executed by hand at a console on 
+* It is executed by hand at a console on a host system connected to the cluster, or on a standalone system
+  with credentials to access the target store.
 * The output of these commands may be collected into a text file which is then passed
   to internal or third-party support teams assisting in troubleshooting cloud connectivity and performance issues.
   These are individuals who may be employed by separate companies, and who are not to be
@@ -87,6 +88,8 @@ model.
 * Storediag output is not expected to be attached to public issue reports, as they do leak information about cluster configuration, which would assist in malicious cluster reconnaissance.
 * Some commands `sessionkeys`, `gcscreds` do log secrets.
 
+The project is built on developer systems, and in CI systems.
+The threat model includes the risk of subverted github actions -git checksum references MUST be made to github actions, rather than tags.
 
 ## Not in the threat model
 

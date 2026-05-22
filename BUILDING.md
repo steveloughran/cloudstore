@@ -54,10 +54,16 @@ Therefore release number increments are required for anything other than a rapid
 
 Update the version, for example from 1.0 to 1.1:
 ```bash
-mvn versions:set -DnewVersion=1.1
+dev-support/bump-version.sh 1.1
 ```
 
-Search and replace all uses in markdown files of `cloudstore-X.Y.jar` (where `X.Y` is the previous version) with the new version of the artifact.
+This wraps `mvn versions:set -DnewVersion=1.1` and rewrites every
+`cloudstore-<old>.jar` reference in `README.md`, `AGENTS.md`, `BUILDING.md`,
+and `src/site/markdown/*.md` to the new version.
+
+The `verify` phase enforces this: `dev-support/check-doc-versions.sh` runs
+as part of `mvn verify` and fails the build if any markdown doc references
+a `cloudstore-X.Y.jar` that disagrees with `${project.version}`.
 
 *Note:* there's currently no use of the `-SNAPSHOT` suffix, used in downstream builds for the tools
 to recognise this should be updated nightly.
@@ -80,6 +86,7 @@ connector) are not in it because they are not shipped in the jar.
 
 It also generates a build version, with the buildnumber plugin.
 On release builds, this will fail the build if there are uncommitted changes.
+
 Commit all changes before starting a release build.
 
 ```bash
@@ -93,6 +100,10 @@ gh release create tag-release-$now -t release-$now -n "release of $now" -d targe
 * If a new release is made the same day, remember to create a new tag.
 * If you have an env var pointing to the cloudstore JAR, update it!
 
+## How to bypass buildnumber checks
 
+```bash
+mvn clean install -Prelease -DskipTests -Dbuildnumber.check=false -Dbuildnumber.update=false
+```
 
 
