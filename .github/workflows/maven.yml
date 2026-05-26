@@ -41,7 +41,9 @@ permissions:
   contents: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  # Group PRs by PR number (cancellable on synchronize); pushes/cron by
+  # ref (queued, never canceled).
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
   # Cancel superseded PR runs. Don't cancel pushes to long-lived branches --
   # every commit to main/master should be verified end-to-end.
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}

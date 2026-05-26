@@ -35,6 +35,13 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  # Push/cron only; cancel-in-progress evaluates to false so consecutive
+  # runs queue. Block is here for uniformity and to guard a future
+  # pull_request trigger.
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   analysis:
     name: Scorecard analysis

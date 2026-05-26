@@ -37,8 +37,10 @@ permissions:
   pull-requests: write
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  # Group PRs by PR number (cancellable on synchronize). Workflow runs on
+  # pull_request only, so the fallback to github.ref is for future-proofing.
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   review:
