@@ -577,7 +577,7 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
       Collection<Token<? extends TokenIdentifier>> tokens = credentials.getAllTokens();
       println("Loaded %d token(s)", tokens.size());
       for (Token<? extends TokenIdentifier> token : tokens) {
-        println(token.toString());
+        println("%s/%s", token.getKind(), token.getService());
       }
       UserGroupInformation.getCurrentUser().addCredentials(credentials);
     }

@@ -481,7 +481,7 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
     }
     // now print everything fs.abfs.ext, assuming that
     // there are no secrets in it. Don't do that.
-    printPrefixedOptions(printout, conf, "fs.abfs.ext.");
+    printPrefixedExtOptions(printout, conf, "fs.abfs.ext.");
 
     printout.heading("Authentication");
 

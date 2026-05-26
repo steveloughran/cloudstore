@@ -1075,10 +1075,10 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
 
     // now print everything fs.s3a.ext, assuming that
     // there are no secrets in it. Don't do that.
-    printPrefixedOptions(printout, conf, "fs.s3a.ext.");
+    printPrefixedExtOptions(printout, conf, "fs.s3a.ext.");
 
     // analytics accelerator options
-    printPrefixedOptions(printout, conf, "fs.s3a.analytics.accelerator.");
+    printPrefixedExtOptions(printout, conf, "fs.s3a.analytics.accelerator.");
   }
 
   @Override

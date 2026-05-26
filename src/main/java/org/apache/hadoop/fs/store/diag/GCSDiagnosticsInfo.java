@@ -217,6 +217,6 @@ public class GCSDiagnosticsInfo extends StoreDiagnosticsInfo {
 
     // now print everything fs.s3a.ext, assuming that
     // there are no secrets in it. Don't do that.
-    printPrefixedOptions(printout, conf, "fs.gs.ext.");
+    printPrefixedExtOptions(printout, conf, "fs.gs.ext.");
   }
 }

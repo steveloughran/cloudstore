@@ -389,17 +389,18 @@ public class StoreDiagnosticsInfo {
   }
 
   /**
-   * Print all options with a prefix. Any option with ".secret" or ".pass" in them will be
-   * obfuscated.
+   * Print all options with a prefix. Options which match patterns for secrets will be
+   * obfuscated. The obfuscation here is best-effort as we don't know what .ext.* options
+   * contain secrets. Tip: don't.
    * 
    * @param printout where to print
    * @param conf config to read
    * @param prefix prefix to scan
    */
-  protected void printPrefixedOptions(final Printout printout, final Configuration conf,
+  protected void printPrefixedExtOptions(final Printout printout, final Configuration conf,
       final String prefix) {
     Map<String, String> propsWithPrefix = conf.getPropsWithPrefix(prefix);
-    printout.heading("Configuration options with prefix \"%s\" :", prefix);
+    printout.heading("Extra options with prefix \"%s\" :", prefix);
     if (!propsWithPrefix.isEmpty()) {
       int index = 0;
       Set<String> sorted = sortKeys(propsWithPrefix.keySet());
@@ -407,7 +408,7 @@ public class StoreDiagnosticsInfo {
         final String propertyVal = propsWithPrefix.get(key);
         final String propertyName = prefix + key;
         String value = "\"" + propertyVal + "\"";
-        if (propertyName.contains(".secret.") || propertyName.contains(".pass")) {
+        if (propertyName.contains(".secret.") || propertyName.contains(".pass") || propertyName.contains(".key") || propertyName.contains(".credential")) {
           value = sanitize(propertyVal, DEFAULT_HIDE_ALL_SENSITIVE_CHARS);
         }
         printout.println(DiagnosticsEntryPoint.COUNTER + " %s=%s", ++index, propertyName, value);
