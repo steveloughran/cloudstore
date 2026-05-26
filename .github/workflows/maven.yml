@@ -56,9 +56,10 @@ jobs:
     - name: Set up JDK
       uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
       with:
-        # palantir-java-format (used by Spotless) requires JDK 11+ to format,
-        # but the compiled bytecode is still pinned to source/target=1.8.
-        java-version: '11'
+        # apache-rat-plugin 0.18 requires JDK 17; palantir-java-format
+        # (via Spotless) needs JDK 11+. Compiled bytecode is still pinned
+        # to source/target=1.8 via the compiler plugin.
+        java-version: '17'
         distribution: 'temurin'
     - name: Apache RAT (license headers)
       run: mvn -B org.apache.rat:apache-rat-plugin:check
@@ -78,7 +79,9 @@ jobs:
     - name: Set up JDK
       uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
       with:
-        java-version: '11'
+        # apache-rat-plugin 0.18 (wired into verify) requires JDK 17.
+        # Bytecode target remains 1.8 via the compiler plugin.
+        java-version: '17'
         distribution: 'temurin'
     - name: Verify (compile + unit tests + RAT + Spotless)
       run: mvn -B verify
