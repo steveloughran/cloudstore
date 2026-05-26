@@ -29,6 +29,11 @@ in a server context are not vulnerabilities here.
 
 You *MUST NOT* file a report for:
 
+- Issues that require the operator to pass malicious arguments to their own
+  invocation, edit their own Hadoop site configuration, or place malicious
+  files on their own classpath.
+- Issues that require the attacker to have access to your hard disk or already
+  possess credentials to access the cluster/remote storage.
 - Output of `sessionkeys` or `gcscreds` containing credentials — these
   commands exist to print credentials.
 - Output of any command run with `-debug` or `-verbose` containing secrets —
@@ -37,29 +42,27 @@ You *MUST NOT* file a report for:
   configuration — that is the command's purpose.
 - Transitive CVEs in Hadoop, the AWS SDK, the GCS connector, or other
   `provided`-scope dependencies — cloudstore does not ship them; they come
-  from the host Hadoop install.
+  from the host installation
 - CVEs in remote stores interacted with.
-- Scanner output (Snyk, Dependabot, Trivy, etc.) without a working
-  reproducer against the current `main` branch.
-- Issues that require the operator to pass malicious arguments to their own
-  invocation, edit their own Hadoop site configuration, or place malicious
-  files on their own classpath.
-- Issues that require the attacker to have access to your hard disk or already possess credentials to access the cluster/remote storage.
+- Scanner output (Snyk, Dependabot, Trivy, Zizmor, etc.) without a working
+- reproducer against the current `main` branch.
 - Relaxed or introspective TLS behaviour in `tlsinfo` or `storediag` — these
   commands exist to diagnose TLS configuration.
 - Theoretical findings ("an attacker who could X might Y") without a
   reproduction.
 
 AI-assisted reports are accepted only if the submitter has verified the
-finding by hand against current source and includes a runnable reproducer.
-Unverified LLM-generated reports waste maintainer time and will be closed
-without further response.
+finding by hand against current source and includes a runnable reproducer
+running as a non-root user.
+
+*Unverified LLM-generated reports waste maintainer time and will be closed
+without further response.*
 
 A valid report includes: 
-- the cloudstore version (git SHA)
-- the exact command run
-- endpoint information
-- the observed credential leak or other in-scope failure, and what was expected instead
+- the cloudstore version (git SHA).
+- the exact command run.
+- endpoint information.
+- the observed credential leak or other in-scope failure, and what was expected instead.
 
 ## Reporting a bug in cloudstore
 
@@ -70,9 +73,9 @@ Report security bugs in cloudstore to security@hadoop.apache.org
 Security bugs in third-party modules should be reported to their respective
 maintainers.
 
-## The cloudstore threat model
+## The Cloudstore threat model
 
-In the cloudstore threat model, there are trusted elements such as the
+In the Cloudstore threat model, there are trusted elements such as the
 underlying operating system. Vulnerabilities that require the compromise
 of these trusted elements are outside the scope of the cloudstore threat
 model.
@@ -85,11 +88,21 @@ model.
   to internal or third-party support teams assisting in troubleshooting cloud connectivity and performance issues.
   These are individuals who may be employed by separate companies, and who are not to be
   given access to the stores. That is: they MUST NOT see credentials.
-* Storediag output is not expected to be attached to public issue reports, as they do leak information about cluster configuration, which would assist in malicious cluster reconnaissance.
+* Storediag output is not expected to be attached to public issue reports, as they leak information about
+  cluster configuration, which would assist in malicious cluster reconnaissance.
 * Some commands `sessionkeys`, `gcscreds` do log secrets.
 
 The project is built on developer systems, and in CI systems.
-The threat model includes the risk of subverted github actions -git checksum references MUST be made to github actions, rather than tags.
+The threat model includes the risk of subverted github actions
+* git checksum references MUST be made to GitHub actions, rather than tags; include the version as a comment so dependabot will track and maintain them.
+* [Zizmor](https://zizmor.sh/) SHALL be used to audit GHAs.
+* GHA triggers on PRs MUST NOT be triggers which provide unrestricted github tokens to the actions.
+* Github Actions SHALL follow GitHub's [secure use](https://docs.github.com/en/actions/reference/security/secure-use) guidelines, and in particular use [Intermediate Environment Variables](https://docs.github.com/en/actions/reference/security/secure-use#use-an-intermediate-environment-variable) to safely process untrusted inputs.
+* All inputs from pull requests, including titles, comments, authors and code SHALL be considered untrusted.
+
+The CI build output will be publicly visible, so the threat model includes
+- unobfuscated logging of any cloud credentials provided by CI runs.
+  
 
 ## Not in the threat model
 
@@ -105,6 +118,7 @@ The threat model includes the risk of subverted github actions -git checksum ref
 * Any vulnerability reported against an older release of cloudstore which cannot be reproduced in the latest version of the `main` branch.
 * Any vulnerability when running on a version of hadoop older than the latest apache hadoop release,
   and which cannot be reproduced on the latest release.
+* Bugs in the test runs which do not leak secrets
 
 ## Do report
 
