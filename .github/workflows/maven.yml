@@ -53,12 +53,11 @@ jobs:
     timeout-minutes: 10
     steps:
     - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      with:
+        persist-credentials: false
     - name: Set up JDK
       uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
       with:
-        # apache-rat-plugin 0.18 requires JDK 17; palantir-java-format
-        # (via Spotless) needs JDK 11+. Compiled bytecode is still pinned
-        # to source/target=1.8 via the compiler plugin.
         java-version: '17'
         distribution: 'temurin'
     - name: Apache RAT (license headers)
@@ -71,11 +70,16 @@ jobs:
     needs: lint
     # Skip on PRs raised from forks -- the forker's own Actions runs the
     # full build on push to their PR branch. Upstream still gets lint above.
+    # zizmor: ignore[template-injection] -- expression context only; both
+    # operands are GitHub-issued repo slugs ([a-z0-9._-]+/[a-z0-9._-]+),
+    # not user-controlled free text, so no injection surface exists.
     if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
     - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      with:
+        persist-credentials: false
     - name: Set up JDK
       uses: actions/setup-java@be666c2fcd27ec809703dec50e508c2fdc7f6654 # v5.2.0
       with:

@@ -30,8 +30,10 @@ on:
   push:
     branches: [ main, master, trunk ]
 
-# Top-level default: read. Per-job permissions widen where required.
-permissions: read-all
+# Top-level: least-privilege. The analysis job widens to the specific
+# scopes it needs (security-events, actions, id-token).
+permissions:
+  contents: read
 
 jobs:
   analysis:
