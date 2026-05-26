@@ -1,0 +1,67 @@
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# zizmor: static analysis for GitHub Actions workflows. Catches things
+# CodeQL/Scorecard/dependency-review don't: template injection in run:
+# steps, over-broad permissions, unpinned actions, pull_request_target
+# misuse, cache-poisoning vectors, etc.
+#
+# Findings upload to the Security tab as SARIF (category 'zizmor').
+# Treated like CodeQL: visible status check, expected-green, but not a
+# hard merge blocker until the tool has been clean for a while.
+#
+# Third-party actions are SHA-pinned per SECURITY.md.
+
+name: Zizmor
+
+on:
+  push:
+    branches: [ main, master, trunk ]
+  pull_request:
+    branches: [ main, master, trunk ]
+  schedule:
+    # Mondays 09:11 UTC -- off the hour, staggered from codeql/scorecard.
+    - cron: '11 9 * * 1'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  zizmor:
+    name: Zizmor workflow audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      # Upload SARIF to the Security tab.
+      security-events: write
+      contents: read
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      with:
+        persist-credentials: false
+
+    - name: Run zizmor
+      uses: zizmorcore/zizmor-action@5f14fd08f7cf1cb1609c1e344975f152c7ee938d # v0.5.6
+      with:
+        # Surface everything initially; tighten if the signal/noise is poor.
+        min-severity: low
+        min-confidence: low
