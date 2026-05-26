@@ -581,10 +581,9 @@
                 <requireMavenVersion>
                   <version>[3.6.0,)</version>
                 </requireMavenVersion>
-                <!-- Open-ended: source/target are pinned to ${javac.version} on
-                     the compiler plugin; this rule just blocks ancient JDKs. -->
+                <!-- build java version, not the version for the artifact -->
                 <requireJavaVersion>
-                  <version>[1.8,)</version>
+                  <version>[1.17,)</version>
                 </requireJavaVersion>
               </rules>
             </configuration>
