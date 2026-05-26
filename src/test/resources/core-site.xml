@@ -20,8 +20,14 @@
 
 <configuration>
 
-  <include xmlns="http://www.w3.org/2001/XInclude"
-    href="auth-keys.xml">
+  <!--
+  To run these tests.
+
+  # Create a file auth-keys.xml  - DO NOT ADD TO REVISION CONTROL
+  # see testing.md for details on what to set.
+  -->
+  <include xmlns="http://www.w3.org/2001/XInclude" href="auth-keys.xml">
+    <fallback/>
   </include>
 
 </configuration>
