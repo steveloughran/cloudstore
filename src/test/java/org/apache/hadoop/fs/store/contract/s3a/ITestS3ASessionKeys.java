@@ -63,7 +63,13 @@ public class ITestS3ASessionKeys extends AbstractFSContractTestBase {
     Assume.assumeFalse("FS already uses session credentials; sessionkeys cannot derive new ones",
         hasSessionToken);
 
-    final CapturedRun run = runAndCapture(new SessionKeys(), getFileSystem().getUri().toString());
+    // Use the shortest practical token lifetime (15 minutes) so that any
+    // accidental credential leak — into a CI log, a captured stack trace,
+    // or a surefire report — self-expires before it can be indexed or
+    // exploited. The duration argument also exercises the -duration option.
+    final CapturedRun run = runAndCapture(new SessionKeys(),
+        "-duration", "15m",
+        getFileSystem().getUri().toString());
     Assertions.assertThat(run.exitCode)
         .overridingErrorMessage(
             "sessionkeys exit code != 0 (output suppressed: may contain " + "credentials)")

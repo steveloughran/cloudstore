@@ -26,6 +26,8 @@ import static org.apache.hadoop.service.launcher.LauncherExitCodes.EXIT_USAGE;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -38,6 +40,7 @@ import org.apache.hadoop.fs.s3a.S3ARetryPolicy;
 import org.apache.hadoop.fs.s3a.auth.STSClientFactory;
 import org.apache.hadoop.fs.store.StoreDurationInfo;
 import org.apache.hadoop.fs.store.StoreEntryPoint;
+import org.apache.hadoop.fs.store.StoreUtils;
 import org.apache.hadoop.fs.store.commands.EnvEntry;
 import org.apache.hadoop.util.ToolRunner;
 import org.slf4j.Logger;
@@ -63,20 +66,22 @@ public class SessionKeys extends StoreEntryPoint {
 
   public static final String ROLE = "role";
 
+  public static final String DURATION = "duration";
+
   public static final String USAGE =
-      "Usage: sessionkeys\n" + STANDARD_OPTS + optusage(ROLE, "arn", "Role to assume")
+      "Usage: sessionkeys\n" + STANDARD_OPTS + optusage(DURATION, "duration", "duration of token, suffix of h m s for hour, minute, second")+  optusage(ROLE, "arn", "Role to assume")
           + optusage(JSON, "file", "Json file to load (only valid if -role is set") + " <S3A path>";
 
   public SessionKeys() {
     createCommandFormat(1, 1);
-    addValueOptions(ROLE, JSON);
+    addValueOptions(DURATION, ROLE, JSON);
   }
 
   @SuppressWarnings("MagicNumber")
   @Override
   public int run(String[] args) throws Exception {
     List<String> paths = parseArgs(args);
-    if (paths.size() < 1) {
+    if (paths.isEmpty()) {
       errorln(USAGE);
       return EXIT_USAGE;
     }
@@ -86,6 +91,9 @@ public class SessionKeys extends StoreEntryPoint {
     // get JSON or empty string
     String role = getOptional(ROLE).orElse("");
     String jsonFile = getOptional(JSON).orElse("");
+    Duration duration = getOptional(DURATION).map(arg ->
+        StoreUtils.parseDurationArgument(arg, 12, TimeUnit.HOURS))
+        .orElse(Duration.of(12, ChronoUnit.HOURS));
     boolean hasRole = !role.isEmpty();
     boolean hasJsonFile = !jsonFile.isEmpty();
     String json = null;
@@ -126,13 +134,13 @@ public class SessionKeys extends StoreEntryPoint {
         STSClientFactory.STSClient stsClient = STSClientFactory.createClientConnection(
             builder.build(), new Invoker(new S3ARetryPolicy(conf), Invoker.LOG_EVENT));
 
-        int duration = hasRole ? 12 : 36;
-        println("Session duration: %d hours", duration);
+        final long minutes = duration.toMinutes();
+        println("Session duration: %d minutes",  minutes);
         if (!hasRole) {
-          sessionCreds = stsClient.requestSessionCredentials(duration, TimeUnit.HOURS);
+          sessionCreds = stsClient.requestSessionCredentials(minutes, TimeUnit.MINUTES);
         } else {
           sessionCreds =
-              stsClient.requestRole(role, "role-session", json, duration, TimeUnit.HOURS);
+              stsClient.requestRole(role, "role-session", json, minutes, TimeUnit.MINUTES);
         }
 
         keyId = sessionCreds.accessKeyId();

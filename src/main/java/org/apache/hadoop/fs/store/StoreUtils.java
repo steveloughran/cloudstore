@@ -25,12 +25,16 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.lang.reflect.Array;
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.StorageUnit;
 import org.apache.hadoop.fs.Path;
@@ -157,6 +161,20 @@ public final class StoreUtils {
       uploadSize = sizeConf.getStorageSize("size", s, storageUnit);
     }
     return uploadSize;
+  }
+
+  /**
+   * Parse a duration argument
+   * @param argument arg value
+   * @param defaultValue default value if none is provided
+   * @param defaultUnit default unit if no value is given
+   */
+  public static Duration parseDurationArgument(String argument, long defaultValue,
+        TimeUnit defaultUnit) {
+    final Configuration conf = new Configuration(false);
+    conf.set("key", argument);
+    final long duration = conf.getTimeDuration("key", defaultValue, defaultUnit, TimeUnit.SECONDS);
+    return Duration.of(duration, ChronoUnit.SECONDS);
   }
 
   /**

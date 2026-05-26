@@ -19,7 +19,8 @@ prints them as: XML, bash env vars, fish env vars, key=val properties.
 For the XML and properties files, also prints the credential providers option
 to use temporary credentials
 
-Validity: 36h
+Default validity: 12h. Use `-duration` to request a shorter (or longer,
+subject to STS limits) token lifetime — see below.
 
 This is to aid with generating temp keys to use with throwaway test clusters
 that may be shared with colleagues, avoids having to share real credentials.
@@ -31,9 +32,36 @@ to apply.
 ## Options
 
 ```
--role <arn>
--json <jsonfile>
+-duration <value>    requested token lifetime
+-role <arn>          STS role to assume
+-json <jsonfile>     IAM policy JSON to attach to the assumed role (requires -role)
 ```
+
+### `-duration`
+
+The duration argument is an integer with an optional unit suffix:
+
+| Suffix | Unit    |
+|--------|---------|
+| `h`    | hours   |
+| `m`    | minutes |
+
+If no suffix is supplied, **hours** are assumed. Examples:
+
+```
+-duration 15m      # 15 minutes -- shortest practical lifetime
+-duration 1h       # 1 hour
+-duration 2        # 2 hours (no suffix -> hours)
+```
+
+The default if `-duration` is omitted is `12h`.
+
+The minimum and maximum lifetimes are enforced server-side by AWS STS,
+and depend on whether the request is for plain session credentials
+(`GetSessionToken`: 15 minutes to 36 hours) or for an assumed role
+(`AssumeRole`: 15 minutes up to the role's `MaxSessionDuration`,
+default 1 hour, configurable up to 12 hours).
+Requests outside the allowed range are rejected by STS.
 
 ## Example
 
