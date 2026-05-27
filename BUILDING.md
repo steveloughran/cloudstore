@@ -27,15 +27,14 @@ cli commands*
 With maven
 
 To build a production release
-1. Use java8 for the *bytecode* (`source`/`target` are pinned to 1.8 by the compiler plugin and by the enforcer plugin's lower bound).
-2. Run the build under a JDK that the toolchain supports — JDK 11+ is required for `spotless:apply` because palantir-java-format pulls in JDK 11 APIs at format time.
-3. Compile against a shipping hadoop version (see the profiles).
+1. Compile on a JDK17 JVM; the output is still generated for java 8 JVMs.
+2. Compile against a shipping hadoop version (see the profiles).
 
 
 ```bash
+mvn spotless:apply              # auto-format Java sources to palantir-java-format
 mvn clean install               # compile + unit tests + jar
 mvn clean verify                # adds: ITest*, apache-rat:check, spotless:check
-mvn spotless:apply              # auto-format Java sources to palantir-java-format
 mvn org.apache.rat:apache-rat-plugin:check    # license-header audit only
 mvn site                        # render src/site → target/site (fluido skin)
 ```
@@ -54,34 +53,68 @@ To bind to a store, follow the [testing s3a](https://hadoop.apache.org/docs/stab
 
 ## Updating cloudstore release versions
 
-For a long time the version was fixed at 1.0 so that curl and other tools could retrieve it
-This was convenient for some use cases, but has led to a condition where the JAR downloaded
-for support calls was never updated, even after new releases were made, because without
-a version change this wasn't apparent.
+For a long time the artifact version was fixed at 1.0 so that curl and other
+tools could fetch a stable URL. That was convenient but produced a different
+problem: support tickets kept attaching the same `cloudstore-<old>.jar`
+long after new releases had shipped, with no version change to make the staleness
+visible. Release number increments are now required for anything other than
+a rapid-iteration multiple-releases-in-a-day workflow.
 
-Therefore release number increments are required for anything other than a rapid-iteration multiple-releases-in-a-day workflow.
+The project follows the conventional Maven SNAPSHOT lifecycle:
 
-Update the version, for example from 1.0 to 1.1:
+| Phase                     | pom `<version>`    | docs (`cloudstore-X.Y.jar`) |
+|---------------------------|--------------------|-----------------------------|
+| Day-to-day development    | `X.Y-SNAPSHOT`     | last released `X.Y`         |
+| Cutting release `X.Y`     | `X.Y`              | `X.Y`                       |
+| Immediately after release | `X.(Y+1)-SNAPSHOT` | `X.Y`                       |
+
+`-SNAPSHOT` appears in the pom only; the published artifact and every
+documented `cloudstore-X.Y.jar` reference is always a bare release form.
+
+Two scripts in `dev-support/` keep these in sync:
+
+
+**`bump-version.sh <new-version>`**
+
+Bumps `pom.xml`'s `<version>` only.
+Accepts either `X.Y-SNAPSHOT` (for development bumps) or `X.Y`
+(when cutting a release).
+Also rewrites `BUILDING.md`'s `set -gx ver <v>` line so the release command block
+below stays in step (the line always reflects the bare release
+version — a trailing `-SNAPSHOT` is stripped before substituting).
+Does *not* touch `README.md`, `AGENTS.md`, or `src/site/markdown/*`.
+
+**`update-site-docs.sh <new-version>`**
+Updates site documentation for releases.
+Rewrites every `cloudstore-<old>.jar` /
+  `cloudstore-<old>-cyclonedx` reference in `README.md`, `AGENTS.md`,
+  `BUILDING.md`, and `src/site/markdown/*.md`, and bumps the
+  `<cloudstore.docs.version>` property in `pom.xml`.
+Rejects attempts to switch to a `-SNAPSHOT`; SNAPSHOT artifacts are not released and so not documented.
+
+The `verify` phase enforces this: `dev-support/check-doc-versions.sh`
+runs as part of `mvn verify` and fails the build if any markdown doc
+references a `cloudstore-X.Y.jar` that disagrees with
+`${cloudstore.docs.version}` (independent of `${project.version}`, so
+SNAPSHOT pom states do not trip the gate).
+
+### Worked example: cutting release 1.4 then returning to dev
+
 ```bash
-dev-support/bump-version.sh 1.1
+# 1. Cut the release: pom 1.4-SNAPSHOT -> 1.4, site docs 1.3 -> 1.4.
+dev-support/bump-version.sh 1.4
+dev-support/update-site-docs.sh 1.4
+# (build, tag, publish — see "Releasing" below.)
+
+# 2. Back to development: pom 1.4 -> 1.5-SNAPSHOT. Docs stay at 1.4.
+dev-support/bump-version.sh 1.5-SNAPSHOT
 ```
-
-This wraps `mvn versions:set -DnewVersion=1.1` and rewrites every
-`cloudstore-<old>.jar` reference in `README.md`, `AGENTS.md`, `BUILDING.md`,
-and `src/site/markdown/*.md` to the new version.
-
-The `verify` phase enforces this: `dev-support/check-doc-versions.sh` runs
-as part of `mvn verify` and fails the build if any markdown doc references
-a `cloudstore-X.Y.jar` that disagrees with `${project.version}`.
-
-*Note:* there's currently no use of the `-SNAPSHOT` suffix, used in downstream builds for the tools
-to recognise this should be updated nightly.
-This artifact is not currently intended for such use.
 
 
 ## Releasing
 
-To publish the release use the gui or the github command line through the `fish` shell.
+To publish the release use the github command line through the `fish` shell, with a final
+git UI interaction.
 
 Release builds activate the `release` profile, which (a) enforces a clean git
 tree via `buildnumber-maven-plugin` and (b) emits a CycloneDX SBOM next to the
@@ -100,7 +133,7 @@ Commit all changes before starting a release build.
 
 Commands (for fish)
 ```bash
-set -gx ver 1.3                           # bumped by dev-support/bump-version.sh
+set -gx ver 1.3                           # bumped by dev-support/bump-version.sh (always release form, no -SNAPSHOT)
 mvn clean install -Prelease,sign -DskipTests
 set -gx now (date '+%Y-%m-%d-%H.%M'); echo [$now]
 git commit -S --allow-empty -m "release $now"; git push
@@ -132,7 +165,7 @@ detached `.asc` next to each of:
 
 Prerequisites:
 
-1. A published OpenPGP key.
+1. An OpenPGP key in the Hadoop committer KEYS file.
 2. `gpg-agent` running with the release key unlocked. A quick way to
    warm the agent before the build is:
    `echo test | gpg --clearsign -u <keyid> > /dev/null`.
@@ -141,8 +174,7 @@ Flags:
 
 - `-Dgpg.keyName=<keyid>` — pick a specific key. If unset, gpg's
   default secret key is used.
-- `-Dgpg.skip=true` — disable signing even when `-Psign` is active
-  (rarely useful since the profile is already opt-in).
+- `-Dgpg.skip=true` — disable signing even when `-Psign` is active.
 
 `-Prelease` on its own (without `sign`) still produces a valid jar and
 SBOM — useful for local smoke tests on machines without the release
@@ -164,8 +196,6 @@ gh release upload tag-release-$now \
     target/cloudstore-$ver-cyclonedx.json.asc \
     target/cloudstore-$ver-cyclonedx.xml.asc
 ```
-
-Use `--clobber` to overwrite an existing asset of the same name.
 
 ## How to bypass buildnumber checks
 

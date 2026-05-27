@@ -49,6 +49,14 @@
     <buildnumber.check>false</buildnumber.check>
     <buildnumber.update>false</buildnumber.update>
 
+    <!-- Most recently released cloudstore version: the version users
+         download. Independent of ${project.version}, which moves through
+         X.Y-SNAPSHOT cycles during development. Bumped by
+         dev-support/update-site-docs.sh in lockstep with the markdown
+         references to cloudstore-X.Y.jar; the verify-phase
+         check-doc-versions execution below uses it to detect drift. -->
+    <cloudstore.docs.version>1.3</cloudstore.docs.version>
+
     <!-- GPG signing key id; override on the command line with
          -Dgpg.keyName=<keyid>. Empty default lets gpg pick the default
          secret key when -Psign is active. -->
@@ -668,8 +676,13 @@
       </plugin>
 
       <!-- Verify-phase guard: fail if any markdown doc references a
-           cloudstore-<X.Y>.jar that disagrees with ${project.version}.
-           Paired with dev-support/bump-version.sh which keeps them in sync. -->
+           cloudstore-<X.Y>.jar that disagrees with
+           ${cloudstore.docs.version}, i.e. the most recently released
+           version. dev-support/bump-version.sh moves ${project.version}
+           through X.Y-SNAPSHOT cycles without touching docs;
+           dev-support/update-site-docs.sh bumps both
+           ${cloudstore.docs.version} and the markdown references
+           together at release time. -->
       <plugin>
         <groupId>org.codehaus.mojo</groupId>
         <artifactId>exec-maven-plugin</artifactId>
@@ -684,7 +697,7 @@
             <configuration>
               <executable>${project.basedir}/dev-support/check-doc-versions.sh</executable>
               <arguments>
-                <argument>${project.version}</argument>
+                <argument>${cloudstore.docs.version}</argument>
               </arguments>
             </configuration>
           </execution>

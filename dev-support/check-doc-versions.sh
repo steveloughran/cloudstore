@@ -17,8 +17,11 @@
 # limitations under the License.
 #
 # Fail if any committed markdown file references a `cloudstore-<X.Y>.jar`
-# whose version disagrees with the current ${project.version} (passed in $1).
-# Used as a verify-phase guard; pair with dev-support/bump-version.sh.
+# whose version disagrees with the most recently released cloudstore
+# version (passed in $1; the pom plugin wires this to
+# ${cloudstore.docs.version}). Used as a verify-phase guard; pair with
+# dev-support/update-site-docs.sh which moves both the property and the
+# markdown references together at release time.
 
 set -euo pipefail
 
@@ -62,6 +65,6 @@ if [[ ${#BAD[@]} -gt 0 ]]; then
   echo "Stale artifact version references in docs (expected ${EXPECTED}):" >&2
   printf '  %s\n' "${BAD[@]}" >&2
   echo >&2
-  echo "Run: dev-support/bump-version.sh ${EXPECTED}" >&2
+  echo "Run: dev-support/update-site-docs.sh ${EXPECTED}" >&2
   exit 1
 fi
