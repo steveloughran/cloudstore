@@ -637,9 +637,11 @@ public class AbfsDiagnosticsInfo extends StoreDiagnosticsInfo {
     } else {
       printout.error("no host declared in filesystem URI %s", getFsURI());
     }
+
     addProbeFromOption(uris, conf, FS_AZURE_ACCOUNT_OAUTH2_REFRESH_TOKEN_ENDPOINT, "",
         "Oauth refresh token endpoint", "https://login.microsoftonline.com/Common/oauth2/token",
         true);
+
     return uris;
   }
 

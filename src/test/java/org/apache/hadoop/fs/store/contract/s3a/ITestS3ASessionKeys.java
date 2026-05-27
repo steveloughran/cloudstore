@@ -27,7 +27,9 @@ import org.apache.hadoop.fs.s3a.S3AFileSystem;
 import org.apache.hadoop.fs.s3a.sdk.SessionKeys;
 import org.apache.hadoop.tools.store.StoreTestUtils.CapturedRun;
 import org.assertj.core.api.Assertions;
+import org.assertj.core.api.Assumptions;
 import org.junit.Assume;
+import org.junit.Before;
 import org.junit.Test;
 
 /**
@@ -42,9 +44,19 @@ import org.junit.Test;
  */
 public class ITestS3ASessionKeys extends AbstractFSContractTestBase {
 
+  private static final String TEST_STS_ENABLED = "test.fs.s3a.sts.enabled";
+
   @Override
   protected AbstractFSContract createContract(Configuration conf) {
     return new S3AStoreContract(conf);
+  }
+
+  @Before
+  public void setup() throws Exception {
+    super.setup();
+    final Configuration conf = getContract().getConf();
+    Assumptions.assumeThat(conf.getBoolean(TEST_STS_ENABLED, true))
+        .describedAs("value of %s", TEST_STS_ENABLED).isTrue();
   }
 
   @Test
@@ -67,9 +79,8 @@ public class ITestS3ASessionKeys extends AbstractFSContractTestBase {
     // accidental credential leak — into a CI log, a captured stack trace,
     // or a surefire report — self-expires before it can be indexed or
     // exploited. The duration argument also exercises the -duration option.
-    final CapturedRun run = runAndCapture(new SessionKeys(),
-        "-duration", "15m",
-        getFileSystem().getUri().toString());
+    final CapturedRun run =
+        runAndCapture(new SessionKeys(), "-duration", "15m", getFileSystem().getUri().toString());
     Assertions.assertThat(run.exitCode)
         .overridingErrorMessage(
             "sessionkeys exit code != 0 (output suppressed: may contain " + "credentials)")

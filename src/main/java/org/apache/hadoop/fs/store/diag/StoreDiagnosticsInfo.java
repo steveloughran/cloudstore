@@ -389,9 +389,9 @@ public class StoreDiagnosticsInfo {
   }
 
   /**
-   * Print all options with a prefix. Options which match patterns for secrets will be
-   * obfuscated. The obfuscation here is best-effort as we don't know what .ext.* options
-   * contain secrets. Tip: don't.
+   * Print all options with a prefix. Options which match patterns for secrets will be obfuscated.
+   * The obfuscation here is best-effort as we don't know what .ext.* options contain secrets. Tip:
+   * don't.
    * 
    * @param printout where to print
    * @param conf config to read
@@ -408,7 +408,8 @@ public class StoreDiagnosticsInfo {
         final String propertyVal = propsWithPrefix.get(key);
         final String propertyName = prefix + key;
         String value = "\"" + propertyVal + "\"";
-        if (propertyName.contains(".secret.") || propertyName.contains(".pass") || propertyName.contains(".key") || propertyName.contains(".credential")) {
+        if (propertyName.contains(".secret.") || propertyName.contains(".pass")
+            || propertyName.contains(".key") || propertyName.contains(".credential")) {
           value = sanitize(propertyVal, DEFAULT_HIDE_ALL_SENSITIVE_CHARS);
         }
         printout.println(DiagnosticsEntryPoint.COUNTER + " %s=%s", ++index, propertyName, value);

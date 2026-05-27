@@ -68,9 +68,11 @@ public class SessionKeys extends StoreEntryPoint {
 
   public static final String DURATION = "duration";
 
-  public static final String USAGE =
-      "Usage: sessionkeys\n" + STANDARD_OPTS + optusage(DURATION, "duration", "duration of token, suffix of h m s for hour, minute, second")+  optusage(ROLE, "arn", "Role to assume")
-          + optusage(JSON, "file", "Json file to load (only valid if -role is set") + " <S3A path>";
+  public static final String USAGE = "Usage: sessionkeys\n" + STANDARD_OPTS
+      + optusage(DURATION, "duration",
+          "duration of token, suffix of h m s for hour, minute, second")
+      + optusage(ROLE, "arn", "Role to assume")
+      + optusage(JSON, "file", "Json file to load (only valid if -role is set") + " <S3A path>";
 
   public SessionKeys() {
     createCommandFormat(1, 1);
@@ -91,9 +93,9 @@ public class SessionKeys extends StoreEntryPoint {
     // get JSON or empty string
     String role = getOptional(ROLE).orElse("");
     String jsonFile = getOptional(JSON).orElse("");
-    Duration duration = getOptional(DURATION).map(arg ->
-        StoreUtils.parseDurationArgument(arg, 12, TimeUnit.HOURS))
-        .orElse(Duration.of(12, ChronoUnit.HOURS));
+    Duration duration =
+        getOptional(DURATION).map(arg -> StoreUtils.parseDurationArgument(arg, 12, TimeUnit.HOURS))
+            .orElse(Duration.of(12, ChronoUnit.HOURS));
     boolean hasRole = !role.isEmpty();
     boolean hasJsonFile = !jsonFile.isEmpty();
     String json = null;
@@ -135,7 +137,7 @@ public class SessionKeys extends StoreEntryPoint {
             builder.build(), new Invoker(new S3ARetryPolicy(conf), Invoker.LOG_EVENT));
 
         final long minutes = duration.toMinutes();
-        println("Session duration: %d minutes",  minutes);
+        println("Session duration: %d minutes", minutes);
         if (!hasRole) {
           sessionCreds = stsClient.requestSessionCredentials(minutes, TimeUnit.MINUTES);
         } else {

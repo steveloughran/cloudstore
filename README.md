@@ -166,7 +166,7 @@ almost guaranteed.
 
 There is no scheduling of work into separate threads within a directory; those stores
 which do prefetching in separate threads (recent ABFS and S3A builds) do add some
-paralellism here.
+parallelism here.
 
 
 ```
@@ -234,7 +234,11 @@ Help debug gcs credential bindings as set in `fs.gs.auth.service.account.private
 
 it does ths with some better diagnostics of parsing problems.
 
-warning: at -verbose, this prints your private key
+*warning: at -verbose, this prints your private key*
+
+This is by design, as encoding of the private key when stored in hadoop configuration or password JCEKS files may be the cause of authentication issues.
+
+
 
 ```
 hadoop jar cloudstore-1.3.jar gcscreds gs://bucket/
@@ -300,15 +304,13 @@ See [locatefiles](src/main/site/locatefiles.md)
 ## mkcsv
 
 Creates a large CSV file designed to trigger/validate the ABFS prefetching bug which
-came in HADOOP-17156/
+came in HADOOP-17156.
 
 See [mkcsv](src/main/site/mkcsv.md)
 
 ## pathcapability
 
 Probes a filesystem for offering a specific named capability on the given path.
-
-Requires a version of Hadoop with the `PathCapabilities` interface, which includes Hadoop 3.3 onwards.
 
 ```bash
 bin/hadoop jar cloudstore-1.3.jar pathcapability
@@ -326,10 +328,7 @@ Using filesystem s3a://landsat-pds
 Path s3a://landsat-pds/ has capability fs.s3a.capability.select.sql
 ```
 
-The exit code of the command is 0 if the capability is present, -1 if absent, and 55 if the hadoop version does not support the API.
- Approximate HTTP equivalent: `505: Version Not Supported`. 
- 
-As it is in Hadoop 3.3, all APIs new to that release (including `openFile()`) can absolutely be probed for. Otherwise, the 55 response may mean "an API is implemented, just not the probe". 
+The exit code of the command is 0 if the capability is present and -1 if absent.
 
 ## put
 
@@ -349,31 +348,7 @@ See [S3 operations through the AWS V2 SDK](src/main/site/sdk.md).
 
 ## Development and Future Work
 
-_Roadmap_: Whatever we need to debug things.
 
-This file can be grabbed via `curl` statements and executed to help automate
-testing of cluster deployments.
-
-To help with doing this with the latest releases, it may be enhanced regularly,
-with new releases. 
-
-There is no real release plan other than this.
-
-Possible future work
-
-* Exploration of higher performance IO.
-* Diagnostics/testing of integration with foundational Hadoop operations.
-* Improving CLI testing with various probes designed to be invoked in a shell
-  and fail with meaningful exit codes. E.g: verifying that a filesystem has a specific (key, val)
-  property, that a specific env var made it through.
-* something to scan hadoop installations for duplicate artifacts, which knowledge
-  of JARS which main contain the same classes (aws-shaded, aws-s3, etc),
-  and the knowledge of required consistencies (hadoop-*, jackson-*).
-* And extend to SPARK_HOME, Hive, etc.
-
-Contributions through PRs welcome.
-
-Bug reports: please include environment and ideally patches.
 
 ## Building
 

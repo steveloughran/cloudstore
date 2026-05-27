@@ -466,15 +466,16 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
   /**
    * Mandatory classnames.
    */
-  public static final String[] CLASSNAMES = {S3AFS_CLASSNAME, "java.lang.System",};
+  public static final String[] CLASSNAMES = {S3AFS_CLASSNAME, "java.lang.System",
+      "software.amazon.awssdk.auth.credentials.AwsCredentialsProvider",
+      "software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider",
+      "software.amazon.awssdk.core.exception.SdkException",
+      "software.amazon.awssdk.services.s3.model.S3Object",};
 
   /**
    * Optional classes.
    */
   public static final String[] OPTIONAL_CLASSNAMES = {
-
-      // access points
-      "org.apache.hadoop.fs.s3a.ArnResource",
 
       // SSL stuff
       "org.wildfly.openssl.OpenSSLProvider",
@@ -499,14 +500,10 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       "org.apache.ranger.raz.hook.s3.RazS3ADelegationTokenIdentifier",
       "org.apache.ranger.raz.hook.s3.RazAnonymousAWSCredentialsProvider",
 
-      // v2 SDK
-      "software.amazon.awssdk.auth.credentials.AwsCredentialsProvider",
-      "software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider",
-      "software.amazon.awssdk.core.exception.SdkException",
+      // various SDK changes
       "software.amazon.awssdk.crt.s3.S3MetaRequest", "software.amazon.eventstream.MessageDecoder",
       "software.amazon.awssdk.transfer.s3.progress.TransferListener",
-      "software.amazon.awssdk.services.s3.s3express.S3ExpressConfiguration", // s3 express
-      "software.amazon.awssdk.core.checksums.RequestChecksumCalculation", "",
+      "software.amazon.awssdk.core.checksums.RequestChecksumCalculation",
 
       // HADOOP-19330. Stream Leak reporting.
       "org.apache.hadoop.fs.impl.LeakReporter",

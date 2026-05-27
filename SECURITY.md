@@ -97,6 +97,7 @@ The threat model includes the risk of subverted github actions
 * git checksum references MUST be made to GitHub actions, rather than tags; include the version as a comment so dependabot will track and maintain them.
 * [Zizmor](https://zizmor.sh/) SHALL be used to audit GHAs.
 * GHA triggers on PRs MUST NOT be triggers which provide unrestricted github tokens to the actions.
+   For example, there MUST NOT be `pull_request_target`, `workflow_run`, or `issue_comment` triggers. 
 * Github Actions SHALL follow GitHub's [secure use](https://docs.github.com/en/actions/reference/security/secure-use) guidelines, and in particular use [Intermediate Environment Variables](https://docs.github.com/en/actions/reference/security/secure-use#use-an-intermediate-environment-variable) to safely process untrusted inputs.
 * All inputs from pull requests, including titles, comments, authors and code SHALL be considered untrusted.
 
@@ -104,21 +105,20 @@ The CI build output will be publicly visible, so the threat model includes
 - unobfuscated logging of any cloud credentials provided by CI runs.
   
 
-## Not in the threat model
+## Not in the Threat Model
 
 * Any attack which requires the user to manually enter credentials or configuration options.
-* Indirect vulnerabilities in dependencies.
-* Any attack which requires the local operating system to be configured in an unusual configuration/misconfigured as a step in the process
-* Any attack which requires a hadoop site reconfiguration
-* Any attack which requires the download and execution of external binaries
-* Any attack contains an assumption about artifacts on the classpath which is not true in production systems (example, spring jars)
+* Vulnerabilities in dependencies.
+* Any attack which requires the local operating system to be configured in an unusual configuration/misconfigured as a step in the process.
+* Any attack which requires a hadoop site reconfiguration.
+* Any attack which requires the download and execution of external binaries.
+* Any attack contains an assumption about artifacts on the classpath which is not true in production systems (example, spring jars).
 * `sessionkeys`: it generates then prints session keys of limited duration.
 * `gcscreds`: it prints GCS credentials as part of a diagnostics process.
 * Detailed printing of http communications between client and store when enabled.
 * Any vulnerability reported against an older release of cloudstore which cannot be reproduced in the latest version of the `main` branch.
-* Any vulnerability when running on a version of hadoop older than the latest apache hadoop release,
-  and which cannot be reproduced on the latest release.
-* Bugs in the test runs which do not leak secrets
+* Any vulnerability when running on a version of hadoop older than the latest apache hadoop release and which cannot be reproduced on a build of apache trunk.
+* Bugs in the test runs which do not leak secrets.
 
 ## Do report
 

@@ -755,6 +755,12 @@ public class StoreDiag extends DiagnosticsEntryPoint {
     try (StoreDurationInfo ignored =
         new StoreDurationInfo(LOG, "Creating filesystem for %s", baseDir)) {
       fs = FileSystem.newInstance(baseDir.toUri(), conf);
+    } catch (IOException e) {
+      if (e.toString().contains("fs.azure.account.")) {
+        throw new IOException("Invalid azure account value");
+      } else {
+        throw e;
+      }
     }
     URI fsUri = fs.getUri();
 

@@ -7,13 +7,20 @@
 ### Description of PR
 
 
+### Which issue does this close?
+
+<!-- insert the issue number prefixed by # for a back reference to be created -->
+
 ### How was this patch tested?
+
+
+### Which remote stores did you test against?
 
 
 ### For code changes:
 
 - [ ] Does the title or this PR starts with the corresponding JIRA issue id (e.g. 'HADOOP-17799. Your PR title ...')?
-- [ ] Object storage: have the integration tests been executed and the endpoint declared according to the connector-specific documentation?
+- [ ] Object storage: have the integration tests been executed and the endpoint declared according?
 - [ ] If adding new runtime dependencies to the code, are these dependencies licensed in a way that is compatible for inclusion under [ASF 2.0](http://www.apache.org/legal/resolved.html#category-a)?
 
 

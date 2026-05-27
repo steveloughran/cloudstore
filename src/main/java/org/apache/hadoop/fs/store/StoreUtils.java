@@ -34,7 +34,6 @@ import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.conf.StorageUnit;
 import org.apache.hadoop.fs.Path;
@@ -165,12 +164,13 @@ public final class StoreUtils {
 
   /**
    * Parse a duration argument
+   * 
    * @param argument arg value
    * @param defaultValue default value if none is provided
    * @param defaultUnit default unit if no value is given
    */
   public static Duration parseDurationArgument(String argument, long defaultValue,
-        TimeUnit defaultUnit) {
+      TimeUnit defaultUnit) {
     final Configuration conf = new Configuration(false);
     conf.set("key", argument);
     final long duration = conf.getTimeDuration("key", defaultValue, defaultUnit, TimeUnit.SECONDS);
