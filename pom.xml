@@ -68,6 +68,7 @@
     <avro.version>1.11.5</avro.version>
     <awsv2sdk.version>2.29.52</awsv2sdk.version>
     <checkstyle.version>9.3</checkstyle.version>
+    <checksum-maven-plugin.version>1.11</checksum-maven-plugin.version>
     <doxia-module-markdown.version>1.12.0</doxia-module-markdown.version>
     <gcs-connector.version>hadoop3-2.2.4</gcs-connector.version>
     <hadoop.version>3.4.2</hadoop.version>
@@ -323,6 +324,45 @@
                   <outputName>${project.artifactId}-${project.version}-cyclonedx</outputName>
                   <schemaVersion>1.5</schemaVersion>
                   <projectType>library</projectType>
+                </configuration>
+              </execution>
+            </executions>
+          </plugin>
+
+          <!-- Emit SHA-256 checksums alongside the release jar and SBOM.
+               Downloaders verify integrity with `shasum -c <file>.sha256`
+               before trusting the artifact; the gpg signature on the
+               original file remains the authenticity primitive.
+               Runs in the `verify` phase, after the cyclonedx-maven-plugin
+               has produced the SBOM files in `package`, so all three
+               inputs exist on disk. -->
+          <plugin>
+            <groupId>net.nicoulaj.maven.plugins</groupId>
+            <artifactId>checksum-maven-plugin</artifactId>
+            <version>${checksum-maven-plugin.version}</version>
+            <executions>
+              <execution>
+                <id>release-artifact-checksums</id>
+                <phase>verify</phase>
+                <goals>
+                  <goal>files</goal>
+                </goals>
+                <configuration>
+                  <algorithms>
+                    <algorithm>SHA-256</algorithm>
+                  </algorithms>
+                  <fileSets>
+                    <fileSet>
+                      <directory>${project.build.directory}</directory>
+                      <includes>
+                        <include>${project.artifactId}-${project.version}.jar</include>
+                        <include>${project.artifactId}-${project.version}-cyclonedx.json</include>
+                        <include>${project.artifactId}-${project.version}-cyclonedx.xml</include>
+                      </includes>
+                    </fileSet>
+                  </fileSets>
+                  <csvSummary>false</csvSummary>
+                  <xmlSummary>false</xmlSummary>
                 </configuration>
               </execution>
             </executions>

@@ -116,15 +116,23 @@ dev-support/bump-version.sh 1.5-SNAPSHOT
 To publish the release use the github command line through the `fish` shell, with a final
 git UI interaction.
 
-Release builds activate the `release` profile, which (a) enforces a clean git
-tree via `buildnumber-maven-plugin` and (b) emits a CycloneDX SBOM next to the
-jar:
+Release builds activate the `release` profile, which:
 
-- `target/cloudstore-<version>-cyclonedx.json`
-- `target/cloudstore-<version>-cyclonedx.xml`
+a. enforces a clean git tree via `buildnumber-maven-plugin`;
+b. emits a CycloneDX SBOM next to the jar:
+    - `target/cloudstore-<version>-cyclonedx.json`
+    - `target/cloudstore-<version>-cyclonedx.xml`
+c. emits a SHA-256 digest next to the jar and each SBOM file:
+    - `target/cloudstore-<version>.jar.sha256`
+    - `target/cloudstore-<version>-cyclonedx.json.sha256`
+    - `target/cloudstore-<version>-cyclonedx.xml.sha256`
 
 The SBOM is compile-scope only — `provided` deps (Hadoop, AWS SDK v2, GCS
 connector) are not in it because they are not shipped in the jar.
+
+The `.sha256` files are produced by `checksum-maven-plugin` in the `verify`
+phase. They give downloaders a quick integrity check (`shasum -c
+cloudstore-<version>.jar.sha256`) independent of the gpg signature.
 
 It also generates a build version, with the buildnumber plugin.
 On release builds, this will fail the build if there are uncommitted changes.
@@ -140,10 +148,13 @@ git commit -S --allow-empty -m "release $now"; git push
 gh release create tag-release-$now -t release-$now -n "release of $now" -d \
     target/cloudstore-$ver.jar \
     target/cloudstore-$ver.jar.asc \
+    target/cloudstore-$ver.jar.sha256 \
     target/cloudstore-$ver-cyclonedx.json \
     target/cloudstore-$ver-cyclonedx.json.asc \
+    target/cloudstore-$ver-cyclonedx.json.sha256 \
     target/cloudstore-$ver-cyclonedx.xml \
     target/cloudstore-$ver-cyclonedx.xml.asc \
+    target/cloudstore-$ver-cyclonedx.xml.sha256 \
     LICENSE-binary \
     NOTICE-binary
 # then go to the web ui to review and finalize the release
@@ -180,21 +191,31 @@ Flags:
 SBOM — useful for local smoke tests on machines without the release
 key.
 
-Verify a downloaded release:
+Verify a downloaded release. The `.sha256` files contain the bare hex
+digest (Apache convention) rather than the `shasum -c` wire format, so
+compare directly:
 
 ```bash
-gpg --verify target/cloudstore-$ver.jar.asc target/cloudstore-$ver.jar
+# integrity: hash matches what the release published.
+[ "$(shasum -a 256 cloudstore-$ver.jar | awk '{print $1}')" = \
+  "$(cat cloudstore-$ver.jar.sha256)" ] && echo "sha256 OK"
+# authenticity: the matching signature is from the expected key.
+gpg --verify cloudstore-$ver.jar.asc cloudstore-$ver.jar
 ```
 
 The `gh release create` command above attaches the jar, the SBOM
-(JSON + XML), and each of their `.asc` signatures in one shot. For an
-already-published release, append signatures with `gh release upload`:
+(JSON + XML), each of their `.asc` signatures, and each of their
+`.sha256` digests in one shot. For an already-published release,
+append the missing files with `gh release upload`:
 
 ```bash
 gh release upload tag-release-$now \
     target/cloudstore-$ver.jar.asc \
+    target/cloudstore-$ver.jar.sha256 \
     target/cloudstore-$ver-cyclonedx.json.asc \
-    target/cloudstore-$ver-cyclonedx.xml.asc
+    target/cloudstore-$ver-cyclonedx.json.sha256 \
+    target/cloudstore-$ver-cyclonedx.xml.asc \
+    target/cloudstore-$ver-cyclonedx.xml.sha256
 ```
 
 ## How to bypass buildnumber checks
