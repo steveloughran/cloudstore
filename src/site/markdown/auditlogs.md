@@ -19,7 +19,7 @@ Any records which contain S3A Audit headers will have these parsed and added to 
 
 The audit log files are created by S3 storage (if enabled) every hour, so many, possibly small files, are created.
 
-The `auditlogs` command will take a directory (local or remote)
+The input and output paths can either be local in cluster/cloud storage -just use the appropriate URL schema.
 
 ## Usage
 
@@ -149,7 +149,7 @@ Saved output to 2026-alice.avro
 
 ## Avro Record Schema
 
-See [AvroDataSchema.avsc](../avro/AvroDataSchema.avsc).
+See `src/main/avro/AvroDataSchema.avsc` in the 
 
 ```json
 {

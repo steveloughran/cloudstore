@@ -30,13 +30,17 @@ endpoint configuration problems.
    Hopefully though, there's now enough information to begin determining what it is.
 7. Optionally, writes can also be attempted.
 
-Iif things do fail, the printed configuration obfuscates the login secrets,
+If things do fail, the printed output tries to obfuscate the login secrets,
 and any other property considered sensitive.
+
 This is to support safer reporting of issues in bug reports within an organisation, and with third-parties whom you trust.
-It must still be considered insufficient obfuscation to permit a diagnostics report to be shared publicly, as it will leak information about your target store and client configuration.
+1. It MUST still be considered insufficient obfuscation to permit a diagnostics report to be shared publicly, as it will leak information about your target store and client configuration.
+2. There MAY be bugs in cloudstore or layers underneath which unintentionally output secrets, possibly in failure conditions.
+
+*Always review the output before sharing, and only share with trusted people/organizations.*
+
 
 ```bash
-# diagnose a 
 hadoop jar cloudstore-1.3.jar storediag s3a://noaa-cors-pds/raw/2023/017/
 hadoop jar cloudstore-1.3.jar storediag -w --tokenfile mytokens.bin s3a://my-readwrite-bucket/subdirectory
 hadoop jar cloudstore-1.3.jar storediag -w --tokenfile mytokens.bin hdfs://namenode/user/alice/subdir

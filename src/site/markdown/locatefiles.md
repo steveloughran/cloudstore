@@ -30,12 +30,15 @@ Usage:
 ```
 hadoop jar cloudstore-1.3.jar locatefiles
 Usage: locatefiles
-  -D <key=value>    Define a property
-  -tokenfile <file> Hadoop token file to load
-  -xmlfile <file>   XML config file to load
-  -threads <threads> number of threads
-  -verbose          print verbose output
-[<path>|<pattern>]```
+        -D <key=value>  Define a single configuration option
+        -sysprop <file> Property file of system properties
+        -tokenfile <file>       Hadoop token file to load
+        -xmlfile <file> XML config file to load
+        -verbose        verbose output
+        -debug  enable JVM logs (ALL) and override log4j levels (DEBUG) on specified packages or classes
+        -logoverrides <file>    A newline separated list of package and class names
+        -threads <threads>      number of threads
+[<path>|<pattern>]
 ```
 
 Example

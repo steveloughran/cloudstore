@@ -21,8 +21,6 @@ For S3 Express buckets, this includes the Availability Zone in which the region 
 
 For S3 standard buckets, the location type and name will be `null`.
 
-Although it is possible to identify S3 Express buckets by their name, this is not the case when referenced through AWS Access Points; this probe against the store will 
-
 ## Example: S3 Standard
 
 ```

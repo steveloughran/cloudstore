@@ -156,13 +156,17 @@ point in time will become visible.
 
 Usage
 ```
- undelete 
-        -D <key=value>  Define a property
+Usage: undelete <path>
+        -D <key=value>  Define a single configuration option
+        -sysprop <file> Property file of system properties
+        -tokenfile <file>       Hadoop token file to load
+        -xmlfile <file> XML config file to load
+        -verbose        verbose output
+        -debug  enable JVM logs (ALL) and override log4j levels (DEBUG) on specified packages or classes
+        -logoverrides <file>    A newline separated list of package and class names
         -limit <limit>  limit of files to list
         -age <seconds>  Only include versions created in this time interval
         -since <epoch-time>     Only include versions after this time
-        -tokenfile <file>       Hadoop token file to load
-        -xmlfile <file> XML config file to load
 ```
 
 ### Example

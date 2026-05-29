@@ -14,7 +14,22 @@
 
 # mkcsv
 
-Creates a CSV file with a given path; useful for scale testing CSV processing.
+Creates a CSV file with a given path and a specified number of records; useful for scale testing CSV processing.
+The records are of varying length and contain a calculated CRC32 column so corruption can be detected.
+
+```
+Usage: mkcsv
+        -D <key=value>  Define a single configuration option
+        -sysprop <file> Property file of system properties
+        -tokenfile <file>       Hadoop token file to load
+        -xmlfile <file> XML config file to load
+        -verbose        verbose output
+        -debug  enable JVM logs (ALL) and override log4j levels (DEBUG) on specified packages or classes
+        -logoverrides <file>    A newline separated list of package and class names
+        -header print a header row
+        -quote  quote column text
+        <records> <path>
+```
 
 ```bash
 hadoop jar cloudstore-1.3.jar mkcsv  -header -quote -verbose  10000 s3a://bucket/file.csv
@@ -44,10 +59,10 @@ length == a random int >= 0
 data = string where data.length() == length
        elements of data == char c where c in "[a-z][A-Z][0-9]"
 dataCrc == new CRC32().update(data.getBytes(StandardCharsets.UTF_8))
-rowCrC == crc32 of all previous fields, including quotes, *excluding separators*
+rowCrc == crc32 of all previous fields, including quotes, *excluding separators*
 end == "end"
 // and ignoring headers    
-forall n: row[n].rowID == n
+forall n: row[n].rowId == n
 ```
 
 

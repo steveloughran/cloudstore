@@ -35,11 +35,11 @@ Usage: bulkdelete [-verbose] [-page <pagesize>] <path> <file>
 
 The batch size defined is the minimum of the filesystem's page size and the value supplied with the `-page` option, if that is supplied and greater than zero.
 
-The path resolution process is such that paths with a trailing "/" are coverted to
+The path resolution process is such that paths with a trailing "/" are converted to
 paths without the path, so that `/scratch/object/` is converted to `/scratch/object`.
 This means that
 * This command cannot be used for deleting directory markers.
-* If there is an object/file at the path `/scratch/object` is will be deleted
+* If there is an object/file at the path `/scratch/object` it will be deleted
 
 
 All filesystems support bulk delete with a page size of at least 1.

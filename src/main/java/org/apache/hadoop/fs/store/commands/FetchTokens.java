@@ -17,8 +17,11 @@
  */
 package org.apache.hadoop.fs.store.commands;
 
-import static org.apache.hadoop.fs.store.CommonParameters.DEBUG;
 import static org.apache.hadoop.fs.store.CommonParameters.DEFINE;
+import static org.apache.hadoop.fs.store.CommonParameters.LOG_OVERRIDES;
+import static org.apache.hadoop.fs.store.CommonParameters.STANDARD_OPTS;
+import static org.apache.hadoop.fs.store.CommonParameters.SYSPROPS;
+import static org.apache.hadoop.fs.store.CommonParameters.TOKENFILE;
 import static org.apache.hadoop.fs.store.CommonParameters.VERBOSE;
 import static org.apache.hadoop.fs.store.CommonParameters.XMLFILE;
 
@@ -49,13 +52,15 @@ public class FetchTokens extends StoreEntryPoint {
 
   private static final Logger LOG = LoggerFactory.getLogger(FetchTokens.class);
 
-  public static final String USAGE = "Usage: fetchdt <file> [-renewer <renewer>] [-r]"
-      + optusage(XMLFILE, "file", "XML config file to load") + optusage(VERBOSE, "verbose output")
-      + "-r: require each filesystem to issue a token\n" + " <url1> ... <url999>\n";
-
   private static final String RENEWER = "renewer";
 
   private static final String REQUIRED = "r";
+
+  public static final String USAGE = "Usage: fetchdt\n"
+      + " <file> [-renewer <renewer>] [-r]"
+      + STANDARD_OPTS
+      + optusage(RENEWER, "<renewer>", "Principal who can renew the token")
+      + "-r: require each filesystem to issue a token\n" + " <url1> ... <url999>\n";
 
   public FetchTokens() {
     createCommandFormat(2, 999, REQUIRED);
@@ -64,7 +69,7 @@ public class FetchTokens extends StoreEntryPoint {
 
   @Override
   protected void addStandardValueOptions() {
-    addValueOptions(DEFINE, DEBUG, VERBOSE, XMLFILE);
+    addValueOptions(DEFINE, SYSPROPS, TOKENFILE, XMLFILE, LOG_OVERRIDES);
   }
 
   public int run(String[] args, PrintStream stream) throws Exception {

@@ -22,19 +22,21 @@ Measure upload/download bandwidth; support different read policies, and optional
 > hadoop jar cloudstore-1.3.jar bandwidth
 
 Usage: bandwidth [options] size <path>
-        -D <key=value>  Define a property
-        -block <block-size>     block size in megabytes
+        -D <key=value>  Define a single configuration option
+        -sysprop <file> Property file of system properties
+        -tokenfile <file>       Hadoop token file to load
+        -xmlfile <file> XML config file to load
+        -verbose        verbose output
+        -debug  enable JVM logs (ALL) and override log4j levels (DEBUG) on specified packages or classes
+        -logoverrides <file>    A newline separated list of package and class names
+        -block <size>   block size in megabytes
         -csv <file>     CSV file to log operation details
         -flush  flush the output after writing each block
         -hflush hflush() the output after writing each block
         -keep   do not delete the file
         -rename rename file to suffix .renamed
-        -policy <policy>        read policy for file (whole-file, sequential, random...)
-        -tokenfile <file>       Hadoop token file to load
-        -verbose        print verbose output
-        -xmlfile <file> XML config file to load
+        -policy <policy>        read policy for file (whole-file, sequential, random...). use "none" to use whatever is set for the store
 ```
-
 
 ## Example
 
@@ -166,12 +168,12 @@ The CSV file records the operations which have taken place, bytes processed and 
 
 
 
-| Column    | Meaning                         |
-|-----------|---------------------------------|
-| operation | operation which took place      |
-| bytes     | bytes processed in operation    |
-| total     | total bytes in ongoing sequence |
-| duration  | duration in milliseconds        |
+| Column          | Meaning                         |
+|-----------------|---------------------------------|
+| operation       | operation which took place      |
+| bytes           | bytes processed in operation    |
+| total bytes     | total bytes in ongoing sequence |
+| duration/millis | duration in milliseconds        |
 
 ### operations
 
@@ -187,7 +189,7 @@ The CSV file records the operations which have taken place, bytes processed and 
 
 ### CSV example
 
-Here the the CSV output from the previous example.
+Here is the CSV output from the previous example.
 
 Note how the upload operations initially take on a few milliseconds,
 but there are some which take seconds.
@@ -315,7 +317,7 @@ Blocks downloaded: 16: min 0.001 seconds, max 11.143 seconds, mean 1.851 seconds
 The changed upload settings: smaller blocks and a bigger queue actually seemed to slow down the upload performance.
 
 Possible causes
-1. Changes in test setup; the benchmarks should be done with a physical ethernet connection and no other network traffic
+1. Changes in test setup; the benchmarks should be done with a physical Ethernet connection and no other network traffic
 2. More blocks == more HTTPS connections to set up with TLS negotiation and flow control ramp up delays
 3. Contention for bandwidth between the multiple streams.
 

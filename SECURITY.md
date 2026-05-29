@@ -92,8 +92,42 @@ model.
   cluster configuration, which would assist in malicious cluster reconnaissance.
 * Some commands `sessionkeys`, `gcscreds` do log secrets.
 
+### Deployment Threat Model
+
+Storediag is designed to be run by users without elevated privileges on a single host,
+either standalone or within/adjacent to a hadoop cluster.
+
+- The user is a normal unprivileged account; they have read/write access to part of the filesystem,
+including where temporary files are created by stores, and any paths in the local fs passed as parameters.
+- Input files shall be read as that user, relying on OS protection.
+- Paths provided for output shall be written by that user, relying on OS protection.
+- There may or may not be checks on overwriting output files; report a normal bug if this an issue.
+
+The user issues commands to examine the local fs, local hadoop configuration and perform operations against them, such as uploading files to remote stores, debugging connectivity issues or measuring bandwidth.
+
+For remote access the user will require access to the remote store
+- If it is an HDFS cluster where security is disabled, the user has full read/write access to the store,
+  this is inherent in security being disabled. Note: this is the default deployment standalone and
+  often the configuration used in transient cloud clusters where the entire DFS is for the single user,
+  short-lived, and protected from the rest of the network through firewall mechanisms.
+- For cloud storage, authentication may come in a number of ways
+    - host environment. For example AWS IAM. Here the cloud credentials are available to all.
+    - hadoop configuration files, cluster wide or local
+    - JCEKS files, local or in a filesystem whose schema does not match that of the store for which authentication is required. These SHOULD have passwords, but MAY NOT.
+    - authentication mechanisms picked by any underlying SDK. For example the AWS SDK examines environment
+      variables and configuration files under ` ~/.aws`.
+It is not a security issue if storediag can access cloud storage with credentials provided to it.
+It is a security issue in the storediag code if the credentials are logged other than in conditions previously listed (`-debug` mode and specific commands).
+If credential logging is performed within the storediag code, it is something to report, as it is the classic [CWE-532](https://cwe.mitre.org/data/definitions/532.html) : Insertion of Sensitive Information into Log File.
+If it is observed within the hadoop codebase, it is potentially more significant, so do report it to security@hadoop.apache.org, *provided the issue can be replicated with a build of the latest commit of hadoop trunk.
+If it is observed from within third party logs, file through their security reporting mechanisms, after verifying that
+    - the issue is in scope of their threat model and can be replicated with their latest release.
+
+### Development Environment Threat Model
+
 The project is built on developer systems, and in CI systems.
-The threat model includes the risk of subverted github actions
+
+The threat model includes the risk of subverted github actions and build tooling.
 * git checksum references MUST be made to GitHub actions, rather than tags; include the version as a comment so dependabot will track and maintain them.
 * [Zizmor](https://zizmor.sh/) SHALL be used to audit GHAs.
 * GHA triggers on PRs MUST NOT be triggers which provide unrestricted github tokens to the actions.
@@ -126,5 +160,3 @@ The CI build output will be publicly visible, so the threat model includes
 - Any unobfuscated logging of credentials in test runs.
 
 Note that some low level `-debug` options may print secrets; issues reported here should be considered bugs rather than security issues.
-
-

@@ -195,7 +195,7 @@ editing the `core-site.xml` settings of your deployment
 ```bash
 hadoop jar cloudstore-1.3.jar cloudup -threads 60 -largest 32 -block 64 -update share/hadoop/common  s3a://example-london/share/common
 
-Copying from file:/Users/alice/Projects/Releases/cdp-7.1.9/share/hadoop/common to s3a://example-london/share/common; threads=60; large files=32; block size=67108864n; overwrite=false; update=true verbose=false; ignore failures=false
+Copying from file:/Users/alice/Projects/Releases/cdp-7.1.9/share/hadoop/common to s3a://example-london/share/common; threads=60; large files=32; block size=67108864; overwrite=false; update=true verbose=false; ignore failures=false
 Listing source files under file:/Users/alice/Projects/Releases/cdp-7.1.9/share/hadoop/common
 2023-09-26 17:07:31,573 [main] DEBUG store.StoreEntryPoint (StoreEntryPoint.java:debug(235)) - Destination prepared: s3a://example-london/share/common
 Files to copy = 149; preparation  = 0:00:01.538
@@ -257,7 +257,7 @@ And download it
 ```bash
 hadoop jar cloudstore-1.3.jar cloudup -threads 60 -largest 16 -update -block 32 s3a://example-london/share/common ./scratch/s3a
 
-Copying from s3a://example-london/share/common to file:/Users/alice/Projects/Releases/cdp-7.1.9/scratch/s3a; threads=60; large files=16; block size=33554432n; overwrite=false; update=true verbose=false; ignore failures=false
+Copying from s3a://example-london/share/common to file:/Users/alice/Projects/Releases/cdp-7.1.9/scratch/s3a; threads=60; large files=16; block size=33554432; overwrite=false; update=true verbose=false; ignore failures=false
 Listing source files under s3a://example-london/share/common
 2023-09-26 17:12:40,655 [main] DEBUG store.StoreEntryPoint (StoreEntryPoint.java:debug(235)) - Destination prepared: file:/Users/alice/Projects/Releases/cdp-7.1.9/scratch/s3a
 Files to copy = 149; preparation  = 0:00:00.123

@@ -51,8 +51,8 @@ public final class StoreUtils {
   /** {@value}. */
   private static final int HIDE_SUFFIX = 4;
 
-  /** {@value}. */
-  private static final int HIDE_THRESHOLD = HIDE_PREFIX * 2 + HIDE_SUFFIX;
+  /** Shorter strings are hidden completely: {@value}. */
+  private static final int HIDE_THRESHOLD = 12;
 
   /**
    * Take an exception from a Future and convert to an IOE.
