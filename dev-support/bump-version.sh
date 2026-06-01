@@ -72,7 +72,9 @@ mvn -q versions:set -DnewVersion="$NEW" -DgenerateBackupPoms=false
 # -SNAPSHOT.
 RELEASE_VER="${NEW%-SNAPSHOT}"
 if [[ -f BUILDING.md ]] && grep -qE "^set -gx ver [0-9]+\.[0-9]+( |$|	)" BUILDING.md; then
-  sed -i.bak -E "s|^set -gx ver [0-9]+\.[0-9]+\\b|set -gx ver ${RELEASE_VER}|" BUILDING.md
+  # Note: no \b word-boundary here — BSD/macOS sed does not support it and
+  # would silently match nothing. Anchor on the literal prefix instead.
+  sed -i.bak -E "s|^(set -gx ver )[0-9]+\.[0-9]+|\1${RELEASE_VER}|" BUILDING.md
   rm -f BUILDING.md.bak
   echo "  rewrote BUILDING.md (set -gx ver ${RELEASE_VER})"
 fi

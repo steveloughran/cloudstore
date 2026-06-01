@@ -49,27 +49,27 @@ public class TestStoreUtils {
   public void sanitizeHideTrueMasksEverything() {
     String secret = "AKIAIOSFODNN7EXAMPLE";
     String out = StoreUtils.sanitize(secret, true);
-    assertThat(out).isEqualTo("\"********\" [" + secret.length() + "]").doesNotContain("AKIA")
+    assertThat(out).isEqualTo("\"************\" [" + secret.length() + "]").doesNotContain("AKIA")
         .doesNotContain("EXAMPLE");
   }
 
   @Test
   public void sanitizeShortValueIsFullyMasked() {
-    // length 8 == HIDE_THRESHOLD; strict > means fully masked
+    // length 8 <= HIDE_THRESHOLD (12); strict > means fully masked
     String v = "12345678";
-    assertThat(StoreUtils.sanitize(v, false)).isEqualTo("\"********\" [8]");
+    assertThat(StoreUtils.sanitize(v, false)).isEqualTo("\"************\" [8]");
   }
 
   @Test
   public void sanitizeEmptyStringIsFullyMasked() {
-    assertThat(StoreUtils.sanitize("", false)).isEqualTo("\"********\" [0]");
+    assertThat(StoreUtils.sanitize("", false)).isEqualTo("\"************\" [0]");
   }
 
   @Test
   public void sanitizeJustAboveThresholdShowsPrefixAndSuffix() {
-    // length 9: 2-char prefix + 3 stars + 4-char suffix
-    String v = "abcdefghi";
-    assertThat(StoreUtils.sanitize(v, false)).isEqualTo("\"ab***fghi\" [9]");
+    // length 13 (just above HIDE_THRESHOLD 12): 2-char prefix + 7 stars + 4-char suffix
+    String v = "abcdefghijklm";
+    assertThat(StoreUtils.sanitize(v, false)).isEqualTo("\"ab*******jklm\" [13]");
   }
 
   @Test
