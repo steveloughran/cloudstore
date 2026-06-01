@@ -163,7 +163,7 @@ public final class StoreUtils {
   }
 
   /**
-   * Parse a duration argument
+   * Parse a duration argument.
    * 
    * @param argument arg value
    * @param defaultValue default value if none is provided

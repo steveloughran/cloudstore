@@ -89,12 +89,12 @@ public abstract class AbstractCloudupContractTest extends AbstractFSContractTest
     File srcFile = tempdir.newFile("cloudup-single.txt");
     Files.write(srcFile.toPath(), "hello cloudstore".getBytes(StandardCharsets.UTF_8));
 
-    Path destDir = methodPath();
-    getFileSystem().delete(destDir, true);
+    Path destPath = methodPath();
+    getFileSystem().delete(destPath, true);
 
-    expectSuccess(new Cloudup(), srcFile.toURI().toString(), destDir.toUri().toString());
+    expectSuccess(new Cloudup(), srcFile.toURI().toString(), destPath.toUri().toString());
 
-    Path destFile = new Path(destDir, srcFile.getName());
+    Path destFile = new Path(destPath, srcFile.getName());
     FileStatus dest = getFileSystem().getFileStatus(destFile);
     Assertions.assertThat(dest.isDirectory()).describedAs("Destination is not a file: %s", dest)
         .isFalse();
@@ -128,7 +128,7 @@ public abstract class AbstractCloudupContractTest extends AbstractFSContractTest
 
   /**
    * Re-running cloudup against an existing destination needs {@code -overwrite} to succeed. Source
-   * is a single file; cloudup creates the file at {@code destDir/<basename>}.
+   * is a single file; cloudup creates the file at {@code destPath<basename>}.
    */
   @Test
   public void testCloudupOverwrite() throws Exception {
@@ -136,18 +136,18 @@ public abstract class AbstractCloudupContractTest extends AbstractFSContractTest
     srcFile.deleteOnExit();
     Files.write(srcFile.toPath(), "v1".getBytes(StandardCharsets.UTF_8));
 
-    Path destDir = methodPath();
+    Path destPath = methodPath();
     final FileSystem fs = getFileSystem();
-    fs.delete(destDir, true);
-    Path destFile = new Path(destDir, srcFile.getName());
+    fs.delete(destPath, true);
+    Path destFile = new Path(destPath, srcFile.getName());
 
     // initial copy
-    expectSuccess(new Cloudup(), srcFile.toURI().toString(), destDir.toUri().toString());
+    expectSuccess(new Cloudup(), srcFile.toURI().toString(), destPath.toUri().toString());
 
     // rewrite source with a different payload, then overwrite
     Files.write(srcFile.toPath(), "v2-longer".getBytes(StandardCharsets.UTF_8));
     expectSuccess(new Cloudup(), "-overwrite", srcFile.toURI().toString(),
-        destDir.toUri().toString());
+        destPath.toUri().toString());
     ContractTestUtils.assertFileHasLength(fs, destFile, (int) srcFile.length());
   }
 
@@ -155,19 +155,17 @@ public abstract class AbstractCloudupContractTest extends AbstractFSContractTest
   public void testCopyRecursive() throws Throwable {
 
     int expected = createTestFiles(sourceDir, 64);
-    Path destDir = methodPath();
+    Path destPath = methodPath();
 
     expectSuccess(new Cloudup(), "-" + THREADS, "4", "-" + LARGEST, "3",
-        sourceDir.toURI().toString(), destDir.toString());
+        sourceDir.toURI().toString(), destPath.toString());
 
     Set<String> entries = new TreeSet<>();
-    RemoteIterator<LocatedFileStatus> iterator = getFileSystem().listFiles(destDir, true);
-    int count = 0;
+    RemoteIterator<LocatedFileStatus> iterator = getFileSystem().listFiles(destPath, true);
     while (iterator.hasNext()) {
       LocatedFileStatus next = iterator.next();
       entries.add(next.getPath().toUri().toString());
       LOG.info("Entry {} size = {}", next.getPath(), next.getLen());
-      count++;
     }
     Assertions.assertThat(entries).hasSize(expected);
   }
@@ -182,7 +180,7 @@ public abstract class AbstractCloudupContractTest extends AbstractFSContractTest
   @Test
   public void testNonexistentSrcAndDest() throws Throwable {
     expectException(FileNotFoundException.class, new Cloudup(),
-        sourceDir.toURI().toString() + "/subdir", destDir.toString());
+        sourceDir.toURI() + "/subdir", destDir.toString());
   }
 
 }
