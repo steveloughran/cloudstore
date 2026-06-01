@@ -179,8 +179,8 @@ public abstract class AbstractCloudupContractTest extends AbstractFSContractTest
 
   @Test
   public void testNonexistentSrcAndDest() throws Throwable {
-    expectException(FileNotFoundException.class, new Cloudup(),
-        sourceDir.toURI() + "/subdir", destDir.toString());
+    expectException(FileNotFoundException.class, new Cloudup(), sourceDir.toURI() + "/subdir",
+        destDir.toString());
   }
 
 }
