@@ -128,4 +128,11 @@ public interface Printout {
    */
   void printOption(Configuration conf, int index, String key, boolean secret, boolean obfuscate)
       throws IOException;
+
+  /**
+   * Hide all sensitive data.
+   */
+  boolean isHideAllSensitiveChars();
+
+  void setHideAllSensitiveChars(boolean hideAllSensitiveChars);
 }

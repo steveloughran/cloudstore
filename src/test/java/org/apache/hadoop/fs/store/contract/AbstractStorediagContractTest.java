@@ -75,6 +75,15 @@ public abstract class AbstractStorediagContractTest extends AbstractFSContractTe
   }
 
   /**
+   * Storediag accepts the {@code -reveal} flag (opts into partial obfuscation of sensitive option
+   * values; default is full redaction).
+   */
+  @Test
+  public void testStorediagRevealFlag() throws Exception {
+    expectSuccess(new StoreDiag(), "-r", "-reveal", getFileSystem().getUri().toString());
+  }
+
+  /**
    * Storediag's {@code -logfile} option writes the diagnostics to a file in addition to stdout.
    */
   @Test

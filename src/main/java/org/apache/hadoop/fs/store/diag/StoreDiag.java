@@ -51,6 +51,7 @@ import java.net.URI;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.Files;
 import java.security.CodeSource;
@@ -101,8 +102,8 @@ public class StoreDiag extends DiagnosticsEntryPoint {
   /** {@value}. */
   public static final String ENVARS = "e";
 
-  /** hide all secrets: {@value}. */
-  public static final String HIDE = "h";
+  /** reveal partial chars of sensitive options: {@value}. */
+  public static final String REVEAL = "reveal";
 
   /** {@value}. */
   public static final String OPTIONAL = "o";
@@ -132,7 +133,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
   public static final String USAGE = "Usage: storediag [options] <filesystem>\n" + STANDARD_OPTS
       + optusage(DELEGATION, "Require delegation tokens to be issued")
       + optusage(ENVARS, "List the environment variables. *danger: does not redact secrets*")
-      + optusage(HIDE, "redact all chars in sensitive options")
+      + optusage(REVEAL, "reveal partial chars of sensitive options (default: fully redact)")
       + optusage(JARS, "List the JARs on the classpath")
       + optusage(LOGDUMP, "Dump the Log4J settings")
       + optusage(MD5, "Print MD5 checksums of the jars listed (requires -j)")
@@ -146,7 +147,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
   private StoreDiagnosticsInfo storeInfo;
 
   public StoreDiag() {
-    createCommandFormat(1, 1, DELEGATION, ENVARS, HIDE, JARS, LOGDUMP, MD5, OPTIONAL, READONLY,
+    createCommandFormat(1, 1, DELEGATION, ENVARS, JARS, LOGDUMP, MD5, OPTIONAL, READONLY, REVEAL,
         WRITE);
     addValueOptions(PRINCIPAL, REQUIRED, LOGFILE);
   }
@@ -172,8 +173,8 @@ public class StoreDiag extends DiagnosticsEntryPoint {
     } finally {
       if (logfile != null) {
         try {
-          java.nio.file.Files.write(new File(logfile).toPath(),
-              fileSink.toString().getBytes(java.nio.charset.StandardCharsets.UTF_8));
+          Files.write(new File(logfile).toPath(),
+              fileSink.toString().getBytes(StandardCharsets.UTF_8));
         } catch (IOException e) {
           LOG.warn("Failed to write diagnostics log file {}", logfile, e);
         }
@@ -197,7 +198,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
     // and its FS URI
     storeInfo = bindToStore(path.toUri());
     final boolean writeOperations = hasOption(WRITE);
-    setHideAllSensitiveChars(hasOption(HIDE));
+    setHideAllSensitiveChars(!hasOption(REVEAL));
 
     printHadoopVersionInfo();
     printOSVersion();
@@ -306,7 +307,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
   }
 
   @SuppressWarnings("NestedAssignment")
-  public boolean printOSVersion() throws IOException {
+  public void printOSVersion() throws IOException {
     heading("Determining OS version");
     try {
       String[] commands = {"uname", "-a"};
@@ -322,12 +323,11 @@ public class StoreDiag extends DiagnosticsEntryPoint {
           println(s);
         }
         proc.waitFor();
-        return proc.exitValue() == 0;
+        proc.exitValue();
       }
     } catch (IOException e) {
       println("Failed to determine OS Version: %s", e);
       LOG.debug("Failed to determine OS Version", e);
-      return false;
     } catch (InterruptedException e) {
       throw (IOException) new InterruptedIOException(e.toString()).initCause(e);
     }
@@ -383,17 +383,6 @@ public class StoreDiag extends DiagnosticsEntryPoint {
     for (Token<? extends TokenIdentifier> token : tokens) {
       println("  %s", token);
     }
-  }
-
-  /**
-   * Bind the diagnostics to a store.
-   * 
-   * @param fsURI filesystem
-   * @return the store's diagnostics.
-   */
-  public StoreDiagnosticsInfo bindToStore(final String fsURI) throws IOException {
-
-    return bindToStore(toURI("command", fsURI));
   }
 
   /**
@@ -737,11 +726,11 @@ public class StoreDiag extends DiagnosticsEntryPoint {
    * @return true if everything worked.
    */
   public boolean executeFileSystemOperations(final Path baseDir,
-      final boolean attempWriteOperations) throws IOException {
+      final boolean attemptWriteOperations) throws IOException {
     final Configuration conf = getConf();
     heading("Test filesystem %s", baseDir);
 
-    if (!attempWriteOperations) {
+    if (!attemptWriteOperations) {
       println("Trying some list and read operations");
 
     } else {
@@ -751,7 +740,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
 
     FileSystem fs;
 
-    subheading("Filesystem client Instantiation");
+    subheading("Filesystem Client Instantiation");
     try (StoreDurationInfo ignored =
         new StoreDurationInfo(LOG, "Creating filesystem for %s", baseDir)) {
       fs = FileSystem.newInstance(baseDir.toUri(), conf);
@@ -966,7 +955,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
       println("Client lacks read access to the store; aborting");
       return false;
     }
-    if (!attempWriteOperations) {
+    if (!attemptWriteOperations) {
       subheading("All read operations succeeded: client has read access");
       println("Tests are read only; to test write permissions rerun with -%s", WRITE);
       return true;
@@ -1195,7 +1184,7 @@ public class StoreDiag extends DiagnosticsEntryPoint {
     println("Capabilities:");
     for (String s : capabilities) {
       if (in.hasCapability(s)) {
-        println("    %s", s);
+        println("\t%s", s);
       }
     }
   }

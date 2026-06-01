@@ -22,7 +22,6 @@ import static org.apache.hadoop.fs.store.CommonParameters.LOG_OVERRIDES;
 import static org.apache.hadoop.fs.store.CommonParameters.STANDARD_OPTS;
 import static org.apache.hadoop.fs.store.CommonParameters.SYSPROPS;
 import static org.apache.hadoop.fs.store.CommonParameters.TOKENFILE;
-import static org.apache.hadoop.fs.store.CommonParameters.VERBOSE;
 import static org.apache.hadoop.fs.store.CommonParameters.XMLFILE;
 
 import java.io.IOException;
@@ -56,10 +55,8 @@ public class FetchTokens extends StoreEntryPoint {
 
   private static final String REQUIRED = "r";
 
-  public static final String USAGE = "Usage: fetchdt\n"
-      + " <file> [-renewer <renewer>] [-r]"
-      + STANDARD_OPTS
-      + optusage(RENEWER, "<renewer>", "Principal who can renew the token")
+  public static final String USAGE = "Usage: fetchdt\n" + " <file> [-renewer <renewer>] [-r]"
+      + STANDARD_OPTS + optusage(RENEWER, "<renewer>", "Principal who can renew the token")
       + "-r: require each filesystem to issue a token\n" + " <url1> ... <url999>\n";
 
   public FetchTokens() {

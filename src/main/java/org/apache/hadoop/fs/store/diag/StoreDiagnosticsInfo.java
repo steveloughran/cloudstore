@@ -18,7 +18,7 @@
 package org.apache.hadoop.fs.store.diag;
 
 import static java.util.Objects.requireNonNull;
-import static org.apache.hadoop.fs.store.StoreEntryPoint.DEFAULT_HIDE_ALL_SENSITIVE_CHARS;
+import static org.apache.hadoop.fs.store.StoreDiagConstants.DEFAULT_HIDE_ALL_SENSITIVE_CHARS;
 import static org.apache.hadoop.fs.store.StoreEntryPoint.getOrigins;
 import static org.apache.hadoop.fs.store.StoreUtils.sanitize;
 import static org.apache.hadoop.fs.store.diag.OptionSets.STANDARD_SECURITY_PROPS;

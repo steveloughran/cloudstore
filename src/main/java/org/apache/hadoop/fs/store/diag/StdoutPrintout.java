@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.io.PrintStream;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.store.StoreDiagConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,6 +38,9 @@ public class StdoutPrintout implements Printout {
   private final AtomicInteger headingCounter = new AtomicInteger(1);
   private final AtomicInteger subheadingCounter = new AtomicInteger(1);
 
+  /** Hide all sensitive data. */
+  private boolean hideAllSensitiveChars = StoreDiagConstants.DEFAULT_HIDE_ALL_SENSITIVE_CHARS;
+
   public StdoutPrintout() {
     this(System.out);
   }
@@ -51,6 +55,16 @@ public class StdoutPrintout implements Printout {
 
   public final void setOut(PrintStream out) {
     this.out = out;
+  }
+
+  @Override
+  public boolean isHideAllSensitiveChars() {
+    return hideAllSensitiveChars;
+  }
+
+  @Override
+  public void setHideAllSensitiveChars(boolean hideAllSensitiveChars) {
+    this.hideAllSensitiveChars = hideAllSensitiveChars;
   }
 
   @Override

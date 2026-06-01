@@ -14,24 +14,25 @@
 
 # storediag
 
-The `storediag` command is the initial command of this library, and the most heavily
+The `storediag` command was the initial command of this library, and is the most heavily
 used.
 
-The `storediag` entry point will, given a URL to a store (cloud, local file://, hdfs):
-1. Pick up the FS settings, print them
-with all secrets sanitized partially obfuscated, and display their provenance. 
-2. Print system properties and environment variables relevant to the target filesystem.
-3. Looks for required classes, prints their location or fails if they are not found
-4. Looks for optional classes, and if found, prints their location
-5. Bootstraps connectivity with an attempt to initiate (unauthed) HTTP connections
+The `storediag` command will, given a URL to a store (s3a://, abfs://, file://, hdfs://, gcs://, etc.):
+1. Read the local configuration for all settings to connect to the store
+2. Print them with all secrets fully redacted, displaying only length and provenance.
+3. Print system properties and environment variables relevant to the target filesystem.
+4. Looks for required classes, prints their location or fails if they are not found
+5. Looks for optional classes, and if found, prints their location
+6. Bootstraps connectivity with an attempt to initiate (unauthed) HTTP connections
 to the store's endpoints. This should be sufficient to detect proxy and
 endpoint configuration problems.
-6. Tries to perform a listing of the store and read the first few bytes of any file it finds. If this fails, then there's clearly a problem.
+7. Tries to perform a listing of the store and read the first few bytes of any file it finds. If this fails, then there's clearly a problem.
    Hopefully though, there's now enough information to begin determining what it is.
-7. Optionally, writes can also be attempted.
+8. Optionally, writes can also be attempted.
 
-If things do fail, the printed output tries to obfuscate the login secrets,
-and any other property considered sensitive.
+The printed output tries to hide login secrets/credentials as well as encryption keys and any other property considered sensitive.
+Use `-reveal` to switch to partial obfuscation showing a few prefix and suffix characters, which can help diagnose some issues "There is no AK at the front so this is not an Amazon Key", "there's no trailing == as a base64 credential requires", and help you identify which
+credential is being used. 
 
 This is to support safer reporting of issues in bug reports within an organisation, and with third-parties whom you trust.
 1. It MUST still be considered insufficient obfuscation to permit a diagnostics report to be shared publicly, as it will leak information about your target store and client configuration.
@@ -44,7 +45,7 @@ This is to support safer reporting of issues in bug reports within an organisati
 hadoop jar cloudstore-1.3.jar storediag s3a://noaa-cors-pds/raw/2023/017/
 hadoop jar cloudstore-1.3.jar storediag -w --tokenfile mytokens.bin s3a://my-readwrite-bucket/subdirectory
 hadoop jar cloudstore-1.3.jar storediag -w --tokenfile mytokens.bin hdfs://namenode/user/alice/subdir
-hadoop jar cloudstore-1.3.jar storediag abfs://container@user/
+hadoop jar cloudstore-1.3.jar storediag -reveal abfs://container@user/
 ```
 
 The remote store is required to grant read access to the caller.
@@ -71,7 +72,7 @@ Usage: storediag [options] <filesystem>
         -logoverrides <file>    A newline separated list of package and class names
         -t      Require delegation tokens to be issued
         -e      List the environment variables. *danger: does not redact secrets*
-        -h      redact all chars in sensitive options
+        -reveal reveal partial chars of sensitive options (default: fully redact)
         -j      List the JARs on the classpath
         -l      Dump the Log4J settings
         -5      Print MD5 checksums of the jars listed (requires -j)
@@ -103,9 +104,9 @@ org.apache.commons.lang3.StringUtils
 ``` 
 
 This is useful to dynamically add some extra mandatory classes to
-the list of classes you need to work with a store...most useful when either
+the list of classes you need to work with a store. It is most useful when either
 you are developing new features and want to verify they are on the classpath,
-or you are working with an unknown object store and just want to check its depencies
+or you are working with an unknown object store and just want to check its dependencies
 up front.
 
 A missing file or resource will result in an error and the command failing.
@@ -125,12 +126,10 @@ subdirectory `temp/subdir`
 The `-w` option indicates that a file write followed by a rename shall be attempted after
 a list and any read of an existing file.
 
-The `-h` option obfuscates all secrets. Store names and paths should still be
-reviewed to make sure they do not leak information.
-
 
 ### Full Successful Run: S3A
-Here is a genuine test against a London store.
+
+Storediag against an S3 store in AWS London.
 
 ```
 
@@ -151,7 +150,7 @@ https://hadoop.apache.org/docs/current/hadoop-aws/tools/hadoop-aws/index.html
 =====================
 
   Hadoop 3.4.3
-  Compiled by alice on 2026-02-13T14:23Z
+  Compiled by stevel on 2026-02-13T14:23Z
   Compiled with protoc 3.23.4
   From source with checksum 2331238c4c2929e66645316a32a8613
 
@@ -402,13 +401,13 @@ Token count: 0
 12. Selected Configuration Options
 ==================================
 
-[001]  fs.s3a.access.key = "AK**************IO47" [20] [core-site.xml]
-[002]  fs.s3a.secret.key = "ow**********************************qFwA" [40] [core-site.xml]
+[001]  fs.s3a.access.key = "********" [20] [core-site.xml]
+[002]  fs.s3a.secret.key = "********" [40] [core-site.xml]
 [003]  fs.s3a.session.token = (unset)
 [004]  fs.s3a.server-side-encryption-algorithm = (unset)
 [005]  fs.s3a.server-side-encryption.key = (unset)
 [006]  fs.s3a.encryption.algorithm = "SSE-KMS" [fs.s3a.bucket.alice-london.encryption.algorithm via [core-site.xml]]
-[007]  fs.s3a.encryption.key = "ar*********************************************************************4443" [75] [fs.s3a.bucket.alice-london.encryption.key via [core-site.xml]]
+[007]  fs.s3a.encryption.key = "********" [75] [fs.s3a.bucket.alice-london.encryption.key via [core-site.xml]]
 [008]  fs.s3a.encryption.cse.kms.region = "eu-west-2" [fs.s3a.bucket.alice-london.encryption.cse.kms.region via [core-site.xml]]
 [009]  fs.s3a.aws.credentials.provider = "
         org.apache.hadoop.fs.s3a.TemporaryAWSCredentialsProvider,

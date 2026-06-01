@@ -21,5 +21,7 @@ public final class StoreDiagConstants {
 
   public static final String IOSTATISTICS_LOGGING_LEVEL = "fs.iostatistics.logging.level";
 
+  public static final boolean DEFAULT_HIDE_ALL_SENSITIVE_CHARS = true;
+
   private StoreDiagConstants() {}
 }

@@ -99,14 +99,12 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
    */
   public static final int EXIT_USAGE = LauncherExitCodes.EXIT_USAGE;
 
-  public static final boolean DEFAULT_HIDE_ALL_SENSITIVE_CHARS = false;
-
   private final LogExactlyOnce logJceksFailureOnce = new LogExactlyOnce(LOG);
 
   /**
    * Hide all sensitive data.
    */
-  protected boolean hideAllSensitiveChars = DEFAULT_HIDE_ALL_SENSITIVE_CHARS;
+  private boolean hideAllSensitiveChars = StoreDiagConstants.DEFAULT_HIDE_ALL_SENSITIVE_CHARS;
 
   protected CommandFormat commandFormat;
 
@@ -866,14 +864,13 @@ public class StoreEntryPoint extends Configured implements Tool, Closeable, Prin
     return source;
   }
 
-  /**
-   * Hide all sensitive data.
-   */
-  protected boolean isHideAllSensitiveChars() {
+  @Override
+  public boolean isHideAllSensitiveChars() {
     return hideAllSensitiveChars;
   }
 
-  protected void setHideAllSensitiveChars(boolean hideAllSensitiveChars) {
+  @Override
+  public void setHideAllSensitiveChars(boolean hideAllSensitiveChars) {
     this.hideAllSensitiveChars = hideAllSensitiveChars;
   }
 

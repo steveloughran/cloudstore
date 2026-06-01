@@ -28,17 +28,17 @@ import org.apache.hadoop.fs.store.StoreUtils;
  * install one as the active printout on {@link org.apache.hadoop.fs.store.StoreEntryPoint}, run a
  * command, and assert on {@link #toString()}.
  */
-public class StringBuilderPrintout extends StdoutPrintout {
+public final class StringBuilderPrintout extends StdoutPrintout {
 
-  private final ByteArrayOutputStream baos;
+  private final ByteArrayOutputStream arrayOutputStream;
 
   public StringBuilderPrintout() {
     this(new ByteArrayOutputStream());
   }
 
-  private StringBuilderPrintout(ByteArrayOutputStream baos) {
-    super(toPrintStream(baos));
-    this.baos = baos;
+  private StringBuilderPrintout(ByteArrayOutputStream arrayOutputStream) {
+    super(toPrintStream(arrayOutputStream));
+    this.arrayOutputStream = arrayOutputStream;
   }
 
   private static PrintStream toPrintStream(ByteArrayOutputStream baos) {
@@ -52,7 +52,7 @@ public class StringBuilderPrintout extends StdoutPrintout {
   @Override
   public String toString() {
     flush();
-    return new String(baos.toByteArray(), StandardCharsets.UTF_8);
+    return new String(arrayOutputStream.toByteArray(), StandardCharsets.UTF_8);
   }
 
   /**
@@ -60,7 +60,7 @@ public class StringBuilderPrintout extends StdoutPrintout {
    */
   public void clear() {
     flush();
-    baos.reset();
+    arrayOutputStream.reset();
   }
 
   /**
@@ -80,5 +80,10 @@ public class StringBuilderPrintout extends StdoutPrintout {
   @Override
   public String maybeSanitize(String value, boolean obfuscate) {
     return StoreUtils.sanitize(value, true);
+  }
+
+  @Override
+  public boolean isHideAllSensitiveChars() {
+    return true;
   }
 }

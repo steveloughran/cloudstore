@@ -124,4 +124,15 @@ public class TeePrintout implements Printout {
     primary.printOption(conf, index, key, secret, obfuscate);
     secondary.printOption(conf, index, key, secret, obfuscate);
   }
+
+  @Override
+  public boolean isHideAllSensitiveChars() {
+    return primary.isHideAllSensitiveChars() || secondary.isHideAllSensitiveChars();
+  }
+
+  @Override
+  public void setHideAllSensitiveChars(final boolean hideAllSensitiveChars) {
+    primary.setHideAllSensitiveChars(hideAllSensitiveChars);
+    secondary.setHideAllSensitiveChars(hideAllSensitiveChars);
+  }
 }

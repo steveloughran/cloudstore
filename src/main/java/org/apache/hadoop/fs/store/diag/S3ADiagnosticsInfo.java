@@ -1046,7 +1046,7 @@ public class S3ADiagnosticsInfo extends StoreDiagnosticsInfo {
       printout.warn(
           "No S3A access key defined; env var or other authentication mechanism must be active");
     } else {
-      printout.println("access key %s", sanitize(accessKey, false));
+      printout.println("access key %s", sanitize(accessKey, printout.isHideAllSensitiveChars()));
       // there is a key, validate things approximately
       if (accessKey.length() < 16) {
         printout.warn("Key length (%d) too short for AWS", accessKey.length());

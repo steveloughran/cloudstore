@@ -150,8 +150,8 @@ The CI build output will be publicly visible, so the threat model includes
 * `sessionkeys`: it generates then prints session keys of limited duration.
 * `gcscreds`: it prints GCS credentials as part of a diagnostics process.
 * Detailed printing of http communications between client and store when enabled.
-* Any vulnerability reported against an older release of cloudstore which cannot be reproduced in the latest version of the `main` branch.
-* Any vulnerability when running on a version of hadoop older than the latest apache hadoop release and which cannot be reproduced on a build of apache trunk.
+* Any vulnerability which cannot be reproduced in the latest version of the `main` branch.
+* Any vulnerability when running on a version of hadoop older than the latest release and which cannot be reproduced on a build of apache trunk.
 * Bugs in the test runs which do not leak secrets.
 
 ## Do report
@@ -160,3 +160,21 @@ The CI build output will be publicly visible, so the threat model includes
 - Any unobfuscated logging of credentials in test runs.
 
 Note that some low level `-debug` options may print secrets; issues reported here should be considered bugs rather than security issues.
+
+## Scanner Calibration Rules
+
+A scanner should treat a finding as higher-confidence only if
+it plausibly shows one of the following:
+
+- exposure of a secret or delegated credential to a new audience
+- creation of a new unauthorized capability in an component owned by this project.
+- the existence of this on HEAD of the branch `main`
+
+A finding should be downgraded or rejected by default if it instead depends
+primarily on:
+
+- malformed-input robustness or denial-of-service behavior
+- a malicious catalog, metastore, or external service
+- a principal that already has equivalent power through legitimate write or
+  maintenance capabilities
+- a vulnerability that only exists in previous releases.
