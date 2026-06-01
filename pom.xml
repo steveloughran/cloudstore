@@ -92,7 +92,7 @@
     <!-- pinned: 4.x (M-releases only) requires Doxia 2. -->
     <maven-site-plugin.version>3.12.1</maven-site-plugin.version>
     <maven-source-plugin.version>3.4.0</maven-source-plugin.version>
-    <maven-spotless-plugin.version>2.46.1</maven-spotless-plugin.version>
+    <maven-spotless-plugin.version>3.5.1</maven-spotless-plugin.version>
     <maven-surefire-plugin.version>3.5.5</maven-surefire-plugin.version>
     <maven-surefire-report-plugin.version>${maven-surefire-plugin.version}</maven-surefire-report-plugin.version>
   </properties>
