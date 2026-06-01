@@ -42,10 +42,10 @@ This is to support safer reporting of issues in bug reports within an organisati
 
 
 ```bash
-hadoop jar cloudstore-1.3.jar storediag s3a://noaa-cors-pds/raw/2023/017/
-hadoop jar cloudstore-1.3.jar storediag -w --tokenfile mytokens.bin s3a://my-readwrite-bucket/subdirectory
-hadoop jar cloudstore-1.3.jar storediag -w --tokenfile mytokens.bin hdfs://namenode/user/alice/subdir
-hadoop jar cloudstore-1.3.jar storediag -reveal abfs://container@user/
+hadoop jar cloudstore-1.4.jar storediag s3a://noaa-cors-pds/raw/2023/017/
+hadoop jar cloudstore-1.4.jar storediag -w --tokenfile mytokens.bin s3a://my-readwrite-bucket/subdirectory
+hadoop jar cloudstore-1.4.jar storediag -w --tokenfile mytokens.bin hdfs://namenode/user/alice/subdir
+hadoop jar cloudstore-1.4.jar storediag -reveal abfs://container@user/
 ```
 
 The remote store is required to grant read access to the caller.
@@ -90,7 +90,7 @@ a #-prefixed comment, a blank line, a classname, a resource (with "/" in).
 These are all loaded
 
 ```bash
-hadoop jar cloudstore-1.3.jar storediag -5 -required required.txt s3a://something/
+hadoop jar cloudstore-1.4.jar storediag -5 -required required.txt s3a://something/
 ```
 
 and with a `required.txt` listing extra classes which must be on the classpath
@@ -116,7 +116,7 @@ The comments are printed too. This means you can use them in the reports.
 ## Example:
 
 ```
-bin/hadoop jar cloudstore-1.3.jar storediag -w s3a://example-london/temp/subdir > output 2>&1
+bin/hadoop jar cloudstore-1.4.jar storediag -w s3a://example-london/temp/subdir > output 2>&1
 ```
 
 This does diagnostics test including a write against the bucket
@@ -1275,7 +1275,7 @@ JVM: memory=203162280
 
 ```
 
-> hadoop jar cloudstore-1.3.jar storediag abfs://alice-testing@alicewales.dfs.core.windows.net/ 
+> hadoop jar cloudstore-1.4.jar storediag abfs://alice-testing@alicewales.dfs.core.windows.net/ 
 
 1. Store Diagnostics for alice (auth:SIMPLE) on VXM63P4JG2/192.168.50.139
 ==========================================================================

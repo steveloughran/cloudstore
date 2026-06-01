@@ -28,7 +28,7 @@ jobs, set the value in the configuration option
 Usage:
 
 ```
-hadoop jar cloudstore-1.3.jar locatefiles
+hadoop jar cloudstore-1.4.jar locatefiles
 Usage: locatefiles
         -D <key=value>  Define a single configuration option
         -sysprop <file> Property file of system properties
@@ -44,7 +44,7 @@ Usage: locatefiles
 Example
 
 ```
-> hadoop jar cloudstore-1.3.jar locatefiles \
+> hadoop jar cloudstore-1.4.jar locatefiles \
  -threads 8 -verbose \
  s3a://landsat-pds/L8/001/002/LC80010022016230LGN00/
 

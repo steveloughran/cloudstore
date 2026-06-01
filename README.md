@@ -215,7 +215,7 @@ Also prints the time to execute each operation (including instantiating the stor
 and with the `-verbose` option, the store statistics.
 
 ```
-hadoop jar  cloudstore-1.3.jar \
+hadoop jar  cloudstore-1.4.jar \
             filestatus  \
             s3a://guarded-table/example
 
@@ -241,7 +241,7 @@ This is by design, as encoding of the private key when stored in hadoop configur
 
 
 ```
-hadoop jar cloudstore-1.3.jar gcscreds gs://bucket/
+hadoop jar cloudstore-1.4.jar gcscreds gs://bucket/
 
 key uses \n for separator -gs connector must convert to line endings
 2022-01-19 17:55:51,016 [main] INFO  gs.PemReader (PemReader.java:readNextSection(86)) - title match  at line 1
@@ -267,7 +267,7 @@ Usage: list
 Example: list some of the AWS public landsat store.
 
 ```bash
-> bin/hadoop jar cloudstore-1.3.jar list -limit 10 s3a://landsat-pds/
+> bin/hadoop jar cloudstore-1.4.jar list -limit 10 s3a://landsat-pds/
 
 Listing up to 10 files under s3a://landsat-pds/
 2019-04-05 21:32:14,523 [main] INFO  tools.ListFiles (StoreDurationInfo.java:<init>(53)) - Starting: Directory list
@@ -313,7 +313,7 @@ See [mkcsv](src/main/site/mkcsv.md)
 Probes a filesystem for offering a specific named capability on the given path.
 
 ```bash
-bin/hadoop jar cloudstore-1.3.jar pathcapability
+bin/hadoop jar cloudstore-1.4.jar pathcapability
 Usage: pathcapability [options] <capability> <path>
     -D <key=value> Define a property
     -tokenfile <file> Hadoop token file to load
@@ -322,7 +322,7 @@ Usage: pathcapability [options] <capability> <path>
 ```
 
 ```bash
-hadoop jar cloudstore-1.3.jar pathcapability fs.s3a.capability.select.sql s3a://landsat-pds/
+hadoop jar cloudstore-1.4.jar pathcapability fs.s3a.capability.select.sql s3a://landsat-pds/
 
 Using filesystem s3a://landsat-pds
 Path s3a://landsat-pds/ has capability fs.s3a.capability.select.sql

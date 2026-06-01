@@ -22,7 +22,7 @@ Prints some of the low level diagnostics information about an S3 bucket which
 can be obtained via the AWS APIs.
 
 ```
-hadoop jar cloudstore-1.3.jar \
+hadoop jar cloudstore-1.4.jar \
             bucketstate \
             s3a://mybucket/
 
@@ -36,7 +36,7 @@ NONE
 If you don't have the permissions to read the bucket policy, you get a stack trace.
 
 ```
-hadoop jar cloudstore-1.3.jar \
+hadoop jar cloudstore-1.4.jar \
             bucketstate \
             s3a://mybucket/
 
@@ -53,7 +53,7 @@ com.amazonaws.services.s3.model.AmazonS3Exception: The specified method is not a
 
 Generate AWS IAM policy for a given bucket
 ```
-hadoop jar cloudstore-1.3.jar iampolicy s3a://example-bucket/
+hadoop jar cloudstore-1.4.jar iampolicy s3a://example-bucket/
 
 {
   "Version" : "2012-10-17",
@@ -106,7 +106,7 @@ Usage: listobjects <path>
 
 Example
 ```
->  hadoop jar cloudstore-1.3.jar listobjects -limit 500  s3a://aws-public-blockchain/v1.0/eth/
+>  hadoop jar cloudstore-1.4.jar listobjects -limit 500  s3a://aws-public-blockchain/v1.0/eth/
 
 2026-05-28 19:42:27,734 [main] INFO  sdk.ListObjects (StoreDurationInfo.java:<init>(84)) - Starting: listobjects
 
@@ -152,7 +152,7 @@ This is how all AWS service clients determine the region for sending/signing req
 not explicitly set.
 
 ```bash
-hadoop jar cloudstore-1.3.jar regions
+hadoop jar cloudstore-1.4.jar regions
 
 Determining AWS region for SDK clients
 ======================================
