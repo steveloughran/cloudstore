@@ -295,7 +295,14 @@
       <id>release</id>
       <properties>
         <buildnumber.check>true</buildnumber.check>
-        <buildnumber.update>true</buildnumber.update>
+        <!-- update=false: do NOT `git pull` during the release build. doUpdate
+             runs `git pull` to refresh the working copy, which fails on setups
+             where the local branch has no matching upstream ref
+             ("fatal: couldn't find remote ref HEAD") and aborts the whole
+             build. The release only needs the clean-tree check (doCheck) and
+             the local revision; pulling is the releaser's job, done
+             deliberately before the build. -->
+        <buildnumber.update>false</buildnumber.update>
       </properties>
       <build>
         <plugins>
