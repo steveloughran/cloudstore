@@ -39,6 +39,8 @@ updates:
     labels:
       - dependencies
       - github-actions
+    cooldown:
+      default-days: 7
 
   # Maven dependencies. Most cloudstore deps are `provided` scope - the host
   # Hadoop install supplies them at runtime - so a bump here only changes
@@ -53,11 +55,11 @@ updates:
     labels:
       - dependencies
       - maven
-    # If Hadoop/AWS SDK/GCS-connector PRs become noisy, uncomment the block
-    # below to suppress them. They are intentionally hand-managed - leaving
-    # Dependabot's PRs visible by default so we stay aware of upstream
-    # security advisories on those coordinates.
-    # ignore:
-    #   - dependency-name: org.apache.hadoop:*
-    #   - dependency-name: software.amazon.awssdk:*
-    #   - dependency-name: com.google.cloud.bigdataoss:*
+    cooldown:
+      default-days: 7
+
+    # Shut up warnings about hadoop and the asf/gcs bundle JARs
+    ignore:
+      - dependency-name: org.apache.hadoop:*
+      - dependency-name: software.amazon.awssdk:*
+      - dependency-name: com.google.cloud.bigdataoss:*

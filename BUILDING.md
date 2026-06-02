@@ -145,6 +145,10 @@ set -gx ver 1.4                           # bumped by dev-support/bump-version.s
 mvn clean install -Prelease,sign -DskipTests
 set -gx now (date '+%Y-%m-%d-%H.%M'); echo [$now]
 git commit -S --allow-empty -m "release $now"; git push
+# Guard: every artifact path below interpolates $ver. An unset/empty $ver
+# expands to target/cloudstore-.* (no match), so gh silently uploads only the
+# literal LICENSE-binary/NOTICE-binary. Fail loudly before that happens.
+test -n "$ver"; or begin; echo "ERROR: \$ver is unset/empty -- run: set -gx ver <version>"; exit 1; end
 gh release create tag-release-$now -t release-$now -n "release of $now" -d \
     target/cloudstore-$ver.jar \
     target/cloudstore-$ver.jar.asc \
@@ -157,7 +161,7 @@ gh release create tag-release-$now -t release-$now -n "release of $now" -d \
     target/cloudstore-$ver-cyclonedx.xml.sha256 \
     LICENSE-binary \
     NOTICE-binary
-# then go to the web ui to review and finalize the release
+echo "go to the web ui to review and finalize the release"
 ```
 
 * If a new release is made the same day, remember to create a new tag.
@@ -209,6 +213,7 @@ The `gh release create` command above attaches the jar, the SBOM
 append the missing files with `gh release upload`:
 
 ```bash
+test -n "$ver"; or begin; echo "ERROR: \$ver is unset/empty -- run: set -gx ver <version>"; exit 1; end
 gh release upload tag-release-$now \
     target/cloudstore-$ver.jar.asc \
     target/cloudstore-$ver.jar.sha256 \

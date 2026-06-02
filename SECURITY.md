@@ -127,17 +127,28 @@ If it is observed from within third party logs, file through their security repo
 
 The project is built on developer systems, and in CI systems.
 
+* All external PRs SHALL be considered untrusted; their inputs MUST NOT be fed directly or indirectly to shell commands without sanitization.
+* Upstream dependencies from non ASF-projects MAY be subverted by malicious attacks; a cooldown period of at least 72 hours SHALL be kept before manual or automated dependency update.
+* ASF projects SHALL be considered trusted as their manual upvote release process includes an implicit buffer and defense against package
+  ecosystem worms.
+* Components such as maven plugins execute code on developer systems. Their security MUST be evaluated before adoption.
+* Third-party libraries which production code compiles against may be executed during testing. Their security MUST be evaluated.
+* Some developers may use VS.Code. This IDE has a notion of [a trusted workspace](https://code.visualstudio.com/docs/editing/workspaces/workspace-trust), which allows for files in the directory tree to declare executables, files such as `.env' and `tasks.json`. These files must be considered sensitive.
+* 
+The CI build output is publicly visible, so the threat model includes unobfuscated logging of any cloud credentials provided by CI runs, or leakage of other secrets.
+
 The threat model includes the risk of subverted github actions and build tooling.
-* git checksum references MUST be made to GitHub actions, rather than tags; include the version as a comment so dependabot will track and maintain them.
+* All inputs from pull requests, including titles, comments, authors and code SHALL be considered untrusted.
+* Any PR which adds VS.code specific mechanisms to execute code SHALL be rejected.
+* PRs which modify the maven pom.xml file or tests under `src/test/java` SHALL be audited for security risks.
+* Git checksum references MUST be made to GitHub actions, rather than tags; include the version as a comment so dependabot will track and maintain them.
 * [Zizmor](https://zizmor.sh/) SHALL be used to audit GHAs.
-* GHA triggers on PRs MUST NOT be triggers which provide unrestricted github tokens to the actions.
+* Github Action triggers on PRs MUST NOT be triggers which provide unrestricted github tokens to the actions.
    For example, there MUST NOT be `pull_request_target`, `workflow_run`, or `issue_comment` triggers. 
 * Github Actions SHALL follow GitHub's [secure use](https://docs.github.com/en/actions/reference/security/secure-use) guidelines, and in particular use [Intermediate Environment Variables](https://docs.github.com/en/actions/reference/security/secure-use#use-an-intermediate-environment-variable) to safely process untrusted inputs.
-* All inputs from pull requests, including titles, comments, authors and code SHALL be considered untrusted.
 
-The CI build output will be publicly visible, so the threat model includes
-- unobfuscated logging of any cloud credentials provided by CI runs.
-  
+
+
 
 ## Not in the Threat Model
 
@@ -147,16 +158,20 @@ The CI build output will be publicly visible, so the threat model includes
 * Any attack which requires a hadoop site reconfiguration.
 * Any attack which requires the download and execution of external binaries.
 * Any attack contains an assumption about artifacts on the classpath which is not true in production systems (example, spring jars).
-* `sessionkeys`: it generates then prints session keys of limited duration.
-* `gcscreds`: it prints GCS credentials as part of a diagnostics process.
+* Any attack which grants more privileges accessing a remote cloud store/hdfs than the client has through the account credentials is has and/or the kerberos principal.
+* Any attack which accesses arbitrary data against an HDFS cluster for which kerberos is not enabled
+* Any attack against cloud storage where the credentials are supplied by the VM/container within which cloudstore is being executed.
+* Any report of credential printing in `sessionkeys`: it generates then prints session keys of limited duration.
+* Any report of credential printing in `gcscreds`: it prints GCS credentials as part of a diagnostics process.
 * Detailed printing of http communications between client and store when enabled.
 * Any vulnerability which cannot be reproduced in the latest version of the `main` branch.
-* Any vulnerability when running on a version of hadoop older than the latest release and which cannot be reproduced on a build of apache trunk.
-* Bugs in the test runs which do not leak secrets.
+* Any vulnerability when running on a version of hadoop older than the latest release and which cannot be reproduced on a build of hadoop trunk branch.
+* Bugs in the test runs which do not leak secrets. File as normal bugs.
 
 ## Do report
 
-- Any unobfuscated logging of credentials in storediag operations.
+- Any logging of secrets other than of * and length in storediag operations when `-reveal` is not passed in.
+- Any incompletely unobfuscated logging of secrets in storediag operations when `-reveal` is passed in.
 - Any unobfuscated logging of credentials in test runs.
 
 Note that some low level `-debug` options may print secrets; issues reported here should be considered bugs rather than security issues.
@@ -166,15 +181,14 @@ Note that some low level `-debug` options may print secrets; issues reported her
 A scanner should treat a finding as higher-confidence only if
 it plausibly shows one of the following:
 
-- exposure of a secret or delegated credential to a new audience
-- creation of a new unauthorized capability in an component owned by this project.
-- the existence of this on HEAD of the branch `main`
+- Exposure of a secret or delegated credential to a new audience
+- CREATION of a new unauthorized capability in an component owned by this project.
+- The existence of this on HEAD of the branch `main`
 
 A finding should be downgraded or rejected by default if it instead depends
 primarily on:
 
-- malformed-input robustness or denial-of-service behavior
-- a malicious catalog, metastore, or external service
-- a principal that already has equivalent power through legitimate write or
-  maintenance capabilities
-- a vulnerability that only exists in previous releases.
+- Malformed-input robustness or denial-of-service behavior
+- A malicious catalog, metastore, or external service.
+- A principal that already has equivalent power through legitimate write or maintenance capabilities.
+- A vulnerability that only exists in previous releases.
