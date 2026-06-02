@@ -141,7 +141,7 @@ Commit all changes before starting a release build.
 
 Commands (for fish)
 ```bash
-set -gx ver 1.4                           # bumped by dev-support/bump-version.sh (always release form, no -SNAPSHOT)
+set -gx ver 1.5                           # bumped by dev-support/bump-version.sh (always release form, no -SNAPSHOT)
 mvn clean install -Prelease,sign -DskipTests
 set -gx now (date '+%Y-%m-%d-%H.%M'); echo [$now]
 git commit -S --allow-empty -m "release $now"; git push
