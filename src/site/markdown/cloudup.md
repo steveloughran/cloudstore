@@ -413,9 +413,9 @@ To minimize/avoid throttling
 * Ask for fewer threads.
 * Use the most recent release of hadoop that you can, as speeding up cloud IO is always a focus of the team's work.
 
-# AWS V2 SDK and large S3 File uploads over slow connections.
+# Large S3 File uploads over slow connections.
 
-Hadoop releases without the fix for
+Hadoop releases before 3.4.2 and without the fix for
 [HADOOP-19295. S3A: fs.s3a.connection.request.timeout too low for large uploads over slow links
 ](https://issues.apache.org/jira/browse/HADOOP-19295)
 may time out when uploading a large file to a remote store if the connection is slow, with the
@@ -430,6 +430,6 @@ We recommend doing this on the command line itself, rather than set it site-wide
 
 ```bash
 bin/hadoop jar cloudstore-1.4.jar cloudup -D fs.s3a.connection.request.timeout=15m -overwrite \
-../releases/hadoop-3.4.1-RC2/hadoop-3.4.1.tar.gz \
+../releases/hadoop-3.4.1/hadoop-3.4.1.tar.gz \
 s3a://example-london/
 ```

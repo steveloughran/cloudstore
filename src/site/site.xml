@@ -61,7 +61,7 @@
       <item name="tlsinfo" href="tlsinfo.html"/>
     </menu>
 
-    <menu name="AWS V2 SDK Commands">
+    <menu name="S3 Commands">
       <item name="bucketmetadata" href="bucketmetadata.html"/>
       <item name="mkbucket" href="mkbucket.html"/>
       <item name="sdk" href="sdk.html"/>

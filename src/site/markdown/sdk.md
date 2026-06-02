@@ -12,9 +12,10 @@
   limitations under the License. See accompanying LICENSE file.
 -->
 
-# S3 operations through the AWS V2 SDK
+# Low-level S3 operations
 
-There are a set of commands which require the AWS V2 SDK `bundle.jar` on the classpath
+There are a set of lower-level commands against S3 stores.
+These require the AWS V2 SDK `bundle.jar` on the classpath
 
 ## Command bucketstate
 
