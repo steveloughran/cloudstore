@@ -91,7 +91,7 @@
     <!-- 3.5.0 is the last Doxia-1.x-compatible release  -->
     <maven-project-info-reports-plugin.version>3.9.0</maven-project-info-reports-plugin.version>
     <!-- pinned: 4.x (M-releases only) requires Doxia 2. -->
-    <maven-site-plugin.version>3.12.1</maven-site-plugin.version>
+    <maven-site-plugin.version>3.21.0</maven-site-plugin.version>
     <maven-source-plugin.version>3.4.0</maven-source-plugin.version>
     <maven-spotless-plugin.version>3.5.1</maven-spotless-plugin.version>
     <maven-surefire-plugin.version>3.5.6</maven-surefire-plugin.version>
