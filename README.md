@@ -19,13 +19,11 @@ interacting with cloud storage through Apache Hadoop
 
 *License*: Apache ASF 2.0
 
-All the implementation classes are under the `org.apache.hadoop.fs` package
-tree but it is not part of the normal Apache Hadoop artifacts.
+## This Library is now a sub-project of Apache Hadoop
 
-1. Faster release cycle, so the diagnostics can evolve to track features going
-   into Hadoop-trunk.
-2. Ability to compile against older versions.
+This project has (finally!) moved under apache hadoop, as [hadoop-cloudstore](https://github.com/apache/hadoop-cloudstore).
 
+No more releases are expected from the steveloughran repository.
 
 ## Features
 
